@@ -4,7 +4,7 @@
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
 
-const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+import { BROWSER_PATH as EDGE } from './browser_path.mjs';
 const URL = process.env.GAME_URL ?? 'http://localhost:5173';
 fs.mkdirSync('tmp', { recursive: true });
 
@@ -89,16 +89,24 @@ console.log('A sees players:', JSON.stringify(aSees), aSees.includes(NAME_B) ? '
 console.log('B sees players:', JSON.stringify(bSees), bSees.includes(NAME_A) ? 'OK' : 'FAIL');
 
 // A runs forward; B should observe A's position change
+// B drains snapshots on rAF, which only runs foregrounded — so foreground B
+// around each position read, and A while it moves.
+await pageB.bringToFront();
+await new Promise((r) => setTimeout(r, 400));
 const before = await pageB.evaluate((name) => {
   const w = window.__game.world;
   const a = [...w.entities.values()].find((e) => e.name === name);
   return a ? { x: a.pos.x, z: a.pos.z } : null;
 }, NAME_A);
-// rAF (and therefore the input mirror) only runs in the foreground tab
+// rAF (and therefore the input mirror) only runs in the foreground tab.
+// Settle after the foreground switch: the blur from the previous switch can
+// otherwise land after keydown, and the game clears held keys on blur.
 await pageA.bringToFront();
+await new Promise((r) => setTimeout(r, 400));
 await pageA.keyboard.down('w');
 await new Promise((r) => setTimeout(r, 2500));
 await pageA.keyboard.up('w');
+await pageB.bringToFront();
 await new Promise((r) => setTimeout(r, 500));
 const after = await pageB.evaluate((name) => {
   const w = window.__game.world;

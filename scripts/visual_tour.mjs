@@ -2,7 +2,7 @@
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
 
-const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+import { BROWSER_PATH as EDGE } from './browser_path.mjs';
 const URL = process.env.GAME_URL ?? 'http://localhost:5173';
 const CLASS = process.env.GAME_CLASS ?? 'warrior';
 fs.mkdirSync('tmp', { recursive: true });

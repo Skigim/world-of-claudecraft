@@ -2,7 +2,7 @@
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
 
-const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+import { BROWSER_PATH as EDGE } from './browser_path.mjs';
 const URL = process.env.GAME_URL ?? 'http://localhost:5173';
 fs.mkdirSync('tmp', { recursive: true });
 
@@ -69,12 +69,16 @@ for (let i = 0; i < 60; i++) {
   });
   maxCombo = Math.max(maxCombo, s.combo);
   if (s.combo >= 2 && !evisFired) {
-    // give the HUD a frame to catch up before sampling the pips
-    await new Promise((r) => setTimeout(r, 150));
-    const pips = await page.evaluate(() => {
-      const p = window.__game.sim.player;
-      return { ui: [...document.querySelectorAll('.combo-pip.on')].length, combo: p.comboPoints };
-    });
+    // give the HUD time to catch up before sampling the pips — headless
+    // swiftshader frames can take several hundred ms each, so poll
+    let pips = { ui: -1, combo: -2 };
+    for (let j = 0; j < 10 && pips.ui !== pips.combo; j++) {
+      await new Promise((r) => setTimeout(r, 200));
+      pips = await page.evaluate(() => {
+        const p = window.__game.sim.player;
+        return { ui: [...document.querySelectorAll('.combo-pip.on')].length, combo: p.comboPoints };
+      });
+    }
     await page.screenshot({ path: 'tmp/r1_combo.png' });
     console.log('combo state:', JSON.stringify(s), '| UI pips match:', pips.ui === pips.combo ? 'OK' : `FAIL (ui ${pips.ui} vs ${pips.combo})`);
     evisFired = true;

@@ -1,7 +1,7 @@
 // Verifies A/D turn and Q/E strafe match screen directions, using the live camera basis.
 import puppeteer from 'puppeteer-core';
 
-const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+import { BROWSER_PATH as EDGE } from './browser_path.mjs';
 const browser = await puppeteer.launch({
   executablePath: EDGE,
   headless: 'new',

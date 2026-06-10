@@ -2,7 +2,7 @@
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
 
-const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+import { BROWSER_PATH as EDGE } from './browser_path.mjs';
 const URL = process.env.GAME_URL ?? 'http://localhost:5173';
 fs.mkdirSync('tmp', { recursive: true });
 
@@ -24,16 +24,7 @@ await new Promise((r) => setTimeout(r, 1500));
 
 // level up to 8 (learns frostbolt, fire blast, polymorph, arcane missiles)
 await page.evaluate(() => {
-  const g = window.__game;
-  g.sim.player.level = 8;
-  g.sim.refreshKnownAbilities ? g.sim.refreshKnownAbilities(false) : null;
-});
-// refreshKnownAbilities is private; call through any-cast
-await page.evaluate(() => {
-  const sim = window.__game.sim;
-  sim['refreshKnownAbilities'](false);
-  const { recalc } = {};
-  sim.player.hp = sim.player.maxHp;
+  window.__game.sim.setPlayerLevel(8);
 });
 
 const known = await page.evaluate(() => window.__game.sim.known.map((k) => k.def.id));
