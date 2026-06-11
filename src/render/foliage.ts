@@ -133,7 +133,10 @@ interface LodDists {
   rockFar: number;
 }
 const LOD_HIGH: LodDists = { barkFar: 330, dressFar: 200, rockFar: 360 };
-const LOD_LOW: LodDists = { barkFar: 150, dressFar: 140, rockFar: 240 };
+// low caps must clear the worst camera-to-bucket-CENTRE distance (~158u for a
+// 2-column x 240u-band bucket) or nearby dressing vanishes and trunks pop at
+// bucket boundaries — the windows test bucket centres, not instances
+const LOD_LOW: LodDists = { barkFar: 170, dressFar: 165, rockFar: 240 };
 function lodDists(): LodDists {
   return GFX.standardMaterials ? LOD_HIGH : LOD_LOW;
 }
@@ -335,6 +338,11 @@ function farTrunkGeo(barkGeo: THREE.BufferGeometry): THREE.BufferGeometry {
   const h = barkGeo.boundingBox!.max.y * 0.8;
   const geo = new THREE.CylinderGeometry(0.2, 0.42, h, 5, 1, true);
   geo.translate(0, h / 2, 0);
+  // the bark material has vertexColors:true (source GLBs ship COLOR_0); a
+  // proxy without the attribute samples the GL default (0,0,0) — black poles.
+  // Match the bark's VEC4 colors with constant white instead.
+  const n = geo.getAttribute('position').count;
+  geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 4).fill(1), 4));
   farTrunkCache.set(barkGeo, geo);
   return geo;
 }
@@ -462,7 +470,12 @@ function buildTrees(parent: THREE.Group, seed: number, registry: BucketMesh[]): 
   // rocks: 3 single variants + a merged 3-boulder cluster, each in a mossy-top
   // and a snow-dusted colorway (baked vertex colors over the rock texture)
   const rockParts = MODEL_URLS.rock.map(extractParts);
-  const rockMat = rockParts[0][0].material;
+  // source rock GLBs ship no COLOR_0, so the cached material resolves with
+  // vertexColors:false — but every rock geometry below goes through
+  // bakeTopTint (moss/snow vertex colors). Clone with vertexColors on, or
+  // the colorways are inert. (Safe to clone: rocks take no wind hook.)
+  const rockMat = (rockParts[0][0].material as THREE.MeshStandardMaterial).clone();
+  rockMat.vertexColors = true;
   const colorway = (tint: THREE.Color): THREE.BufferGeometry[] => {
     const singles = rockParts.map((parts) => bakeTopTint(parts[0].geometry.clone(), tint));
     const member = (gi: number, x: number, y: number, z: number, ry: number, s: number): THREE.BufferGeometry =>

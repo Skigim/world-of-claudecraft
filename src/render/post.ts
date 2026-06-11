@@ -16,8 +16,10 @@ import { GFX, sharedUniforms } from './gfx';
 // cheap enough (half-res) to run on the high tier where GTAO was ultra-only.
 // It sits mid-chain so its autosetGamma leaves the buffer linear for bloom.
 //
-// AA: MSAA on the composer's HalfFloat target (WebGL2) — resolves geometry
-// edges before post without smearing the crisp low-poly silhouettes.
+// AA: when N8AO is active it renders the scene into its own non-MSAA beauty
+// target, so geometry AA comes from bloom/grade softening + pixel ratio (the
+// composer target therefore skips MSAA storage — pure waste otherwise). The
+// no-AO fallback path keeps MSAA on the composer target.
 
 const BLOOM_STRENGTH = 0.32; // subtle — fires/portals glow, sky must not blow out
 const BLOOM_RADIUS = 0.55;
@@ -71,9 +73,11 @@ export function buildComposer(
   camera: THREE.Camera,
 ): PostPipeline {
   const size = webgl.getDrawingBufferSize(new THREE.Vector2());
-  // HDR + MSAA in one target (WebGL2); HalfFloat keeps >1 colors for bloom
+  // HDR target; HalfFloat keeps >1 colors for bloom. MSAA only helps when a
+  // RenderPass draws the scene into this target — with N8AO that never
+  // happens, so skip the multisample storage + resolve cost there.
   const target = new THREE.WebGLRenderTarget(size.x, size.y, {
-    samples: webgl.capabilities.isWebGL2 ? GFX.msaaSamples : 0,
+    samples: webgl.capabilities.isWebGL2 && !GFX.ao ? GFX.msaaSamples : 0,
     type: THREE.HalfFloatType,
   });
   const composer = new EffectComposer(webgl, target);
@@ -95,6 +99,11 @@ export function buildComposer(
     // guesses from renderToScreen, but be explicit — a gamma-lifted frame
     // here washes the whole image out)
     ao.configuration.gammaCorrection = false;
+    // no transparency-aware compositing: auto-detection re-enables it every
+    // frame (water/sprites are transparent), costing 2 extra scene renders +
+    // ~5 full-scene traversals per frame. AO multiplying over transparent
+    // surfaces showed no visible difference in A/B shots.
+    ao.configuration.transparencyAware = false;
     if (GFX.tier === 'ultra') {
       ao.setQualityMode('Medium');
     } else {
@@ -116,6 +125,13 @@ export function buildComposer(
   const grade = new ShaderPass(GradeShader);
   grade.uniforms.uTime = sharedUniforms.uTime; // shared clock drives the grain
   composer.addPass(grade);
+
+  // EffectComposer defaults its logical size to drawing-buffer pixels and
+  // then multiplies by pixelRatio again when sizing passes — N8AO/bloom would
+  // run at ~3x the intended pixel area until the first window resize. Reset
+  // to logical size x real ratio (identical to the resize-handler state).
+  composer.setPixelRatio(webgl.getPixelRatio());
+  composer.setSize(window.innerWidth, window.innerHeight);
 
   return {
     composer,

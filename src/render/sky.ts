@@ -217,9 +217,12 @@ export function buildSky(lowGfx: boolean, sunDir: THREE.Vector3): SkyView {
       return hdriStore[biome] ?? null;
     },
     envRotationY(biome: BiomeId): number {
-      // dome samples at u + off => visible sky rotates by -off*2pi; the
-      // environmentRotation matrix rotates lookup dirs, i.e. u - theta/2pi
-      return -sunOffsetU(biome, sun) * 2 * Math.PI;
+      // dome samples at u + off. three r165 negates environmentRotation
+      // before building the PMREM lookup matrix ("accommodate left-handed
+      // frame", WebGLMaterials.js), so the effective lookup azimuth is
+      // alpha + theta — matching the dome needs theta = +off*2pi. (A negated
+      // value lands the env sun 2x the offset away from the dome's.)
+      return sunOffsetU(biome, sun) * 2 * Math.PI;
     },
     biomeAt: biomeBlendAt,
   };

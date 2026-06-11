@@ -35,7 +35,7 @@ const DEFAULT_RUN_REF = 7;
 // surface glide; clip-less rigs (creatures) get the full procedural prone
 const SWIM_PITCH_CLIP = 0.35;
 const SWIM_PITCH_PROCEDURAL = 1.18;
-const SWIM_RISE = 0.5;
+const SWIM_RISE = 0.95; // body must break the surface or only the hat floats
 const MIXER_DT_CAP = 0.3; // throttled entities never integrate a huge step
 
 // shared invisible click capsule — raycaster ignores `visible`, render doesn't
@@ -260,7 +260,16 @@ export class CharacterVisual {
     this.mixer.stopAllAction();
     this.mixer.uncacheRoot(this.model);
     this.root.removeFromParent();
-    // geometries + materials are shared per-asset caches — never disposed here
+    // SkeletonUtils.clone gives each instance exclusive Skeletons whose GPU
+    // bone textures the renderer allocates lazily — release them here or
+    // online interest churn strands one per despawned entity. Geometries and
+    // materials remain shared per-asset caches and are never disposed.
+    const skeletons = new Set<THREE.Skeleton>();
+    this.model.traverse((o) => {
+      const sm = o as THREE.SkinnedMesh;
+      if (sm.isSkinnedMesh && sm.skeleton) skeletons.add(sm.skeleton);
+    });
+    for (const skeleton of skeletons) skeleton.dispose();
   }
 
   // -------------------------------------------------------------------------
@@ -320,7 +329,10 @@ export class CharacterVisual {
     const prev = this.current;
     a.reset();
     a.setLoop(THREE.LoopOnce, 1);
-    a.clampWhenFinished = false;
+    // clamp on the last frame: an unclamped LoopOnce action zeroes its weight
+    // the instant it finishes, which blends the rig toward bind pose for the
+    // whole 0.18s hand-off fade (a visible T-pose pop after every swing)
+    a.clampWhenFinished = true;
     a.timeScale = timeScale;
     if (prev && prev !== a) prev.fadeOut(ONESHOT_FADE);
     a.fadeIn(ONESHOT_FADE).play();

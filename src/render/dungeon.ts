@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
-import { loadGltf } from './assets/loader';
+import { loadGltf, releaseGltf } from './assets/loader';
 import { registerPreload } from './assets/preload';
 import { radialGlowTexture } from './textures';
 import { instanceOrigin } from '../sim/data';
@@ -124,10 +124,18 @@ function extractModule(name: string, pack: Pack, gltf: GLTF): void {
 }
 
 for (const name of KIT_MODELS) {
-  registerPreload(loadGltf(`models/dungeon/${name}.glb`).then((g) => extractModule(name, 'kit', g)));
+  // release after extraction: 59 parsed GLTFs each embed a copy of the atlas
+  // (~59MB CPU retained for nothing — only merged clones + 2 materials live on)
+  registerPreload(loadGltf(`models/dungeon/${name}.glb`).then((g) => {
+    extractModule(name, 'kit', g);
+    releaseGltf(`models/dungeon/${name}.glb`);
+  }));
 }
 for (const name of BITS_MODELS) {
-  registerPreload(loadGltf(`models/dungeon/${name}.glb`).then((g) => extractModule(name, 'bits', g)));
+  registerPreload(loadGltf(`models/dungeon/${name}.glb`).then((g) => {
+    extractModule(name, 'bits', g);
+    releaseGltf(`models/dungeon/${name}.glb`);
+  }));
 }
 
 // ---------------------------------------------------------------------------

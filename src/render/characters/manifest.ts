@@ -163,12 +163,14 @@ export const VISUALS: Record<string, VisualDef> = {
   player_mage: {
     url: `${CHARS}/mage.glb`, height: HUMANOID_H,
     clips: kaykit(['2H_Melee_Attack_Chop']),
-    show: ['2H_Staff', 'Mage_Hat', 'Mage_Cape'],
+    // no Mage_Hat on players: the brim hides the whole body from the default
+    // chase-camera pitch (NPC mages keep theirs — they're seen from the side)
+    show: ['2H_Staff', 'Mage_Cape'],
   },
   player_warlock: {
     url: `${CHARS}/mage.glb`, height: HUMANOID_H,
     clips: kaykit(['Spellcast_Shoot']), // wand zap reads better than a staff bonk
-    show: ['1H_Wand', 'Spellbook_open', 'Mage_Hat'],
+    show: ['1H_Wand', 'Spellbook_open'],
     tint: 0x8d5fd3, tintStrength: 0.45,
   },
   player_druid: {
@@ -211,7 +213,8 @@ export const VISUALS: Record<string, VisualDef> = {
   },
   mob_troll: {
     url: `${CREATURES}/orc.glb`, height: 2.4,
-    clips: BIPED14, tint: 'entity', tintStrength: 0.35,
+    // faint wash only — 0.35 flooded every material with the template green
+    clips: BIPED14, tint: 'entity', tintStrength: 0.12,
   },
   mob_ogre: {
     url: `${CREATURES}/giant.glb`, height: 2.8,
@@ -222,8 +225,10 @@ export const VISUALS: Record<string, VisualDef> = {
     clips: FLOATING, tint: 'entity', tintStrength: 0.4,
   },
   mob_dragonkin: {
-    url: `${CREATURES}/dragonevolved.glb`, height: 2.4, hover: 0.45,
-    clips: FLOATING, tint: 'entity', tintStrength: 0.35,
+    url: `${CREATURES}/dragonevolved.glb`, height: 2.4, hover: 0.25,
+    // light tint only — heavy washes crush the wyrm to black under the green
+    // sanctum torchlight
+    clips: FLOATING, tint: 'entity', tintStrength: 0.2,
   },
 
   // -- undead (KayKit skeletons, shared 41-joint rig) ------------------------
@@ -265,8 +270,9 @@ export const VISUALS: Record<string, VisualDef> = {
     url: `${CHARS}/rogue_hooded.glb`, height: HUMANOID_H,
     clips: kaykit(['1H_Melee_Attack_Chop', 'Dualwield_Melee_Attack_Chop']),
     show: ['Knife', 'Knife_Offhand'],
-    // a faint wash only — at 0.35 the whole outfit (and face) went shamrock
-    tint: 'entity', tintStrength: 0.15,
+    // fixed outlaw leather — entity tints (faction greens) read as friendly
+    // villagers; the dark red-brown keeps the hooded silhouette hostile
+    tint: 0x6b3a32, tintStrength: 0.3,
   },
   mob_dark_caster: {
     url: `${CHARS}/mage.glb`, height: HUMANOID_H,

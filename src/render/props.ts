@@ -150,10 +150,13 @@ function toFloatAttr(attr: THREE.BufferAttribute | THREE.InterleavedBufferAttrib
   return new THREE.BufferAttribute(out, itemSize);
 }
 
-function convertMaterial(src: THREE.Material, kit: string): THREE.Material {
+function convertMaterial(src: THREE.Material, kit: string, hasVertexColors: boolean): THREE.Material {
   const s = src as THREE.MeshStandardMaterial; // basic (unlit) shares the fields we read
   const ov = MAT_OVERRIDES[`${kit}:${s.name}`] ?? MAT_OVERRIDES[s.name];
-  const key = `${kit}|${s.name}|${s.color?.getHexString() ?? ''}|${s.map ? 'm' : ''}|${GFX.standardMaterials ? 's' : 'l'}`;
+  // hasVertexColors must key the cache: kits share material names between
+  // COLOR_0 meshes (trim 'Vertex' props) and colorless ones — a shared
+  // vertexColors:true material would render the colorless meshes black
+  const key = `${kit}|${s.name}|${s.color?.getHexString() ?? ''}|${s.map ? 'm' : ''}|${hasVertexColors ? 'v' : ''}|${GFX.standardMaterials ? 's' : 'l'}`;
   const cached = matConvCache.get(key);
   if (cached) return cached;
   const color = ov?.color !== undefined ? new THREE.Color(ov.color) : (s.color?.clone() ?? new THREE.Color(0xffffff));
@@ -162,6 +165,7 @@ function convertMaterial(src: THREE.Material, kit: string): THREE.Material {
   if (GFX.standardMaterials) {
     mat = new THREE.MeshStandardMaterial({
       color, map,
+      vertexColors: hasVertexColors,
       normalMap: s.normalMap ?? null,
       roughnessMap: s.roughnessMap ?? null,
       metalnessMap: s.metalnessMap ?? null,
@@ -174,6 +178,7 @@ function convertMaterial(src: THREE.Material, kit: string): THREE.Material {
   } else {
     mat = new THREE.MeshLambertMaterial({
       color, map,
+      vertexColors: hasVertexColors,
       emissive: new THREE.Color(ov?.emissive ?? 0x000000),
       emissiveIntensity: (ov?.emissiveIntensity ?? 1) * 0.6,
     });
@@ -205,11 +210,15 @@ function propAsset(key: PropKey): PropAsset {
     if (src.getAttribute('normal')) geo.setAttribute('normal', toFloatAttr(src.getAttribute('normal'), 3));
     const uv = src.getAttribute('uv');
     geo.setAttribute('uv', uv ? toFloatAttr(uv, 2) : new THREE.BufferAttribute(new Float32Array((src.getAttribute('position') as THREE.BufferAttribute).count * 2), 2));
+    // authored vertex tints (trim-kit 'Vertex' materials depend on them);
+    // toFloatAttr denormalizes the uint8 COLOR_0, alpha is 1.0 kit-wide
+    const col = src.getAttribute('color');
+    if (col) geo.setAttribute('color', toFloatAttr(col, 3));
     if (src.index) geo.setIndex(src.index.clone());
     geo.applyMatrix4(mesh.matrixWorld);
     if (yawM) geo.applyMatrix4(yawM);
     if (!geo.getAttribute('normal')) geo.computeVertexNormals();
-    parts.push({ geo, mat: convertMaterial(srcMat, def.kit) });
+    parts.push({ geo, mat: convertMaterial(srcMat, def.kit, !!col) });
   });
   if (!parts.length) throw new Error(`prop asset has no meshes: ${key}`);
   // normalize origin: xz-center at 0, base at y=0

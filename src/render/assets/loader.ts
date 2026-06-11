@@ -33,6 +33,14 @@ export function loadGltf(url: string): Promise<GLTF> {
   return p;
 }
 
+/** Drop a parsed glTF from the cache once its data has been extracted into
+ *  module-owned structures — lets the parsed scene, original geometry and any
+ *  duplicate decoded textures be garbage-collected. A later loadGltf for the
+ *  same url would simply re-fetch. */
+export function releaseGltf(url: string): void {
+  gltfCache.delete(url);
+}
+
 /** Equirectangular Radiance .hdr for IBL / sky sampling (HalfFloat). */
 export function loadHdr(url: string): Promise<THREE.DataTexture> {
   let p = hdrCache.get(url);

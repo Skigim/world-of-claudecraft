@@ -18,16 +18,21 @@ const $ = <T extends HTMLElement = HTMLElement>(sel: string): T => document.quer
 // ---------------------------------------------------------------------------
 
 async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWorld | null): Promise<void> {
-  $('#start-screen').style.display = 'none';
-
   // Model/texture/HDRI fetches were kicked off at module import; the renderer
   // builds its scene synchronously, so everything must be resolved first.
+  // Keep the start screen up with a progress line — not a silent black screen.
+  const status = document.querySelector('#load-status') as HTMLElement | null;
+  if (status) status.textContent = 'Loading world…';
   try {
-    await assetsReady();
+    await assetsReady((done, total) => {
+      if (status) status.textContent = `Loading world… ${done}/${total}`;
+    });
   } catch (err) {
     fatalOverlay(`Asset loading failed — try reloading. ${err instanceof Error ? err.message : err}`);
     return;
   }
+  if (status) status.textContent = '';
+  $('#start-screen').style.display = 'none';
 
   const canvas = $('#game-canvas') as unknown as HTMLCanvasElement;
   const nameplates = $('#nameplates') as HTMLDivElement;

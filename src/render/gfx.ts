@@ -42,7 +42,7 @@ function settingsFor(tier: GfxTier): GfxSettings {
     pixelRatioCap: tier === 'low' ? 1 : tier === 'high' ? 1.75 : 2.5,
     shadowMap: tier === 'low' ? 1024 : 4096,
     standardMaterials: tier !== 'low',
-    grassRadius: tier === 'low' ? 45 : 70,
+    grassRadius: tier === 'low' ? 45 : 82, // 70 left a visible regen boundary in wide shots
     grassStep: tier === 'low' ? 3.2 : 1.8,
     terrainSplat: tier !== 'low',
     windSway: tier !== 'low',

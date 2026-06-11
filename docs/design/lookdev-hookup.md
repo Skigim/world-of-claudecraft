@@ -56,10 +56,10 @@ this.scene.environmentIntensity = ENV_INTENSITY * 0.55; // see note below
   `ENV_INTENSITY` on enter/leave (renderer.ts ~606). If you adopt per-biome
   refresh, gate the refresh while underground so a biome boundary crossed
   via dungeon coordinates can't flip the env mid-dungeon.
-- `envRotationY` sign convention was derived analytically (dome samples at
-  `u + off`; `environmentRotation.y = -off * 2π`). If specular highlights on
-  water/metal sit on the wrong side of objects, flip the sign — diffuse IBL
-  is too low-frequency to care.
+- `envRotationY` sign: three r165 negates `environmentRotation` before
+  building the PMREM lookup matrix, so matching the dome's `u + off`
+  sampling requires `+off * 2π` (verified via background-proxy A/B shots;
+  the originally shipped negated value was wrong by 2x the offset).
 
 ## 2. Sun anchor contract — unchanged
 
