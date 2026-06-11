@@ -341,33 +341,51 @@ function buildSplatMaterial(seed: number): THREE.MeshStandardMaterial {
       .replace('#include <common>', `#include <common>
         attribute vec4 aSplat;
         varying vec4 vSplat;
-        varying vec3 vWPos;`)
+        varying vec3 vWPos;
+        varying vec3 vWNorm;`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
         vSplat = aSplat;
-        vWPos = (modelMatrix * vec4(position, 1.0)).xyz;`);
+        vWPos = (modelMatrix * vec4(position, 1.0)).xyz;
+        vWNorm = objectNormal; // terrain mesh is untransformed: object == world`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
         varying vec4 vSplat;
         varying vec3 vWPos;
+        varying vec3 vWNorm;
         uniform sampler2D uGrass, uDirt, uRock, uSand, uRockN, uMacro;`)
       .replace('#include <map_fragment>', `
         vec2 tuv = vWPos.xz * 0.22;
         // grass blends three scales so it never reads as a flat wash or a tile
         vec3 grassAlb = mix(texture2D(uGrass, tuv).rgb, texture2D(uGrass, tuv * 0.27).rgb, 0.45);
         grassAlb = mix(grassAlb, texture2D(uGrass, tuv * 0.53).rgb, 0.3);
+        // rock: top-down projection smears into vertical streaks on cliffs,
+        // so steep faces blend toward wall-planar (world XY/ZY) samples
+        vec3 an = abs(normalize(vWNorm));
+        float wallW = clamp(1.0 - an.y * 1.45, 0.0, 1.0);
+        vec3 rockFlat = texture2D(uRock, tuv * 0.6).rgb;
+        vec3 rockWall = mix(
+          texture2D(uRock, vWPos.xy * 0.132).rgb,
+          texture2D(uRock, vWPos.zy * 0.132).rgb,
+          an.x / max(1e-4, an.x + an.z));
+        vec3 rockAlb = mix(rockFlat, rockWall, wallW);
         vec3 alb = grassAlb * vSplat.x
                  + texture2D(uDirt, tuv * 0.8).rgb * vSplat.y
-                 + texture2D(uRock, tuv * 0.6).rgb * vSplat.z
+                 + rockAlb * vSplat.z
                  + texture2D(uSand, tuv).rgb * vSplat.w;
         // gentle macro swing — +/-26% read as blotchy stains on open fields;
         // the third grass scale above recovers the tiling break-up instead
         float macro = mix(0.89, 1.11, texture2D(uMacro, vWPos.xz * 0.012).r);
+        // very-low-frequency hue drift (~100u wavelength) keeps distant
+        // hills from flattening into one uniform lawn green
+        float macro2 = texture2D(uMacro, vWPos.xz * 0.0045 + 0.37).r;
+        alb = mix(alb, alb * vec3(1.09, 1.04, 0.8), (macro2 - 0.5) * 0.6 * vSplat.x);
         // splat albedo is authored mid-gray; vertex color carries the hue
         diffuseColor.rgb *= alb * macro * 2.0;`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-        // rock-only detail relief, weighted by the rock splat layer
+        // rock-only detail relief, weighted by the rock splat layer; faded on
+        // near-vertical faces where the top-down projection smears
         vec3 rockN = texture2D(uRockN, tuv * 0.6).xyz * 2.0 - 1.0;
-        normal = normalize(normal + tbn * vec3(rockN.xy * vSplat.z * 0.85, 0.0));`);
+        normal = normalize(normal + tbn * vec3(rockN.xy * vSplat.z * 0.85 * (1.0 - wallW), 0.0));`);
   };
   return mat;
 }

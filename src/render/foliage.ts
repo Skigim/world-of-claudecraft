@@ -19,9 +19,15 @@ import { barkMaps, barkTexture, foliageCardTexture, foliageTexture, grassTuftTex
 //   biome-aware (marsh trees murkier and mossier, peaks pines a darker
 //   blue-green).
 // - High tier: foliage (not trunks/rocks) sways in the wind via
-//   onBeforeCompile on the shared uTime clock; pines get drooped 8-segment
-//   cones plus a crossed alpha-card ring for a fluffier silhouette; oaks get
-//   four noise-jittered blobs.
+//   onBeforeCompile on the shared uTime clock.
+// - Shapes are hand-built organic merges (one trunk draw + one canopy draw
+//   per species per bucket): pines stack ragged noise-rimmed tiers on a
+//   gnarled trunk with a root flare plus a crossed alpha-card ring; oaks fork
+//   into limbs under a cluster of noise-displaced icosahedron lobes; marsh
+//   tree2 becomes a twisted bare swamp tree with sparse drooping lobes and
+//   hanging moss cards; rocks are flat-shaded noise-displaced icosahedron
+//   boulders (single + stacked-cluster archetypes) with a baked moss or
+//   snow-dust top blend.
 // - Grass is a player-centered ring (O(radius^2), not O(world^2)) rebuilt
 //   when the player moves >12u. Tuft placement hashes the absolute grid cell,
 //   so the same tufts always reappear in the same spots. A shader fade
@@ -40,9 +46,18 @@ const BUCKET_DEPTH = 200;
 // hue (vale is no longer pure white) so the meadow belongs to the terrain.
 const PINE_TINT: Record<BiomeId, number> = { vale: 0x9bb48d, marsh: 0x87966b, peaks: 0x6f8a7a };
 const OAK_TINT: Record<BiomeId, number> = { vale: 0xa7b886, marsh: 0x8d9865, peaks: 0x92a37f };
-const ROCK_TINT: Record<BiomeId, number> = { vale: 0x8d8d85, marsh: 0x7e8270, peaks: 0x878e99 };
+const ROCK_TINT: Record<BiomeId, number> = { vale: 0x8d8d85, marsh: 0x565c4e, peaks: 0x878e99 };
+
+// rocks only pick up the snow-dust colorway above the terrain snowline —
+// low-altitude peaks-biome foothills stay mossy/bare (white rocks on green
+// grass read as scattered eggs)
+const ROCK_SNOWLINE_Y = 34; // terrain snow tint starts at h~34 (terrain.ts)
 const TRUNK_TINT: Record<BiomeId, number> = { vale: 0xffffff, marsh: 0xd2d8bc, peaks: 0xd9dde4 };
 const GRASS_TINT: Record<BiomeId, number> = { vale: 0xdde4c0, marsh: 0xbfc492, peaks: 0xc2cec8 };
+// marsh tree2 is a swamp tree: murkier canopy than the vale oak, and the
+// hanging moss strands multiply the olive tuft texture toward gray-green
+const SWAMP_CANOPY_TINT = 0x7e8b58;
+const SWAMP_MOSS_TINT = 0xa8b184;
 // grass refuses cliff faces (mirrors ROCK_SLOPE_START in terrain.ts)
 const GRASS_MAX_SLOPE = 0.62;
 const GRASS_SLOPE_EPS = 1.2;
@@ -91,31 +106,174 @@ function addWind(mat: THREE.Material, strength: number): void {
   };
 }
 
-// 8-segment cone with the rim drooped down (fir-branch sag); needs height
-// segments so the profile curves instead of just stretching.
-function droopCone(radius: number, height: number, droop: number): THREE.BufferGeometry {
-  const geo = new THREE.ConeGeometry(radius, height, 8, 3);
+// Deterministic hash keyed on the quantised vertex position: seam/cap/pole
+// twin vertices land in the same cell, so welded shapes stay welded after
+// noise displacement.
+function quantHash(x: number, y: number, z: number, k: number): number {
+  const qx = Math.round(x * 20) / 20, qy = Math.round(y * 20) / 20, qz = Math.round(z * 20) / 20;
+  return hashAt(qx * 13.7 + qz * 31.1, qy * 7.3, k);
+}
+
+// One pine foliage tier: a drooped cone whose rim is pushed in/out and up/down
+// per vertex so the silhouette reads as ragged branch clumps, not a cone.
+function raggedTier(radius: number, height: number, droop: number, key: number): THREE.BufferGeometry {
+  const geo = new THREE.ConeGeometry(radius, height, 8, 2);
   const pos = geo.attributes.position as THREE.BufferAttribute;
   for (let i = 0; i < pos.count; i++) {
-    const radial = Math.hypot(pos.getX(i), pos.getZ(i)) / radius;
-    pos.setY(i, pos.getY(i) - droop * radial * radial);
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const radial = Math.min(1, Math.hypot(x, z) / radius);
+    const rs = 1 + (quantHash(x, y, z, key) - 0.5) * 0.55 * radial;
+    const dy = (quantHash(x, y, z, key + 17) - 0.5) * 0.6 * radial - droop * radial * radial;
+    pos.setXYZ(i, x * rs, y + dy, z * rs);
   }
   geo.computeVertexNormals();
   return geo;
 }
 
-// Sphere with one-time radial vertex noise so oak canopies aren't perfect
-// balls. Hash keys off quantised position so seam/pole twins stay welded.
-function noisyBlob(radius: number): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(radius, 8, 6);
+// Smooth trilinear value noise on the hashAt lattice — continuous across
+// vertices (white per-vertex hash turns dense meshes into spiky messes).
+function valueNoise3(x: number, y: number, z: number, k: number): number {
+  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+  const sm = (t: number): number => t * t * (3 - 2 * t);
+  const u = sm(x - xi), v = sm(y - yi), w = sm(z - zi);
+  const h = (a: number, b: number, cc: number): number => hashAt(a * 13.7 + cc * 31.1, b * 7.3, k);
+  const lp = (a: number, b: number, t: number): number => a + (b - a) * t;
+  return lp(
+    lp(lp(h(xi, yi, zi), h(xi + 1, yi, zi), u), lp(h(xi, yi + 1, zi), h(xi + 1, yi + 1, zi), u), v),
+    lp(lp(h(xi, yi, zi + 1), h(xi + 1, yi, zi + 1), u), lp(h(xi, yi + 1, zi + 1), h(xi + 1, yi + 1, zi + 1), u), v),
+    w,
+  );
+}
+
+// Icosahedron lobe with two octaves of radial value noise — a lumpy foliage
+// cloud. Normals are reset to the radial direction for soft rounded shading
+// (icosahedron faces are unwelded, so computeVertexNormals would facet).
+// Big lobes get detail 2 so close-up silhouettes stay leafy, not triangular.
+function noisyLobe(radius: number, amp: number, key: number, detail = 1): THREE.BufferGeometry {
+  const geo = new THREE.IcosahedronGeometry(radius, detail);
+  const pos = geo.attributes.position as THREE.BufferAttribute;
+  const nrm = geo.attributes.normal as THREE.BufferAttribute;
+  const uv = geo.attributes.uv as THREE.BufferAttribute;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const coarse = (valueNoise3(x * 1.1, y * 1.1, z * 1.1, key) - 0.5) * 2 * amp;
+    const fine = (valueNoise3(x * 3.1, y * 3.1, z * 3.1, key + 9) - 0.5) * amp * 0.8;
+    const s = 1 + coarse + fine;
+    pos.setXYZ(i, x * s, y * s, z * s);
+    const il = 1 / (Math.hypot(x, y, z) || 1);
+    nrm.setXYZ(i, x * il, y * il, z * il);
+    // continuous spherical UVs: the polyhedron's per-face islands turn every
+    // edge into a texture seam, which reads as giant hard triangles up close
+    uv.setXY(i, Math.atan2(z, x) / (Math.PI * 2) + 0.5, Math.acos(Math.max(-1, Math.min(1, y * il))) / Math.PI);
+  }
+  return geo;
+}
+
+// y-squash a lobe (foliage clouds are wider than tall)
+function squash(geo: THREE.BufferGeometry, k: number): THREE.BufferGeometry {
+  return geo.applyMatrix4(new THREE.Matrix4().makeScale(1, k, 1));
+}
+
+// Tapered trunk with per-ring radius wobble, per-vertex gnarl and an optional
+// lean / S-bend; base sits at y=0. Original radial normals are kept — the
+// wobble is small and recomputing them would crack the UV seam.
+function gnarledTrunk(
+  rBase: number, rTop: number, height: number, lean: number, sBend: number, key: number,
+  heightSegs = 4,
+): THREE.BufferGeometry {
+  const geo = new THREE.CylinderGeometry(rTop, rBase, height, 6, heightSegs);
+  geo.translate(0, height / 2, 0);
   const pos = geo.attributes.position as THREE.BufferAttribute;
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    const qx = Math.round(x * 16) / 16, qy = Math.round(y * 16) / 16, qz = Math.round(z * 16) / 16;
-    const s = 0.85 + 0.3 * hashAt(qx * 13.7, qy * 7.3 + qz * 31.1, 5);
+    const t = Math.min(1, Math.max(0, y / height));
+    const ring = 1 + (hashAt(Math.round(y * 20), key, 4) - 0.5) * 0.28;
+    const gnarl = 1 + (quantHash(x, y, z, key + 5) - 0.5) * 0.14;
+    const bend = Math.sin(t * Math.PI) * sBend + t * t * lean;
+    pos.setXYZ(i, x * ring * gnarl + bend, y, z * ring * gnarl + bend * 0.4);
+  }
+  return geo;
+}
+
+// Tapered limb: base at (bx,by,bz), tilted `tilt` rad from vertical, spun to
+// the `yaw` direction. Used for oak forks and bare swamp branches.
+function branchLimb(
+  rBase: number, rTop: number, len: number, tilt: number, yaw: number,
+  bx: number, by: number, bz: number,
+): THREE.BufferGeometry {
+  const geo = new THREE.CylinderGeometry(rTop, rBase, len, 5, 1);
+  geo.translate(0, len / 2, 0);
+  geo.rotateZ(tilt);
+  geo.rotateY(yaw);
+  geo.translate(bx, by, bz);
+  return geo;
+}
+
+// Short tapered root spur radiating from the trunk base at angle `a`.
+function rootSpur(r: number, len: number, a: number): THREE.BufferGeometry {
+  const geo = new THREE.ConeGeometry(r, len, 4);
+  geo.translate(0, len / 2, 0);
+  geo.rotateZ(-1.25); // apex leans toward +x, nearly horizontal
+  geo.rotateY(a);
+  geo.translate(Math.cos(a) * r, 0.1, -Math.sin(a) * r);
+  return geo;
+}
+
+// Ring of root spurs — merged into the trunk geometry so the base flares
+// organically instead of a cylinder stabbing the ground.
+function rootFlare(count: number, trunkR: number, len: number, key: number): THREE.BufferGeometry[] {
+  const spurs: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * Math.PI * 2 + hashAt(i, key, 6) * 1.1;
+    spurs.push(rootSpur(
+      trunkR * (0.45 + hashAt(i, key, 7) * 0.25),
+      len * (0.8 + hashAt(i, key, 8) * 0.5),
+      a,
+    ));
+  }
+  return spurs;
+}
+
+// Noise-displaced icosahedron boulder; the facets come from the flat-shaded
+// material, so post-noise normals are left alone.
+function boulder(radius: number, amp: number, key: number): THREE.BufferGeometry {
+  const geo = new THREE.IcosahedronGeometry(radius, 1);
+  const pos = geo.attributes.position as THREE.BufferAttribute;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const s = 1 + (quantHash(x, y, z, key) - 0.5) * 2 * amp;
     pos.setXYZ(i, x * s, y * s, z * s);
   }
-  // radial displacement keeps the original (radial) normals serviceable
+  return geo;
+}
+
+// Upward-facing rock vertices blend toward `tint` (moss or snow dust) and the
+// underside picks up baked AO; both multiply the per-instance gray.
+function bakeTopTint(geo: THREE.BufferGeometry, tint: THREE.Color): THREE.BufferGeometry {
+  const pos = geo.attributes.position as THREE.BufferAttribute;
+  const arr = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const upness = y / (Math.hypot(x, y, z) || 1);
+    const t = THREE.MathUtils.smoothstep(upness, 0.05, 0.8);
+    const ao = 1 + Math.min(0, upness) * 0.24;
+    arr[i * 3] = (1 + (tint.r - 1) * t) * ao;
+    arr[i * 3 + 1] = (1 + (tint.g - 1) * t) * ao;
+    arr[i * 3 + 2] = (1 + (tint.b - 1) * t) * ao;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(arr, 3));
+  return geo;
+}
+
+// Crossed alpha-card pair hanging below a swamp canopy lobe (top edge at y),
+// using the grass-tuft texture flipped so the blades droop downward.
+function mossStrand(w: number, h: number, x: number, y: number, z: number, yaw: number): THREE.BufferGeometry {
+  const a = new THREE.PlaneGeometry(w, h);
+  a.rotateZ(Math.PI);
+  const b = a.clone().rotateY(Math.PI / 2);
+  const geo = mergeGeometries([a, b]);
+  geo.rotateY(yaw);
+  geo.translate(x, y - h / 2, z);
   return geo;
 }
 
@@ -190,42 +348,117 @@ function buildTrees(parent: THREE.Group, seed: number, registry: BucketMesh[]): 
     : new THREE.MeshLambertMaterial({ map: leafTex, vertexColors: true });
   addWind(leafMat, TREE_WIND_STRENGTH);
   let cardMat: THREE.Material | null = null;
+  let mossMat: THREE.Material | null = null;
   if (usePbr) {
     cardMat = new THREE.MeshStandardMaterial({
       map: foliageCardTexture(), alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.9,
     });
     addWind(cardMat, TREE_WIND_STRENGTH);
+    mossMat = new THREE.MeshStandardMaterial({
+      map: grassTuftTexture(26), alphaTest: 0.3, side: THREE.DoubleSide, roughness: 0.95,
+    });
+    addWind(mossMat, TREE_WIND_STRENGTH * 1.6); // loose strands swing more than boughs
   }
+  // vertexColors carry the baked moss/snow top blend + under-AO
   const rockMat = usePbr
-    ? new THREE.MeshStandardMaterial({ flatShading: true, roughness: 1.0 })
-    : new THREE.MeshLambertMaterial({ flatShading: true });
+    ? new THREE.MeshStandardMaterial({ flatShading: true, roughness: 1.0, vertexColors: true })
+    : new THREE.MeshLambertMaterial({ flatShading: true, vertexColors: true });
 
-  // shared geometries — canopies are pre-merged stacks (one draw per bucket);
-  // internal offsets are in local units, so the uniform instance scale keeps
-  // the original proportions
-  const pineTrunkGeo = new THREE.CylinderGeometry(0.22, 0.42, 2.6, 6);
+  // shared geometries — every species is a pre-merged organic shape, local
+  // frame with the trunk base at y=0 (instances sink a little so root flares
+  // grip slopes); the uniform instance scale keeps proportions
+
+  // pine: gnarled trunk + root flare; four ragged tiers + a tip spike, upper
+  // tiers spaced so slivers of trunk show through the gaps
+  const pineTrunkGeo = mergeGeometries([
+    gnarledTrunk(0.34, 0.12, 6.4, 0.22, 0, 11),
+    ...rootFlare(4, 0.34, 0.85, 12),
+  ]);
   const pineCanopyGeo = bakeVerticalShade(mergeGeometries([
-    bakeShade(droopCone(2.4, 3.2, 0.42), 1.0),
-    bakeShade(droopCone(1.85, 2.7, 0.32).translate(0, 1.7, 0), 1.16),
-    bakeShade(droopCone(1.25, 2.2, 0.2).translate(0, 3.2, 0), 1.0),
-  ]), 0.68, 1.12);
+    bakeShade(raggedTier(2.5, 1.9, 0.5, 31).translate(0.12, 2.1, -0.08), 1.0),
+    bakeShade(raggedTier(1.95, 1.7, 0.4, 32).rotateY(1.3).translate(-0.15, 3.15, 0.1), 1.14),
+    bakeShade(raggedTier(1.45, 1.5, 0.3, 33).rotateY(2.6).translate(0.1, 4.2, 0.1), 0.98),
+    bakeShade(raggedTier(1.0, 1.35, 0.2, 34).rotateY(4.0).translate(-0.07, 5.2, -0.08), 1.1),
+    bakeShade(raggedTier(0.5, 1.3, 0.1, 35).translate(0, 6.2, 0), 1.04),
+  ]), 0.78, 1.12); // dark floor stays lifted: tier undersides must not go black
   let cardGeo: THREE.BufferGeometry | null = null;
   if (usePbr) {
-    const p1 = bakeShade(new THREE.PlaneGeometry(4.6, 2.5), 1.0);
-    const p2 = p1.clone().rotateY(Math.PI / 2);
-    cardGeo = mergeGeometries([p1, p2]);
+    const lo = bakeShade(new THREE.PlaneGeometry(4.5, 2.4), 1.0).translate(0, 2.7, 0);
+    const lo2 = lo.clone().rotateY(Math.PI / 2);
+    const hi = bakeShade(new THREE.PlaneGeometry(2.9, 1.7), 1.08).rotateY(Math.PI / 4).translate(0, 4.8, 0);
+    const hi2 = hi.clone().rotateY(Math.PI / 2);
+    cardGeo = mergeGeometries([lo, lo2, hi, hi2]);
   }
-  const oakTrunkGeo = new THREE.CylinderGeometry(0.28, 0.5, 2.8, 6);
+
+  // oak: trunk forks into limbs that vanish into a cluster of six
+  // noise-displaced icosahedron lobes, two drooping low
+  const oakTrunkGeo = mergeGeometries([
+    gnarledTrunk(0.55, 0.3, 2.5, 0.1, 0.05, 13),
+    branchLimb(0.26, 0.11, 2.5, 0.5, 0.4, 0.15, 2.0, 0),
+    branchLimb(0.23, 0.1, 2.2, 0.62, 2.5, -0.12, 1.9, 0.05),
+    branchLimb(0.16, 0.07, 1.6, 0.95, 4.4, 0, 1.6, -0.1),
+    ...rootFlare(4, 0.5, 0.8, 14),
+  ]);
+  // the crown lobe goes detail 2 on the lit tiers so a camera inside the
+  // canopy sees leafy curvature, not giant flat triangles (the rest stay
+  // detail 1 to hold the triangle budget)
+  const lobeDetail = usePbr ? 2 : 1;
   const oakCanopyGeo = bakeVerticalShade(mergeGeometries([
-    bakeShade(noisyBlob(2.2).applyMatrix4(new THREE.Matrix4().makeScale(1, 0.8, 1)), 1.0),
-    bakeShade(noisyBlob(1.5).applyMatrix4(new THREE.Matrix4().makeScale(1, 0.7, 1)).translate(1.1, -0.7, 0.4), 1.12),
-    bakeShade(noisyBlob(1.45).applyMatrix4(new THREE.Matrix4().makeScale(0.95, 0.7, 0.95)).translate(-1.05, -0.45, -0.35), 0.94),
-    bakeShade(noisyBlob(1.2).applyMatrix4(new THREE.Matrix4().makeScale(0.9, 0.75, 0.9)).translate(0.25, 0.9, -0.3), 1.06),
-  ]), 0.6, 1.12);
-  const rockGeo = new THREE.DodecahedronGeometry(0.9, 0);
+    bakeShade(squash(noisyLobe(1.85, 0.3, 41, lobeDetail), 0.85).translate(0.1, 4.3, 0), 1.0),
+    bakeShade(squash(noisyLobe(1.35, 0.32, 42), 0.8).translate(1.55, 3.85, 0.5), 1.12),
+    bakeShade(squash(noisyLobe(1.3, 0.3, 43), 0.78).translate(-1.5, 3.9, -0.45), 0.92),
+    bakeShade(squash(noisyLobe(1.05, 0.3, 44), 0.75).translate(0.45, 5.15, -0.3), 1.08),
+    bakeShade(squash(noisyLobe(1.0, 0.34, 45), 0.62).translate(1.05, 3.0, -1.25), 0.9),
+    bakeShade(squash(noisyLobe(0.95, 0.32, 46), 0.6).translate(-0.95, 2.95, 1.2), 0.96),
+  ]), 0.66, 1.12);
+  // sparse alpha leaf-card rim breaks the oak silhouette edge (pines have one)
+  let oakCardGeo: THREE.BufferGeometry | null = null;
+  if (usePbr) {
+    const a = bakeShade(new THREE.PlaneGeometry(4.6, 2.6), 1.02).translate(0, 4.2, 0);
+    const b = a.clone().rotateY(Math.PI / 2);
+    const cTop = bakeShade(new THREE.PlaneGeometry(3.0, 1.8), 1.08).rotateY(Math.PI / 4).translate(0, 5.3, 0);
+    oakCardGeo = mergeGeometries([a, b, cTop]);
+  }
+
+  // marsh swamp tree: twisted lanky trunk with bare limbs, buttress roots,
+  // sparse flattened lobes and hanging moss strands
+  const swampTrunkGeo = mergeGeometries([
+    gnarledTrunk(0.5, 0.12, 4.8, 0.55, 0.5, 15, 5),
+    branchLimb(0.13, 0.05, 1.9, 1.15, 0.7, 0.6, 3.6, 0.25),
+    branchLimb(0.12, 0.05, 1.6, -1.2, 2.4, 0.6, 4.1, 0.25),
+    branchLimb(0.1, 0.04, 1.2, 1.35, 4.3, 0.55, 2.6, 0.2),
+    ...rootFlare(5, 0.52, 1.05, 16),
+  ]);
+  const swampCanopyGeo = bakeVerticalShade(mergeGeometries([
+    bakeShade(squash(noisyLobe(1.3, 0.34, 47), 0.5).translate(1.0, 4.9, 0.4), 1.0),
+    bakeShade(squash(noisyLobe(1.05, 0.36, 48), 0.48).translate(-0.45, 5.2, -0.3), 0.92),
+    bakeShade(squash(noisyLobe(0.9, 0.34, 49), 0.45).translate(0.4, 5.5, 0.7), 1.06),
+    bakeShade(squash(noisyLobe(0.75, 0.36, 50), 0.5).translate(-0.7, 4.45, 1.3), 0.9),
+  ]), 0.52, 1.04);
+  const swampMossGeo = usePbr ? mergeGeometries([
+    mossStrand(0.55, 1.6, 1.35, 4.55, 0.6, 0.3),
+    mossStrand(0.5, 1.3, -0.55, 4.9, -0.5, 1.4),
+    mossStrand(0.6, 1.8, 0.3, 5.1, 0.9, 2.3),
+    mossStrand(0.45, 1.2, -0.75, 4.15, 1.2, 0.9),
+    mossStrand(0.5, 1.5, 0.9, 4.5, -0.35, 1.9),
+  ]) : null;
+
+  // rocks: single boulder + split/stacked cluster archetypes, one colorway
+  // with a mossy top (vale/marsh) and one with snow dust (peaks)
+  const rockSet = (tint: THREE.Color): { single: THREE.BufferGeometry; cluster: THREE.BufferGeometry } => ({
+    single: bakeTopTint(boulder(0.95, 0.3, 21), tint),
+    cluster: mergeGeometries([
+      bakeTopTint(boulder(0.7, 0.3, 22), tint).translate(-0.28, 0.02, 0.12),
+      bakeTopTint(boulder(0.52, 0.34, 23), tint).rotateY(1.3).translate(0.6, -0.12, 0.34),
+      bakeTopTint(boulder(0.4, 0.3, 24), tint).rotateY(2.4).translate(0.1, 0.58, -0.12),
+    ]),
+  });
+  const mossRocks = rockSet(new THREE.Color(0.55, 0.78, 0.38));
+  const snowRocks = rockSet(new THREE.Color(1.45, 1.52, 1.6));
 
   const m = new THREE.Matrix4();
   const q = new THREE.Quaternion();
+  const e = new THREE.Euler();
   const up = new THREE.Vector3(0, 1, 0);
   const v = new THREE.Vector3();
   const sv = new THREE.Vector3();
@@ -233,7 +466,8 @@ function buildTrees(parent: THREE.Group, seed: number, registry: BucketMesh[]): 
 
   for (const items of buckets.values()) {
     const pines = items.filter((d) => d.kind === 'tree');
-    const oaks = items.filter((d) => d.kind === 'tree2');
+    const oaks = items.filter((d) => d.kind === 'tree2' && d.biome !== 'marsh');
+    const swamps = items.filter((d) => d.kind === 'tree2' && d.biome === 'marsh');
     const rocks = items.filter((d) => d.kind === 'rock');
 
     let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
@@ -256,13 +490,11 @@ function buildTrees(parent: THREE.Group, seed: number, registry: BucketMesh[]): 
       pines.forEach((t, i) => {
         const y = terrainHeight(t.x, t.z, seed);
         const s = t.scale * 1.5;
-        q.setFromAxisAngle(up, t.variant * 2.1);
-        sv.set(s, s, s);
-        m.compose(v.set(t.x, y + 1.3 * s, t.z), q, sv);
+        q.setFromAxisAngle(up, t.variant * 2.1 + hashAt(t.x, t.z, 11) * 2.0);
+        m.compose(v.set(t.x, y - 0.25 * s, t.z), q, sv.set(s, s, s));
         trunk.setMatrixAt(i, m);
-        m.compose(v.set(t.x, y + 3.6 * s, t.z), q, sv);
         canopy.setMatrixAt(i, m);
-        cards?.setMatrixAt(i, m.compose(v.set(t.x, y + 4.7 * s, t.z), q, sv));
+        cards?.setMatrixAt(i, m);
         tintFor(t, PINE_TINT[t.biome], c);
         canopy.setColorAt(i, c);
         cards?.setColorAt(i, c);
@@ -284,15 +516,17 @@ function buildTrees(parent: THREE.Group, seed: number, registry: BucketMesh[]): 
     if (oaks.length > 0) {
       const trunk = new THREE.InstancedMesh(oakTrunkGeo, trunkMat, oaks.length);
       const canopy = new THREE.InstancedMesh(oakCanopyGeo, leafMat, oaks.length);
+      const cards = oakCardGeo && cardMat ? new THREE.InstancedMesh(oakCardGeo, cardMat, oaks.length) : null;
       oaks.forEach((t, i) => {
         const y = terrainHeight(t.x, t.z, seed);
         const s = t.scale * 1.3;
-        q.setFromAxisAngle(up, t.variant * 2.1);
-        m.compose(v.set(t.x, y + 1.4 * s, t.z), q, sv.set(s, s, s));
+        q.setFromAxisAngle(up, t.variant * 2.1 + hashAt(t.x, t.z, 11) * 2.0);
+        m.compose(v.set(t.x, y - 0.2 * s, t.z), q, sv.set(s, s, s));
         trunk.setMatrixAt(i, m);
-        m.compose(v.set(t.x, y + 3.6 * s, t.z), q, sv);
         canopy.setMatrixAt(i, m);
+        cards?.setMatrixAt(i, m);
         canopy.setColorAt(i, tintFor(t, OAK_TINT[t.biome], c));
+        cards?.setColorAt(i, c);
         trunk.setColorAt(i, tintFor(t, TRUNK_TINT[t.biome], c, 0.5));
       });
       canopy.castShadow = true;
@@ -301,21 +535,83 @@ function buildTrees(parent: THREE.Group, seed: number, registry: BucketMesh[]): 
         parent.add(im);
         register(im);
       }
+      if (cards) {
+        cards.receiveShadow = true;
+        parent.add(cards); // no shadow cast: the lobes already cast one
+        register(cards);
+      }
+    }
+
+    if (swamps.length > 0) {
+      const trunk = new THREE.InstancedMesh(swampTrunkGeo, trunkMat, swamps.length);
+      const canopy = new THREE.InstancedMesh(swampCanopyGeo, leafMat, swamps.length);
+      const moss = swampMossGeo && mossMat
+        ? new THREE.InstancedMesh(swampMossGeo, mossMat, swamps.length)
+        : null;
+      swamps.forEach((t, i) => {
+        const y = terrainHeight(t.x, t.z, seed);
+        const s = t.scale * 1.35;
+        q.setFromAxisAngle(up, t.variant * 2.1 + hashAt(t.x, t.z, 12) * 2.5);
+        m.compose(v.set(t.x, y - 0.2 * s, t.z), q, sv.set(s, s, s));
+        trunk.setMatrixAt(i, m);
+        canopy.setMatrixAt(i, m);
+        moss?.setMatrixAt(i, m);
+        canopy.setColorAt(i, tintFor(t, SWAMP_CANOPY_TINT, c));
+        moss?.setColorAt(i, tintFor(t, SWAMP_MOSS_TINT, c, 0.6));
+        trunk.setColorAt(i, tintFor(t, TRUNK_TINT.marsh, c, 0.5));
+      });
+      canopy.castShadow = true;
+      for (const im of [trunk, canopy]) {
+        im.receiveShadow = true;
+        parent.add(im);
+        register(im);
+      }
+      if (moss) {
+        moss.receiveShadow = true;
+        parent.add(moss); // no shadow cast: thin strands, the lobes own it
+        register(moss);
+      }
     }
 
     if (rocks.length > 0) {
-      const rockMesh = new THREE.InstancedMesh(rockGeo, rockMat, rocks.length);
-      rocks.forEach((r, i) => {
-        const y = terrainHeight(r.x, r.z, seed);
-        q.setFromAxisAngle(up, r.variant * 1.7);
-        m.compose(v.set(r.x, y + 0.3 * r.scale, r.z), q, sv.set(r.scale, r.scale * 0.7, r.scale));
-        rockMesh.setMatrixAt(i, m);
-        rockMesh.setColorAt(i, tintFor(r, ROCK_TINT[r.biome], c));
-      });
-      // no rock shadows cast: sub-pixel at typical camera range, real draw cost
-      rockMesh.receiveShadow = true;
-      parent.add(rockMesh);
-      register(rockMesh);
+      const isCluster = (r: Decoration): boolean => hashAt(r.x, r.z, 7) > 0.72;
+      const isSnowy = (r: Decoration): boolean =>
+        r.biome === 'peaks' && terrainHeight(r.x, r.z, seed) > ROCK_SNOWLINE_Y;
+      const rockGroups: Array<[Decoration[], THREE.BufferGeometry]> = [
+        [rocks.filter((r) => !isSnowy(r) && !isCluster(r)), mossRocks.single],
+        [rocks.filter((r) => !isSnowy(r) && isCluster(r)), mossRocks.cluster],
+        [rocks.filter((r) => isSnowy(r) && !isCluster(r)), snowRocks.single],
+        [rocks.filter((r) => isSnowy(r) && isCluster(r)), snowRocks.cluster],
+      ];
+      for (const [list, geo] of rockGroups) {
+        if (list.length === 0) continue;
+        const rockMesh = new THREE.InstancedMesh(geo, rockMat, list.length);
+        list.forEach((r, i) => {
+          const y = terrainHeight(r.x, r.z, seed);
+          const h1 = hashAt(r.x, r.z, 8), h2 = hashAt(r.x, r.z, 9), h3 = hashAt(r.x, r.z, 10);
+          // slight tilt + non-uniform scale: one geometry reads as round
+          // boulders, low slabs and tall stones depending on the draw
+          const sxz1 = r.scale * (0.85 + h2 * 0.5);
+          const sxz2 = r.scale * (0.85 + h1 * 0.45);
+          const maxH = Math.max(sxz1, sxz2);
+          // floor the height at 0.55x the horizontal so slabs stay chunky,
+          // and keep big slabs nearly level (tilted discs read as pancakes)
+          const sy = Math.max(r.scale * 0.7 * (0.75 + h3 * 0.5), 0.55 * maxH);
+          const tiltAmp = maxH > 1.3 ? 0.16 : 0.34;
+          q.setFromEuler(e.set((h1 - 0.5) * tiltAmp, r.variant * 1.7 + h3 * 2.0, (h2 - 0.5) * tiltAmp));
+          // sink deeper so displaced undersides bury on slopes
+          m.compose(v.set(r.x, y + 0.1 * sy, r.z), q, sv.set(sxz1, sy, sxz2));
+          rockMesh.setMatrixAt(i, m);
+          // low-altitude peaks rocks drop the icy blue-gray for a warm field
+          // stone — pale rocks on green foothill grass read as eggs
+          const rockHex = r.biome === 'peaks' && !isSnowy(r) ? 0x6f6e62 : ROCK_TINT[r.biome];
+          rockMesh.setColorAt(i, tintFor(r, rockHex, c));
+        });
+        // no rock shadows cast: sub-pixel at typical camera range, real draw cost
+        rockMesh.receiveShadow = true;
+        parent.add(rockMesh);
+        register(rockMesh);
+      }
     }
   }
 }

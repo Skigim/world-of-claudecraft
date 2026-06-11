@@ -9,7 +9,7 @@ import {
 import type { BiomeId } from '../sim/types';
 import { buildBear, buildFarRig, buildRigFor, buildSheep, Rig } from './models';
 import { buildProps } from './props';
-import { radialGlowTexture, sparkleTexture, stoneMaps, SurfaceMaps } from './textures';
+import { plankTexture, radialGlowTexture, sparkleTexture, stoneMaps, SurfaceMaps } from './textures';
 import { Vfx } from './vfx';
 import {
   GFX, initGfxTier, sharedUniforms, SUN_ANCHOR, SUN_DIR, surfaceMat,
@@ -392,16 +392,40 @@ export class Renderer {
       rig = { body: new THREE.Group(), parts: {}, kind: 'humanoid', height: 4.6 };
       this.doorStoneMat ??= new THREE.MeshLambertMaterial({ color: 0x6a6a72 });
       const stone = this.doorStoneMat;
-      for (const sx of [-1.5, 1.5]) {
-        const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.7, 4.4, 0.7), stone);
-        pillar.position.set(sx, 2.2, 0);
-        pillar.castShadow = true;
-        rig.body.add(pillar);
+      // carved stone arch: pointed outer/inner outline + keystone + plinths
+      // (no raw pillar-and-lintel boxes)
+      const outer = new THREE.Shape();
+      outer.moveTo(-2.1, 0);
+      outer.lineTo(-2.1, 3.1);
+      outer.quadraticCurveTo(-2.1, 4.85, 0, 5.05);
+      outer.quadraticCurveTo(2.1, 4.85, 2.1, 3.1);
+      outer.lineTo(2.1, 0);
+      outer.closePath();
+      const inner = new THREE.Path();
+      inner.moveTo(-1.3, -0.5);
+      inner.lineTo(-1.3, 2.9);
+      inner.quadraticCurveTo(-1.3, 4.05, 0, 4.22);
+      inner.quadraticCurveTo(1.3, 4.05, 1.3, 2.9);
+      inner.lineTo(1.3, -0.5);
+      inner.closePath();
+      outer.holes.push(inner);
+      const archGeo = new THREE.ExtrudeGeometry(outer, {
+        depth: 0.7, bevelEnabled: true, bevelThickness: 0.07, bevelSize: 0.07, bevelSegments: 1,
+      });
+      archGeo.translate(0, 0, -0.35);
+      const arch = new THREE.Mesh(archGeo, stone);
+      arch.castShadow = true;
+      rig.body.add(arch);
+      const keystone = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.0, 0.95), stone);
+      keystone.position.set(0, 4.75, 0);
+      keystone.castShadow = true;
+      rig.body.add(keystone);
+      for (const sx of [-1.7, 1.7]) {
+        const plinth = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.7, 1.15), stone);
+        plinth.position.set(sx, 0.35, 0);
+        plinth.castShadow = true;
+        rig.body.add(plinth);
       }
-      const lintel = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.7, 0.9), stone);
-      lintel.position.y = 4.55;
-      lintel.castShadow = true;
-      rig.body.add(lintel);
       const portalMat = new THREE.MeshBasicMaterial({
         color: tint, transparent: true, opacity: 0.55, side: THREE.DoubleSide,
         blending: THREE.AdditiveBlending, depthWrite: false,
@@ -417,14 +441,30 @@ export class Renderer {
       objectMesh = rig.body;
     } else if (e.kind === 'object') {
       rig = { body: new THREE.Group(), parts: {}, kind: 'humanoid', height: 1.2 };
-      this.crateMat ??= new THREE.MeshLambertMaterial({ color: 0x8a6537 });
-      this.crateLidMat ??= new THREE.MeshLambertMaterial({ color: 0x6b4a2b });
-      const crate = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), this.crateMat);
-      crate.position.y = 0.45;
+      // braced plank crate matching the props.ts crates — never a bare cube
+      this.crateMat ??= new THREE.MeshLambertMaterial({ map: plankTexture() });
+      this.crateLidMat ??= new THREE.MeshLambertMaterial({ color: 0x4a3320 });
+      const crate = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.78, 0.78), this.crateMat);
+      crate.position.y = 0.42;
       crate.castShadow = true;
-      const lid = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.12, 0.96), this.crateLidMat);
-      lid.position.y = 0.92;
-      rig.body.add(crate, lid);
+      rig.body.add(crate);
+      for (const sx of [1, -1]) {
+        for (const sz of [1, -1]) {
+          const brace = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.86, 0.1), this.crateLidMat);
+          brace.position.set(sx * 0.37, 0.42, sz * 0.37);
+          rig.body.add(brace);
+        }
+      }
+      for (const sy of [0.06, 0.78]) {
+        for (const s of [1, -1]) {
+          const stripA = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.08, 0.08), this.crateLidMat);
+          stripA.position.set(0, sy, s * 0.38);
+          const stripB = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.82), this.crateLidMat);
+          stripB.position.set(s * 0.38, sy, 0);
+          rig.body.add(stripA, stripB);
+        }
+      }
+      rig.body.rotation.y = (e.id % 7) * 0.45; // break identical alignment
       objectMesh = rig.body;
       if (!this.sparkleMat) {
         this.sparkleMat = new THREE.SpriteMaterial({ map: sparkleTexture(), transparent: true, depthWrite: false });
@@ -580,6 +620,70 @@ export class Renderer {
     };
   }
 
+  // hewn dungeon pillar: plinth + entasis (bulged) shaft + capital — replaces
+  // the plain cylinder so interiors stop reading as box rooms with tubes
+  private dungeonPillar(g: THREE.Group, stone: THREE.Material, x: number, z: number): void {
+    const plinth = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.7, 2.1), stone);
+    plinth.position.set(x, 0.35, z);
+    plinth.castShadow = true;
+    g.add(plinth);
+    const shaftGeo = scaleUv(new THREE.CylinderGeometry(0.74, 0.98, 7.3, 8, 4), 1.5, 2);
+    const pos = shaftGeo.getAttribute('position');
+    for (let i = 0; i < pos.count; i++) {
+      const t = (pos.getY(i) + 3.65) / 7.3;
+      const k = 1 + Math.sin(t * Math.PI) * 0.14;
+      pos.setX(i, pos.getX(i) * k);
+      pos.setZ(i, pos.getZ(i) * k);
+    }
+    shaftGeo.computeVertexNormals();
+    const shaft = new THREE.Mesh(shaftGeo, stone);
+    shaft.position.set(x, 4.05, z);
+    shaft.castShadow = true;
+    g.add(shaft);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(1.95, 0.55, 1.95), stone);
+    cap.position.set(x, 7.95, z);
+    cap.castShadow = true;
+    g.add(cap);
+  }
+
+  // pilaster relief + cornice course along the long side walls (inner face at
+  // |x| = wallX) so they stop reading as flat extruded slabs
+  private dressDungeonWalls(g: THREE.Group, stoneDark: THREE.Material, zFrom: number, zTo: number, wallX = 22): void {
+    for (let z = zFrom; z <= zTo; z += 12.5) {
+      for (const sx of [-1, 1]) {
+        const pil = new THREE.Mesh(new THREE.BoxGeometry(0.8, 8.2, 1.6), stoneDark);
+        pil.position.set(sx * (wallX + 0.1), 4.1, z);
+        g.add(pil);
+        const cap = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 2.0), stoneDark);
+        cap.position.set(sx * (wallX + 0.1), 8.45, z);
+        g.add(cap);
+      }
+    }
+    for (const sx of [-1, 1]) {
+      const cornice = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, zTo - zFrom + 16), stoneDark);
+      cornice.position.set(sx * (wallX + 0.15), 8.75, (zFrom + zTo) / 2);
+      g.add(cornice);
+    }
+  }
+
+  // corner rubble: a low cluster of displaced rocks (deterministic by seed)
+  private rubblePile(g: THREE.Group, mat: THREE.Material, x: number, z: number, r: number, seed: number): void {
+    for (let i = 0; i < 3; i++) {
+      const geo = new THREE.IcosahedronGeometry(r * (0.55 + ((seed * 37 + i * 61) % 17) / 34), 1);
+      const pos = geo.getAttribute('position');
+      for (let v = 0; v < pos.count; v++) {
+        const h = Math.sin(pos.getX(v) * 41.3 + pos.getY(v) * 53.7 + pos.getZ(v) * 29.1 + seed) * 0.5 + 0.5;
+        const k = 0.8 + h * 0.45;
+        pos.setXYZ(v, pos.getX(v) * k, pos.getY(v) * k * 0.62, pos.getZ(v) * k);
+      }
+      geo.computeVertexNormals();
+      const rock = new THREE.Mesh(geo, mat);
+      rock.position.set(x + Math.sin(seed * 3.1 + i * 2.4) * r * 0.9, 0.18, z + Math.cos(seed * 5.7 + i * 1.9) * r * 0.9);
+      rock.rotation.y = seed + i * 1.7;
+      g.add(rock);
+    }
+  }
+
   private buildCrypt(ox: number, oz: number): void {
     const g = new THREE.Group();
     const { stone, stoneDark, bone } = this.interiorStone(0xc6c6d4, 0x8c8c9c, 0x6a6a72, 0x4a4a52);
@@ -600,16 +704,19 @@ export class Renderer {
     const frontWall = new THREE.Mesh(scaleUv(new THREE.BoxGeometry(48, 9, 2), 10, 2), stone);
     frontWall.position.set(0, 4.5, -19);
     g.add(frontWall);
+    this.dressDungeonWalls(g, stoneDark, -12, 106);
     // pillars + torches
     for (let z = 10; z <= 100; z += 15) {
       for (const sx of [-14, 14]) {
-        const pillar = new THREE.Mesh(scaleUv(new THREE.CylinderGeometry(0.9, 1.1, 8, 7), 1.5, 2), stone);
-        pillar.position.set(sx, 4, z);
-        pillar.castShadow = true;
-        g.add(pillar);
+        this.dungeonPillar(g, stone, sx, z);
         this.addDungeonTorch(g, sx, z, 0x7fd4ff, 0x2288cc, 0x66bbff);
       }
     }
+    // collapsed masonry in the corners
+    this.rubblePile(g, stoneDark, -19, -13, 1.1, 3);
+    this.rubblePile(g, stoneDark, 19, 6, 0.9, 7);
+    this.rubblePile(g, stoneDark, -18, 70, 1.0, 11);
+    this.rubblePile(g, stoneDark, 19, 108, 1.2, 15);
     // sarcophagi along the walls
     for (let z = 16; z <= 92; z += 19) {
       for (const sx of [-19, 19]) {
@@ -621,7 +728,13 @@ export class Renderer {
     }
     // bone piles
     for (let i = 0; i < 10; i++) {
-      const b = new THREE.Mesh(new THREE.DodecahedronGeometry(0.5, 0), bone);
+      const b = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 1), bone);
+      const bp = b.geometry.getAttribute('position');
+      for (let v = 0; v < bp.count; v++) {
+        const k = 0.8 + (Math.sin(bp.getX(v) * 47.1 + bp.getZ(v) * 31.7 + i) * 0.5 + 0.5) * 0.5;
+        bp.setXYZ(v, bp.getX(v) * k, bp.getY(v) * k, bp.getZ(v) * k);
+      }
+      b.geometry.computeVertexNormals();
       b.position.set(Math.sin(i * 2.4) * 14, 0.3, 12 + i * 9.5);
       b.scale.set(1.2, 0.5, 1);
       g.add(b);
@@ -669,21 +782,45 @@ export class Renderer {
       stub2.position.set(sx, 4.5, 115); // Ritual Vault -> Wyrm's Hollow
       g.add(stub2);
     }
+    this.dressDungeonWalls(g, stoneDark, -12, 152);
+    // stone arch bands over the chamber-waist passages
+    for (const waistZ of [67, 115]) {
+      const band = new THREE.Mesh(new THREE.BoxGeometry(12, 1.2, 1.8), stone);
+      band.position.set(0, 8.3, waistZ);
+      g.add(band);
+      const keystone = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.5, 2.0), stone);
+      keystone.position.set(0, 7.1, waistZ);
+      g.add(keystone);
+      for (const sx of [-1, 1]) {
+        const haunch = new THREE.Mesh(new THREE.BoxGeometry(4.6, 1.1, 1.8), stone);
+        haunch.position.set(sx * 3.4, 6.6, waistZ);
+        haunch.rotation.z = sx * 0.38;
+        g.add(haunch);
+      }
+    }
     // pillars + green ritual torches (waist bands skipped)
     for (const z of [10, 25, 40, 55, 85, 100, 125, 140]) {
       for (const sx of [-14, 14]) {
-        const pillar = new THREE.Mesh(scaleUv(new THREE.CylinderGeometry(0.9, 1.1, 8, 7), 1.5, 2), stone);
-        pillar.position.set(sx, 4, z);
-        pillar.castShadow = true;
-        g.add(pillar);
+        this.dungeonPillar(g, stone, sx, z);
         this.addDungeonTorch(g, sx, z, 0xa6ffb8, 0x22cc55, 0x55e08a);
       }
     }
+    // collapsed masonry along the chamber edges
+    this.rubblePile(g, stoneDark, -19, 4, 1.0, 5);
+    this.rubblePile(g, stoneDark, 19, 48, 1.1, 9);
+    this.rubblePile(g, stoneDark, -19, 95, 1.0, 13);
+    this.rubblePile(g, stoneDark, 18, 150, 1.2, 17);
     // bone piles strewn between the chambers (none inside the waist walls)
     for (let i = 0; i < 14; i++) {
       const z = 12 + i * 10;
       if ((z > 60 && z < 74) || (z > 110 && z < 120)) continue;
-      const b = new THREE.Mesh(new THREE.DodecahedronGeometry(0.5, 0), bone);
+      const b = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 1), bone);
+      const bp = b.geometry.getAttribute('position');
+      for (let v = 0; v < bp.count; v++) {
+        const k = 0.8 + (Math.sin(bp.getX(v) * 47.1 + bp.getZ(v) * 31.7 + i) * 0.5 + 0.5) * 0.5;
+        bp.setXYZ(v, bp.getX(v) * k, bp.getY(v) * k, bp.getZ(v) * k);
+      }
+      b.geometry.computeVertexNormals();
       b.position.set(Math.sin(i * 2.1) * 14, 0.3, z);
       b.scale.set(1.3, 0.5, 1.1);
       g.add(b);

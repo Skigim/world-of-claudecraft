@@ -101,26 +101,52 @@ export function foliageTexture(detail = false): THREE.CanvasTexture {
   });
 }
 
-export function roofTexture(): THREE.CanvasTexture {
-  return makeCanvas(128, (ctx, s) => {
-    ctx.fillStyle = '#8a4a2f';
-    ctx.fillRect(0, 0, s, s);
-    const rowH = 16;
-    for (let y = 0; y < s; y += rowH) {
-      const offset = (y / rowH) % 2 === 0 ? 0 : 16;
-      ctx.fillStyle = 'rgba(40,16,8,0.55)';
-      ctx.fillRect(0, y + rowH - 2, s, 2);
-      for (let x = -16; x < s; x += 32) {
-        ctx.fillStyle = 'rgba(40,16,8,0.4)';
-        ctx.fillRect(x + offset, y, 2, rowH);
-        const v = rnd();
-        if (v > 0.6) {
-          ctx.fillStyle = 'rgba(255,200,160,0.07)';
-          ctx.fillRect(x + offset + 2, y, 30, rowH - 2);
-        }
-      }
+// deterministic per-tile hash so the wrap seam picks identical tile colors
+function tileHash(a: number, b: number): number {
+  const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
+  return v - Math.floor(v);
+}
+
+// Fat scallop-edged shingle courses — wide tiles, no vertical brick joints,
+// gradient overlap shadow under each course, per-tile hue jitter. A house
+// slope reads as ~6 plump rows of roof tiles, never running-bond masonry.
+function drawShingleAlbedo(ctx: CanvasRenderingContext2D, s: number): void {
+  ctx.fillStyle = '#6e3a22';
+  ctx.fillRect(0, 0, s, s);
+  const rowH = s / 4;
+  const tileW = s / 2;
+  for (let row = 0; row < 4; row++) {
+    const y = row * rowH;
+    const offset = row % 2 === 0 ? 0 : tileW / 2;
+    for (let x = -tileW; x < s + tileW; x += tileW) {
+      const tx = x + offset;
+      const key = ((tx % s) + s) % s; // wrap-stable tile id
+      const d = (tileHash(key, row) - 0.5) * 44;
+      ctx.fillStyle = `rgb(${Math.round(146 + d)},${Math.round(80 + d * 0.7)},${Math.round(52 + d * 0.5)})`;
+      ctx.beginPath();
+      ctx.moveTo(tx + 1, y);
+      ctx.lineTo(tx + 1, y + rowH - 7);
+      ctx.quadraticCurveTo(tx + tileW / 2, y + rowH + 6, tx + tileW - 1, y + rowH - 7);
+      ctx.lineTo(tx + tileW - 1, y);
+      ctx.closePath();
+      ctx.fill();
     }
-  });
+    // soft shadow cast by the overlapping course above
+    const grad = ctx.createLinearGradient(0, y, 0, y + 9);
+    grad.addColorStop(0, 'rgba(26,11,6,0.5)');
+    grad.addColorStop(1, 'rgba(26,11,6,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, y, s, 9);
+  }
+  // weathering flecks
+  for (let i = 0; i < 420; i++) {
+    ctx.fillStyle = rnd() > 0.5 ? 'rgba(255,205,160,0.05)' : 'rgba(28,12,6,0.08)';
+    ctx.fillRect(rnd() * s, rnd() * s, 2, 2 + rnd() * 4);
+  }
+}
+
+export function roofTexture(): THREE.CanvasTexture {
+  return makeCanvas(128, (ctx, s) => drawShingleAlbedo(ctx, s));
 }
 
 // Plaster with timber framing
@@ -382,7 +408,7 @@ export function stoneMaps(): SurfaceMaps {
     let x = -Math.floor(rnd() * 30) - row * 17;
     while (x < S) {
       const w = 22 + Math.floor(rnd() * 34);
-      blocks.push({ x, y, w, h, v: 100 + rnd() * 62, warm: rnd() * 14 - 4 });
+      blocks.push({ x, y, w, h, v: 90 + rnd() * 80, warm: rnd() * 14 - 4 });
       x += w;
     }
     y += h;
@@ -399,14 +425,14 @@ export function stoneMaps(): SurfaceMaps {
         // weathered face: speckle + a lighter catch along the top edge
         ctx.fillStyle = 'rgba(255,255,250,0.10)';
         ctx.fillRect(b.x + ox + 1, b.y + 1, b.w - 4, 2);
-        ctx.fillStyle = 'rgba(20,20,18,0.18)';
-        ctx.fillRect(b.x + ox + 1, b.y + b.h - 4, b.w - 4, 3);
+        ctx.fillStyle = 'rgba(20,20,18,0.32)';
+        ctx.fillRect(b.x + ox + 1, b.y + b.h - 5, b.w - 4, 4);
         for (let i = 0; i < b.w * b.h * 0.02; i++) {
           const sv = 60 + rnd() * 140;
           ctx.fillStyle = `rgba(${sv},${sv},${sv - 6},0.18)`;
           ctx.fillRect(b.x + ox + 1 + rnd() * (b.w - 4), b.y + 2 + rnd() * (b.h - 5), 1.5, 1.5);
         }
-        ctx.strokeStyle = 'rgba(38,38,36,0.65)';
+        ctx.strokeStyle = 'rgba(32,32,30,0.85)';
         ctx.strokeRect(b.x + ox + 0.5, b.y + 0.5, b.w - 1, b.h - 1);
       }
     }
@@ -484,43 +510,38 @@ export function wallMaps(): SurfaceMaps {
   return { map, normalMap: heightToNormal(height, 2.2) };
 }
 
-// Shingle rows: stepped height per row, staggered seams.
+// Scalloped shingle courses: same albedo as roofTexture, height map gives
+// each course a raised body sinking under the row below.
 export function roofMaps(): SurfaceMaps {
-  const map = makeCanvas(128, (ctx, s) => {
-    ctx.fillStyle = '#8a4a2f';
-    ctx.fillRect(0, 0, s, s);
-    const rowH = 16;
-    for (let y = 0; y < s; y += rowH) {
-      const offset = (y / rowH) % 2 === 0 ? 0 : 16;
-      ctx.fillStyle = 'rgba(40,16,8,0.55)';
-      ctx.fillRect(0, y + rowH - 2, s, 2);
-      for (let x = -16; x < s; x += 32) {
-        ctx.fillStyle = 'rgba(40,16,8,0.4)';
-        ctx.fillRect(x + offset, y, 2, rowH);
-        if (rnd() > 0.6) {
-          ctx.fillStyle = 'rgba(255,200,160,0.07)';
-          ctx.fillRect(x + offset + 2, y, 30, rowH - 2);
-        }
-      }
-    }
-  });
+  const map = makeCanvas(128, (ctx, s) => drawShingleAlbedo(ctx, s));
   const height = makeRawCanvas(128, (ctx, s) => {
-    const rowH = 16;
-    for (let y = 0; y < s; y += rowH) {
-      const offset = (y / rowH) % 2 === 0 ? 0 : 16;
-      // each row slopes from raised top to sunken bottom edge
+    const rowH = s / 4;
+    const tileW = s / 2;
+    ctx.fillStyle = '#404040';
+    ctx.fillRect(0, 0, s, s);
+    for (let row = 0; row < 4; row++) {
+      const y = row * rowH;
+      const offset = row % 2 === 0 ? 0 : tileW / 2;
+      // course body: raised at the top, sinking toward the overlap below
       const g = ctx.createLinearGradient(0, y, 0, y + rowH);
-      g.addColorStop(0, '#b4b4b4');
-      g.addColorStop(0.85, '#787878');
-      g.addColorStop(1, '#2a2a2a');
+      g.addColorStop(0, '#2e2e2e');
+      g.addColorStop(0.25, '#b0b0b0');
+      g.addColorStop(1, '#6a6a6a');
       ctx.fillStyle = g;
       ctx.fillRect(0, y, s, rowH);
-      for (let x = -16; x < s; x += 32) {
-        ctx.fillStyle = '#383838';
-        ctx.fillRect(x + offset, y, 2, rowH);
-        const v = 150 + rnd() * 50;
-        ctx.fillStyle = `rgba(${v},${v},${v},0.25)`;
-        ctx.fillRect(x + offset + 2, y, 30, rowH - 2);
+      // scalloped tile bottoms, slightly varied height per tile
+      for (let x = -tileW; x < s + tileW; x += tileW) {
+        const tx = x + offset;
+        const key = ((tx % s) + s) % s;
+        const v = Math.round(140 + tileHash(key, row + 9) * 60);
+        ctx.fillStyle = `rgba(${v},${v},${v},0.5)`;
+        ctx.beginPath();
+        ctx.moveTo(tx + 1, y + 4);
+        ctx.lineTo(tx + 1, y + rowH - 7);
+        ctx.quadraticCurveTo(tx + tileW / 2, y + rowH + 6, tx + tileW - 1, y + rowH - 7);
+        ctx.lineTo(tx + tileW - 1, y + 4);
+        ctx.closePath();
+        ctx.fill();
       }
     }
   });
@@ -715,6 +736,12 @@ export function canvasMaps(): SurfaceMaps {
       ctx.fillStyle = `rgba(${v},${v - 16},${v - 48},0.22)`;
       ctx.fillRect(xx, 0, 1.5, s);
     }
+    // per-pixel slub noise so single texel rows can't smear into bands
+    for (let i = 0; i < 900; i++) {
+      const v = 150 + Math.floor(rnd() * 70);
+      ctx.fillStyle = `rgba(${v},${v - 15},${v - 46},0.25)`;
+      ctx.fillRect(rnd() * s, rnd() * s, 1.5, 1.5);
+    }
     // weather stains
     for (let i = 0; i < 26; i++) {
       const x = rnd() * s, y = rnd() * s, r = 6 + rnd() * 16;
@@ -840,6 +867,244 @@ export function foliageCardTexture(): THREE.CanvasTexture {
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
+}
+
+// ---------------------------------------------------------------------------
+// Prop-surface additions for the building/settlement geometry overhaul
+// (props.ts): plain plaster (timber framing is real geometry now), plank
+// boards, thatch straw, and striped awning cloth. The *Texture() variants are
+// albedo-only for the low-tier Lambert path.
+// ---------------------------------------------------------------------------
+
+function drawPlaster(ctx: CanvasRenderingContext2D, s: number): void {
+  ctx.fillStyle = '#ddccab';
+  ctx.fillRect(0, 0, s, s);
+  for (let i = 0; i < 1400; i++) {
+    const v = 188 + Math.floor(rnd() * 48);
+    ctx.fillStyle = `rgba(${v},${v - 14},${v - 44},0.32)`;
+    ctx.fillRect(rnd() * s, rnd() * s, 2, 2);
+  }
+  // soft daub patches — uneven hand-finished render, strong enough contrast
+  // to survive mips at 10-15m
+  for (let i = 0; i < 80; i++) {
+    const x = rnd() * s, y = rnd() * s, r = 5 + rnd() * 15;
+    const v = 168 + rnd() * 70;
+    drawWrapped(ctx, s, (ox, oy) => {
+      const g = ctx.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, r);
+      g.addColorStop(0, `rgba(${v},${v - 16},${v - 48},0.3)`);
+      g.addColorStop(1, `rgba(${v},${v - 16},${v - 48},0)`);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x + ox, y + oy, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+  // weather streaks + hairline cracks
+  for (let i = 0; i < 14; i++) {
+    const x = rnd() * s;
+    ctx.fillStyle = `rgba(120,104,74,${0.07 + rnd() * 0.08})`;
+    ctx.fillRect(x, 0, 2 + rnd() * 4, s);
+  }
+  ctx.strokeStyle = 'rgba(110,94,66,0.5)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    let cx = rnd() * s, cy = rnd() * s;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    for (let kk = 0; kk < 5; kk++) {
+      cx += (rnd() - 0.5) * 18;
+      cy += 6 + rnd() * 10;
+      ctx.lineTo(cx, cy);
+    }
+    ctx.stroke();
+  }
+}
+
+/** Albedo-only plaster for the low-tier Lambert wall material. */
+export function plasterTexture(): THREE.CanvasTexture {
+  return makeCanvas(128, drawPlaster);
+}
+
+/** Plaster albedo + daub-bump normal for the lit tiers. */
+export function plasterMaps(): SurfaceMaps {
+  const map = makeCanvas(128, drawPlaster);
+  const height = makeRawCanvas(128, (ctx, s) => {
+    ctx.fillStyle = '#787878';
+    ctx.fillRect(0, 0, s, s);
+    for (let i = 0; i < 320; i++) {
+      const x = rnd() * s, y = rnd() * s, r = 3 + rnd() * 11;
+      const v = 70 + rnd() * 100;
+      drawWrapped(ctx, s, (ox, oy) => {
+        const g = ctx.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, r);
+        g.addColorStop(0, `rgba(${v},${v},${v},0.55)`);
+        g.addColorStop(1, `rgba(${v},${v},${v},0)`);
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(x + ox, y + oy, r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+  });
+  return { map, normalMap: heightToNormal(height, 2.6) };
+}
+
+const PLANK_ROWS = 4;
+
+function drawPlanks(ctx: CanvasRenderingContext2D, s: number): void {
+  ctx.fillStyle = '#5e4226';
+  ctx.fillRect(0, 0, s, s);
+  const rh = s / PLANK_ROWS;
+  for (let r = 0; r < PLANK_ROWS; r++) {
+    const y = r * rh;
+    const v = 118 + rnd() * 38;
+    ctx.fillStyle = `rgb(${v},${Math.floor(v * 0.72)},${Math.floor(v * 0.46)})`;
+    ctx.fillRect(0, y, s, rh - 2);
+    // long grain streaks with a slight wander
+    for (let i = 0; i < 24; i++) {
+      const gy = y + 2 + rnd() * (rh - 6);
+      const gv = rnd() > 0.5 ? 62 + rnd() * 30 : 150 + rnd() * 42;
+      ctx.strokeStyle = `rgba(${gv},${Math.floor(gv * 0.7)},${Math.floor(gv * 0.44)},0.35)`;
+      ctx.lineWidth = 1;
+      const x0 = rnd() * s - 20;
+      ctx.beginPath();
+      ctx.moveTo(x0, gy);
+      ctx.quadraticCurveTo(x0 + 24, gy + (rnd() - 0.5) * 4, x0 + 40 + rnd() * 50, gy);
+      ctx.stroke();
+    }
+    // butt joint + nail heads
+    const jx = (((r * 53 + 17) % 97) / 97) * s;
+    ctx.fillStyle = 'rgba(30,18,8,0.55)';
+    ctx.fillRect(jx, y, 2, rh - 2);
+    ctx.fillStyle = 'rgba(34,24,16,0.85)';
+    ctx.fillRect(jx + 6, y + 4, 2.5, 2.5);
+    ctx.fillRect(jx + 6, y + rh - 9, 2.5, 2.5);
+    // board seam shadow
+    ctx.fillStyle = 'rgba(22,12,5,0.6)';
+    ctx.fillRect(0, y + rh - 2, s, 2);
+  }
+}
+
+/** Albedo-only planks for the low-tier Lambert wood material. */
+export function plankTexture(): THREE.CanvasTexture {
+  return makeCanvas(128, drawPlanks);
+}
+
+/** Plank boards albedo + per-board relief normal for the lit tiers. */
+export function plankMaps(): SurfaceMaps {
+  const map = makeCanvas(128, drawPlanks);
+  const height = makeRawCanvas(128, (ctx, s) => {
+    const rh = s / PLANK_ROWS;
+    for (let r = 0; r < PLANK_ROWS; r++) {
+      const y = r * rh;
+      const g = ctx.createLinearGradient(0, y, 0, y + rh);
+      const v = 110 + rnd() * 50;
+      g.addColorStop(0, `rgb(${v + 20},${v + 20},${v + 20})`);
+      g.addColorStop(0.9, `rgb(${v - 14},${v - 14},${v - 14})`);
+      g.addColorStop(1, '#2c2c2c');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, y, s, rh);
+      for (let i = 0; i < 16; i++) {
+        const gv = 70 + rnd() * 120;
+        ctx.fillStyle = `rgba(${gv},${gv},${gv},0.3)`;
+        ctx.fillRect(rnd() * s, y + 2 + rnd() * (rh - 5), 18 + rnd() * 40, 1.5);
+      }
+    }
+  });
+  return { map, normalMap: heightToNormal(height, 2.0) };
+}
+
+function drawThatch(ctx: CanvasRenderingContext2D, s: number): void {
+  ctx.fillStyle = '#9c7f42';
+  ctx.fillRect(0, 0, s, s);
+  // layered rows: shadow under each course
+  for (let y = 0; y < s; y += 16) {
+    ctx.fillStyle = 'rgba(58,42,18,0.4)';
+    ctx.fillRect(0, y + 13, s, 3);
+  }
+  for (let i = 0; i < 900; i++) {
+    const x = rnd() * s, y = rnd() * s, len = 6 + rnd() * 12;
+    const v = 140 + rnd() * 80;
+    ctx.strokeStyle = `rgba(${v},${Math.floor(v * 0.78)},${Math.floor(v * 0.36)},0.5)`;
+    ctx.lineWidth = 1 + rnd() * 0.6;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + (rnd() - 0.5) * 3, y + len);
+    ctx.stroke();
+  }
+}
+
+/** Albedo-only thatch for the low tier. */
+export function thatchTexture(): THREE.CanvasTexture {
+  return makeCanvas(128, drawThatch);
+}
+
+/** Straw thatch albedo + streaky normal for the lit tiers. */
+export function thatchMaps(): SurfaceMaps {
+  const map = makeCanvas(128, drawThatch);
+  const height = makeRawCanvas(128, (ctx, s) => {
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, s, s);
+    for (let y = 0; y < s; y += 16) {
+      ctx.fillStyle = '#3a3a3a';
+      ctx.fillRect(0, y + 13, s, 3);
+    }
+    for (let i = 0; i < 700; i++) {
+      const v = 80 + rnd() * 110;
+      ctx.fillStyle = `rgba(${v},${v},${v},0.45)`;
+      ctx.fillRect(rnd() * s, rnd() * s, 1.5, 5 + rnd() * 10);
+    }
+  });
+  return { map, normalMap: heightToNormal(height, 1.6) };
+}
+
+function drawAwningStripes(ctx: CanvasRenderingContext2D, s: number): void {
+  ctx.fillStyle = '#e8dcba';
+  ctx.fillRect(0, 0, s, s);
+  const sw = s / 4;
+  ctx.fillStyle = '#b14a38';
+  for (let x = 0; x < s; x += sw) ctx.fillRect(x, 0, sw / 2, s);
+  // woven texture overlay
+  for (let yy = 0; yy < s; yy += 3) {
+    const v = 200 + Math.floor(rnd() * 30);
+    ctx.fillStyle = `rgba(${v},${v - 14},${v - 40},0.14)`;
+    ctx.fillRect(0, yy, s, 1.5);
+  }
+  for (let i = 0; i < 18; i++) {
+    const x = rnd() * s, y = rnd() * s, r = 5 + rnd() * 12;
+    drawWrapped(ctx, s, (ox, oy) => {
+      const g = ctx.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, r);
+      g.addColorStop(0, 'rgba(110,92,58,0.14)');
+      g.addColorStop(1, 'rgba(110,92,58,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x + ox, y + oy, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+}
+
+/** Albedo-only awning stripes for the low tier. */
+export function awningStripeTexture(): THREE.CanvasTexture {
+  return makeCanvas(128, drawAwningStripes);
+}
+
+/** Striped market-awning cloth albedo + weave normal for the lit tiers. */
+export function awningStripeMaps(): SurfaceMaps {
+  const map = makeCanvas(128, drawAwningStripes);
+  const height = makeRawCanvas(128, (ctx, s) => {
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, s, s);
+    for (let yy = 0; yy < s; yy += 3) {
+      const v = 105 + rnd() * 55;
+      ctx.fillStyle = `rgb(${v},${v},${v})`;
+      ctx.fillRect(0, yy, s, 1.5);
+    }
+    // seam ridges where stripes meet
+    const sw = s / 4;
+    ctx.fillStyle = '#5c5c5c';
+    for (let x = 0; x < s; x += sw / 2) ctx.fillRect(x - 1, 0, 2, s);
+  });
+  return { map, normalMap: heightToNormal(height, 1.1) };
 }
 
 // Sparkle star for ground quest objects
