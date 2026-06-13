@@ -10,7 +10,9 @@ import {
 } from './db';
 import { cleanReportReason, createPlayerReport } from './moderation_db';
 import { resolveReportTarget } from './report_target';
-import { hashPassword, verifyPassword, newToken, validUsername, validPassword, validCharName } from './auth';
+import {
+  hashPassword, verifyPassword, newToken, validUsernameShape, offensiveName, validPassword, validCharNameShape,
+} from './auth';
 import { json, readBody } from './http_util';
 import { rateLimited } from './ratelimit';
 import { handleAdminApi } from './admin';
@@ -24,6 +26,10 @@ const STATIC_DIR = path.join(__dirname, '..', 'dist');
 const CHAT_LOG_RETENTION_DAYS = Number(process.env.CHAT_LOG_RETENTION_DAYS ?? 90);
 
 const game = new GameServer();
+
+function normalizeDeleteConfirmation(name: unknown): string {
+  return typeof name === 'string' ? name.trim().toLowerCase() : '';
+}
 
 async function bearerAccount(req: http.IncomingMessage): Promise<number | null> {
   const auth = req.headers.authorization ?? '';
@@ -143,7 +149,8 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
     }
     if (req.method === 'POST' && url === '/api/register') {
       const body = await readBody(req);
-      if (!validUsername(body.username)) return json(res, 400, { error: 'username must be 3-24 chars (letters, digits, _)' });
+      if (!validUsernameShape(body.username)) return json(res, 400, { error: 'username must be 3-24 chars (letters, digits, _)' });
+      if (offensiveName(body.username)) return json(res, 400, { error: 'username is not allowed' });
       if (!validPassword(body.password)) return json(res, 400, { error: 'password must be at least 6 chars' });
       const existing = await findAccount(body.username);
       if (existing) return json(res, 409, { error: 'username already taken' });
@@ -181,7 +188,8 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       }
       if (req.method === 'POST') {
         const body = await readBody(req);
-        if (!validCharName(body.name)) return json(res, 400, { error: 'invalid character name (2-16 letters)' });
+        if (!validCharNameShape(body.name)) return json(res, 400, { error: 'invalid character name (2-16 letters)' });
+        if (offensiveName(body.name)) return json(res, 400, { error: 'character name is not allowed' });
         const validClasses = ['warrior', 'paladin', 'hunter', 'rogue', 'priest', 'shaman', 'mage', 'warlock', 'druid'];
         if (!validClasses.includes(body.class)) return json(res, 400, { error: 'invalid class' });
         const chars = await listCharacters(accountId);
@@ -203,7 +211,8 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       const accountId = await bearerActiveAccount(req, res);
       if (accountId === null) return;
       const body = await readBody(req);
-      if (!validCharName(body.name)) return json(res, 400, { error: 'invalid character name (2-16 letters)' });
+      if (!validCharNameShape(body.name)) return json(res, 400, { error: 'invalid character name (2-16 letters)' });
+      if (offensiveName(body.name)) return json(res, 400, { error: 'character name is not allowed' });
       try {
         const c = await renameCharacter(accountId, Number(renameMatch[1]), body.name);
         if (!c) return json(res, 404, { error: 'character not found' });
@@ -218,7 +227,17 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
     if (req.method === 'DELETE' && delMatch) {
       const accountId = await bearerActiveAccount(req, res);
       if (accountId === null) return;
-      const ok = await deleteCharacter(accountId, Number(delMatch[1]));
+      const characterId = Number(delMatch[1]);
+      const body = await readBody(req);
+      const character = await getCharacter(accountId, characterId);
+      if (!character) return json(res, 404, { error: 'not found' });
+      if ([...game.clients.values()].some((s) => s.characterId === characterId)) {
+        return json(res, 400, { error: 'character is currently online' });
+      }
+      if (normalizeDeleteConfirmation(body.name) !== normalizeDeleteConfirmation(character.name)) {
+        return json(res, 400, { error: 'type the character name to confirm deletion' });
+      }
+      const ok = await deleteCharacter(accountId, characterId);
       return json(res, ok ? 200 : 404, ok ? { ok: true } : { error: 'not found' });
     }
     if (req.method === 'GET' && url === '/api/realms') {

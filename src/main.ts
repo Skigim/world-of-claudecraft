@@ -20,6 +20,7 @@ import { iconDataUrl } from './ui/icons';
 const WORLD_SEED = 20061; // fixed: World of Claudecraft is a persistent place
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T => document.querySelector(sel) as T;
+let pendingDeleteCharacter: CharacterSummary | null = null;
 
 // ---------------------------------------------------------------------------
 // Loading screen (shown from "enter world" until the first frame renders)
@@ -583,6 +584,39 @@ function selectRealm(entry: import('./net/online').RealmEntry): void {
   void refreshCharacters();
 }
 
+function setDeleteCharacterError(message: string): void {
+  $('#delete-character-error').textContent = message;
+}
+
+function closeDeleteCharacterDialog(): void {
+  pendingDeleteCharacter = null;
+  const modal = $('#delete-character-modal');
+  const input = $('#delete-character-confirm') as HTMLInputElement;
+  const confirmBtn = $('#btn-confirm-delete-character') as HTMLButtonElement;
+  modal.setAttribute('hidden', '');
+  input.value = '';
+  confirmBtn.disabled = true;
+  setDeleteCharacterError('');
+}
+
+function normalizeDeleteConfirmation(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+function openDeleteCharacterDialog(character: CharacterSummary): void {
+  pendingDeleteCharacter = character;
+  const modal = $('#delete-character-modal');
+  const nameEl = $('#delete-character-name');
+  const input = $('#delete-character-confirm') as HTMLInputElement;
+  const confirmBtn = $('#btn-confirm-delete-character') as HTMLButtonElement;
+  nameEl.textContent = character.name;
+  input.value = '';
+  confirmBtn.disabled = true;
+  setDeleteCharacterError('');
+  modal.removeAttribute('hidden');
+  input.focus();
+}
+
 async function refreshCharacters(): Promise<void> {
   const listEl = $('#char-list');
   listEl.innerHTML = '<li class="char-list-message">Loading…</li>';
@@ -603,8 +637,13 @@ async function refreshCharacters(): Promise<void> {
       row.innerHTML = `<span class="char-name">${c.name}</span>
         <span class="char-sub">Level ${c.level} ${c.class[0].toUpperCase()}${c.class.slice(1)}${c.online ? ' (in world)' : c.forceRename ? ' (rename required)' : ''}</span>
         ${c.forceRename
-          ? '<input class="rename-input" placeholder="New character name" maxlength="16" /><button class="btn rename-btn">Rename</button>'
-          : `<button class="btn" ${c.online ? 'disabled' : ''}>Enter World</button>`}`;
+          ? `<input class="rename-input" placeholder="New character name" maxlength="16" /><span class="char-actions"><button class="btn btn-danger delete-char-btn" ${c.online ? 'disabled' : ''}>Delete</button><button class="btn rename-btn">Rename</button></span>`
+          : `<span class="char-actions"><button class="btn btn-danger delete-char-btn" ${c.online ? 'disabled' : ''}>Delete</button><button class="btn enter-world-btn" ${c.online ? 'disabled' : ''}>Enter World</button></span>`}`;
+
+      row.querySelector('.delete-char-btn')!.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openDeleteCharacterDialog(c);
+      });
 
       if (c.forceRename) {
         const input = row.querySelector('.rename-input') as HTMLInputElement;
@@ -619,7 +658,7 @@ async function refreshCharacters(): Promise<void> {
           }
         });
       } else {
-        row.querySelector('button')!.addEventListener('click', (e) => {
+        row.querySelector('.enter-world-btn')!.addEventListener('click', (e) => {
           e.stopPropagation();
           enterWorld(c);
         });
@@ -1446,6 +1485,44 @@ function wireStartScreens(): void {
     }
   });
   $('#btn-charselect-back').addEventListener('click', () => show('#login-panel'));
+
+  const deleteConfirmInput = $('#delete-character-confirm') as HTMLInputElement;
+  const deleteConfirmBtn = $('#btn-confirm-delete-character') as HTMLButtonElement;
+  const deleteCancelBtn = $('#btn-cancel-delete-character') as HTMLButtonElement;
+  const deleteModal = $('#delete-character-modal');
+
+  deleteConfirmInput.addEventListener('input', () => {
+    setDeleteCharacterError('');
+    deleteConfirmBtn.disabled = !pendingDeleteCharacter ||
+      normalizeDeleteConfirmation(deleteConfirmInput.value) !== normalizeDeleteConfirmation(pendingDeleteCharacter.name);
+  });
+  deleteConfirmInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !deleteConfirmBtn.disabled) {
+      e.preventDefault();
+      deleteConfirmBtn.click();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeDeleteCharacterDialog();
+    }
+  });
+  deleteCancelBtn.addEventListener('click', () => closeDeleteCharacterDialog());
+  deleteModal.addEventListener('click', (e) => {
+    if (e.target === deleteModal) closeDeleteCharacterDialog();
+  });
+  deleteConfirmBtn.addEventListener('click', async () => {
+    if (!pendingDeleteCharacter) return;
+    const target = pendingDeleteCharacter;
+    deleteConfirmBtn.disabled = true;
+    setDeleteCharacterError('');
+    try {
+      await api.deleteCharacter(target.id, deleteConfirmInput.value);
+      closeDeleteCharacterDialog();
+      await refreshCharacters();
+    } catch (err: any) {
+      setDeleteCharacterError(err.message);
+      deleteConfirmBtn.disabled = normalizeDeleteConfirmation(deleteConfirmInput.value) !== normalizeDeleteConfirmation(target.name);
+    }
+  });
 
   // Collapsible Controls Drawer toggle
   const controlsDrawer = $('#controls-drawer');

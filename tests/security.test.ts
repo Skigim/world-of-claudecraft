@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { buildWebSocketAuthMessage, buildWebSocketUrl } from '../src/net/online';
 import { Sim } from '../src/sim/sim';
-import { offensiveUsername, validCharName, validUsername } from '../server/auth';
+import { offensiveName, offensiveUsername, validCharName, validUsername } from '../server/auth';
 import { rateLimited, requestIp } from '../server/ratelimit';
 
 function fakeReq(headers: Record<string, string>, remoteAddress: string) {
@@ -186,6 +186,13 @@ describe('username censorship', () => {
     });
   });
 
+  it('rejects profanity detected by the built-in username filter', () => {
+    withUsernameBanlist({}, () => {
+      expect(offensiveName('fuuuck')).toBe(true);
+      expect(validUsername('fuuuck')).toBe(false);
+    });
+  });
+
   it('can load banned username terms from a configured file', () => {
     const file = join(tmpdir(), `woc-banlist-${Date.now()}-${Math.random().toString(16).slice(2)}.txt`);
     writeFileSync(file, 'forbidden\n');
@@ -196,5 +203,25 @@ describe('username censorship', () => {
     } finally {
       rmSync(file, { force: true });
     }
+  });
+});
+
+describe('character name censorship', () => {
+  it('rejects profanity in character names', () => {
+    withUsernameBanlist({}, () => {
+      expect(validCharName('Fuuuck')).toBe(false);
+    });
+  });
+
+  it('normalizes separators before checking character names', () => {
+    withUsernameBanlist({ inline: 'biga' }, () => {
+      expect(validCharName('B I G A')).toBe(false);
+    });
+  });
+
+  it('applies configured banned username terms to character names too', () => {
+    withUsernameBanlist({ inline: 'gravecaller' }, () => {
+      expect(validCharName('Grave Caller')).toBe(false);
+    });
   });
 });

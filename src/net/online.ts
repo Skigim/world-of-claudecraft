@@ -104,6 +104,20 @@ export class Api {
     return data;
   }
 
+  private async delete(path: string, body: unknown): Promise<any> {
+    const res = await fetch(this.base + path, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ?? `request failed (${res.status})`);
+    return data;
+  }
+
   async register(username: string, password: string): Promise<void> {
     const data = await this.post('/api/register', { username, password });
     this.token = data.token;
@@ -128,6 +142,10 @@ export class Api {
 
   async renameCharacter(characterId: number, name: string): Promise<void> {
     await this.post(`/api/characters/${characterId}/rename`, { name });
+  }
+
+  async deleteCharacter(characterId: number, name: string): Promise<void> {
+    await this.delete(`/api/characters/${characterId}`, { name });
   }
 
   async reportPlayer(reporterCharacterId: number, targetPid: number, reason: string, details: string): Promise<void> {

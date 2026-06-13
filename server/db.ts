@@ -253,7 +253,10 @@ export async function createCharacter(accountId: number, name: string, cls: Play
 }
 
 export async function deleteCharacter(accountId: number, characterId: number): Promise<boolean> {
-  const res = await pool.query('DELETE FROM characters WHERE id = $1 AND account_id = $2', [characterId, accountId]);
+  const res = await pool.query(
+    'DELETE FROM characters WHERE id = $1 AND account_id = $2 AND realm = $3',
+    [characterId, accountId, REALM],
+  );
   return (res.rowCount ?? 0) > 0;
 }
 

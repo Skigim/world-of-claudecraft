@@ -753,6 +753,12 @@
   }
   .char-row .char-sub { color: var(--color-text-muted); font-size: 12px; flex: 1; }
   .char-row .btn { margin: 0; padding: 6px 12px; font-size: 11.5px; }
+  .char-row .char-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
   .char-row.online .char-name { color: var(--color-text-success); text-shadow: 0 0 8px rgba(127,220,79,0.3); }
   .char-row.rename-required .char-name { color: #ffbf66; }
   .char-row .rename-input {
@@ -1040,6 +1046,19 @@
     background: linear-gradient(180deg, #4a3a14 0%, #241c08 100%);
     color: var(--color-primary);
     border: 1px solid var(--color-border-default);
+  }
+  .btn-danger {
+    background: linear-gradient(180deg, #5a1714 0%, #250807 100%);
+    border: 1px solid #9f2d24;
+    color: #ffd0c8;
+  }
+  .btn-danger:hover:not(:disabled) {
+    border-color: #d64a3d;
+    color: #fff0ec;
+  }
+  .btn-danger:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
   #btn-login {
     grid-column: span 2;
@@ -1503,6 +1522,48 @@
   .text-center-lg {
     text-align: center;
     margin-top: var(--spacing-lg);
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.72);
+  }
+  .modal-backdrop[hidden] {
+    display: none;
+  }
+  .confirm-modal {
+    width: min(420px, 100%);
+    padding: 18px;
+  }
+  .confirm-modal h2 {
+    margin: 0 0 10px;
+    color: var(--color-text-light);
+    font-family: var(--font-heading);
+    font-size: 22px;
+  }
+  .confirm-modal p {
+    margin: 8px 0;
+    color: var(--color-text-muted);
+    line-height: 1.45;
+  }
+  .confirm-modal strong {
+    color: var(--color-primary);
+  }
+  .confirm-modal .auth-label {
+    display: block;
+    margin-top: 14px;
+  }
+  .confirm-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-sm);
+    margin-top: 14px;
   }
 
   /* ---------- Premium Class Details Panel ---------- */
@@ -2204,6 +2265,20 @@
             <canvas id="char-preview-canvas"></canvas>
           </div>
           <div id="online-class-details" class="class-details-panel" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="delete-character-modal" class="modal-backdrop" hidden>
+      <div class="confirm-modal panel auth-panel-premium" role="dialog" aria-modal="true" aria-labelledby="delete-character-title">
+        <h2 id="delete-character-title">Delete Character</h2>
+        <p>This permanently deletes <strong id="delete-character-name"></strong>. This cannot be undone.</p>
+        <label for="delete-character-confirm" class="auth-label">Type the character name to confirm</label>
+        <input id="delete-character-confirm" maxlength="16" autocomplete="off" />
+        <div id="delete-character-error" class="auth-error" aria-live="polite"></div>
+        <div class="confirm-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-delete-character">Cancel</button>
+          <button type="button" class="btn btn-danger" id="btn-confirm-delete-character" disabled>Delete Permanently</button>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import { RegExpMatcher, englishDataset, englishRecommendedTransformers } from 'obscenity';
 
 const SCRYPT_N = 16384, SCRYPT_R = 8, SCRYPT_P = 1, KEYLEN = 64;
 
@@ -45,6 +46,11 @@ const CONFUSABLE_CHARS: Record<string, string> = {
   '8': 'b',
 };
 
+const profanityMatcher = new RegExpMatcher({
+  ...englishDataset.build(),
+  ...englishRecommendedTransformers,
+});
+
 function normalizedUsernameForCensorship(username: string): string {
   return username
     .toLowerCase()
@@ -72,13 +78,23 @@ function bannedUsernameTerms(): string[] {
 }
 
 export function offensiveUsername(u: unknown): boolean {
+  return offensiveName(u);
+}
+
+export function offensiveName(u: unknown): boolean {
   if (typeof u !== 'string') return false;
   const normalized = normalizedUsernameForCensorship(u);
-  return bannedUsernameTerms().some((term) => normalized.includes(term));
+  return profanityMatcher.hasMatch(u) ||
+    profanityMatcher.hasMatch(normalized) ||
+    bannedUsernameTerms().some((term) => normalized.includes(term));
 }
 
 export function validUsername(u: unknown): u is string {
-  return typeof u === 'string' && /^[A-Za-z0-9_]{3,24}$/.test(u) && !offensiveUsername(u);
+  return validUsernameShape(u) && !offensiveName(u);
+}
+
+export function validUsernameShape(u: unknown): u is string {
+  return typeof u === 'string' && /^[A-Za-z0-9_]{3,24}$/.test(u);
 }
 
 export function validPassword(p: unknown): p is string {
@@ -86,5 +102,9 @@ export function validPassword(p: unknown): p is string {
 }
 
 export function validCharName(n: unknown): n is string {
+  return validCharNameShape(n) && !offensiveName(n);
+}
+
+export function validCharNameShape(n: unknown): n is string {
   return typeof n === 'string' && /^[A-Za-z][A-Za-z' -]{1,15}$/.test(n);
 }
