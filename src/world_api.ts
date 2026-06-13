@@ -14,6 +14,7 @@ export interface PartyMemberInfo {
   x: number;
   z: number;
   dead: number;
+  inCombat: number;
 }
 
 export interface PartyInfo {

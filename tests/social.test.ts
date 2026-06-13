@@ -253,6 +253,27 @@ describe('parties', () => {
     expect(sim.partyOf(a)).toBe(null);
   });
 
+  it('partyInfo reports per-member combat state for the UI badges', () => {
+    const { sim, a, b } = makeDuo();
+    // out of combat by default
+    const before = sim.partyInfo!.members.find((m) => m.pid === b)!;
+    expect(before.inCombat).toBe(0);
+    // engaging a member flips its flag in the next info read
+    sim.entities.get(b)!.inCombat = true;
+    const after = sim.partyInfo!.members.find((m) => m.pid === b)!;
+    expect(after.inCombat).toBe(1);
+    // and the dead flag stays independent of combat
+    expect(after.dead).toBe(0);
+  });
+
+  it('partyInfo carries member position so the minimap can place them', () => {
+    const { sim, a, b } = makeDuo();
+    teleport(sim, b, 17, -23);
+    const info = sim.partyInfo!.members.find((m) => m.pid === b)!;
+    expect(info.x).toBeCloseTo(17, 3);
+    expect(info.z).toBeCloseTo(-23, 3);
+  });
+
   it('party members share kill xp with the group bonus and quest credit', () => {
     const { sim, a, b } = makeDuo();
     // both accept the wolf quest

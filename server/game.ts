@@ -905,7 +905,7 @@ export class GameServer {
         return meta && e ? {
           pid: mPid, name: meta.name, cls: meta.cls, level: e.level,
           hp: e.hp, mhp: e.maxHp, res: Math.round(e.resource), mres: e.maxResource, rtype: e.resourceType,
-          x: round2(e.pos.x), z: round2(e.pos.z), dead: e.dead ? 1 : 0,
+          x: round2(e.pos.x), z: round2(e.pos.z), dead: e.dead ? 1 : 0, inCombat: e.inCombat ? 1 : 0,
         } : null;
       }).filter(Boolean),
     };

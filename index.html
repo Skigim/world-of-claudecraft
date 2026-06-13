@@ -1287,12 +1287,23 @@
   /* ---------- party frames ---------- */
   #party-frames { position: absolute; left: 12px; top: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 5; }
   #party-frames.below-target { top: 96px; }
-  .party-frame { width: 170px; padding: 4px 8px; cursor: pointer; }
-  .party-frame .pfm-name { font-size: 11.5px; font-family: var(--title-font); color: #7fb8ff; display: flex; justify-content: space-between; }
+  .party-frame { --cls: #7fb8ff; width: 170px; padding: 4px 8px 5px; cursor: pointer;
+    border-left: 3px solid var(--cls); transition: opacity 0.2s ease, box-shadow 0.2s ease; }
+  .party-frame .pfm-name { font-size: 12px; font-family: var(--title-font); display: flex;
+    justify-content: space-between; align-items: center; gap: 6px; }
+  .party-frame .pfm-id { color: var(--cls); letter-spacing: 0.3px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; text-shadow: 1px 1px 1px #000; }
+  .party-frame .pfm-meta { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
   .party-frame .pfm-name .lead { color: var(--gold); font-size: 10px; }
+  .party-frame .pf-badge { font-size: 10px; line-height: 1; filter: drop-shadow(0 0 2px #000); }
+  .party-frame .pf-badge.combat { animation: pf-combat-pulse 1s ease-in-out infinite; }
   .party-frame .bar { height: 9px; margin-top: 2px; }
-  .party-frame.dead .pfm-name { color: #888; }
-  .party-frame:hover { outline: 1px solid var(--gold-dim); }
+  .party-frame.combat { box-shadow: 0 0 7px #e74c3c99; }
+  .party-frame.dead { opacity: 0.7; }
+  .party-frame.dead .pfm-id { color: #888 !important; text-shadow: none; }
+  .party-frame.oor { opacity: 0.45; }
+  .party-frame:hover { outline: 1px solid var(--gold-dim); opacity: 1; }
+  @keyframes pf-combat-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
   #party-leave { font-size: 10px; padding: 2px 8px; margin: 0; }
 
   /* ---------- context menu ---------- */

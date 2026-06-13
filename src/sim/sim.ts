@@ -3681,7 +3681,7 @@ export class Sim {
         return meta && e ? [{
           pid: mPid, name: meta.name, cls: meta.cls, level: e.level,
           hp: e.hp, mhp: e.maxHp, res: Math.round(e.resource), mres: e.maxResource, rtype: e.resourceType,
-          x: e.pos.x, z: e.pos.z, dead: e.dead ? 1 : 0,
+          x: e.pos.x, z: e.pos.z, dead: e.dead ? 1 : 0, inCombat: e.inCombat ? 1 : 0,
         }] : [];
       }),
     };

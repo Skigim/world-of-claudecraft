@@ -49,6 +49,15 @@ const CLASS_GLYPH: Record<string, string> = {
   shaman: '🌩️', mage: '🔮', warlock: '🕯️', druid: '🐻',
 };
 
+// Classic class colors (CLASSES[cls].color is a 0xRRGGBB number) as a CSS
+// string, used to color-code party members on the minimap and in the frames.
+const classCss = (cls: string): string =>
+  '#' + ((CLASSES as Record<string, { color: number }>)[cls]?.color ?? 0x5fa8ff).toString(16).padStart(6, '0');
+
+// Party frames dim and the minimap pins members to the rim once they pass
+// this range (yards) — just inside the server's ~120 yd interest scope.
+const PARTY_RANGE_YD = 100;
+
 // yards past a zone boundary before the crossing banner/welcome commits
 const ZONE_BANNER_DEADBAND = 5;
 const IGNORED_CHAT_NAMES_KEY = 'woc_ignored_chat_names';
@@ -756,18 +765,52 @@ export class Hud {
         ctx.fillRect(mx - 1.5, my - 1.5, 3, 3);
       }
     }
-    // party members as bright blue blips
+    // Party members: class-colored markers. On-map allies are discs that
+    // scale up the closer they are (proximity scaling); allies past the rim
+    // are pinned to the edge as arrows pointing the way to regroup.
     const party = this.sim.partyInfo;
     if (party) {
-      ctx.fillStyle = '#5fa8ff';
+      const R = S / 2 - 7;
       for (const m of party.members) {
         if (m.pid === p.id) continue;
-        const mx = S / 2 - (m.x - p.pos.x) * pxPerYard;
-        const my = S / 2 - (m.z - p.pos.z) * pxPerYard;
-        if ((mx - S / 2) ** 2 + (my - S / 2) ** 2 > (S / 2 - 7) ** 2) continue;
-        ctx.beginPath();
-        ctx.arc(mx, my, 3, 0, Math.PI * 2);
-        ctx.fill();
+        const dx = -(m.x - p.pos.x) * pxPerYard; // +X is map-left
+        const dz = -(m.z - p.pos.z) * pxPerYard;
+        const dist = Math.hypot(dx, dz);
+        const offMap = dist > R;
+        const ang = Math.atan2(dz, dx);
+        const color = m.dead ? '#9a9a9a' : classCss(m.cls);
+        ctx.save();
+        if (offMap) {
+          // edge-anchored arrow pointing outward toward the off-screen ally
+          ctx.translate(S / 2 + Math.cos(ang) * R, S / 2 + Math.sin(ang) * R);
+          ctx.rotate(ang);
+          ctx.fillStyle = color;
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(6, 0); ctx.lineTo(-4, 4.5); ctx.lineTo(-4, -4.5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          // proximity scaling: ~6px adjacent down to ~3px near the rim
+          const r = 6 - (dist / R) * 3;
+          ctx.translate(S / 2 + dx, S / 2 + dz);
+          ctx.fillStyle = color;
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          if (!m.dead) { // bright inner pip so members pop against terrain
+            ctx.fillStyle = '#ffffffcc';
+            ctx.beginPath();
+            ctx.arc(0, 0, Math.max(1, r * 0.35), 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.restore();
       }
     }
     ctx.translate(S / 2, S / 2);
@@ -1554,17 +1597,28 @@ export class Hud {
       this.lastPartySig = '';
       return;
     }
-    const others = info.members.filter((m) => m.pid !== this.sim.playerId);
-    const sig = others.map((m) => `${m.pid}:${m.hp}/${m.mhp}:${m.res}:${m.dead}:${m.level}`).join('|') + `L${info.leader}`;
+    const p = this.sim.player;
+    const others = info.members.map((m) => ({
+      ...m,
+      oor: !m.dead && Math.hypot(m.x - p.pos.x, m.z - p.pos.z) > PARTY_RANGE_YD,
+    })).filter((m) => m.pid !== this.sim.playerId);
+    // include combat/range state so the frames rebuild when a badge changes
+    const sig = others.map((m) => `${m.pid}:${m.hp}/${m.mhp}:${m.res}:${m.dead}:${m.inCombat}:${m.oor ? 1 : 0}:${m.level}`).join('|') + `L${info.leader}`;
     if (sig === this.lastPartySig) return;
     this.lastPartySig = sig;
     el.innerHTML = '';
     for (const m of others) {
       const frame = document.createElement('div');
-      frame.className = 'party-frame panel' + (m.dead ? ' dead' : '');
+      frame.className = 'party-frame panel'
+        + (m.dead ? ' dead' : m.inCombat ? ' combat' : '')
+        + (m.oor ? ' oor' : '');
+      frame.style.setProperty('--cls', classCss(m.cls));
       const resClass = m.rtype === 'rage' ? 'rage' : m.rtype === 'energy' ? 'energy' : 'mana';
+      const badge = m.dead ? '<span class="pf-badge dead" title="Dead">💀</span>'
+        : m.inCombat ? '<span class="pf-badge combat" title="In combat">⚔️</span>' : '';
+      const range = m.oor ? '<span class="pf-badge oor" title="Out of range">⤢</span>' : '';
       frame.innerHTML = `
-        <div class="pfm-name"><span>${CLASS_GLYPH[m.cls] ?? ''} ${m.name}</span><span class="lead">${info.leader === m.pid ? '★' : ''} ${m.level}</span></div>
+        <div class="pfm-name"><span class="pfm-id">${CLASS_GLYPH[m.cls] ?? ''} ${m.name}</span><span class="pfm-meta">${badge}${range}<span class="lead">${info.leader === m.pid ? '★' : ''}${m.level}</span></span></div>
         <div class="bar hp"><div class="bar-fill" style="transform:scaleX(${(m.hp / Math.max(1, m.mhp)).toFixed(3)})"></div></div>
         <div class="bar ${resClass}"><div class="bar-fill" style="transform:scaleX(${(m.res / Math.max(1, m.mres)).toFixed(3)})"></div></div>`;
       frame.addEventListener('click', () => this.sim.targetEntity(m.pid));
