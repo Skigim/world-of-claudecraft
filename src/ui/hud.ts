@@ -71,6 +71,7 @@ export class Hud {
   private lastPartySig = '';
   private lastArenaSig = '';
   private lastArenaStatusSig = '';
+  private arenaMatchSeen = false; // closes the queue panel once a bout starts
   // World Market (the Merchant's auction house)
   private marketOpen = false;
   private marketTab: 'browse' | 'sell' | 'collect' = 'browse';
@@ -563,6 +564,12 @@ export class Hud {
     this.updatePartyFrames();
     this.updateTradeWindow();
     this.updateArenaStatus();
+    // when a bout begins, get the queue panel out of the way for the fight
+    const inArenaMatch = !!this.sim.arenaInfo?.match;
+    if (inArenaMatch && !this.arenaMatchSeen && $('#arena-window').style.display === 'block') {
+      $('#arena-window').style.display = 'none';
+    }
+    this.arenaMatchSeen = inArenaMatch;
     this.updateMinimap();
     if ($('#map-window').style.display === 'block') this.updateMapWindow();
     if ($('#arena-window').style.display === 'block') this.renderArenaWindow();
