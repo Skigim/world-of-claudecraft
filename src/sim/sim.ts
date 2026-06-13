@@ -35,6 +35,7 @@ const PARTY_XP_RANGE = 80; // yards: members this close share kill xp/credit
 const DUEL_COUNTDOWN = 3;
 // Ashen Coliseum 1v1 arena
 const ARENA_COUNTDOWN = 5; // gates pre-fight: heal up, no swings land yet
+const ARENA_RETURN_DELAY = 5; // aftermath: hold on the sands before going home
 const ARENA_MAX_DURATION = 150; // seconds; a stalling match resolves on hp%
 const ARENA_BASE_RATING = 1500; // every character starts here, unranked
 const ARENA_MIN_RATING = 100; // a rating floor so a losing streak can't go absurd
@@ -97,8 +98,8 @@ export interface ArenaMatch {
   a: number; // pid
   b: number; // pid
   slot: number; // arena instance slot
-  state: 'countdown' | 'active';
-  timer: number; // countdown remaining, then elapsed once active
+  state: 'countdown' | 'active' | 'over';
+  timer: number; // countdown remaining, then elapsed once active, then return countdown
   returnA: { x: number; z: number; facing: number };
   returnB: { x: number; z: number; facing: number };
   ratingA: number;
@@ -3015,7 +3016,19 @@ export class Sim {
       seen.add(match);
       const ea = this.entities.get(match.a);
       const eb = this.entities.get(match.b);
-      if (!ea || !eb) { this.endArenaMatch(match, ea ? match.a : eb ? match.b : null, 'forfeit'); continue; }
+      if (!ea || !eb) {
+        // someone logged out: an already-decided bout just sends the survivor
+        // home; an in-progress one is forfeited to the remaining fighter
+        if (match.state === 'over') this.returnFromArena(match);
+        else this.endArenaMatch(match, ea ? match.a : eb ? match.b : null, 'forfeit');
+        continue;
+      }
+      if (match.state === 'over') {
+        // aftermath: both already cleansed and scored — count down, then go home
+        match.timer -= DT;
+        if (match.timer <= 0) this.returnFromArena(match);
+        continue;
+      }
       if (match.state === 'countdown') {
         const before = Math.ceil(match.timer);
         match.timer -= DT;
@@ -3141,11 +3154,11 @@ export class Sim {
     e.drinking = null;
   }
 
-  // winnerPid null = draw; reason is informational (defeat/timeout/forfeit).
+  // Decide a bout: score it (once), then either send a survivor home now (a
+  // forfeit, where the other fighter is gone) or hold both on the sands for a
+  // brief aftermath before returning them. winnerPid null = draw; reason is
+  // informational (defeat/timeout/forfeit).
   private endArenaMatch(match: ArenaMatch, winnerPid: number | null, reason: 'defeat' | 'timeout' | 'forfeit'): void {
-    this.arenaMatches.delete(match.a);
-    this.arenaMatches.delete(match.b);
-    this.arenaBusySlots.delete(match.slot);
     const aMeta = this.players.get(match.a);
     const bMeta = this.players.get(match.b);
     const ea = this.entities.get(match.a);
@@ -3178,25 +3191,36 @@ export class Sim {
       });
     }
 
-    // restore both fighters to where they queued from, healed and out of combat
-    for (const [e, ret] of [[ea, match.returnA], [eb, match.returnB]] as const) {
+    // a forfeit can't have an aftermath (a fighter has gone) — send the
+    // survivor home immediately
+    if (!ea || !eb) { this.returnFromArena(match); return; }
+
+    // decided bout: cleanse both right now so no arena auras/DoTs tick during
+    // the wait, then hold them on the sands for the aftermath countdown
+    this.resetForArena(ea);
+    this.resetForArena(eb);
+    match.state = 'over';
+    match.timer = ARENA_RETURN_DELAY;
+    for (const mPid of [match.a, match.b]) {
+      this.emit({ type: 'log', text: 'The bout is decided. Returning to the world…', color: '#ffa040', pid: mPid });
+    }
+  }
+
+  // Teleport both fighters back to where they queued, fully cleansed (no arena
+  // auras, DoTs, debuffs, cooldowns or combat state follow them out), and
+  // release the instance slot.
+  private returnFromArena(match: ArenaMatch): void {
+    this.arenaMatches.delete(match.a);
+    this.arenaMatches.delete(match.b);
+    this.arenaBusySlots.delete(match.slot);
+    for (const [e, ret] of [[this.entities.get(match.a), match.returnA], [this.entities.get(match.b), match.returnB]] as const) {
       if (!e) continue;
-      const meta = this.players.get(e.id);
+      this.resetForArena(e); // strips every aura/effect/cooldown and heals to full
       e.pos = this.groundPos(ret.x, ret.z);
       e.prevPos = { ...e.pos };
       e.facing = ret.facing;
-      this.rebucket(e);
-      if (meta) recalcPlayerStats(e, meta.cls, meta.equipment);
-      e.auras = [];
       e.dead = false;
-      e.hp = e.maxHp;
-      e.resource = e.resourceType === 'mana' ? e.maxResource : e.resourceType === 'energy' ? 100 : 0;
-      e.targetId = null;
-      e.autoAttack = false;
-      e.castingAbility = null;
-      e.channeling = false;
-      e.combatTimer = 99;
-      e.inCombat = false;
+      this.rebucket(e);
       this.emit({ type: 'respawn', pid: e.id });
     }
   }
@@ -3227,7 +3251,10 @@ export class Sim {
       const oppMeta = this.players.get(oppPid);
       const oppE = this.entities.get(oppPid);
       if (oppMeta && oppE) {
-        matchInfo = { state: match.state, oppName: oppMeta.name, oppClass: oppMeta.cls, oppLevel: oppE.level, oppPid };
+        matchInfo = {
+          state: match.state, oppName: oppMeta.name, oppClass: oppMeta.cls, oppLevel: oppE.level, oppPid,
+          returnIn: match.state === 'over' ? Math.max(0, Math.ceil(match.timer)) : undefined,
+        };
       }
     }
     return {

@@ -843,8 +843,10 @@ export class Hud {
       this.lastArenaStatusSig = '';
       return;
     }
-    const label = m.state === 'countdown' ? 'Steel yourself…' : 'Fight to the yield!';
-    const sig = `${m.oppName}|${m.state}`;
+    const label = m.state === 'countdown' ? 'Steel yourself…'
+      : m.state === 'over' ? `Returning to the world… ${m.returnIn ?? 0}`
+      : 'Fight to the yield!';
+    const sig = `${m.oppName}|${m.state}|${m.state === 'over' ? (m.returnIn ?? 0) : ''}`;
     if (sig !== this.lastArenaStatusSig) {
       this.lastArenaStatusSig = sig;
       const cls = CLASSES[m.oppClass]?.name ?? m.oppClass;

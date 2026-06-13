@@ -58,11 +58,12 @@ export interface ArenaInfo {
   queueSize: number;
   // present only while in a match
   match: {
-    state: 'countdown' | 'active';
+    state: 'countdown' | 'active' | 'over';
     oppName: string;
     oppClass: PlayerClass;
     oppLevel: number;
     oppPid: number;
+    returnIn?: number; // whole seconds left in the post-bout aftermath ('over')
   } | null;
   // live standings of rated players currently online, best first
   ladder: ArenaLadderEntry[];
