@@ -2192,7 +2192,7 @@ export class Sim {
     if (social) {
       const pullRadius = MOBS[mob.templateId]?.family === 'murloc' ? 18 : 12;
       this.grid.forEachInRadius(mob.pos.x, mob.pos.z, pullRadius, (m, d2) => {
-        if (m.kind === 'mob' && m.id !== mob.id && !m.dead && m.aiState === 'idle' && m.ownerId === null
+        if (m.kind === 'mob' && m.id !== mob.id && !m.dead && m.hostile && m.aiState === 'idle' && m.ownerId === null
           && m.templateId === mob.templateId && d2 < pullRadius * pullRadius) {
           m.aiState = 'chase';
           m.aggroTargetId = target.id;
@@ -2474,6 +2474,7 @@ export class Sim {
     mob.loot = null;
     mob.tappedById = null;
     mob.ownerId = null; // a dead pet returns to the wild at its old camp
+    mob.hostile = true; // ...and is wild again: a tamed beast must not respawn neutral
     mob.pos = { ...mob.spawnPos };
     mob.pos.y = groundHeight(mob.pos.x, mob.pos.z, this.cfg.seed);
     mob.prevPos = { ...mob.pos };

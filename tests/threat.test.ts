@@ -415,6 +415,34 @@ describe('hunter pets', () => {
     expect(sim.petOf(sim.playerId)).toBe(null);
   });
 
+  it('a tamed beast that dies respawns hostile, not a grey unattackable zombie', () => {
+    // Regression: respawnMob cleared ownerId ("back to the wild") but left
+    // hostile=false, so any tamed-then-killed beast respawned permanently
+    // neutral — grey on the unit frame and rejected with "Invalid attack target".
+    const sim = new Sim({ seed: 42, playerClass: 'hunter', respawnSeconds: 2, autoEquip: true });
+    sim.setPlayerLevel(10);
+    const wolf = nearestMob(sim, 'forest_wolf');
+    teleport(sim, sim.player, wolf.pos.x + 5, wolf.pos.z);
+    sim.targetEntity(wolf.id);
+    sim.player.facing = Math.atan2(wolf.pos.x - sim.player.pos.x, wolf.pos.z - sim.player.pos.z);
+    sim.castAbility('tame_beast');
+    for (let i = 0; i < 20 * 7; i++) sim.tick(); // 6s cast
+    expect(wolf.ownerId).toBe(sim.playerId);
+    expect(wolf.hostile).toBe(false); // tamed pets are neutral
+
+    // the pet falls in combat and its corpse respawns at its old camp
+    const boar = nearestMob(sim, 'wild_boar');
+    wolf.hp = 1;
+    hit(sim, boar, wolf, 9999);
+    for (let i = 0; i < 20 * 5 && !wolf.dead; i++) sim.tick();
+    expect(wolf.dead).toBe(true);
+
+    for (let i = 0; i < 20 * 10 && wolf.dead; i++) sim.tick();
+    expect(wolf.dead).toBe(false);
+    expect(wolf.ownerId).toBe(null); // back to the wild
+    expect(wolf.hostile).toBe(true); // ...and attackable again
+  });
+
   it('tame validation: too-high level and elites are refused', () => {
     const sim = makeSim('hunter');
     sim.setPlayerLevel(10);
