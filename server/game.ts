@@ -709,6 +709,26 @@ export class GameServer {
 
       // post-cap cosmetic prestige (Max-Level XP Overflow, Phase 4)
       case 'prestige': sim.prestige(pid); break;
+
+      // Talents & Specializations — every allocation re-validated in the Sim.
+      case 'applyTalents': {
+        const a = msg.alloc;
+        if (a && typeof a === 'object') {
+          sim.applyTalents({
+            spec: typeof a.spec === 'string' ? a.spec : null,
+            ranks: (a.ranks && typeof a.ranks === 'object') ? a.ranks : {},
+            choices: (a.choices && typeof a.choices === 'object') ? a.choices : {},
+          }, pid);
+        }
+        break;
+      }
+      case 'respec': sim.respec(pid); break;
+      case 'setSpec': sim.setSpec(typeof msg.spec === 'string' ? msg.spec : null, pid); break;
+      case 'saveLoadout':
+        if (typeof msg.name === 'string') sim.saveLoadout(msg.name, Array.isArray(msg.bar) ? msg.bar : [], pid);
+        break;
+      case 'switchLoadout': if (typeof msg.index === 'number') sim.switchLoadout(msg.index | 0, pid); break;
+      case 'deleteLoadout': if (typeof msg.index === 'number') sim.deleteLoadout(msg.index | 0, pid); break;
       // World Market (the Merchant's auction house)
       case 'market_list':
         if (typeof msg.item === 'string' && typeof msg.count === 'number' && typeof msg.price === 'number') {
@@ -931,6 +951,9 @@ export class GameServer {
     // market info is null unless the player is standing at the Merchant, so it
     // only rides the wire for players actually browsing the World Market
     maybe('market', this.sim.marketInfoFor(session.pid));
+    // talents/spec/loadouts ride the wire only when they change (PR-5: never
+    // every snapshot). The client recomputes its known abilities from this.
+    maybe('tal', { alloc: meta.talents, spec: meta.talentMods.spec, role: meta.talentMods.role, loadouts: meta.loadouts, activeLoadout: meta.activeLoadout });
     return extra === '' ? json : json.slice(0, -1) + extra + '}';
   }
 

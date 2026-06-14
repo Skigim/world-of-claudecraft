@@ -10,8 +10,8 @@ import { findPath } from './pathfind';
 import { createGroundObject, createMob, createNpc, createPlayer, recalcPlayerStats, PlayerEquipment } from './entity';
 import {
   computeTalentModifiers, emptyAllocation, emptyModifiers, talentsFor, talentPointsAtLevel,
-  validateAllocation, cloneAllocation, pointsSpent, FIRST_TALENT_LEVEL,
-  type TalentAllocation, type TalentModifiers, type SavedLoadout,
+  validateAllocation, cloneAllocation, pointsSpent, FIRST_TALENT_LEVEL, MAX_LOADOUTS,
+  type TalentAllocation, type TalentModifiers, type SavedLoadout, type Role,
 } from './content/talents';
 import { Rng } from './rng';
 import { SpatialGrid } from './spatial';
@@ -680,6 +680,21 @@ export class Sim {
   get counters(): RewardCounters {
     return this.primary.counters;
   }
+  get talents(): TalentAllocation {
+    return this.primary.talents;
+  }
+  get talentSpec(): string | null {
+    return this.primary.talentMods.spec;
+  }
+  get talentRole(): Role | null {
+    return this.primary.talentMods.role;
+  }
+  get loadouts(): SavedLoadout[] {
+    return this.primary.loadouts;
+  }
+  get activeLoadout(): number {
+    return this.primary.activeLoadout;
+  }
 
   meta(pid: number): PlayerMeta | null {
     return this.players.get(pid) ?? null;
@@ -857,6 +872,51 @@ export class Sim {
     r.meta.talents = { spec: r.meta.talents.spec, ranks: {}, choices: {} };
     this.recomputeTalents(r.meta);
     this.emit({ type: 'log', pid: r.e.id, text: 'Talents reset.', color: '#ffd100' });
+    return true;
+  }
+
+  // Save the current build (talents + spec + the given action-bar slot map) as a
+  // named loadout. A same-named loadout is overwritten; otherwise appended up to
+  // MAX_LOADOUTS. Returns the loadout index (-1 on failure).
+  saveLoadout(name: string, bar: (string | null)[], pid?: number): number {
+    const r = this.resolve(pid);
+    if (!r) return -1;
+    const clean = (name || 'Build').toString().slice(0, 24);
+    const safeBar = Array.isArray(bar) ? bar.slice(0, 16).map((b) => (typeof b === 'string' ? b : null)) : [];
+    const lo: SavedLoadout = { name: clean, alloc: cloneAllocation(r.meta.talents), bar: safeBar };
+    const existing = r.meta.loadouts.findIndex((l) => l.name === clean);
+    if (existing >= 0) { r.meta.loadouts[existing] = lo; r.meta.activeLoadout = existing; return existing; }
+    if (r.meta.loadouts.length >= MAX_LOADOUTS) { this.error(r.e.id, `You can save at most ${MAX_LOADOUTS} loadouts.`); return -1; }
+    r.meta.loadouts.push(lo);
+    r.meta.activeLoadout = r.meta.loadouts.length - 1;
+    return r.meta.activeLoadout;
+  }
+
+  // Apply a saved loadout's talents (out of combat). The action bar is restored
+  // client-side from the loadout's stored slot map. Re-validated server-side.
+  switchLoadout(index: number, pid?: number): boolean {
+    const r = this.resolve(pid);
+    if (!r) return false;
+    const lock = this.talentLockReason(r.e);
+    if (lock) { this.error(r.e.id, lock); return false; }
+    const lo = r.meta.loadouts[index];
+    if (!lo) { this.error(r.e.id, 'No such loadout.'); return false; }
+    if (lo.alloc.spec && r.e.level < FIRST_TALENT_LEVEL) { this.error(r.e.id, 'That loadout needs a higher level.'); return false; }
+    const check = validateAllocation(r.meta.cls, lo.alloc, talentPointsAtLevel(r.e.level));
+    if (!check.ok) { this.error(r.e.id, `Loadout invalid: ${check.reason ?? 'unknown'}`); return false; }
+    r.meta.talents = cloneAllocation(lo.alloc);
+    r.meta.activeLoadout = index;
+    this.recomputeTalents(r.meta);
+    this.emit({ type: 'log', pid: r.e.id, text: `Loadout "${lo.name}" applied.`, color: '#ffd100' });
+    return true;
+  }
+
+  deleteLoadout(index: number, pid?: number): boolean {
+    const r = this.resolve(pid);
+    if (!r || index < 0 || index >= r.meta.loadouts.length) return false;
+    r.meta.loadouts.splice(index, 1);
+    if (r.meta.activeLoadout === index) r.meta.activeLoadout = -1;
+    else if (r.meta.activeLoadout > index) r.meta.activeLoadout -= 1;
     return true;
   }
 

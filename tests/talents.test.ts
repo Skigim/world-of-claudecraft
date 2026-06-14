@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   TALENTS, talentsFor, validateTalentTree, talentPointsAtLevel, FIRST_TALENT_LEVEL,
   validateAllocation, dormantNodes, computeTalentModifiers, emptyAllocation,
-  exportBuild, importBuild, TALENT_BUILD_VERSION, type TalentAllocation,
+  exportBuild, importBuild, TALENT_BUILD_VERSION, MAX_LOADOUTS, type TalentAllocation,
 } from '../src/sim/content/talents';
 import { MAX_LEVEL, dist2d } from '../src/sim/types';
 import { Sim } from '../src/sim/sim';
@@ -345,5 +345,65 @@ describe('Sim integration — active talents & ability modifiers (Phase 3)', () 
     // assert the band rather than the exact ratio): clearly boosted, not doubled.
     expect(venge / base).toBeGreaterThan(1.25);
     expect(venge / base).toBeLessThan(1.31);
+  });
+});
+
+describe('Sim integration — loadouts & build strings (Phase 4)', () => {
+  it('saves and switches loadouts, restoring talents + spec + bar', () => {
+    const sim = warriorAtCap();
+    sim.applyTalents(alloc({ spec: 'arms', ranks: { arms_imp_overpower: 2 } }));
+    expect(sim.saveLoadout('Arms PvE', ['mortal_strike', 'overpower', null])).toBe(0);
+    sim.applyTalents(alloc({ spec: 'prot', ranks: { prot_toughness: 3 } }));
+    expect(sim.saveLoadout('Prot Tank', ['shield_slam', 'taunt'])).toBe(1);
+    expect(sim.loadouts.length).toBe(2);
+
+    expect(sim.switchLoadout(0)).toBe(true);
+    expect(sim.talents.spec).toBe('arms');
+    expect(sim.talents.ranks.arms_imp_overpower).toBe(2);
+    expect(sim.talentSpec).toBe('arms');
+    expect(sim.activeLoadout).toBe(0);
+    expect(sim.loadouts[0].bar).toEqual(['mortal_strike', 'overpower', null]); // action bar travels with the build
+    expect(sim.known.some((k) => k.def.id === 'mortal_strike')).toBe(true);     // restored spec granted its signature
+  });
+
+  it('locks loadout switching in combat', () => {
+    const sim = warriorAtCap();
+    sim.applyTalents(alloc({ spec: 'arms' }));
+    sim.saveLoadout('A', []);
+    sim.player.inCombat = true;
+    expect(sim.switchLoadout(0)).toBe(false);
+  });
+
+  it('deletes a loadout and repairs the active index', () => {
+    const sim = warriorAtCap();
+    sim.saveLoadout('one', []);
+    sim.saveLoadout('two', []);
+    expect(sim.deleteLoadout(0)).toBe(true);
+    expect(sim.loadouts.length).toBe(1);
+    expect(sim.loadouts[0].name).toBe('two');
+  });
+
+  it('caps loadouts at MAX_LOADOUTS', () => {
+    const sim = warriorAtCap();
+    for (let i = 0; i < MAX_LOADOUTS; i++) expect(sim.saveLoadout('L' + i, [])).toBe(i);
+    expect(sim.saveLoadout('overflow', [])).toBe(-1);
+  });
+
+  it('imports a build string and re-validates it server-side on apply', () => {
+    const author = warriorAtCap();
+    author.applyTalents(alloc({ spec: 'prot', ranks: { prot_toughness: 3, prot_anticipation: 2 } }));
+    const str = exportBuild('warrior', author.talents);
+
+    const target = warriorAtCap(11);
+    const imported = importBuild(str);
+    expect(imported.ok).toBe(true);
+    if (imported.ok) expect(target.applyTalents(imported.alloc)).toBe(true);
+    expect(target.talents.spec).toBe('prot');
+    expect(target.talents.ranks.prot_toughness).toBe(3);
+
+    // the SAME build is rejected for a character without the points (server-side)
+    const lowbie = new Sim({ seed: 5, playerClass: 'warrior' });
+    lowbie.setPlayerLevel(10); // only 1 point
+    expect(lowbie.applyTalents(imported.ok ? imported.alloc : alloc())).toBe(false);
   });
 });

@@ -3,6 +3,10 @@
 import { NPCS, abilitiesKnownAt } from '../sim/data';
 import { computeQuestState, ResolvedAbility } from '../sim/sim';
 import {
+  computeTalentModifiers, emptyAllocation, talentPointsAtLevel, pointsSpent,
+  type TalentAllocation, type SavedLoadout, type Role,
+} from '../sim/content/talents';
+import {
   Entity, EquipSlot, InvSlot, MoveInput, PlayerClass, QuestProgress, QuestState, SimEvent,
   emptyMoveInput,
 } from '../sim/types';
@@ -227,6 +231,12 @@ export class ClientWorld implements IWorld {
   prestigeRank = 0;
   unlockedMilestones: string[] = [];
   known: ResolvedAbility[] = [];
+  // Talents & Specializations, mirrored from snapshot self (display + staging).
+  talents: TalentAllocation = emptyAllocation();
+  talentSpec: string | null = null;
+  talentRole: Role | null = null;
+  loadouts: SavedLoadout[] = [];
+  activeLoadout = -1;
   questLog = new Map<string, QuestProgress>();
   questsDone = new Set<string>();
   partyInfo: PartyInfo | null = null;
@@ -517,7 +527,17 @@ export class ClientWorld implements IWorld {
       if (s.qlog !== undefined) this.questLog = new Map((s.qlog as QuestProgress[]).map((q) => [q.questId, q]));
       if (s.qdone !== undefined) this.questsDone = new Set(s.qdone);
       if (s.qlog !== undefined || s.qdone !== undefined) this.pendingQuestCommands?.clear();
-      this.known = abilitiesKnownAt(this.cfg.playerClass, e.level);
+      // talent state (heavy field, sent on change): mirror it, then resolve known
+      // with the precomputed modifiers so granted abilities + tweaks show locally.
+      if (s.tal !== undefined && s.tal) {
+        this.talents = s.tal.alloc ?? emptyAllocation();
+        this.talentSpec = s.tal.spec ?? null;
+        this.talentRole = s.tal.role ?? null;
+        this.loadouts = s.tal.loadouts ?? [];
+        this.activeLoadout = typeof s.tal.activeLoadout === 'number' ? s.tal.activeLoadout : -1;
+      }
+      const talents = this.talents ?? (this.talents = emptyAllocation());
+      this.known = abilitiesKnownAt(this.cfg.playerClass, e.level, computeTalentModifiers(this.cfg.playerClass, talents));
       if (s.party !== undefined) this.partyInfo = s.party;
       if (s.trade !== undefined) this.tradeInfo = s.trade;
       if (s.duel !== undefined) this.duelInfo = s.duel;
@@ -725,6 +745,29 @@ export class ClientWorld implements IWorld {
   }
   prestige(): void {
     this.cmd({ cmd: 'prestige' });
+  }
+  // Talents & Specializations — the server re-validates every allocation.
+  talentPoints(): { total: number; spent: number } {
+    const level = this.entities.get(this.playerId)?.level ?? 1;
+    return { total: talentPointsAtLevel(level), spent: pointsSpent(this.talents) };
+  }
+  applyTalents(alloc: TalentAllocation): void {
+    this.cmd({ cmd: 'applyTalents', alloc });
+  }
+  respec(): void {
+    this.cmd({ cmd: 'respec' });
+  }
+  setSpec(specId: string | null): void {
+    this.cmd({ cmd: 'setSpec', spec: specId });
+  }
+  saveLoadout(name: string, bar: (string | null)[]): void {
+    this.cmd({ cmd: 'saveLoadout', name, bar });
+  }
+  switchLoadout(index: number): void {
+    this.cmd({ cmd: 'switchLoadout', index });
+  }
+  deleteLoadout(index: number): void {
+    this.cmd({ cmd: 'deleteLoadout', index });
   }
   // legacy aliases kept for older scripts
   enterCrypt(): void {

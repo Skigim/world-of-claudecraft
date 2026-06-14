@@ -113,6 +113,8 @@ export interface SavedLoadout {
   bar: (string | null)[];     // action-bar ability ids (per-build hotbar)
 }
 
+export const MAX_LOADOUTS = 10;
+
 export interface ResolvedAbilityMod {
   dmgPct: number; flatDmg: number; costPct: number; cooldownPct: number; castPct: number;
 }
