@@ -605,11 +605,12 @@ export class Hud {
     actionbar.classList.toggle('many-spells', this.slotMap.filter((id) => id !== null).length > 10);
     for (let i = 0; i < this.abilityButtons.length; i++) {
       const ab = this.abilityButtons[i];
+      const slotLabel = formatAbilityNumber(i + 1);
       if (i === 0) {
         // Attack button: glows while auto-attacking, red-edged out of range
         ab.btn.classList.remove('empty', 'unusable');
         ab.btn.setAttribute('aria-label', t('abilityUi.actionBar.slotAria', {
-          slot: i + 1,
+          slot: slotLabel,
           ability: t('abilityUi.actionBar.attackName'),
         }));
         if (ab.lastIcon !== '__attack') {
@@ -625,7 +626,7 @@ export class Hud {
       const known = this.abilityForSlot(i);
       if (!known) {
         ab.btn.classList.add('empty');
-        ab.btn.setAttribute('aria-label', t('abilityUi.actionBar.emptySlotAria', { slot: i + 1 }));
+        ab.btn.setAttribute('aria-label', t('abilityUi.actionBar.emptySlotAria', { slot: slotLabel }));
         if (ab.lastIcon !== '') {
           ab.lastIcon = '';
           ab.label.style.backgroundImage = '';
@@ -637,7 +638,7 @@ export class Hud {
       const a = known.def;
       ab.btn.classList.remove('empty');
       ab.btn.setAttribute('aria-label', t('abilityUi.actionBar.slotAria', {
-        slot: i + 1,
+        slot: slotLabel,
         ability: abilityDisplayName(a),
       }));
       // set the painted icon once per slot change, not every frame
@@ -2152,14 +2153,15 @@ export class Hud {
       const locked = !known;
       const summary = known ? describeAbilitySummary(known, sim.player.resourceType) : '';
       const name = abilityDisplayName(def);
+      const learnLevel = formatAbilityNumber(def.learnLevel);
       row.setAttribute('aria-label', known
         ? t('abilityUi.spellbook.knownAbilityAria', { name, rank: formatAbilityNumber(known.rank), summary })
-        : t('abilityUi.spellbook.unlearnedAbilityAria', { name, level: def.learnLevel }));
+        : t('abilityUi.spellbook.unlearnedAbilityAria', { name, level: learnLevel }));
       row.innerHTML = `<div class="spell-icon" style="background-image:url(${iconDataUrl('ability', abilityId)})"></div>
         <div class="spell-text"><div class="spell-name">${esc(name)}${known && known.rank > 1 ? ` <span class="spell-rank">${esc(t('abilityUi.tooltip.rank', { rank: formatAbilityNumber(known.rank) }))}</span>` : ''}</div>
-        <div class="spell-sub">${locked ? esc(t('abilityUi.spellbook.trainableAtLevel', { level: def.learnLevel })) : esc(summary)}</div></div>`;
+        <div class="spell-sub">${locked ? esc(t('abilityUi.spellbook.trainableAtLevel', { level: learnLevel })) : esc(summary)}</div></div>`;
       if (known) this.attachTooltip(row, () => this.abilityTooltip(known));
-      else this.attachTooltip(row, () => `<div class="tt-title">${esc(name)}</div><div class="tt-sub">${esc(t('abilityUi.spellbook.learnAtLevel', { level: def.learnLevel }))}</div>`);
+      else this.attachTooltip(row, () => `<div class="tt-title">${esc(name)}</div><div class="tt-sub">${esc(t('abilityUi.spellbook.learnAtLevel', { level: learnLevel }))}</div>`);
       list.appendChild(row);
       rendered++;
     }
