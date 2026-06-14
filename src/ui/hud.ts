@@ -17,6 +17,7 @@ import { iconDataUrl, QUALITY_COLOR } from './icons';
 import { Keybinds, BIND_ACTIONS, BIND_CATEGORIES, isReservedCode, keyLabel } from '../game/keybinds';
 import { Settings, GameSettings, SETTING_RANGES } from '../game/settings';
 import { chatPlayerContextActions } from './player_context_menu';
+import { placeAbilityOnSlot } from './hotbar';
 
 // hooks main wires after Input exists (the options menu drives input, audio,
 // graphics, and logout, all of which live outside the HUD)
@@ -66,7 +67,7 @@ export class Hud {
   private static readonly BAR_ABILITY_SLOTS = 11; // bar slots 1..11; slot 0 is the fixed Attack toggle
   private abilityButtons: { btn: HTMLButtonElement; label: HTMLSpanElement; keybindEl: HTMLSpanElement; cdOverlay: HTMLDivElement; cdText: HTMLDivElement; lastIcon: string }[] = [];
   private slotMap: (string | null)[] = []; // index = barSlot-1, value = ability id
-  private dragFromSlot: number | null = null;
+  private dragAbilityId: string | null = null;
   private optionsHooks: OptionsHooks | null = null;
   private reportHooks: ReportHooks | null = null;
   private optionsView: 'main' | 'keybinds' | 'graphics' | 'audio' = 'main';
@@ -424,19 +425,19 @@ export class Hud {
         return known ? this.abilityTooltip(known) : '<div class="tt-sub">Empty slot</div>';
       });
       if (slot >= 1) {
-        // drag an ability onto another slot to swap the two keybinds;
+        // drag an ability onto another slot to place or swap it;
         // slot 0 (Attack) stays fixed
         btn.draggable = true;
         btn.addEventListener('dragstart', (e) => {
           const known = this.abilityForSlot(slot);
           if (!known) { e.preventDefault(); return; }
-          this.dragFromSlot = slot;
+          this.dragAbilityId = known.def.id;
           e.dataTransfer!.setData('text/plain', known.def.id);
           e.dataTransfer!.effectAllowed = 'move';
           this.hideTooltip();
         });
         btn.addEventListener('dragover', (e) => {
-          if (this.dragFromSlot === null || this.dragFromSlot === slot) return;
+          if (this.dragAbilityId === null || this.slotMap[slot - 1] === this.dragAbilityId) return;
           e.preventDefault(); // required to permit the drop
           e.dataTransfer!.dropEffect = 'move';
           btn.classList.add('drop-target');
@@ -445,21 +446,24 @@ export class Hud {
         btn.addEventListener('drop', (e) => {
           e.preventDefault();
           btn.classList.remove('drop-target');
-          const from = this.dragFromSlot;
-          this.dragFromSlot = null;
-          if (from === null || from === slot) return;
-          const a = from - 1, b = slot - 1;
-          [this.slotMap[a], this.slotMap[b]] = [this.slotMap[b], this.slotMap[a]]; // swap; empty target = move
+          const abilityId = this.dragAbilityId ?? e.dataTransfer?.getData('text/plain') ?? '';
+          this.dragAbilityId = null;
+          if (!this.sim.known.some((k) => k.def.id === abilityId)) return;
+          this.slotMap = placeAbilityOnSlot(this.slotMap, abilityId, slot - 1);
           this.saveSlotMap();
         });
         btn.addEventListener('dragend', () => {
-          this.dragFromSlot = null;
-          bar.querySelectorAll('.drop-target').forEach((el) => el.classList.remove('drop-target'));
+          this.dragAbilityId = null;
+          this.clearActionDropTargets();
         });
       }
       bar.appendChild(btn);
       this.abilityButtons.push({ btn, label, keybindEl: kb, cdOverlay, cdText, lastIcon: '' });
     }
+  }
+
+  private clearActionDropTargets(): void {
+    document.querySelectorAll('#actionbar .drop-target').forEach((el) => el.classList.remove('drop-target'));
   }
 
   // Repaint the keycap on every action button from the current bindings.
@@ -1980,8 +1984,20 @@ export class Hud {
       row.innerHTML = `<div class="spell-icon" style="background-image:url(${iconDataUrl('ability', abilityId)});${locked ? 'filter:grayscale(1) brightness(0.5)' : ''}"></div>
         <div><div class="spell-name" style="${locked ? 'color:#777' : ''}">${def.name}${known && known.rank > 1 ? ` <span style="color:#998d6a;font-size:11px">Rank ${known.rank}</span>` : ''}</div>
         <div class="spell-sub">${locked ? `Trainable at level ${def.learnLevel}` : describeCost(known!, sim)}</div></div>`;
-      if (known) this.attachTooltip(row, () => this.abilityTooltip(known));
-      else this.attachTooltip(row, () => `<div class="tt-title" style="color:#999">${def.name}</div><div class="tt-sub">You will learn this at level ${def.learnLevel}.</div>`);
+      if (known) {
+        row.draggable = true;
+        row.addEventListener('dragstart', (e) => {
+          this.dragAbilityId = known.def.id;
+          e.dataTransfer!.setData('text/plain', known.def.id);
+          e.dataTransfer!.effectAllowed = 'move';
+          this.hideTooltip();
+        });
+        row.addEventListener('dragend', () => {
+          this.dragAbilityId = null;
+          this.clearActionDropTargets();
+        });
+        this.attachTooltip(row, () => this.abilityTooltip(known));
+      } else this.attachTooltip(row, () => `<div class="tt-title" style="color:#999">${def.name}</div><div class="tt-sub">You will learn this at level ${def.learnLevel}.</div>`);
       el.appendChild(row);
     }
     el.querySelector('[data-close]')?.addEventListener('click', () => { el.style.display = 'none'; this.hideTooltip(); });
