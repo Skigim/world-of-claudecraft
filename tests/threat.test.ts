@@ -232,6 +232,18 @@ describe('classic pull-over rules (110% melee / 130% ranged)', () => {
     // the dead player dropped off the table entirely
     expect(wolf.threat.has(a.id)).toBe(false);
   });
+
+  it('when the target dies the mob evades instead of attacking a bystander with no threat', () => {
+    const { sim, a, b, wolf } = aggroSetup();
+    teleport(sim, b, wolf.pos.x + 2, wolf.pos.z + 2);
+
+    (sim as any).dealDamage(wolf, a, 99999, false, 'physical', null, 'hit', true);
+
+    expect(a.dead).toBe(true);
+    expect(wolf.threat.has(b.id)).toBe(false);
+    expect(wolf.aggroTargetId).not.toBe(b.id);
+    expect(wolf.aiState).toBe('evade');
+  });
 });
 
 describe('taunt and growl', () => {

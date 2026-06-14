@@ -233,6 +233,56 @@ describe('combat', () => {
     expect(wolf.hp).toBe(wolf.maxHp);
   });
 
+  it('hostile actions refresh the mob leash anchor for kiting', () => {
+    const sim = makeSim('warrior');
+    const wolf = nearestMob(sim, 'forest_wolf');
+    wolf.maxHp = 5000;
+    wolf.hp = 5000;
+    wolf.pos.x = wolf.spawnPos.x + 50;
+    wolf.pos.z = wolf.spawnPos.z;
+    wolf.pos.y = terrainHeight(wolf.pos.x, wolf.pos.z, sim.cfg.seed);
+    wolf.prevPos = { ...wolf.pos };
+    teleportTo(sim, wolf.pos.x + 2, wolf.pos.z);
+
+    (sim as any).dealDamage(sim.player, wolf, 1, false, 'physical', 'Test', 'hit', true);
+    sim.tick();
+
+    expect(dist2d(wolf.pos, wolf.spawnPos)).toBeGreaterThan(45);
+    expect(wolf.aiState).not.toBe('evade');
+    expect(wolf.leashAnchor).not.toBeNull();
+  });
+
+  it('social pulls only very close same-template mobs', () => {
+    const sim = makeSim('warrior');
+    const wolf = nearestMob(sim, 'forest_wolf');
+    const otherWolf = [...sim.entities.values()].find((e: any) => e.kind === 'mob' && e.id !== wolf.id && e.templateId === 'forest_wolf') as any;
+    wolf.pos = { ...wolf.spawnPos };
+    otherWolf.pos = { x: wolf.pos.x + 6, y: wolf.pos.y, z: wolf.pos.z };
+    otherWolf.prevPos = { ...otherWolf.pos };
+    (sim as any).rebucket(wolf);
+    (sim as any).rebucket(otherWolf);
+    teleportTo(sim, wolf.pos.x + 2, wolf.pos.z);
+
+    (sim as any).aggroMob(wolf, sim.player, true);
+
+    expect(otherWolf.aiState).toBe('idle');
+
+    const murloc = nearestMob(sim, 'mudfin_murloc');
+    const otherMurloc = [...sim.entities.values()].find((e: any) => e.kind === 'mob' && e.id !== murloc.id && e.templateId === 'mudfin_murloc') as any;
+    murloc.aiState = 'idle';
+    otherMurloc.aiState = 'idle';
+    murloc.pos = { ...murloc.spawnPos };
+    otherMurloc.pos = { x: murloc.pos.x + 9, y: murloc.pos.y, z: murloc.pos.z };
+    otherMurloc.prevPos = { ...otherMurloc.pos };
+    (sim as any).rebucket(murloc);
+    (sim as any).rebucket(otherMurloc);
+    teleportTo(sim, murloc.pos.x + 2, murloc.pos.z);
+
+    (sim as any).aggroMob(murloc, sim.player, true);
+
+    expect(otherMurloc.aiState).toBe('idle');
+  });
+
   it('dead mobs respawn', () => {
     const sim = new Sim({ seed: 42, playerClass: 'warrior', respawnSeconds: 2 });
     const wolf = nearestMob(sim, 'forest_wolf');

@@ -437,6 +437,7 @@ export interface Entity {
   summonedIds: number[]; // live adds this boss summoned; despawned on reset
   enraged: boolean; // enrage mechanic active
   spawnPos: Vec3;
+  leashAnchor: Vec3 | null; // refreshed by hostile player/pet actions; spawnPos remains the true home
   wanderTarget: Vec3 | null;
   wanderTimer: number;
   aggroTargetId: number | null;

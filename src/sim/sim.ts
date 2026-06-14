@@ -26,6 +26,8 @@ import {
 
 const LEASH_DISTANCE = 45;
 const DUNGEON_LEASH_DISTANCE = 70;
+const SOCIAL_PULL_RADIUS = 5;
+const MURLOC_SOCIAL_PULL_RADIUS = 8;
 const CORPSE_DURATION = 60;
 const EVADE_SPEED_MULT = 1.6;
 const BACKPEDAL_MULT = 0.65;
@@ -1790,6 +1792,8 @@ export class Sim {
     target.auras.push(aura);
     this.applyNonPlayerStatAura(target, aura, 1);
     this.emit({ type: 'aura', targetId: target.id, name: aura.name, gained: true });
+    const source = this.entities.get(aura.sourceId);
+    this.refreshMobLeashFromAction(source ?? null, target);
     if (target.kind === 'player') {
       const meta = this.players.get(target.id);
       if (meta) recalcPlayerStats(target, meta.cls, meta.equipment);
@@ -2096,6 +2100,7 @@ export class Sim {
     }
 
     if (source && source.id !== target.id) this.enterCombat(source, target);
+    this.refreshMobLeashFromAction(source, target);
 
     // classic threat: damage (and the ability's flat bonus) lands on the mob's
     // hate table, scaled by the attacker's stance/form modifiers
@@ -2308,9 +2313,15 @@ export class Sim {
   // Mob AI
   // -------------------------------------------------------------------------
 
+  private refreshMobLeashFromAction(source: Entity | null, target: Entity): void {
+    if (!source || source.id === target.id || target.kind !== 'mob' || target.ownerId !== null || target.dead) return;
+    if (source.kind !== 'player' && source.ownerId === null) return;
+    target.leashAnchor = { ...target.pos };
+  }
+
   // When a mob's target dies/leaves it swings to its next-highest-threat
-  // attacker; with an empty hate table it falls back to the nearest living
-  // player, and failing that it goes home.
+  // attacker. With no living threat left, it evades home instead of grabbing a
+  // nearby bystander who never acted on the mob.
   private retargetMob(mob: Entity): void {
     const next = this.highestThreatTarget(mob);
     if (next) {
@@ -2319,16 +2330,8 @@ export class Sim {
       mob.inCombat = true;
       return;
     }
-    const near = this.nearestLivingPlayer(mob.pos, 35);
-    if (near) {
-      addThreat(mob, near.e.id, 1);
-      mob.aggroTargetId = near.e.id;
-      mob.aiState = 'chase';
-      mob.inCombat = true;
-    } else {
-      mob.aggroTargetId = null;
-      mob.aiState = 'evade';
-    }
+    mob.aggroTargetId = null;
+    mob.aiState = 'evade';
   }
 
   /** Highest-threat living attacker on the table; prunes stale entries. */
@@ -2381,15 +2384,17 @@ export class Sim {
     mob.aiState = 'chase';
     mob.aggroTargetId = target.id;
     mob.inCombat = true;
+    mob.leashAnchor = { ...mob.pos };
     addThreat(mob, target.id, 1); // seed the hate table so taunts/heals have a baseline
     if (social) {
-      const pullRadius = MOBS[mob.templateId]?.family === 'murloc' ? 18 : 12;
+      const pullRadius = MOBS[mob.templateId]?.family === 'murloc' ? MURLOC_SOCIAL_PULL_RADIUS : SOCIAL_PULL_RADIUS;
       this.grid.forEachInRadius(mob.pos.x, mob.pos.z, pullRadius, (m, d2) => {
         if (m.kind === 'mob' && m.id !== mob.id && !m.dead && m.hostile && m.aiState === 'idle' && m.ownerId === null
           && m.templateId === mob.templateId && d2 < pullRadius * pullRadius) {
           m.aiState = 'chase';
           m.aggroTargetId = target.id;
           m.inCombat = true;
+          m.leashAnchor = { ...m.pos };
           addThreat(m, target.id, 1);
         }
       });
@@ -2483,10 +2488,12 @@ export class Sim {
           break;
         }
         const leash = mob.spawnPos.x > DUNGEON_X_THRESHOLD ? DUNGEON_LEASH_DISTANCE : LEASH_DISTANCE;
-        if (dist2d(mob.pos, mob.spawnPos) > leash) {
+        const leashAnchor = mob.leashAnchor ?? mob.spawnPos;
+        if (dist2d(mob.pos, leashAnchor) > leash) {
           mob.aiState = 'evade';
           mob.aggroTargetId = null;
           clearThreat(mob);
+          mob.leashAnchor = null;
           break;
         }
         const d = dist2d(mob.pos, target.pos);
@@ -2537,6 +2544,7 @@ export class Sim {
           mob.auras = [];
           mob.inCombat = false;
           mob.tappedById = null;
+          mob.leashAnchor = null;
           clearThreat(mob);
           this.despawnSummonedAdds(mob);
           mob.firedSummons = 0;
@@ -2677,6 +2685,7 @@ export class Sim {
     mob.aiState = 'idle';
     mob.aggroTargetId = null;
     mob.inCombat = false;
+    mob.leashAnchor = null;
     clearThreat(mob);
     this.despawnSummonedAdds(mob);
     mob.firedSummons = 0;
