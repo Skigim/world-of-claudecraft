@@ -3850,9 +3850,9 @@ export class Sim {
       });
     }
 
-    // a forfeit can't have an aftermath (a fighter has gone) — send the
-    // survivor home immediately
-    if (!ea || !eb) { this.returnFromArena(match); return; }
+    // a forfeit (rage-quit / disconnect) has no aftermath — send the survivor
+    // home immediately rather than leaving them on empty sands
+    if (reason === 'forfeit' || !ea || !eb) { this.returnFromArena(match); return; }
 
     // decided bout: cleanse both right now so no arena auras/DoTs tick during
     // the wait, then hold them on the sands for the aftermath countdown

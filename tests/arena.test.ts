@@ -129,7 +129,7 @@ describe('arena: a full bout', () => {
     expect(eb.hp).toBe(eb.maxHp);
   });
 
-  it('ends at 1 health: winner declared, ratings move, nobody dies, both returned', () => {
+  it('ends at 1 health: winner declared and scored at once, then a 5s aftermath returns both', () => {
     const { sim, a, b } = queueDuo();
     startBout(sim);
     const ea = sim.entities.get(a)!;
@@ -138,32 +138,34 @@ describe('arena: a full bout', () => {
     const rB0 = sim.meta(b)!.arenaRating;
 
     // Aleph lands a decisive blow
-    let end: any = null;
-    const before = sim.events.length;
     (sim as any).dealDamage(ea, eb, 99999, false, 'physical', null, 'hit');
     const ev = sim.tick();
-    end = ev.find((e) => e.type === 'arenaEnd');
+    const end = ev.find((e) => e.type === 'arenaEnd');
 
-    // match is over and cleaned up
-    expect(sim.arenaMatchFor(a)).toBe(null);
-    expect(sim.arenaMatchFor(b)).toBe(null);
-    // loser yielded at 1 hp — no death
+    // scored immediately: winner declared, zero-sum Elo, loser yields (no death)
+    expect(end).toBeTruthy();
     expect(eb.hp).toBeGreaterThanOrEqual(1);
     expect(eb.dead).toBe(false);
-    // zero-sum Elo: winner up 16, loser down 16
     expect(sim.meta(a)!.arenaRating).toBe(rA0 + 16);
     expect(sim.meta(b)!.arenaRating).toBe(rB0 - 16);
     expect(sim.meta(a)!.arenaWins).toBe(1);
     expect(sim.meta(b)!.arenaLosses).toBe(1);
-    // restored to where they queued (0,-40) and (6,-40), out of the arena band
+    // but they hold on the sands for the aftermath rather than returning at once
+    expect(sim.arenaMatchFor(a)!.state).toBe('over');
+    expect(isArenaPos(ea.pos.x)).toBe(true);
+
+    // run the ~5s aftermath out
+    for (let i = 0; i < 20 * 6 && sim.arenaMatchFor(a); i++) sim.tick();
+
+    // match cleaned up; both restored to where they queued (0,-40)/(6,-40), healed
+    expect(sim.arenaMatchFor(a)).toBe(null);
+    expect(sim.arenaMatchFor(b)).toBe(null);
     expect(isArenaPos(ea.pos.x)).toBe(false);
     expect(isArenaPos(eb.pos.x)).toBe(false);
     expect(Math.hypot(ea.pos.x - 0, ea.pos.z - (-40))).toBeLessThan(3);
     expect(Math.hypot(eb.pos.x - 6, eb.pos.z - (-40))).toBeLessThan(3);
-    // full heal on return
     expect(ea.hp).toBe(ea.maxHp);
     expect(eb.hp).toBe(eb.maxHp);
-    expect(before).toBeGreaterThanOrEqual(0);
   });
 
   it('a slot frees up after the bout so the arena can host again', () => {
@@ -172,7 +174,9 @@ describe('arena: a full bout', () => {
     const ea = sim.entities.get(a)!;
     const eb = sim.entities.get(b)!;
     (sim as any).dealDamage(ea, eb, 99999, false, 'physical', null, 'hit');
-    sim.tick();
+    // run the aftermath out so the slot is released
+    for (let i = 0; i < 20 * 6 && sim.arenaMatchFor(a); i++) sim.tick();
+    expect(sim.arenaMatchFor(a)).toBe(null);
     // requeue both — a fresh match must seat without "all arenas busy"
     sim.arenaQueueJoin(a);
     sim.arenaQueueJoin(b);
