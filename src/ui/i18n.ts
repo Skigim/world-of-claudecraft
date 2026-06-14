@@ -1,3 +1,5 @@
+import { phase9 } from './phase9_i18n';
+
 type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 type Join<K, P> = K extends string | number
@@ -7050,6 +7052,11 @@ export const en = {
   ...phase5.en,
   ...phase7.en,
   ...phase8.en,
+  ...phase9.en,
+  entities: {
+    ...phase8.en.entities,
+    ...phase9.en.entities,
+  },
 };
 
 export const es: typeof en = {
@@ -7187,6 +7194,11 @@ export const es: typeof en = {
   ...phase5.es,
   ...phase7.es,
   ...phase8.es,
+  ...phase9.es,
+  entities: {
+    ...phase8.es.entities,
+    ...phase9.es.entities,
+  },
 };
 
 export const es_ES: typeof en = {
@@ -7324,6 +7336,11 @@ export const es_ES: typeof en = {
   ...phase5.es_ES,
   ...phase7.es_ES,
   ...phase8.es_ES,
+  ...phase9.es_ES,
+  entities: {
+    ...phase8.es_ES.entities,
+    ...phase9.es_ES.entities,
+  },
 };
 
 export const fr_FR: typeof en = {
@@ -7461,6 +7478,11 @@ export const fr_FR: typeof en = {
   ...phase5.fr_FR,
   ...phase7.fr_FR,
   ...phase8.fr_FR,
+  ...phase9.fr_FR,
+  entities: {
+    ...phase8.fr_FR.entities,
+    ...phase9.fr_FR.entities,
+  },
 };
 
 export const fr_CA: typeof en = {
@@ -7598,6 +7620,11 @@ export const fr_CA: typeof en = {
   ...phase5.fr_CA,
   ...phase7.fr_CA,
   ...phase8.fr_CA,
+  ...phase9.fr_CA,
+  entities: {
+    ...phase8.fr_CA.entities,
+    ...phase9.fr_CA.entities,
+  },
 };
 
 export const en_CA: typeof en = {
@@ -7735,6 +7762,11 @@ export const en_CA: typeof en = {
   ...phase5.en_CA,
   ...phase7.en_CA,
   ...phase8.en_CA,
+  ...phase9.en_CA,
+  entities: {
+    ...phase8.en_CA.entities,
+    ...phase9.en_CA.entities,
+  },
 };
 
 export const it_IT: typeof en = {
@@ -7872,6 +7904,11 @@ export const it_IT: typeof en = {
   ...phase5.it_IT,
   ...phase7.it_IT,
   ...phase8.it_IT,
+  ...phase9.it_IT,
+  entities: {
+    ...phase8.it_IT.entities,
+    ...phase9.it_IT.entities,
+  },
 };
 
 export const de_DE: typeof en = {
@@ -8009,6 +8046,11 @@ export const de_DE: typeof en = {
   ...phase5.de_DE,
   ...phase7.de_DE,
   ...phase8.de_DE,
+  ...phase9.de_DE,
+  entities: {
+    ...phase8.de_DE.entities,
+    ...phase9.de_DE.entities,
+  },
 };
 
 export const zh_CN: typeof en = {
@@ -8146,6 +8188,11 @@ export const zh_CN: typeof en = {
   ...phase5.zh_CN,
   ...phase7.zh_CN,
   ...phase8.zh_CN,
+  ...phase9.zh_CN,
+  entities: {
+    ...phase8.zh_CN.entities,
+    ...phase9.zh_CN.entities,
+  },
 };
 
 export const zh_TW: typeof en = {
@@ -8283,6 +8330,11 @@ export const zh_TW: typeof en = {
   ...phase5.zh_TW,
   ...phase7.zh_TW,
   ...phase8.zh_TW,
+  ...phase9.zh_TW,
+  entities: {
+    ...phase8.zh_TW.entities,
+    ...phase9.zh_TW.entities,
+  },
 };
 
 export const ko_KR: typeof en = {
@@ -8420,6 +8472,11 @@ export const ko_KR: typeof en = {
   ...phase5.ko_KR,
   ...phase7.ko_KR,
   ...phase8.ko_KR,
+  ...phase9.ko_KR,
+  entities: {
+    ...phase8.ko_KR.entities,
+    ...phase9.ko_KR.entities,
+  },
 };
 
 export const ja_JP: typeof en = {
@@ -8557,6 +8614,11 @@ export const ja_JP: typeof en = {
   ...phase5.ja_JP,
   ...phase7.ja_JP,
   ...phase8.ja_JP,
+  ...phase9.ja_JP,
+  entities: {
+    ...phase8.ja_JP.entities,
+    ...phase9.ja_JP.entities,
+  },
 };
 
 export const pt_BR: typeof en = {
@@ -8694,6 +8756,11 @@ export const pt_BR: typeof en = {
   ...phase5.pt_BR,
   ...phase7.pt_BR,
   ...phase8.pt_BR,
+  ...phase9.pt_BR,
+  entities: {
+    ...phase8.pt_BR.entities,
+    ...phase9.pt_BR.entities,
+  },
 };
 
 export const ru_RU: typeof en = {
@@ -8831,6 +8898,11 @@ export const ru_RU: typeof en = {
   ...phase5.ru_RU,
   ...phase7.ru_RU,
   ...phase8.ru_RU,
+  ...phase9.ru_RU,
+  entities: {
+    ...phase8.ru_RU.entities,
+    ...phase9.ru_RU.entities,
+  },
 };
 
 const translations = {

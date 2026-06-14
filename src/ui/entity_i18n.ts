@@ -1,4 +1,4 @@
-import { ABILITIES, CLASSES, ITEMS, MOBS, NPCS, QUESTS } from '../sim/data';
+import { ABILITIES, CLASSES, DUNGEONS, ITEMS, MOBS, NPCS, QUESTS, ZONES } from '../sim/data';
 import type { PlayerClass } from '../sim/types';
 import {
   en,
@@ -11,8 +11,8 @@ import {
 } from './i18n';
 
 export type EntityTranslationPhase = 'phase7' | 'phase8' | 'phase9';
-export type EntityTranslationKind = 'class' | 'ability' | 'item' | 'mob' | 'npc' | 'quest' | 'questObjective';
-export type EntityTranslationField = 'name' | 'description' | 'title' | 'text' | 'completion' | 'greeting' | 'label';
+export type EntityTranslationKind = 'class' | 'ability' | 'item' | 'mob' | 'npc' | 'quest' | 'questObjective' | 'zone' | 'zonePoi' | 'dungeon';
+export type EntityTranslationField = 'name' | 'description' | 'title' | 'text' | 'completion' | 'greeting' | 'label' | 'welcome' | 'enterText' | 'leaveText';
 
 export type EntityTranslationRequest =
   | { kind: 'class'; id: PlayerClass; field: 'name' | 'description'; values?: InterpolationValues }
@@ -21,7 +21,10 @@ export type EntityTranslationRequest =
   | { kind: 'mob'; id: string; field: 'name'; values?: InterpolationValues }
   | { kind: 'npc'; id: string; field: 'name' | 'title' | 'greeting'; values?: InterpolationValues }
   | { kind: 'quest'; id: string; field: 'title' | 'text' | 'completion'; values?: InterpolationValues }
-  | { kind: 'questObjective'; questId: string; objectiveIndex: number; field: 'label'; values?: InterpolationValues };
+  | { kind: 'questObjective'; questId: string; objectiveIndex: number; field: 'label'; values?: InterpolationValues }
+  | { kind: 'zone'; id: string; field: 'name' | 'welcome'; values?: InterpolationValues }
+  | { kind: 'zonePoi'; zoneId: string; poiIndex: number; field: 'label'; values?: InterpolationValues }
+  | { kind: 'dungeon'; id: string; field: 'name' | 'enterText' | 'leaveText'; values?: InterpolationValues };
 
 export interface EntityTranslationManifestEntry {
   kind: EntityTranslationKind;
@@ -134,6 +137,22 @@ function canonicalEntityText(request: EntityTranslationRequest): string {
     }
     case 'questObjective':
       return QUESTS[request.questId]?.objectives[request.objectiveIndex]?.label ?? `${request.questId}.${request.objectiveIndex}`;
+    case 'zone': {
+      const zone = ZONES.find((candidate) => candidate.id === request.id);
+      if (!zone) return request.id;
+      return request.field === 'welcome' ? zone.welcome : zone.name;
+    }
+    case 'zonePoi': {
+      const zone = ZONES.find((candidate) => candidate.id === request.zoneId);
+      return zone?.pois[request.poiIndex]?.label ?? `${request.zoneId}.pois.${request.poiIndex}`;
+    }
+    case 'dungeon': {
+      const dungeon = DUNGEONS[request.id];
+      if (!dungeon) return request.id;
+      if (request.field === 'enterText') return dungeon.enterText;
+      if (request.field === 'leaveText') return dungeon.leaveText;
+      return dungeon.name;
+    }
   }
 }
 
@@ -153,13 +172,21 @@ export function entityTranslationKey(request: EntityTranslationRequest): string 
       return `entities.quests.${entityPathSegment(request.id)}.${request.field}`;
     case 'questObjective':
       return `entities.quests.${entityPathSegment(request.questId)}.objectives.${request.objectiveIndex}.label`;
+    case 'zone':
+      return `entities.zones.${entityPathSegment(request.id)}.${request.field}`;
+    case 'zonePoi':
+      return `entities.zones.${entityPathSegment(request.zoneId)}.pois.${request.poiIndex}.label`;
+    case 'dungeon':
+      return `entities.dungeons.${entityPathSegment(request.id)}.${request.field}`;
   }
 }
 
 function requestManifestEntry(request: EntityTranslationRequest): EntityTranslationManifestEntry {
   const id = request.kind === 'questObjective'
     ? `${request.questId}.objectives.${request.objectiveIndex}`
-    : request.id;
+    : request.kind === 'zonePoi'
+      ? `${request.zoneId}.pois.${request.poiIndex}`
+      : request.id;
   const phase: EntityTranslationPhase =
     request.kind === 'class' || request.kind === 'ability' ? 'phase7'
       : request.kind === 'item' ? 'phase8'
@@ -226,6 +253,25 @@ export function entityTranslationManifest(): EntityTranslationManifestEntry[] {
         entityTranslationKey({ kind: 'questObjective', questId: quest.id, objectiveIndex, field: 'label' }),
       ));
     });
+  }
+  for (const zone of [...ZONES].sort(compareById)) {
+    entries.push(entry('zone', zone.id, 'name', zone.name, 'phase9', entityTranslationKey({ kind: 'zone', id: zone.id, field: 'name' })));
+    entries.push(entry('zone', zone.id, 'welcome', zone.welcome, 'phase9', entityTranslationKey({ kind: 'zone', id: zone.id, field: 'welcome' })));
+    zone.pois.forEach((poi, poiIndex) => {
+      entries.push(entry(
+        'zonePoi',
+        `${zone.id}.pois.${poiIndex}`,
+        'label',
+        poi.label,
+        'phase9',
+        entityTranslationKey({ kind: 'zonePoi', zoneId: zone.id, poiIndex, field: 'label' }),
+      ));
+    });
+  }
+  for (const dungeon of Object.values(DUNGEONS).sort(compareById)) {
+    entries.push(entry('dungeon', dungeon.id, 'name', dungeon.name, 'phase9', entityTranslationKey({ kind: 'dungeon', id: dungeon.id, field: 'name' })));
+    entries.push(entry('dungeon', dungeon.id, 'enterText', dungeon.enterText, 'phase9', entityTranslationKey({ kind: 'dungeon', id: dungeon.id, field: 'enterText' })));
+    entries.push(entry('dungeon', dungeon.id, 'leaveText', dungeon.leaveText, 'phase9', entityTranslationKey({ kind: 'dungeon', id: dungeon.id, field: 'leaveText' })));
   }
   return entries;
 }

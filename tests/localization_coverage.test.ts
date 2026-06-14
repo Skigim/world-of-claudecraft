@@ -26,11 +26,10 @@ import {
   t,
   type TranslationKey,
 } from "../src/ui/i18n";
-import { ABILITIES, CLASSES, ITEMS, MOBS, NPCS, QUESTS } from "../src/sim/data";
+import { ABILITIES, CLASSES, DUNGEONS, ITEMS, MOBS, NPCS, QUESTS, ZONES } from "../src/sim/data";
 import {
   assertEntityTranslationsReady,
   entityTranslationFallbackLog,
-  entityTranslationKey,
   entityTranslationManifest,
   missingEntityTranslationsForPhases,
   resetEntityTranslationFallbackLog,
@@ -276,6 +275,46 @@ describe("i18n Localization Key Coverage", () => {
     throw new Error(`Unexpected Phase 8 entity kind: ${entry.kind}`);
   }
 
+  function parseIndexedEntry(id: string, segment: string): { ownerId: string; index: number } {
+    const marker = `.${segment}.`;
+    const markerIndex = id.lastIndexOf(marker);
+    if (markerIndex < 0) throw new Error(`Malformed indexed entity id: ${id}`);
+    const ownerId = id.slice(0, markerIndex);
+    const index = Number(id.slice(markerIndex + marker.length));
+    if (!Number.isInteger(index)) throw new Error(`Malformed indexed entity index: ${id}`);
+    return { ownerId, index };
+  }
+
+  function phaseNineRequest(entry: EntityManifestEntry): EntityRequest {
+    if (entry.kind === "mob") return { kind: "mob", id: entry.id, field: "name" };
+    if (entry.kind === "npc") {
+      return {
+        kind: "npc",
+        id: entry.id,
+        field: entry.field as "name" | "title" | "greeting",
+        values: { className: "Mage", classNameLower: "mage", playerName: "Mira" },
+      };
+    }
+    if (entry.kind === "quest") {
+      return { kind: "quest", id: entry.id, field: entry.field as "title" | "text" | "completion", values: { playerName: "Mira" } };
+    }
+    if (entry.kind === "questObjective") {
+      const { ownerId, index } = parseIndexedEntry(entry.id, "objectives");
+      return { kind: "questObjective", questId: ownerId, objectiveIndex: index, field: "label" };
+    }
+    if (entry.kind === "zone") {
+      return { kind: "zone", id: entry.id, field: entry.field as "name" | "welcome" };
+    }
+    if (entry.kind === "zonePoi") {
+      const { ownerId, index } = parseIndexedEntry(entry.id, "pois");
+      return { kind: "zonePoi", zoneId: ownerId, poiIndex: index, field: "label" };
+    }
+    if (entry.kind === "dungeon") {
+      return { kind: "dungeon", id: entry.id, field: entry.field as "name" | "enterText" | "leaveText" };
+    }
+    throw new Error(`Unexpected Phase 9 entity kind: ${entry.kind}`);
+  }
+
   function sourceFilesUnder(relativeDir: string): string[] {
     const root = path.resolve(process.cwd(), relativeDir);
     if (!fs.existsSync(root)) return [];
@@ -413,6 +452,12 @@ describe("i18n Localization Key Coverage", () => {
     expect(entityCount("quest", "text")).toBe(Object.keys(QUESTS).length);
     expect(entityCount("quest", "completion")).toBe(Object.keys(QUESTS).length);
     expect(entityCount("questObjective", "label")).toBe(Object.values(QUESTS).reduce((sum, quest) => sum + quest.objectives.length, 0));
+    expect(entityCount("zone", "name")).toBe(ZONES.length);
+    expect(entityCount("zone", "welcome")).toBe(ZONES.length);
+    expect(entityCount("zonePoi", "label")).toBe(ZONES.reduce((sum, zone) => sum + zone.pois.length, 0));
+    expect(entityCount("dungeon", "name")).toBe(Object.keys(DUNGEONS).length);
+    expect(entityCount("dungeon", "enterText")).toBe(Object.keys(DUNGEONS).length);
+    expect(entityCount("dungeon", "leaveText")).toBe(Object.keys(DUNGEONS).length);
   });
 
   it("should resolve Phase 7 class and ability text without canonical fallbacks", () => {
@@ -431,12 +476,10 @@ describe("i18n Localization Key Coverage", () => {
     expect(abilityDescription).not.toContain("{damage}");
     expect(entityTranslationFallbackLog()).toHaveLength(0);
 
-    const npcGreeting = tEntity({ kind: "npc", id: "marshal_redbrook", field: "greeting", values: { className: "Magier", classNameLower: "magier" } });
-    expect(npcGreeting).toContain("magier");
+    const npcGreeting = tEntity({ kind: "npc", id: "marshal_redbrook", field: "greeting", values: { className: "Magier", classNameLower: "magier", playerName: "Mira" } });
+    expect(npcGreeting).toContain("Magier");
     expect(npcGreeting).not.toContain("$C");
-    expect(entityTranslationFallbackLog().map((entry) => entry.key)).toEqual([
-      entityTranslationKey({ kind: "npc", id: "marshal_redbrook", field: "greeting" }),
-    ]);
+    expect(entityTranslationFallbackLog()).toHaveLength(0);
 
     setLanguage("en");
     resetEntityTranslationFallbackLog();
@@ -511,16 +554,68 @@ describe("i18n Localization Key Coverage", () => {
     setLanguage("en");
   });
 
-  it("should expose phase-gated missing entity translations before later phases are accepted", () => {
+  it("should expose no phase-gated missing entity translations through Phase 9", () => {
     const phaseSevenMissing = missingEntityTranslationsForPhases(["phase7"]);
     expect(phaseSevenMissing).toHaveLength(0);
 
     expect(missingEntityTranslationsForPhases(["phase7", "phase8"])).toHaveLength(0);
-    expect(missingEntityTranslationsForPhases(["phase9"]).some((entry) => entry.key === entityTranslationKey({ kind: "npc", id: "marshal_redbrook", field: "greeting" }))).toBe(true);
-    expect(missingEntityTranslationsForPhases(["phase9"]).some((entry) => entry.key === entityTranslationKey({ kind: "questObjective", questId: "q_wolves", objectiveIndex: 0, field: "label" }))).toBe(true);
+    expect(missingEntityTranslationsForPhases(["phase9"])).toHaveLength(0);
+    expect(missingEntityTranslationsForPhases(["phase7", "phase8", "phase9"])).toHaveLength(0);
     expect(() => assertEntityTranslationsReady([])).not.toThrow();
     expect(() => assertEntityTranslationsReady(["phase7"])).not.toThrow();
     expect(() => assertEntityTranslationsReady(["phase7", "phase8"])).not.toThrow();
+    expect(() => assertEntityTranslationsReady(["phase7", "phase8", "phase9"])).not.toThrow();
+  });
+
+  it("should provide every Phase 9 world-content translation in every locale without canonical fallbacks", () => {
+    const phaseNineEntries = entityTranslationManifest().filter((entry) => entry.phase === "phase9");
+    const expectedPhaseNineCount =
+      Object.keys(MOBS).length
+      + (Object.keys(NPCS).length * 3)
+      + (Object.keys(QUESTS).length * 3)
+      + Object.values(QUESTS).reduce((sum, quest) => sum + quest.objectives.length, 0)
+      + (ZONES.length * 2)
+      + ZONES.reduce((sum, zone) => sum + zone.pois.length, 0)
+      + (Object.keys(DUNGEONS).length * 3);
+    expect(phaseNineEntries).toHaveLength(expectedPhaseNineCount);
+
+    for (const lang of supportedLanguages) {
+      setLanguage(lang);
+      resetEntityTranslationFallbackLog();
+      for (const entry of phaseNineEntries) {
+        const rendered = tEntity(phaseNineRequest(entry));
+        expect(rendered.trim().length, `${lang}.${entry.key}`).toBeGreaterThan(0);
+        expect(rendered, `${lang}.${entry.key}`).not.toBe(entry.key);
+        expect(rendered, `${lang}.${entry.key}`).not.toMatch(/\$N|\$C|\{playerName\}|\{className\}|\{classNameLower\}/);
+      }
+      expect(entityTranslationFallbackLog(), `${lang} Phase 9 fallback log`).toHaveLength(0);
+    }
+
+    setLanguage("de_DE");
+    expect(tEntity({ kind: "mob", id: "forest_wolf", field: "name" })).toBe("Waldwolf");
+    expect(tEntity({ kind: "quest", id: "q_wolves", field: "title" })).toBe("Wölfe vor der Tür");
+    expect(tEntity({ kind: "zone", id: "eastbrook_vale", field: "name" })).toBe("Eastbrook-Tal");
+
+    setLanguage("zh_CN");
+    expect(tEntity({ kind: "quest", id: "q_gravewyrm", field: "title" })).toContain("科祖尔");
+
+    setLanguage("ja_JP");
+    expect(tEntity({ kind: "dungeon", id: "hollow_crypt", field: "name" })).toBe("虚ろの墓所");
+
+    setLanguage("ko_KR");
+    expect(tEntity({ kind: "mob", id: "forest_wolf", field: "name" })).toBe("숲늑대");
+    expect(tEntity({ kind: "zone", id: "eastbrook_vale", field: "name" })).toBe("이스트브룩 골짜기");
+
+    setLanguage("it_IT");
+    expect(tEntity({ kind: "mob", id: "forest_wolf", field: "name" })).toBe("Lupo della foresta");
+    expect(tEntity({ kind: "quest", id: "q_wolves", field: "title" })).not.toBe("Lobos a la puerta");
+
+    setLanguage("pt_BR");
+    expect(tEntity({ kind: "quest", id: "q_wolves", field: "title" })).toBe("Lobos à porta");
+    expect(tEntity({ kind: "quest", id: "q_wolves", field: "title" })).not.toBe("Lobos a la puerta");
+    expect(entityTranslationFallbackLog()).toHaveLength(0);
+
+    setLanguage("en");
   });
 
   it("should keep the entity resolver out of simulation and server modules", () => {
