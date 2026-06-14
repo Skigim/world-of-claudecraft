@@ -920,6 +920,7 @@ function r(bg: BgName, pal: PaletteName, prims: (PrimitiveName | Placement)[], f
 }
 
 const ABILITY_RECIPES: Record<string, IconRecipe> = {
+  attack: r('steel', 'steel', ['sword'], ['motion']),
   // warrior
   heroic_strike: r('fury', 'steel', ['sword'], ['glow']),
   battle_shout: r('fury', 'gold', ['fist'], ['arcs']),
