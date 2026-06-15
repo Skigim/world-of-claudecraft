@@ -12,7 +12,7 @@ vi.mock('pg', () => ({
   },
 }));
 
-import { deleteCharacter } from '../server/db';
+import { createAccount, deleteCharacter, openPlaySession, touchLogin } from '../server/db';
 import { REALM } from '../server/realm';
 
 beforeEach(() => {
@@ -38,5 +38,40 @@ describe('deleteCharacter', () => {
 
     query.mockResolvedValueOnce({ rowCount: 1 } as any);
     expect(await deleteCharacter(7, 42)).toBe(true);
+  });
+});
+
+describe('account and session request metadata', () => {
+  it('stores account creation IP and user agent when registering', async () => {
+    query.mockResolvedValueOnce({ rows: [{ id: 7, username: 'alice', password_hash: 'hash' }] } as any);
+
+    await createAccount('alice', 'hash', { ip: '203.0.113.4', userAgent: 'Mozilla/5.0' });
+
+    const [sql, params] = query.mock.calls[0];
+    expect(sql).toMatch(/created_ip/);
+    expect(sql).toMatch(/created_user_agent/);
+    expect(params).toEqual(['alice', 'hash', '203.0.113.4', 'Mozilla/5.0']);
+  });
+
+  it('updates last login IP and user agent when logging in', async () => {
+    query.mockResolvedValueOnce({ rows: [] } as any);
+
+    await touchLogin(7, { ip: '203.0.113.5', userAgent: 'Mozilla/5.0' });
+
+    const [sql, params] = query.mock.calls[0];
+    expect(sql).toMatch(/last_login_ip/);
+    expect(sql).toMatch(/last_login_user_agent/);
+    expect(params).toEqual([7, '203.0.113.5', 'Mozilla/5.0']);
+  });
+
+  it('stores play session IP and user agent when entering the world', async () => {
+    query.mockResolvedValueOnce({ rows: [{ id: 99 }] } as any);
+
+    await openPlaySession(7, 42, 'Alice', { ip: '203.0.113.6', userAgent: 'Mozilla/5.0' });
+
+    const [sql, params] = query.mock.calls[0];
+    expect(sql).toMatch(/ip_address/);
+    expect(sql).toMatch(/user_agent/);
+    expect(params).toEqual([7, 42, 'Alice', '203.0.113.6', 'Mozilla/5.0']);
   });
 });

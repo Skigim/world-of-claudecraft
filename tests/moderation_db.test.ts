@@ -6,7 +6,7 @@ vi.mock('../server/db', () => ({
 
 import { pool } from '../server/db';
 import {
-  cleanReportReason, cleanText, createPlayerReport, forceCharacterRename, moderateAccount,
+  cleanReportReason, cleanText, createPlayerReport, createSuspiciousRegistrationReport, forceCharacterRename, moderateAccount,
   moderationQueue, moderationReportsForAccount,
 } from '../server/moderation_db';
 
@@ -58,6 +58,51 @@ describe('moderation report helpers', () => {
       reason: 'harassment',
       details: 'duplicate',
     })).rejects.toThrow(/already reported/);
+  });
+
+  it('creates a system moderation report for suspicious sequential registration bursts', async () => {
+    query
+      .mockResolvedValueOnce({ rows: [{ n: 31 }] } as any) // same numeric prefix
+      .mockResolvedValueOnce({ rows: [{ n: 1 }] } as any) // same IP
+      .mockResolvedValueOnce({ rows: [{ n: 1 }] } as any) // same /24
+      .mockResolvedValueOnce({ rows: [{ n: 1 }] } as any) // same UA
+      .mockResolvedValueOnce({ rows: [] } as any) // duplicate report check
+      .mockResolvedValueOnce({ rows: [{ id: 123 }] } as any); // insert
+
+    const result = await createSuspiciousRegistrationReport({
+      accountId: 42,
+      username: 'aintgrave1031',
+      ip: '203.0.113.44',
+      userAgent: 'Mozilla/5.0',
+    });
+
+    expect(result.created).toBe(true);
+    expect(result.signals).toContain('31 accounts with username prefix "aintgrave" in 10 minutes');
+    expect(query.mock.calls[4][0]).toMatch(/FROM player_reports/);
+    expect(query.mock.calls[5][0]).toMatch(/INSERT INTO player_reports/);
+    expect(query.mock.calls[5][1]).toEqual([
+      42,
+      'spam',
+      expect.stringContaining('Automated registration pattern'),
+    ]);
+  });
+
+  it('does not create a system moderation report without a suspicious registration signal', async () => {
+    query
+      .mockResolvedValueOnce({ rows: [{ n: 1 }] } as any)
+      .mockResolvedValueOnce({ rows: [{ n: 1 }] } as any)
+      .mockResolvedValueOnce({ rows: [{ n: 1 }] } as any)
+      .mockResolvedValueOnce({ rows: [{ n: 1 }] } as any);
+
+    const result = await createSuspiciousRegistrationReport({
+      accountId: 42,
+      username: 'reuben',
+      ip: '203.0.113.44',
+      userAgent: 'Mozilla/5.0',
+    });
+
+    expect(result).toEqual({ created: false, signals: [] });
+    expect(query).toHaveBeenCalledTimes(4);
   });
 
   it('sorts moderation queue by open report count, recency, then online status', async () => {
