@@ -52,6 +52,9 @@ export default defineConfig({
       '/api': { target: 'http://127.0.0.1:8787', changeOrigin: true },
       '/admin/api': { target: 'http://127.0.0.1:8787', changeOrigin: true },
       '/ws': { target: 'ws://127.0.0.1:8787', ws: true },
+      // The player wiki (MediaWiki container). Keep the original Host so the
+      // wiki builds its links on this dev origin instead of bouncing to :8080.
+      '/wiki': { target: 'http://127.0.0.1:8080', changeOrigin: false },
     },
   },
   build: {

@@ -24,6 +24,10 @@ import { cacheControlFor, etagFor, isNotModified } from './static_cache';
 
 const PORT = Number(process.env.PORT ?? 8787);
 const STATIC_DIR = path.join(__dirname, '..', 'dist');
+// The wiki is served under the game's own origin at /wiki via a reverse proxy
+// to the MediaWiki backend (default: the local docker service). MediaWiki must
+// know the public origin to build correct links — set MEDIAWIKI_SERVER to it.
+const WIKI_UPSTREAM = new URL(process.env.WIKI_UPSTREAM ?? 'http://127.0.0.1:8080');
 // How long chat logs are kept (0 = forever); pruned at boot and daily.
 const CHAT_LOG_RETENTION_DAYS = Number(process.env.CHAT_LOG_RETENTION_DAYS ?? 90);
 
@@ -111,6 +115,43 @@ function isAdminRequest(req: http.IncomingMessage): boolean {
   const host = String(req.headers.host ?? '').toLowerCase();
   const urlPath = (req.url ?? '/').split('?')[0];
   return host.startsWith('admin.') || urlPath === '/admin' || urlPath === '/admin/';
+}
+
+// `/wiki` and everything under it belongs to the MediaWiki backend.
+function isWikiPath(urlPath: string): boolean {
+  return urlPath === '/wiki' || urlPath.startsWith('/wiki/');
+}
+
+// Reverse-proxy the wiki so it lives under the game's origin instead of a
+// separate port. Hop-by-hop headers are stripped and X-Forwarded-* set so the
+// backend can build correct absolute URLs; the upstream is a fixed env value
+// (no client-controlled target), and only /wiki paths ever reach here.
+function proxyToWiki(req: http.IncomingMessage, res: http.ServerResponse): void {
+  const headers: http.OutgoingHttpHeaders = { ...req.headers };
+  for (const h of ['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade']) {
+    delete headers[h];
+  }
+  const fwdHost = req.headers.host;
+  if (fwdHost) headers['x-forwarded-host'] = fwdHost;
+  headers['x-forwarded-proto'] = (req.headers['x-forwarded-proto'] as string) ?? 'http';
+  headers['x-forwarded-for'] = req.socket.remoteAddress ?? '';
+  headers.host = WIKI_UPSTREAM.host;
+
+  const upstream = http.request({
+    hostname: WIKI_UPSTREAM.hostname,
+    port: WIKI_UPSTREAM.port || 80,
+    method: req.method,
+    path: req.url,
+    headers,
+  }, (up) => {
+    res.writeHead(up.statusCode ?? 502, up.headers);
+    up.pipe(res);
+  });
+  upstream.on('error', () => {
+    if (!res.headersSent) res.writeHead(502, { 'Content-Type': 'text/plain' });
+    res.end('Wiki backend unavailable');
+  });
+  req.pipe(upstream);
 }
 
 function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void {
@@ -434,6 +475,7 @@ async function main(): Promise<void> {
     if (req.method === 'OPTIONS' && isApi) { res.writeHead(204); res.end(); return; }
     if (url.startsWith('/admin/api/')) void handleAdminApi(req, res, game);
     else if (url.startsWith('/api/')) void handleApi(req, res);
+    else if (isWikiPath(url.split('?')[0])) proxyToWiki(req, res);
     else serveStatic(req, res);
   });
 

@@ -170,6 +170,7 @@ export const en = {
   wiki: {
     title: "Game Wiki & Guide",
     desc: "Discover the secrets of the realm, class guides, and strategies.",
+    cta: "Open the Wiki",
   },
   news: {
     title: "News & Updates",
@@ -301,6 +302,7 @@ export const es: typeof en = {
   wiki: {
     title: "Wiki y Guía del Juego",
     desc: "Descubre los secretos del reino, guías de clase y estrategias.",
+    cta: "Abrir la Wiki",
   },
   news: {
     title: "Noticias y Actualizaciones",
@@ -432,6 +434,7 @@ export const es_ES: typeof en = {
   wiki: {
     title: "Wiki y guía del juego",
     desc: "Descubre los secretos del reino, guías de clase y estrategias.",
+    cta: "Abrir la Wiki",
   },
   news: {
     title: "Noticias y actualizaciones",
@@ -563,6 +566,7 @@ export const fr_FR: typeof en = {
   wiki: {
     title: "Wiki et guide du jeu",
     desc: "Découvrez les secrets du royaume, les guides de classe et les stratégies.",
+    cta: "Ouvrir le Wiki",
   },
   news: {
     title: "Actualités et mises à jour",
@@ -694,6 +698,7 @@ export const fr_CA: typeof en = {
   wiki: {
     title: "Wiki et guide du jeu",
     desc: "Découvrez les secrets du royaume, les guides de classe et les stratégies.",
+    cta: "Ouvrir le Wiki",
   },
   news: {
     title: "Actualités et mises à jour",
@@ -825,6 +830,7 @@ export const en_CA: typeof en = {
   wiki: {
     title: "Game Wiki & Guide",
     desc: "Discover the secrets of the realm, class guides, and strategies.",
+    cta: "Open the Wiki",
   },
   news: {
     title: "News & Updates",
@@ -956,6 +962,7 @@ export const it_IT: typeof en = {
   wiki: {
     title: "Wiki e guida del gioco",
     desc: "Scopri i segreti del reame, le guide di classe e le strategie.",
+    cta: "Apri la Wiki",
   },
   news: {
     title: "Notizie e aggiornamenti",
@@ -1087,6 +1094,7 @@ export const de_DE: typeof en = {
   wiki: {
     title: "Spiel-Wiki und Guides",
     desc: "Entdecke die Geheimnisse des Realms, Klassenguides und Strategien.",
+    cta: "Wiki öffnen",
   },
   news: {
     title: "Neuigkeiten und Updates",
@@ -1218,6 +1226,7 @@ export const zh_CN: typeof en = {
   wiki: {
     title: "游戏百科与指南",
     desc: "探索世界的秘密、职业指南以及战术策略。",
+    cta: "打开维基",
   },
   news: {
     title: "新闻与更新说明",
@@ -1349,6 +1358,7 @@ export const zh_TW: typeof en = {
   wiki: {
     title: "遊戲百科與指南",
     desc: "探索世界的秘密、職業指南以及戰術策略。",
+    cta: "開啟維基",
   },
   news: {
     title: "新聞與更新說明",
@@ -1480,6 +1490,7 @@ export const ko_KR: typeof en = {
   wiki: {
     title: "게임 위키 및 가이드",
     desc: "렐름의 비밀과 클래스 가이드, 전략 등을 확인해 보세요.",
+    cta: "위키 열기",
   },
   news: {
     title: "새소식 및 업데이트",
@@ -1611,6 +1622,7 @@ export const ja_JP: typeof en = {
   wiki: {
     title: "ゲームWiki & ガイド",
     desc: "レルムの秘密、クラスガイド、戦略を確認しましょう。",
+    cta: "Wikiを開く",
   },
   news: {
     title: "ニュース & アップデート",
@@ -1742,6 +1754,7 @@ export const pt_BR: typeof en = {
   wiki: {
     title: "Wiki e guia do jogo",
     desc: "Descubra os segredos do reino, guias de classes e estratégias.",
+    cta: "Abrir a Wiki",
   },
   news: {
     title: "Notícias e atualizações",
@@ -1873,6 +1886,7 @@ export const ru_RU: typeof en = {
   wiki: {
     title: "Вики и руководство",
     desc: "Откройте секреты игрового мира, руководства по классам и стратегии.",
+    cta: "Открыть вики",
   },
   news: {
     title: "Новости и обновления",

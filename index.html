@@ -1365,6 +1365,35 @@
     margin-top: var(--spacing-xs);
   }
 
+  .wiki-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+    padding: 10px 22px;
+    background: linear-gradient(180deg, var(--color-primary), var(--color-primary-dim));
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    color: #1c1206;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-shadow: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+  }
+
+  .wiki-cta-btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+
+  .wiki-cta-btn:active { transform: translateY(0); }
+  .wiki-cta-btn .wiki-cta-arrow { font-size: 15px; line-height: 1; }
+
   /* Home-page global leaderboard (Max-Level XP Overflow) */
   .hs-panel {
     display: flex;
@@ -3948,7 +3977,7 @@
             </div>
             <h2 class="skeleton-title" data-i18n="wiki.title">Game Wiki & Guide</h2>
             <p class="skeleton-desc" data-i18n="wiki.desc">Discover the secrets of the realm, class guides, and strategies.</p>
-            <div class="coming-soon-badge" data-i18n="comingSoon.placeholder">Coming Soon...</div>
+            <a class="wiki-cta-btn" href="/wiki/" target="_blank" rel="noopener"><span data-i18n="wiki.cta">Open the Wiki</span><span class="wiki-cta-arrow" aria-hidden="true">↗</span></a>
           </div>
           
           <div class="wiki-controls-guide">

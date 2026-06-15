@@ -7,7 +7,7 @@
 > `ansible-playbook playbooks/setup_server.yml -e target_host=idyllic-games-prod`
 > pulls and redeploys. The guide below is the generic, standalone path.
 
-One EC2 instance runs everything: the game server, Postgres, and Caddy
+One EC2 instance runs everything: the game server, Postgres, MediaWiki, and Caddy
 (TLS reverse proxy). Sized for a small population — a `t4g.small`
 (~$14/month all-in) is comfortable for a handful of concurrent players.
 
@@ -63,6 +63,11 @@ echo 'play.example.com {
 }' | sudo tee /etc/caddy/Caddyfile
 sudo systemctl reload caddy
 ```
+
+The game server reverse-proxies `/wiki` to MediaWiki itself, so Caddy just
+points everything at the game (`8787`) — the wiki shares the game's domain at
+`play.example.com/wiki`. Set `MEDIAWIKI_SERVER=https://play.example.com` so the
+wiki builds correct absolute links.
 
 Caddy fetches and renews the Let's Encrypt certificate automatically;
 WebSockets are proxied with no extra config, and the client auto-selects
