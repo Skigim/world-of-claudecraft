@@ -462,3 +462,90 @@ describe("A1: admin classLabel localizes the raw class id", () => {
     setAdminLanguage("en");
   });
 });
+
+// --- S3: DRIFT GUARD — enumerate EVERY player-facing emit in src/sim/sim.ts and prove
+// each is recognized by the real client matcher for its event type. Unlike S1 (a curated
+// sample), this parses sim.ts at test time, so a NEW unhandled `text:`/this.error string
+// fails CI automatically. Routes through the real hud arm matchers (extracted from
+// hud.ts source) + the real localizeServerText/localizeSimText fallbacks. ---
+describe("S3: every sim.ts emit is recognized (drift guard)", () => {
+  const hudSrc = fs.readFileSync(path.resolve(process.cwd(), "src/ui/hud.ts"), "utf8");
+  const simSrc = fs.readFileSync(path.resolve(process.cwd(), "src/sim/sim.ts"), "utf8");
+
+  const armBody = (name: string): string => {
+    const start = hudSrc.indexOf(`private ${name}(text: string): string {`);
+    if (start < 0) throw new Error(`arm ${name} not found`);
+    let depth = 0, i = hudSrc.indexOf("{", start);
+    for (; i < hudSrc.length; i++) { if (hudSrc[i] === "{") depth++; else if (hudSrc[i] === "}") { depth--; if (depth === 0) break; } }
+    return hudSrc.slice(start, i + 1);
+  };
+  const armRegexes = (body: string): RegExp[] => {
+    const out: RegExp[] = []; const re = /\/((?:\\.|[^/\\\n])+)\/([gimsuy]*)\.exec\(text\)/g; let m: RegExpExecArray | null;
+    while ((m = re.exec(body))) { try { out.push(new RegExp(m[1], m[2].replace("g", ""))); } catch { /* skip */ } }
+    return out;
+  };
+  const armExactKeys = (body: string): Set<string> => {
+    const keys = new Set<string>(); const re = /(?:^|\n)\s*('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")\s*:/g; let m: RegExpExecArray | null;
+    while ((m = re.exec(body))) { try { keys.add(JSON.parse(m[1][0] === "'" ? `"${m[1].slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"')}"` : m[1])); } catch { keys.add(m[1].slice(1, -1)); } }
+    return keys;
+  };
+  const arms: Record<string, { exact: Set<string>; regs: RegExp[] }> = {};
+  for (const n of ["localizeErrorText", "localizeSystemText", "localizeLootText"]) { const b = armBody(n); arms[n] = { exact: armExactKeys(b), regs: armRegexes(b) }; }
+
+  const sub = (expr: string): string => {
+    const tern = expr.match(/\?\s*'([^']*)'\s*:\s*'([^']*)'/);
+    if (tern) return tern[1] || tern[2];
+    if (/\?[^:]*:/.test(expr)) return "";
+    if (/rank|level|count|players|roll|prestige|amount|seconds|percent|\bN\b|MAX_|FIRST_|threshold|number|\.length|Math|round|parseInt|\*\s*100|suggested/i.test(expr)) return "5";
+    if (/money|copper|formatMoney|payout|proceeds|price|ask|sellValue/i.test(expr)) return "5s";
+    return "Aki";
+  };
+  const concrete = (tmpl: string): string => tmpl.replace(/\$\{([^}]*)\}/g, (_m, e) => sub(e));
+
+  // `${verb}` holds a whole clause (leaves/has left/has been removed from the party),
+  // each concrete form covered by a sim_i18n RULE — not representable by one substitution.
+  const TMPL_SKIP = [/\$\{verb\}/];
+  // Intentional-English backstops: deterministic-sim talent-build VALIDATION diagnostics
+  // (reasons originate in content/talents.ts and behave like code diagnostics). The
+  // normal talent-panel flow uses the localized buildInvalid message instead.
+  const ALLOW = [/^Loadout invalid:/];
+
+  type Cand = { type: "log" | "error" | "loot"; tmpl: string };
+  const extract = (): Cand[] => {
+    const cands: Cand[] = [];
+    const lit = "(`[^`]*`|'(?:[^'\\\\]|\\\\.)*'|\"(?:[^\"\\\\]|\\\\.)*\")";
+    const unq = (s: string) => s.slice(1, -1);
+    let m: RegExpExecArray | null;
+    const e1 = new RegExp(`emit\\(\\{[^}]*?type:\\s*'(log|loot)'[^}]*?text:\\s*${lit}`, "gs");
+    while ((m = e1.exec(simSrc))) cands.push({ type: m[1] as Cand["type"], tmpl: unq(m[2]) });
+    const e2 = new RegExp(`emit\\(\\{[^}]*?text:\\s*${lit}[^}]*?type:\\s*'(log|loot)'`, "gs");
+    while ((m = e2.exec(simSrc))) cands.push({ type: m[2] as Cand["type"], tmpl: unq(m[1]) });
+    const er = new RegExp(`this\\.error\\([^,]+,\\s*${lit}\\s*\\)`, "g");
+    while ((m = er.exec(simSrc))) cands.push({ type: "error", tmpl: unq(m[1]) });
+    const rr = new RegExp(`return\\s+${lit};`, "g");
+    while ((m = rr.exec(simSrc))) { const t = unq(m[1]); if (/^[A-Z].* .*[.!?]$/.test(t) || /^[A-Z].*\$\{/.test(t)) cands.push({ type: "error", tmpl: t }); }
+    const seen = new Set<string>();
+    return cands.filter((c) => { const k = c.type + " " + c.tmpl; if (seen.has(k)) return false; seen.add(k); return true; });
+  };
+  const recognized = (type: Cand["type"], s: string): boolean => {
+    const arm = arms[type === "error" ? "localizeErrorText" : type === "loot" ? "localizeLootText" : "localizeSystemText"];
+    if (arm.exact.has(s)) return true;
+    for (const r of arm.regs) { r.lastIndex = 0; if (r.test(s)) return true; }
+    return localizeServerText(s) !== null || localizeSimText(s) !== null;
+  };
+
+  it("enumerates sim.ts emit sites and finds no unlocalized player-facing string", () => {
+    setLanguage("de_DE");
+    const cands = extract();
+    expect(cands.length, "sanity: should enumerate many emit sites").toBeGreaterThan(80);
+    const leaks: string[] = [];
+    for (const c of cands) {
+      if (TMPL_SKIP.some((re) => re.test(c.tmpl))) continue;
+      const s = concrete(c.tmpl);
+      if (ALLOW.some((re) => re.test(s))) continue;
+      if (!recognized(c.type, s)) leaks.push(`(${c.type}) ${JSON.stringify(s)}`);
+    }
+    setLanguage("en");
+    expect(leaks, "unlocalized sim emit strings (add a key/RULE to sim_i18n.ts)").toEqual([]);
+  });
+});
