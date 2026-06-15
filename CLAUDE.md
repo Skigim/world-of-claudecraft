@@ -67,9 +67,35 @@ See `README.md` for the full host/develop/play guide and the classic-fidelity ch
   XP curves — see `README.md` and `docs/design/`). Don't invent balance numbers.
 - **Don't hand-edit generated files** — e.g. `src/render/assets/manifest.generated.ts`
   (regenerate via the build).
-- **i18n shape is type-enforced.** Every locale in `src/ui/i18n.ts` is declared
-  `: typeof en`; a missing/renamed key fails `tsc`. Add a key to `en` first, then
-  to every locale.
+- **i18n: every player-visible string is a `t()` key, in every locale.** Each
+  locale in `src/ui/i18n.ts` is `: typeof en`, so `tsc` fails on a missing/renamed
+  key — but it **cannot** see a hard-coded literal that never became a key, nor a
+  new English string emitted by `src/sim/`/`server/` and never registered in the
+  client matcher. Both compile green and ship English to a translated player.
+  Closing those two gaps is on you, not the compiler.
+  - **Add the key to `en` first, then a real translation to every locale** in
+    `translations` (`Object.keys(translations)`/`supportedLanguages` is the
+    authoritative set — never author against a printed list). No English copy,
+    placeholder, or `// TODO`; no "temporary English."
+  - **The final rendered text — however assembled — comes from `t()`.** Not concat,
+    template parts, `?? 'English'` fallbacks, default params, `const LABELS={…}`
+    maps, or literals passed to `setAttribute('aria-label'|'title'|'placeholder'|'alt')`
+    / `document.title` / native `confirm`/`prompt`/`alert`. Numbers · money · dates ·
+    units · percents go through `formatNumber`/`formatDateTime`/`formatMoney`/`Intl`.
+  - **Classify by render sink, not statement type.** Anything a user can read —
+    labels, tooltips, placeholders, aria/alt, toasts, dialogs, validation +
+    "connection lost" errors, static HTML, meta/`document.title`, server-sent player
+    text, **and the whole admin dashboard** (operators are users) — is in scope.
+    Only dev-channel text (`console.*`, assertions, a `throw` no catch surfaces) stays
+    English; if one string feeds both a log and the UI, **split it**.
+  - **`src/sim/` and `server/` stay language-agnostic** (no `t()`, no DOM) but their
+    player text is still in scope: emit a stable key + values, **or** English that is
+    re-localized via the client matcher (`src/ui/sim_i18n.ts` + `server_i18n.ts`
+    mirror) **in the same change** — the S3 guard (`tests/localization_fixes.test.ts`)
+    enforces it. Translation resolves only at the client boundary.
+  - **Emojis/symbols** need no entry and may appear inline or stand alone, but never
+    replace a required translation (the aria name behind an emoji is still a `t()`
+    key). Distinct from the separate "no raw emojis as in-game icons" aesthetic rule.
 - **Never set `ALLOW_DEV_COMMANDS=1` in production** (it enables level/teleport/item cheats).
 - **Never commit `.env` or secrets.**
 
