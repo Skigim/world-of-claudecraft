@@ -101,6 +101,9 @@ function userFacingApiError(err: unknown): string {
   // WebSocket disconnect reasons surfaced through the fatal overlay (net/online.ts).
   if (normalized === 'connection to the server was lost.') return t('loading.connectionLost');
   if (normalized === 'rejected by server') return t('loading.connectionRejected');
+  // NOTE: protocol/transport diagnostics ('bad auth message', 'authentication timed out',
+  // etc.) are intentionally NOT translated — they are developer/diagnostic errors and must
+  // stay English so browser logs and support reports match the server source.
   // Moderation kicks and the login brute-force throttle (server/admin.ts, server/main.ts).
   if (normalized === 'this account is suspended.') return tServer('moderation.suspended');
   if (normalized === 'a moderator requires one of your characters to be renamed.') return tServer('moderation.forceRename');
@@ -125,7 +128,7 @@ function syncBuildInfo(): void {
   const el = document.getElementById('game-version');
   if (!el) return;
   el.textContent = `v${__APP_VERSION__} · build ${__APP_BUILD_ID__}`;
-  el.title = `Built ${__APP_BUILD_DATE__}`;
+  el.title = t('meta.builtOn', { date: __APP_BUILD_DATE__ });
 }
 
 function syncAppViewport(): void {
@@ -1101,15 +1104,18 @@ function showRealmList(dir?: import('./net/online').RealmDirectory): void {
       return;
     }
     // recommend the lowest-population online realm (WoW nudges new players there)
+    const realmTypeKeys = { 'Normal': 'realmTypes.normal', 'PvP': 'realmTypes.pvp', 'RP': 'realmTypes.rp', 'RP-PvP': 'realmTypes.rpPvp' } as const;
     listEl.innerHTML = d.realms.map((r) => {
       const chars = d.characters[r.name] ?? 0;
       const charTag = chars > 0
         ? `<span class="rn-chars">${escapeHtml(t(chars === 1 ? 'realm.characterCountOne' : 'realm.characterCountOther', { count: chars }))}</span>`
         : '';
+      const typeKey = realmTypeKeys[r.type as keyof typeof realmTypeKeys];
+      const typeLabel = typeKey ? t(typeKey) : r.type;
       return `<div class="realm-row" data-name="${escapeHtml(r.name)}" data-url="${escapeHtml(r.url)}">
         <div><div class="realm-name">${escapeHtml(r.name)}${charTag}<span class="rn-rec" data-rec hidden>${escapeHtml(t('realm.recommended'))}</span></div>
           <div class="realm-sub" data-sub>${escapeHtml(t('realm.checkingStatus'))}</div></div>
-        <div class="realm-type">${escapeHtml(r.type)}</div>
+        <div class="realm-type">${escapeHtml(typeLabel)}</div>
         <div class="realm-pop offline" data-pop>-</div>
       </div>`;
     }).join('');
