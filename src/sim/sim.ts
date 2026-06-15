@@ -4203,6 +4203,14 @@ export class Sim {
       const x = Math.floor(r.e.pos.x);
       const z = Math.floor(r.e.pos.z);
       this.error(r.meta.entityId, `You are in ${zone.name} (levels ${lo}–${hi}) at (${x}, ${z}).`);
+    // "/target" (alias "/tar") — self-only readout of your current target.
+    // Reads existing p.targetId state, so it needs no server wiring: it falls
+    // through routeRememberedChat to here and works online for free.
+    if (/^\/(?:target|tar)(?:\s|$)/i.test(raw)) {
+      const tid = r.e.targetId;
+      const t = tid !== null ? this.entities.get(tid) ?? null : null;
+      if (!t) { this.error(r.meta.entityId, 'You have no target.'); return null; }
+      this.error(r.meta.entityId, this.targetReadout(t));
       return null;
     }
 
@@ -5658,6 +5666,14 @@ export class Sim {
       if (set.size === 0) this.channelSubs.delete(pid);
       this.notice(pid, `Left the ${channel} channel.`);
     }
+  // One-line description of an entity for the self-only "/target" readout:
+  // name, level, what it is (player / pet / mob), and current health. A dead
+  // body reports "dead" instead of a percentage so a lootable corpse reads
+  // sensibly.
+  private targetReadout(t: Entity): string {
+    const kind = t.kind === 'player' ? 'player' : t.ownerId !== null ? 'pet' : 'mob';
+    const health = t.dead ? 'dead' : `${Math.round((t.hp / t.maxHp) * 100)}% HP`;
+    return `Target: ${t.name} (level ${t.level} ${kind}) — ${health}.`;
   }
 }
 
