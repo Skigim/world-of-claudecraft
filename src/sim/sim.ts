@@ -4344,6 +4344,9 @@ export class Sim {
       this.error(r.meta.entityId, this.consumableReadout(r.e));
     if (/^\/(?:potion|potioncd|pot)(?:\s|$)/i.test(raw)) {
       this.error(r.meta.entityId, this.potionReadout(r.e));
+    // "/overpower" — self-only readout of the warrior Overpower reactive window
+    if (/^\/(?:overpower|op|overpowered)(?:\s|$)/i.test(raw)) {
+      this.error(r.meta.entityId, this.overpowerReadout(r.e, r.meta));
       return null;
     }
 
@@ -5960,6 +5963,16 @@ export class Sim {
     const interval = base * this.swingIntervalMult(p);
     const next = p.swingTimer <= 0 ? 'now' : `in ${p.swingTimer.toFixed(1)}s`;
     return `Auto-attack is on against ${t.name} — next swing ${next} (${interval.toFixed(1)}s swing).`;
+  // Overpower is a warrior reactive: an enemy dodging the player's attack opens
+  // a 5s window (overpowerUntil = time + 5) in which the ability becomes usable.
+  // It is neither an aura nor a normal cooldown, so no other readout exposes it.
+  private overpowerReadout(e: Entity, meta: PlayerMeta): string {
+    if (meta.cls !== 'warrior') return 'Overpower is a warrior ability; your class cannot use it.';
+    const remaining = Math.ceil(e.overpowerUntil - this.time);
+    if (remaining > 0) {
+      return `Overpower is ready — strike within ${remaining}s (an enemy dodged your attack).`;
+    }
+    return 'Overpower is not available. It opens for 5s after an enemy dodges your attack.';
   }
 
   private error(pid: number, text: string): void {
