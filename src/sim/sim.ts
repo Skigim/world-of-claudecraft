@@ -3901,6 +3901,14 @@ export class Sim {
       return null;
     }
 
+    // "/gold" (aliases /money, /coins) — a self-only readout of your purse.
+    // Reads only meta.copper; like /who's reply it returns null so it is never
+    // logged or broadcast, and with no server interceptor it works online too.
+    if (/^\/(?:gold|money|coins)(?:\s|$)/i.test(raw)) {
+      this.error(r.meta.entityId, this.goldReadout(r.meta.copper));
+      return null;
+    }
+
     // "/w name message" — private whisper to an online player
     const wm = /^\/(?:w|whisper|t|tell)\s+(\S+)\s+([\s\S]+)$/i.exec(line);
     if (wm) {
@@ -5340,6 +5348,13 @@ export class Sim {
     const pct = Math.floor((have / need) * 100);
     const fmt = (n: number) => n.toLocaleString('en-US');
     return `Level ${level} — ${fmt(have)}/${fmt(need)} XP (${pct}%), ${fmt(need - have)} to go.`;
+  }
+
+  // Render the /gold readout. An empty purse gets flavor text rather than the
+  // bare "You have 0c." that formatMoney would otherwise produce.
+  private goldReadout(copper: number): string {
+    if (copper <= 0) return 'Your purse is empty.';
+    return `You have ${formatMoney(copper)}.`;
   }
 }
 
