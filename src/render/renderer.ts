@@ -52,6 +52,11 @@ const SPARKLE_DRAW_RANGE_SQ = 40 * 40;
 // beyond this, the articulated rig swaps for its single-draw merged far LOD
 // (just inside the nameplate range; rigs out there are ~30px tall)
 const ENTITY_LOD_RANGE_SQ = 50 * 50;
+// Feet-above-terrain margin that counts as "airborne" for the jump pose. Mirrors
+// the sim's own 0.4u grounded tolerance (sim.ts), so walking slopes doesn't trip
+// it but a jump (apex ~1.1u) does. Needed because online snapshots don't carry
+// `onGround`, so the flag alone never fires the jump clip for the mirrored world.
+const AIRBORNE_EPS = 0.4;
 // fire/torch point lights beyond this never shine (their falloff range is
 // shorter anyway); the nearest GFX.maxPointLights within it win the budget
 const LIGHT_BUDGET_RANGE_SQ = 55 * 55;
@@ -1160,10 +1165,19 @@ export class Renderer {
       v.lastZ = z;
       const loco = updateLocomotion(v.loco, vx, vz, facing, dt);
       const moving = loco.moving;
+      // `onGround` is authoritative offline but is never sent in online snapshots
+      // (ClientWorld defaults it to true), so for players fall back to deriving the
+      // airborne state from foot height vs terrain — keeps the jump pose working in
+      // both worlds without a wire change. Gated to players (only they jump) to keep
+      // the extra groundHeight sample off the hot path for mobs/NPCs.
+      const airborne = !e.dead && !swimming && (
+        !e.onGround
+        || (e.kind === 'player'
+          && y - groundHeight(x, z, this.sim.cfg.seed) > AIRBORNE_EPS));
       const st: AnimState = {
         speed: loco.speed,
         moving,
-        airborne: !e.onGround && !swimming && !e.dead,
+        airborne,
         backwards: loco.backwards,
         dead: e.dead,
         casting: e.castingAbility !== null && !e.dead,
