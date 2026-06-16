@@ -56,6 +56,7 @@ export const DUNGEON_MOBS: Record<string, MobTemplate> = {
     armorPerLevel: 18, moveSpeed: 6.5, aggroRadius: 12,
     loot: [{ copper: 150, chance: 1 }, { itemId: 'bone_fragments', chance: 0.7 }],
     scale: 1.1, color: 0x7fa8a0,
+    mortalStrike: { chance: 0.3, healReduction: 0.5, duration: 6, name: 'Mortal Strike' },
   },
   tidebound_acolyte: {
     id: 'tidebound_acolyte', name: 'Tidebound Acolyte', minLevel: 12, maxLevel: 13, family: 'humanoid', elite: true,

@@ -1528,7 +1528,7 @@ export class Sim {
       const c = p[slot];
       if (!c) continue;
       if (c.hpPer2s > 0 && p.hp < p.maxHp) {
-        const heal = Math.min(c.hpPer2s, p.maxHp - p.hp);
+        const heal = Math.min(Math.round(c.hpPer2s * this.healingTakenMult(p)), p.maxHp - p.hp);
         p.hp += heal;
         this.emit({ type: 'heal', targetId: p.id, amount: heal });
       }
@@ -1575,7 +1575,7 @@ export class Sim {
             this.dealDamage(this.entities.get(a.sourceId) ?? null, e, a.value, false, a.school, a.name, 'hit', true);
             if (e.dead) return;
           } else if (a.kind === 'hot') {
-            const healed = Math.min(a.value, e.maxHp - e.hp);
+            const healed = Math.min(Math.round(a.value * this.healingTakenMult(e)), e.maxHp - e.hp);
             if (healed > 0) {
               e.hp += healed;
               this.emit({ type: 'heal2', sourceId: a.sourceId, targetId: e.id, amount: healed, crit: false, ability: a.name });
@@ -1850,10 +1850,21 @@ export class Sim {
     return 0.05 + p.stats.int * 0.0008;
   }
 
+  // Combined incoming-healing multiplier from Mortal Wound debuffs (classic
+  // Mortal Strike): each reduces healing the target receives; multiple stack
+  // multiplicatively. 1 = unaffected, 0 = fully suppressed.
+  private healingTakenMult(target: Entity): number {
+    let mult = 1;
+    for (const a of target.auras) {
+      if (a.kind === 'mortal_wound') mult *= 1 - a.value;
+    }
+    return mult < 0 ? 0 : mult;
+  }
+
   private applyHeal(source: Entity, target: Entity, amount: number, ability: string): void {
     if (target.dead) return;
     const crit = this.rng.chance(this.spellCrit(source));
-    let healed = Math.round(amount * (crit ? 1.5 : 1));
+    let healed = Math.round(amount * (crit ? 1.5 : 1) * this.healingTakenMult(target));
     healed = Math.min(healed, target.maxHp - target.hp);
     target.hp += healed;
     this.emit({ type: 'heal2', sourceId: source.id, targetId: target.id, amount: healed, crit, ability });
@@ -3345,6 +3356,21 @@ export class Sim {
         }
       }
     }
+    // Mortal Strike: a landed hit can leave a healing-reduction debuff. Guarded on
+    // `hostile` so a friendly pet (mobSwing's other caller) never debuffs the party.
+    const ms = MOBS[mob.templateId]?.mortalStrike;
+    if (ms && mob.hostile && !target.dead && this.rng.chance(ms.chance)) {
+      this.applyAura(target, {
+        id: `mortal_wound_${mob.templateId}`,
+        name: ms.name,
+        kind: 'mortal_wound',
+        remaining: ms.duration,
+        duration: ms.duration,
+        value: ms.healReduction,
+        sourceId: mob.id,
+        school: (ms.school as Aura['school']) ?? 'physical',
+      });
+    }
   }
 
   // Pet brain: assist the owner (attack whatever they fight or whatever
@@ -3839,7 +3865,7 @@ export class Sim {
       this.removeItem(itemId, 1, meta.entityId);
       p.potionCooldownUntil = this.time + POTION_COOLDOWN;
       if (restoresHp) {
-        const heal = Math.min(def.potionHp!, p.maxHp - p.hp);
+        const heal = Math.min(Math.round(def.potionHp! * this.healingTakenMult(p)), p.maxHp - p.hp);
         p.hp += heal;
         this.emit({ type: 'heal', targetId: p.id, amount: heal });
       }
