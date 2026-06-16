@@ -187,6 +187,11 @@ export interface MobTemplate {
   // On-hit debuff: a chance per landed melee swing to inflict a stacking-refresh
   // damage-over-time poison on the struck target (spiders, serpents, scorpions).
   venom?: { chance: number; perTick: number; interval: number; duration: number; name: string; school?: string };
+  // On-death mechanic ("Death Throes"): a volatile creature does not detonate
+  // the instant it dies. Its corpse destabilizes for `delay` seconds (a
+  // telegraph players can run from), then bursts for min..max `school` damage
+  // to everyone within `radius`. Deterministic: the fuse rides the corpse tick.
+  deathThroes?: { min: number; max: number; radius: number; delay: number; name: string; school?: Aura['school'] };
   // Classic beast "Frenzy": when a mob with this trait dies, nearby living
   // same-family hostile mobs briefly attack faster (hasteMult, e.g. 1.3 = +30%
   // swing speed) for `duration` seconds. Applied as a buff_haste aura.
@@ -556,6 +561,7 @@ export interface Entity {
   petTauntTimer: number; // controlled pet Growl cooldown
   pulseTimer: number; // boss aoe pulse countdown
   stompTimer: number; // boss War Stomp stun-pulse countdown
+  detonateTimer: number; // Death Throes fuse on a volatile corpse; Infinity = no pending detonation
   firedSummons: number; // summonAdds thresholds already triggered
   summonedIds: number[]; // live adds this boss summoned; despawned on reset
   enraged: boolean; // enrage mechanic active

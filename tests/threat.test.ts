@@ -1152,6 +1152,12 @@ describe('shaman travel and shock mechanics', () => {
   it('Ghost Wolf drops before casting shaman spells from the same button press', () => {
     const sim = makeSim('shaman');
     sim.setPlayerLevel(16);
+    // This test checks that *casting a spell* auto-cancels Ghost Wolf form.
+    // Taking any damage also breaks the form, so a stray wolf swing landing
+    // mid-window would drop it incidentally and make the assertions sensitive
+    // to world RNG. Make the shaman invulnerable to isolate the cast-driven
+    // cancel; the wolf is still a valid target for the player's own spells.
+    sim.player.gm = true;
     const wolf = nearestMob(sim, 'forest_wolf');
     beefUp(wolf);
     teleport(sim, sim.player, wolf.pos.x + 12, wolf.pos.z);

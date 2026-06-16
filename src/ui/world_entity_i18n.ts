@@ -10,7 +10,7 @@ const MOB_IDS = [
   'hollow_acolyte', 'bonechill_widow', 'sexton_marrow', 'morthen', 'bastion_revenant',
   'tidebound_acolyte', 'drowned_thrall', 'knight_commander_olen', 'vael_the_mistcaller',
   'sanctum_boneguard', 'sanctum_drakonid', 'raised_bonewalker', 'korgath_the_bound',
-  'grand_necromancer_velkhar', 'korzul_the_gravewyrm',
+  'grand_necromancer_velkhar', 'korzul_the_gravewyrm', 'bog_bloat',
 ] as const;
 
 const NPC_IDS = [
@@ -1140,6 +1140,7 @@ const esData: LocaleData = {
     'Tambaleante de la Cripta', 'Acólito del Hueco', 'Viuda Huesofrío', 'Sacristán Marrow', 'Morthen el Gravecaller', 'Aparecido del Bastión',
     'Acólito atado a la marea', 'Siervo ahogado', 'Caballero comandante Olen', 'Vael el Mistcaller', 'Guardahuesos del Santuario', 'Dracónido del Santuario',
     'Caminahuesos alzado', 'Korgath el Encadenado', 'Gran nigromante Velkhar', 'Korzul el Gravewyrm',
+    'Hinchazón del Pantano',
   ],
   npcRows: [
     ['El Mercader', 'Guardián del Mercado Mundial', 'Bienvenido al Mercado Mundial, {className}. Compra a aventureros de cada rincón del reino o vende tus propias mercancías.'],
@@ -1208,6 +1209,7 @@ const frData: LocaleData = {
     'Traînard de la crypte', 'Acolyte du Creux', 'Veuve Frissos', 'Sacristain Marrow', 'Morthen le Gravecaller', 'Revenant du Bastion',
     'Acolyte lié aux marées', 'Serviteur noyé', 'Chevalier-commandant Olen', 'Vael le Mistcaller', 'Garde-os du Sanctuaire', 'Drakonide du Sanctuaire',
     'Marche-os relevé', "Korgath l'Enchaîné", 'Grand nécromancien Velkhar', 'Korzul le Gravewyrm',
+    'Baudruche des marais',
   ],
   npcRows: [
     ['Le Marchand', 'Gardien du Marché mondial', 'Bienvenue au Marché mondial, {className}. Achetez aux aventuriers du royaume ou proposez vos propres marchandises.'],
@@ -1275,6 +1277,7 @@ const deData: LocaleData = {
     'Gruftschlurfer', 'Akolyth der Höhlung', 'Knochenkälte-Witwe', 'Küster Marrow', 'Morthen der Gravecaller', 'Bastion-Wiedergänger',
     'Gezeitengebundener Akolyth', 'Ertrunkener Knecht', 'Ritterkommandant Olen', 'Vael der Mistcaller', 'Heiligtums-Knochenwache',
     'Heiligtumsdrakonid', 'Erhobener Knochenläufer', 'Korgath der Gebundene', 'Großnekromant Velkhar', 'Korzul der Gravewyrm',
+    'Sumpfbläher',
   ],
   npcRows: [
     ['Der Händler', 'Hüter des Weltmarkts', 'Willkommen auf dem Weltmarkt, {className}. Kaufe von Abenteurern aus dem ganzen Reich oder biete deine eigenen Waren an.'],
@@ -1343,6 +1346,7 @@ const itData: LocaleData = {
     'Morthen il Gravecaller', 'Revenant del Bastione', 'Accolito legato alla marea', 'Servo annegato', 'Cavaliere comandante Olen',
     'Vael il Mistcaller', 'Guardiano osseo del Santuario', 'Draconide del Santuario', 'Camminatore di ossa risorto',
     'Korgath il Vincolato', 'Grande negromante Velkhar', 'Korzul il Gravewyrm',
+    'Gonfiore della palude',
   ],
   npcRows: [
     ['Il Mercante', 'Custode del Mercato Mondiale', 'Benvenuto al Mercato Mondiale, {className}. Compra dagli avventurieri del reame o vendi le tue merci.'],
@@ -1408,6 +1412,7 @@ const zhCnData: LocaleData = {
     '风暴岩元素', '碎片领主卡兹克斯', '龙教狂热者', '龙教死灵法师', '骨甲亡魂', '墓穴蹒跚者', '空洞侍僧',
     '寒骨寡妇蛛', '司事马罗', '唤墓者莫森', '堡垒亡魂', '潮缚侍僧', '溺亡奴仆', '骑士指挥官奥伦',
     '唤雾者维尔', '圣所骨卫', '圣所龙人', '复生骨行者', '被缚者科加斯', '大死灵法师维尔卡', '墓龙科祖尔',
+    '沼泽胀囊',
   ],
   npcRows: [
     ['商人', '世界市场守护者', '欢迎来到世界市场，{className}。从王国各地的冒险者手中购买，或出售你自己的货物。'],
@@ -1469,6 +1474,7 @@ const zhTwData: LocaleData = {
     '龍教死靈法師', '骨甲亡魂', '墓穴蹣跚者', '空洞侍僧', '寒骨寡婦蛛', '司事馬羅', '喚墓者莫森',
     '堡壘亡魂', '潮縛侍僧', '溺亡奴僕', '騎士指揮官奧倫', '喚霧者維爾', '聖所骨衛', '聖所龍人',
     '復生骨行者', '被縛者科加斯', '大死靈法師維爾卡', '墓龍科祖爾',
+    '沼澤脹囊',
   ],
   npcRows: [
     ['商人', '世界市場守護者', '歡迎來到世界市場，{className}。向王國各地的冒險者購買，或出售你自己的貨物。'],
@@ -1532,6 +1538,7 @@ const koData: LocaleData = {
     '묘실 비틀거림꾼', '공허의 수행사제', '뼈서리 과부거미', '성구지기 매로우', '무덤부름 모르덴',
     '요새 망령', '조수결속 수행사제', '익사한 노예', '기사대장 올렌', '안개부름 바엘', '성소 뼈수호자',
     '성소 드라코니드', '되살아난 뼈걸음꾼', '속박된 코르가스', '대강령술사 벨카르', '무덤고룡 코르줄',
+    '늪 팽창체',
   ],
   npcRows: [
     ['상인', '세계 시장 관리자', '세계 시장에 오신 것을 환영합니다, {className}. 왕국의 모험가들에게서 물건을 사거나 자신의 물건을 내놓으십시오.'],
@@ -1598,6 +1605,7 @@ const jaData: LocaleData = {
     '虚ろの侍祭', '骨冷えのウィドウ', '墓守マロウ', '墓呼びのモーセン', '砦の亡霊',
     '潮縛りの侍祭', '溺れた下僕', '騎士司令官オレン', '霧呼びのヴァエル', '聖所の骨衛兵',
     '聖所のドラコニッド', '甦った骨歩き', '縛られしコルガス', '大死霊術師ヴェルカー', '墓ワームのコルズル',
+    '沼地の膨れ',
   ],
   npcRows: [
     ['商人', '世界市場の守り手', '世界市場へようこそ、{className}。王国中の冒険者から買うことも、自分の品を売ることもできます。'],
@@ -1665,6 +1673,7 @@ const ptData: LocaleData = {
     'Morthen o Gravecaller', 'Revenante do Bastião', 'Acólito preso à maré', 'Servo afogado', 'Cavaleiro-comandante Olen',
     'Vael o Mistcaller', 'Guarda-osso do Santuário', 'Draconídeo do Santuário', 'Andarilho de ossos erguido',
     'Korgath o Acorrentado', 'Grande necromante Velkhar', 'Korzul o Gravewyrm',
+    'Inchaço do Brejo',
   ],
   npcRows: [
     ['O Mercador', 'Guardião do Mercado Mundial', 'Bem-vindo ao Mercado Mundial, {className}. Compre de aventureiros do reino ou venda suas próprias mercadorias.'],
@@ -1734,6 +1743,7 @@ const ruData: LocaleData = {
     'Пономарь Марроу', 'Мортен Могильный Зов', 'Ревенант бастиона', 'Приливный послушник', 'Утопший раб',
     'Рыцарь-командор Олен', 'Ваэль Зовущий Туман', 'Костяной страж святилища', 'Драконид святилища',
     'Поднятый костеход', 'Коргат Связанный', 'Верховный некромант Велхар', 'Корзул Могильный Вирм',
+    'Болотный вздутень',
   ],
   npcRows: [
     ['Торговец', 'Хранитель мирового рынка', 'Добро пожаловать на Мировой рынок, {className}. Покупайте у искателей приключений всего королевства или выставляйте свои товары.'],

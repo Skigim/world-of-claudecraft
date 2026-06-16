@@ -218,6 +218,19 @@ export const ZONE2_MOBS: Record<string, MobTemplate> = {
     ],
     scale: 1.3, color: 0x512e5f,
   },
+  bog_bloat: {
+    id: 'bog_bloat', name: 'Bog Bloat', minLevel: 9, maxLevel: 11, family: 'beast',
+    hpBase: 44, hpPerLevel: 17, dmgBase: 7, dmgPerLevel: 2.0, attackSpeed: 2.6,
+    armorPerLevel: 9, moveSpeed: 6, aggroRadius: 10,
+    // A swollen marsh gas-bag: when slain its corpse swells for 1.5s, then
+    // bursts in a cloud of caustic spores — get clear or share the blast.
+    deathThroes: { min: 14, max: 22, radius: 8, delay: 1.5, name: 'Caustic Spores', school: 'nature' },
+    loot: [
+      { copper: 40, chance: 1 },
+      { itemId: 'tangled_weed', chance: 0.5 },
+    ],
+    scale: 1.1, color: 0x6b8e23,
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -517,6 +530,10 @@ export const ZONE2_CAMPS: CampDef[] = [
   { mobId: 'gravecaller_summoner', center: { x: -5, z: 500 }, radius: 12, count: 4 },
   { mobId: 'sister_nhalia', center: { x: 24, z: 492 }, radius: 5, count: 1 },
   { mobId: 'deacon_voss', center: { x: 0, z: 510 }, radius: 2, count: 1 },
+  // Bog Bloats: volatile gas-bags drifting the dry eastern shelf of the marsh.
+  // Listed last so their spawn draws never perturb the other camps' placement.
+  { mobId: 'bog_bloat', center: { x: 72, z: 428 }, radius: 11, count: 5 },
+  { mobId: 'bog_bloat', center: { x: 110, z: 440 }, radius: 11, count: 4 },
 ];
 
 export const ZONE2_OBJECTS: GroundObjectDef[] = [

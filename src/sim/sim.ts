@@ -3425,6 +3425,7 @@ export class Sim {
         return; // owned pets drop no loot/credit; demons unravel, hunters revive or abandon
       }
       this.frenzyPackmates(e); // wild packmates fly into a frenzy when one falls
+      this.armDeathThroes(e); // volatile corpses begin to destabilize, then burst
 
       // credit goes to the tapping player (fall back to the killer)
       const creditId = e.tappedById ?? (killer?.kind === 'player' ? killer.id : null);
@@ -3761,6 +3762,14 @@ export class Sim {
       if (mob.ownerId !== null && MOBS[mob.templateId]?.family !== 'demon') return;
       mob.corpseTimer -= DT;
       mob.respawnTimer -= DT;
+      // Death Throes: a volatile corpse counts down its fuse, then detonates once.
+      if (mob.detonateTimer !== Infinity) {
+        mob.detonateTimer -= DT;
+        if (mob.detonateTimer <= 0) {
+          mob.detonateTimer = Infinity;
+          this.detonateCorpse(mob);
+        }
+      }
       // a slain summoned demon unravels rather than respawning into the wild
       if (mob.ownerId !== null && MOBS[mob.templateId]?.family === 'demon') {
         if (mob.corpseTimer <= 0) this.despawnPet(mob);
@@ -4513,6 +4522,36 @@ export class Sim {
       this.emit({ type: 'log', text: `${m.name} flies into a frenzy!`, color: '#ff8c00', entityId: m.id });
       this.emit({ type: 'spellfx', sourceId: m.id, targetId: m.id, school: 'physical', fx: 'nova' });
     });
+  }
+
+  // Death Throes (arm): a volatile creature does not explode the instant it
+  // dies. Its corpse destabilizes for `delay` seconds — a telegraph players can
+  // run from — by arming a fuse that the corpse tick (updateMob) counts down.
+  private armDeathThroes(dead: Entity): void {
+    const dt = MOBS[dead.templateId]?.deathThroes;
+    if (!dt) return;
+    dead.detonateTimer = dt.delay;
+    const school = dt.school ?? 'nature';
+    this.emit({ type: 'spellfx', sourceId: dead.id, targetId: dead.id, school, fx: 'nova' });
+    this.emit({ type: 'log', text: `${dead.name} begins to swell — get clear!`, color: '#9acd32', entityId: dead.id });
+  }
+
+  // Death Throes (detonate): the corpse bursts for min..max `school` damage to
+  // every living player within `radius`. Mirrors the aoePulse damage loop; the
+  // dead mob is the damage source so credit/threat resolve as a normal hit.
+  private detonateCorpse(dead: Entity): void {
+    const dt = MOBS[dead.templateId]?.deathThroes;
+    if (!dt) return;
+    const school = dt.school ?? 'nature';
+    this.emit({ type: 'spellfx', sourceId: dead.id, targetId: dead.id, school, fx: 'nova' });
+    this.emit({ type: 'log', text: `${dead.name} bursts in a cloud of ${dt.name}!`, color: '#9acd32', entityId: dead.id });
+    for (const meta of this.players.values()) {
+      const pe = this.entities.get(meta.entityId);
+      if (pe && !pe.dead && dist2d(pe.pos, dead.pos) <= dt.radius) {
+        const dmg = Math.round(this.rng.range(dt.min, dt.max));
+        this.dealDamage(dead, pe, dmg, false, school, dt.name, 'hit', true);
+      }
+    }
   }
 
   // Boss threshold mechanics: add waves (summonAdds) and enrage. Checked
