@@ -88,16 +88,18 @@ describe('classic formulas', () => {
     expect(mobXpValue(2, 8)).toBe(0);
   });
 
-  it('spell hit has the +3 level cliff', () => {
-    expect(spellHitChance(5, 5)).toBeCloseTo(0.96);
-    expect(spellHitChance(5, 7)).toBeCloseTo(0.94);
-    expect(spellHitChance(5, 8)).toBeCloseTo(0.83);
+  it('spell hit falls off steeply above the caster level (anti-power-level)', () => {
+    expect(spellHitChance(5, 5)).toBeCloseTo(0.96); // equal level
+    expect(spellHitChance(3, 5)).toBeCloseTo(0.82); // +2 -> ~18% miss
+    expect(spellHitChance(3, 7)).toBeCloseTo(0.16); // +4 -> ~84% miss
   });
 
-  it('melee miss grows with level difference', () => {
-    expect(meleeMissChance(5, 5)).toBeCloseTo(0.05);
-    expect(meleeMissChance(5, 7)).toBeCloseTo(0.07);
-    expect(meleeMissChance(5, 8)).toBeGreaterThan(0.07);
+  it('melee/ranged miss scales steeply against higher-level targets', () => {
+    expect(meleeMissChance(5, 5)).toBeCloseTo(0.05); // equal level -> 5% base
+    expect(meleeMissChance(3, 5)).toBeCloseTo(0.19); // +2 (L3 vs L5) -> ~19%
+    expect(meleeMissChance(3, 7)).toBeCloseTo(0.85); // +4 (L3 vs L7) -> 85%
+    expect(meleeMissChance(3, 9)).toBeCloseTo(0.95); // +6 -> capped at 95%
+    // hunter Auto Shot + wands resolve through meleeMissChance too, so this covers them
   });
 
   it('abilities unlock at the right levels with ranks', () => {

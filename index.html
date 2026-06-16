@@ -401,6 +401,13 @@
   .np-raidmark { width: 30px; height: 30px; margin: 0 auto 1px; background-size: contain;
     background-repeat: no-repeat; background-position: center;
     filter: drop-shadow(0 0 2px #000) drop-shadow(0 1px 1px #000); }
+  /* rogue/druid combo points — a centered row of pips over the nameplate,
+     display toggled in JS so it reserves no space when the player has none. */
+  .np-combo { display: flex; justify-content: center; gap: 3px; margin: 0 auto 2px; height: 7px; }
+  .np-combo-pip { width: 7px; height: 7px; border-radius: 50%; background: #3a1010;
+    border: 1px solid #000; box-sizing: border-box; }
+  .np-combo-pip.lit { background: radial-gradient(circle at 35% 30%, #ffe07a, #e8453a 70%);
+    box-shadow: 0 0 4px #ff6a3caa; border-color: #5a0c08; }
   .np-emote { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 62px; height: 42px;
     padding: 3px 9px 3px 4px; margin: 0 auto 5px; border-radius: 999px; border: 2px solid #f2d27a;
     background: linear-gradient(#3a2a16, #16100a); color: #ffe9a3; font: 800 11px/1 var(--title-font);
@@ -490,6 +497,8 @@
   #castbar.channel .fill { background: linear-gradient(#8ad4ff, #1a74c9 60%, #125a9a); }
   #castbar .label { position: absolute; inset: 0; text-align: center; font-size: 12px; line-height: 21px;
     color: #fff; text-shadow: 1px 1px 2px #000; font-family: var(--title-font); }
+  #castbar .timer { position: absolute; top: 0; right: 6px; line-height: 21px; font-size: 11px;
+    color: #fff; text-shadow: 1px 1px 2px #000; font-family: var(--title-font); font-variant-numeric: tabular-nums; }
 
   /* ---------- bottom cluster ---------- */
   #bottom-bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 6px; text-align: center; }
@@ -4338,7 +4347,7 @@
     <div id="prompt-stack"></div>
     <div id="trade-window" class="window panel"></div>
 
-    <div id="castbar"><div class="fill"></div><div class="label"></div></div>
+    <div id="castbar"><div class="fill"></div><div class="label"></div><div class="timer"></div></div>
 
     <div id="minimap-wrap">
       <div id="zone-label" data-i18n="entities.zones.eastbrook_vale.name">Eastbrook Vale</div>

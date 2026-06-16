@@ -66,7 +66,7 @@ type ZoneTranslations = Record<ZoneId, { name: string; welcome: string; pois: Re
 type DungeonTranslations = Record<DungeonId, { name: string; enterText: string; leaveText: string }>;
 type ObjectiveItemTranslations = Record<ObjectiveItemId, string>;
 
-type Phase9Translations = {
+type WorldEntityTranslations = {
   worldContent: {
     corpseName: string;
     dungeonExitName: string;
@@ -179,7 +179,7 @@ function normalizeSourceText(text: string): string {
 function orderedValues<T>(ids: readonly string[], source: Record<string, T>): T[] {
   return ids.map((id) => {
     const value = source[id];
-    if (!value) throw new Error(`Missing Phase 9 source entry for ${id}`);
+    if (!value) throw new Error(`Missing world entity source entry for ${id}`);
     return value;
   });
 }
@@ -281,7 +281,7 @@ function makeDungeonTranslations(rows: readonly (readonly [string, string, strin
   return dungeons;
 }
 
-function makeEnglishPhase9(): Phase9Translations {
+function makeEnglishWorldEntities(): WorldEntityTranslations {
   const mobs = {} as MobTranslations;
   orderedValues(MOB_IDS, MOBS).forEach((mob) => { mobs[mob.id as MobId] = { name: mob.name }; });
 
@@ -339,7 +339,7 @@ function makeEnglishPhase9(): Phase9Translations {
   };
 }
 
-function makeLocalePhase9(data: LocaleData, text: LocaleText, narratives: QuestNarrativeTranslations): Phase9Translations {
+function makeLocaleWorldEntities(data: LocaleData, text: LocaleText, narratives: QuestNarrativeTranslations): WorldEntityTranslations {
   const mobs = makeMobTranslations(data.mobs);
   const npcs = makeNpcTranslations(data.npcRows);
   const objectiveItems = makeObjectiveItems(data.objectiveItems);
@@ -1791,22 +1791,22 @@ const ruData: LocaleData = {
   ],
 };
 
-export const phase9 = {
-  en: makeEnglishPhase9(),
-  es: makeLocalePhase9(esData, esText, esQuestNarratives),
-  es_ES: {} as Phase9Translations,
-  fr_FR: makeLocalePhase9(frData, frText, frQuestNarratives),
-  fr_CA: {} as Phase9Translations,
-  en_CA: makeEnglishPhase9(),
-  it_IT: makeLocalePhase9(itData, itText, itQuestNarratives),
-  de_DE: makeLocalePhase9(deData, deText, deQuestNarratives),
-  zh_CN: makeLocalePhase9(zhCnData, zhCnText, zhCnQuestNarratives),
-  zh_TW: makeLocalePhase9(zhTwData, zhTwText, zhTwQuestNarratives),
-  ko_KR: makeLocalePhase9(koData, koText, koQuestNarratives),
-  ja_JP: makeLocalePhase9(jaData, jaText, jaQuestNarratives),
-  pt_BR: makeLocalePhase9(ptData, ptText, ptQuestNarratives),
-  ru_RU: makeLocalePhase9(ruData, ruText, ruQuestNarratives),
+export const worldEntityText = {
+  en: makeEnglishWorldEntities(),
+  es: makeLocaleWorldEntities(esData, esText, esQuestNarratives),
+  es_ES: {} as WorldEntityTranslations,
+  fr_FR: makeLocaleWorldEntities(frData, frText, frQuestNarratives),
+  fr_CA: {} as WorldEntityTranslations,
+  en_CA: makeEnglishWorldEntities(),
+  it_IT: makeLocaleWorldEntities(itData, itText, itQuestNarratives),
+  de_DE: makeLocaleWorldEntities(deData, deText, deQuestNarratives),
+  zh_CN: makeLocaleWorldEntities(zhCnData, zhCnText, zhCnQuestNarratives),
+  zh_TW: makeLocaleWorldEntities(zhTwData, zhTwText, zhTwQuestNarratives),
+  ko_KR: makeLocaleWorldEntities(koData, koText, koQuestNarratives),
+  ja_JP: makeLocaleWorldEntities(jaData, jaText, jaQuestNarratives),
+  pt_BR: makeLocaleWorldEntities(ptData, ptText, ptQuestNarratives),
+  ru_RU: makeLocaleWorldEntities(ruData, ruText, ruQuestNarratives),
 };
 
-phase9.es_ES = phase9.es;
-phase9.fr_CA = phase9.fr_FR;
+worldEntityText.es_ES = worldEntityText.es;
+worldEntityText.fr_CA = worldEntityText.fr_FR;

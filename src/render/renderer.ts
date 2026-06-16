@@ -30,6 +30,7 @@ import { t } from '../ui/i18n';
 import { tEntity } from '../ui/entity_i18n';
 import { raidMarkerDataUrl } from '../ui/icons';
 import { isProjectedNameplateAnchorVisible, nameplateScreenTransform } from './nameplate_projection';
+import { comboPipsFor, COMBO_PIP_MAX } from './nameplate_combo';
 import { stepCameraOcclusion, type CameraOcclusionState } from './camera_collision';
 
 const NAMEPLATE_RANGE = 55;
@@ -119,10 +120,13 @@ interface EntityView {
   emoteLabelEl: HTMLSpanElement;
   markerEl: HTMLDivElement;
   raidMarkEl: HTMLDivElement; // party raid/target marker, above the name
+  comboRow: HTMLDivElement; // rogue/druid combo-point pips, above the name
+  comboPips: HTMLDivElement[]; // the COMBO_PIP_MAX pip cells, lit left-to-right
   nameplateDisplay: string;
   nameplateTransform: string;
   nameplateSig: string;
   nameplateHpWidth: string;
+  comboSig: string; // cheap-diff for the combo pip row
   sparkle?: THREE.Sprite; // ground objects
   objectMesh?: THREE.Object3D;
   portal?: THREE.Mesh; // dungeon door swirl
@@ -796,6 +800,18 @@ export class Renderer {
     const raidMark = document.createElement('div');
     raidMark.className = 'np-raidmark';
     raidMark.style.display = 'none';
+    // combo-point pips (rogue/druid): hidden until the local player builds
+    // points on this entity; lit left-to-right as they accumulate
+    const comboRow = document.createElement('div');
+    comboRow.className = 'np-combo';
+    comboRow.style.display = 'none';
+    const comboPips: HTMLDivElement[] = [];
+    for (let i = 0; i < COMBO_PIP_MAX; i++) {
+      const pip = document.createElement('div');
+      pip.className = 'np-combo-pip';
+      comboRow.appendChild(pip);
+      comboPips.push(pip);
+    }
     const marker = document.createElement('div');
     marker.className = 'np-marker';
     const nameEl = document.createElement('div');
@@ -806,7 +822,7 @@ export class Renderer {
     const hpFill = document.createElement('div');
     hpFill.className = 'np-hpfill';
     hpBar.appendChild(hpFill);
-    np.append(emoteEl, raidMark, marker, nameEl, hpBar);
+    np.append(emoteEl, raidMark, comboRow, marker, nameEl, hpBar);
     this.nameplateLayer.appendChild(np);
 
     // object views gate their own casters; character shadows live in visual
@@ -814,8 +830,8 @@ export class Renderer {
     if (!visual) collectCasters(group, objectCasters);
     this.views.set(e.id, {
       group, visual, sheepVisual: null, bearVisual: null, catVisual: null, height, clickTarget,
-      nameplate: np, nameEl, hpBar, hpFill, emoteEl, emoteIconEl, emoteLabelEl, markerEl: marker, raidMarkEl: raidMark, sparkle, objectMesh, portal,
-      nameplateDisplay: 'none', nameplateTransform: '', nameplateSig: '', nameplateHpWidth: '',
+      nameplate: np, nameEl, hpBar, hpFill, emoteEl, emoteIconEl, emoteLabelEl, markerEl: marker, raidMarkEl: raidMark, comboRow, comboPips, sparkle, objectMesh, portal,
+      nameplateDisplay: 'none', nameplateTransform: '', nameplateSig: '', nameplateHpWidth: '', comboSig: '',
       objectCasters, shadowOn: true, isFar: false, lastOverheadEmoteKey: null,
       lastX: e.pos.x, lastZ: e.pos.z, skin: e.skin,
       loco: newLocoTrack(),
@@ -1496,6 +1512,9 @@ export class Renderer {
         v.raidMarkEl.style.display = 'none';
       }
 
+      // combo points the local player has built on this entity (rogue/druid)
+      this.setNameplateCombo(v, comboPipsFor(p, e));
+
       if (e.kind === 'object') {
         // dungeon doorways announce themselves
         const objName = objectDisplayName(e);
@@ -1564,6 +1583,19 @@ export class Renderer {
     if (width === v.nameplateHpWidth) return;
     v.nameplateHpWidth = width;
     v.hpFill.style.width = width;
+  }
+
+  // Light `count` of the COMBO_PIP_MAX pips over this nameplate; hide the row
+  // entirely at zero so non-combo classes/targets show nothing.
+  private setNameplateCombo(v: EntityView, count: number): void {
+    const n = Math.max(0, Math.min(COMBO_PIP_MAX, count));
+    const sig = `${n}`;
+    if (sig === v.comboSig) return;
+    v.comboSig = sig;
+    v.comboRow.style.display = n > 0 ? '' : 'none';
+    for (let i = 0; i < v.comboPips.length; i++) {
+      v.comboPips[i].classList.toggle('lit', i < n);
+    }
   }
 
   // Hang a speech bubble over an entity's head; it follows the entity and

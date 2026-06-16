@@ -24,11 +24,16 @@ import { verifyTurnstile } from './turnstile';
 import { handleAdminApi } from './admin';
 import { GameServer } from './game';
 import { REALM, REALM_DIRECTORY, REALM_ORIGINS } from './realm';
+import { webLoginEnforced, isWebClientRequest } from './web_login_guard';
 import { cacheControlFor, etagFor, isNotModified } from './static_cache';
 
 const PORT = Number(process.env.PORT ?? 8787);
 const STATIC_DIR = path.join(__dirname, '..', 'dist');
 const WIKI_URL = process.env.WIKI_URL ?? 'http://localhost:8080/wiki/index.php/Main_Page';
+// Pretty URLs that all serve the standalone "official channels" / link-tree page.
+const LINKS_ALIASES = new Set([
+  '/links', '/links/', '/social', '/social/', '/social-media-links', '/social-media-links/',
+]);
 // How long chat logs are kept (0 = forever); pruned at boot and daily.
 const CHAT_LOG_RETENTION_DAYS = Number(process.env.CHAT_LOG_RETENTION_DAYS ?? 90);
 // Cloudflare Turnstile secret. When unset (local dev / tests) registration and
@@ -151,6 +156,8 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
     res.end();
     return;
   }
+  // Pretty-URL aliases for the standalone official-channels page (public/ -> dist/links.html).
+  if (LINKS_ALIASES.has(urlPath)) urlPath = '/links.html';
   if (urlPath === '/' || urlPath === '/admin' || urlPath === '/admin/') urlPath = `/${shell}`;
   // normalize once and reuse for BOTH file resolution and cache policy —
   // otherwise /assets/../x would serve a mutable file with immutable caching
@@ -220,9 +227,16 @@ function maybeCors(req: http.IncomingMessage, res: http.ServerResponse): void {
   }
 }
 
+// Anti-bot: when enabled, /api/login + /api/register require a same-origin browser
+// request (a recognised Origin header), so only the web client can obtain a token.
+const REQUIRE_WEB_LOGIN = webLoginEnforced();
+
 async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const url = (req.url ?? '').split('?')[0];
   try {
+    if (REQUIRE_WEB_LOGIN && req.method === 'POST' && (url === '/api/register' || url === '/api/login') && !isWebClientRequest(req)) {
+      return json(res, 403, { error: 'logins are only allowed from the game client' });
+    }
     if (req.method === 'POST' && (url === '/api/register' || url === '/api/login') && rateLimited(req)) {
       return json(res, 429, { error: 'too many attempts — wait a minute and try again' });
     }

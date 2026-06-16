@@ -261,6 +261,7 @@ export class Hud {
   private castbarEl = $('#castbar');
   private castbarFillEl = this.castbarEl.querySelector('.fill') as HTMLElement;
   private castbarLabelEl = this.castbarEl.querySelector('.label') as HTMLElement;
+  private castbarTimerEl = this.castbarEl.querySelector('.timer') as HTMLElement;
   private actionbarEl = $('#actionbar');
   private xpFillEl = $('#xpbar .fill');
   private xpLabelEl = $('#xpbar .label');
@@ -1578,6 +1579,7 @@ export class Hud {
         : 1 - p.castRemaining / Math.max(0.01, p.castTotal);
       this.setWidth(this.castbarFillEl, `${(frac * 100).toFixed(1)}%`);
       this.setText(this.castbarLabelEl, castDisplayName(p.castingAbility));
+      this.setText(this.castbarTimerEl, formatNumber(Math.max(0, p.castRemaining), { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
     } else if (p.eating || p.drinking) {
       this.setDisplay(this.castbarEl, 'block');
       this.castbarEl.classList.add('channel');
@@ -1586,11 +1588,13 @@ export class Hud {
         : (p.eating ?? p.drinking)!;
       this.setWidth(this.castbarFillEl, `${((c.remaining / CONSUME_DURATION) * 100).toFixed(1)}%`);
       this.setText(this.castbarLabelEl, p.eating && p.drinking ? t('hud.core.eatingDrinking') : p.eating ? t('hud.core.eating') : t('hud.core.drinking'));
+      this.setText(this.castbarTimerEl, formatNumber(Math.max(0, c.remaining), { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
     } else {
       this.setDisplay(this.castbarEl, 'none');
       this.castbarEl.classList.remove('channel');
       this.setWidth(this.castbarFillEl, '0%');
       this.setText(this.castbarLabelEl, '');
+      this.setText(this.castbarTimerEl, '');
     }
 
     // action bar

@@ -804,24 +804,32 @@ export function rageFromTaking(damage: number, attackerLevel: number): number {
   return damage / (Math.max(1, attackerLevel) * 1.5);
 }
 
-// Vanilla spell hit table by level difference (target - caster):
-// equal: 96%, +1: 95%, +2: 94%, +3: 83%, beyond: -11%/level; lower: +1%/lvl, cap 99%.
-export function spellHitChance(casterLevel: number, targetLevel: number): number {
-  const diff = targetLevel - casterLevel;
-  let hit: number;
-  if (diff <= 0) hit = 96 + -diff * 1;
-  else if (diff === 1) hit = 95;
-  else if (diff === 2) hit = 94;
-  else hit = 83 - (diff - 3) * 11;
-  return Math.min(0.99, Math.max(0.01, hit / 100));
+// Attacking a target ABOVE your level adds a steep miss penalty (extra miss %),
+// tuned so +2 is ~19% and +4 is ~85% miss: fighting way-above-level enemies is meant
+// to be near-futile. The curve approximates 2.5 * diff^2.5, but is stored as an integer
+// table (level diffs are always integers) so it stays bit-for-bit deterministic across
+// engines — Math.pow with a fractional exponent is not guaranteed identical browser vs node.
+//   +1 -> 2.5   +2 -> 14   +3 -> 39   +4 -> 80   (+5 and beyond saturate past the clamp)
+const ABOVE_LEVEL_MISS_PCT = [0, 2.5, 14, 39, 80];
+function aboveLevelMissPct(diff: number): number {
+  if (diff <= 0) return 0;
+  return diff < ABOVE_LEVEL_MISS_PCT.length ? ABOVE_LEVEL_MISS_PCT[diff] : 100;
 }
 
-// Melee miss vs target by level difference (weapon skill = 5 * level):
-// 5% base, +1%/level above (cliff at +3 handled via extra penalty), -0.2%/level below.
+// Spell hit by level difference (target - caster): 96% at equal level, a gentle
+// +1%/level bonus below you, and the steep above-level penalty above. cap 99%, floor 5%.
+export function spellHitChance(casterLevel: number, targetLevel: number): number {
+  const diff = targetLevel - casterLevel;
+  const hit = diff <= 0 ? 96 + -diff * 1 : 96 - aboveLevelMissPct(diff);
+  return Math.min(0.99, Math.max(0.05, hit / 100));
+}
+
+// Melee miss vs target by level difference: 5% base, a gentle -0.2%/level below you,
+// and the steep above-level penalty above. cap 95%, floor 0.5%.
 export function meleeMissChance(attackerLevel: number, targetLevel: number): number {
   const diff = targetLevel - attackerLevel;
-  let miss = 5 + (diff > 0 ? diff * (diff > 2 ? 2 : 1) : diff * 0.2);
-  return Math.min(0.6, Math.max(0.005, miss / 100));
+  const miss = diff > 0 ? 5 + aboveLevelMissPct(diff) : 5 + diff * 0.2;
+  return Math.min(0.95, Math.max(0.005, miss / 100));
 }
 
 export function armorReduction(armor: number, attackerLevel: number): number {

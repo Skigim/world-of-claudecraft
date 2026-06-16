@@ -1,4 +1,4 @@
-import { phase9 } from './phase9_i18n';
+import { worldEntityText as worldNames } from './world_entity_i18n';
 
 type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -14,7 +14,7 @@ export type Leaves<T, D extends number = 5> = [D] extends [never]
   ? { [K in keyof T]-?: Join<K, Leaves<T[K], Prev[D]>> }[keyof T]
   : "";
 
-const phase1 = {
+const shellStrings = {
   en: {
     seo: {
       title: "World of ClaudeCraft: Classic-Style Web MMO",
@@ -2593,7 +2593,7 @@ const phase1 = {
   },
 };
 
-const phase2En = {
+const hudStringsEn = {
   hud: {
     core: {
       elite: "ELITE",
@@ -2931,8 +2931,8 @@ const phase2En = {
   },
 };
 
-const phase2 = {
-  en: phase2En,
+const hudStrings = {
+  en: hudStringsEn,
   es: {
     hud: {
       core: {
@@ -3053,7 +3053,7 @@ const phase2 = {
       logs: { standUp: "Te pones de pie.", partyInviteSent: "Has invitado a {name} a tu grupo.", partyJoin: "{name} se une al grupo.", partyDecline: "{name} rechaza tu invitación.", partyDisbanded: "Tu grupo se ha disuelto.", partyLeader: "{name} ahora es líder del grupo.", duelChallengeSent: "Has desafiado a {name} a un duelo.", duelDecline: "{name} rechaza tu desafío.", duelBegun: "¡El duelo ha comenzado!", duelEnded: "El duelo ha terminado.", arenaJoin: "Te unes a la cola del Coliseo Cinéreo. Espera a un oponente digno...", arenaLeave: "Sales de la cola del Coliseo Cinéreo.", arenaSands: "Pisas las arenas del Coliseo Cinéreo.", tradeRequestSent: "Has solicitado comerciar con {name}.", tradeOpened: "Ventana de comercio abierta.", tradeComplete: "Comercio completado.", tradeCancelled: "Comercio cancelado.", lootReceiveItem: "Recibes: {item}.", lootReceiveMoney: "Recibes {money}.", lootMoney: "Saqueas {money}.", soldItem: "Vendiste {item} por {money}.", friendOnline: "{name} se ha conectado.", friendOffline: "{name} se ha desconectado." },
     },
   },
-  es_ES: {} as typeof phase2En,
+  es_ES: {} as typeof hudStringsEn,
   fr_FR: {
     hud: {
       core: {
@@ -3174,8 +3174,8 @@ const phase2 = {
       logs: { standUp: "Vous vous levez.", partyInviteSent: "Vous avez invité {name} dans votre groupe.", partyJoin: "{name} rejoint le groupe.", partyDecline: "{name} refuse votre invitation.", partyDisbanded: "Votre groupe a été dissous.", partyLeader: "{name} est maintenant chef de groupe.", duelChallengeSent: "Vous avez défié {name} en duel.", duelDecline: "{name} refuse votre défi.", duelBegun: "Le duel a commencé !", duelEnded: "Le duel est terminé.", arenaJoin: "Vous rejoignez la file du Colisée cendré. Attendez un adversaire digne...", arenaLeave: "Vous quittez la file du Colisée cendré.", arenaSands: "Vous foulez le sable du Colisée cendré.", tradeRequestSent: "Vous avez demandé un échange avec {name}.", tradeOpened: "Fenêtre d'échange ouverte.", tradeComplete: "Échange terminé.", tradeCancelled: "Échange annulé.", lootReceiveItem: "Vous recevez : {item}.", lootReceiveMoney: "Vous recevez {money}.", lootMoney: "Vous ramassez {money}.", soldItem: "Vous avez vendu {item} pour {money}.", friendOnline: "{name} vient de se connecter.", friendOffline: "{name} vient de se déconnecter." },
     },
   },
-  fr_CA: {} as typeof phase2En,
-  en_CA: phase2En,
+  fr_CA: {} as typeof hudStringsEn,
+  en_CA: hudStringsEn,
   it_IT: {
     hud: {
       core: {
@@ -4138,10 +4138,10 @@ const phase2 = {
   },
 };
 
-phase2.es_ES = phase2.es;
-phase2.fr_CA = phase2.fr_FR;
+hudStrings.es_ES = hudStrings.es;
+hudStrings.fr_CA = hudStrings.fr_FR;
 
-const phase3En = {
+const abilityStringsEn = {
   abilityUi: {
     actionBar: {
       attackName: "Attack",
@@ -4197,8 +4197,8 @@ const phase3En = {
   },
 };
 
-const phase3 = {
-  en: phase3En,
+const abilityStrings = {
+  en: abilityStringsEn,
   es: {
     abilityUi: {
       actionBar: {
@@ -4247,7 +4247,7 @@ const phase3 = {
       forms: { bear: "oso", cat: "felino" },
     },
   },
-  es_ES: {} as typeof phase3En,
+  es_ES: {} as typeof abilityStringsEn,
   fr_FR: {
     abilityUi: {
       actionBar: {
@@ -4296,8 +4296,8 @@ const phase3 = {
       forms: { bear: "ours", cat: "félin" },
     },
   },
-  fr_CA: {} as typeof phase3En,
-  en_CA: phase3En,
+  fr_CA: {} as typeof abilityStringsEn,
+  en_CA: abilityStringsEn,
   it_IT: {
     abilityUi: {
       actionBar: {
@@ -4684,10 +4684,10 @@ const phase3 = {
   },
 };
 
-phase3.es_ES = phase3.es;
-phase3.fr_CA = phase3.fr_FR;
+abilityStrings.es_ES = abilityStrings.es;
+abilityStrings.fr_CA = abilityStrings.fr_FR;
 
-const phase4En = {
+const questStringsEn = {
   questUi: {
     tracker: {
       title: "Quests",
@@ -4751,8 +4751,8 @@ const phase4En = {
   },
 };
 
-const phase4 = {
-  en: phase4En,
+const questStrings = {
+  en: questStringsEn,
   es: {
     questUi: {
       tracker: {
@@ -4816,7 +4816,7 @@ const phase4 = {
       },
     },
   },
-  es_ES: {} as typeof phase4En,
+  es_ES: {} as typeof questStringsEn,
   fr_FR: {
     questUi: {
       tracker: {
@@ -4880,8 +4880,8 @@ const phase4 = {
       },
     },
   },
-  fr_CA: {} as typeof phase4En,
-  en_CA: phase4En,
+  fr_CA: {} as typeof questStringsEn,
+  en_CA: questStringsEn,
   it_IT: {
     questUi: {
       tracker: {
@@ -5388,10 +5388,10 @@ const phase4 = {
   },
 };
 
-phase4.es_ES = phase4.es;
-phase4.fr_CA = phase4.fr_FR;
+questStrings.es_ES = questStrings.es;
+questStrings.fr_CA = questStrings.fr_FR;
 
-const phase5En = {
+const itemStringsEn = {
   itemUi: {
     money: {
       goldShort: "g",
@@ -5533,8 +5533,8 @@ const phase5En = {
   },
 };
 
-const phase5 = {
-  en: phase5En,
+const itemStrings = {
+  en: itemStringsEn,
   es: {
     itemUi: {
       money: { goldShort: "o", silverShort: "p", copperShort: "c", gold: "oro", silver: "plata", copper: "cobre" },
@@ -5557,7 +5557,7 @@ const phase5 = {
       errors: { notSoldHere: "Ese objeto no se vende aquí.", notEnoughMoney: "No tienes suficiente dinero.", bringGoods: "Debes llevar tus bienes al Mercader.", noQuestItems: "El Mercader no acepta objetos de misión.", notEnoughToSell: "No tienes tantos para vender.", minPrice: "Pon un precio de al menos 1 cobre.", priceTooHigh: "Ese precio supera lo que el Mercader aceptará.", tooManyListings: "Puedes mantener como máximo {count} mercancías en el mercado a la vez.", tooFar: "Estás demasiado lejos del Mercader.", listingUnavailable: "Esa publicación ya no está disponible.", ownListing: "Esa es tu propia publicación. Cancélala para recuperarla.", cannotAfford: "No puedes pagarlo.", notYourListing: "Esa publicación no es tuya.", nothingToCollect: "No tienes nada que recoger." },
     },
   },
-  es_ES: {} as typeof phase5En,
+  es_ES: {} as typeof itemStringsEn,
   fr_FR: {
     itemUi: {
       money: { goldShort: "po", silverShort: "pa", copperShort: "pc", gold: "or", silver: "argent", copper: "cuivre" },
@@ -5580,8 +5580,8 @@ const phase5 = {
       errors: { notSoldHere: "Cet objet n'est pas vendu ici.", notEnoughMoney: "Pas assez d'argent.", bringGoods: "Vous devez apporter vos biens au Marchand.", noQuestItems: "Le Marchand ne traite pas les objets de quête.", notEnoughToSell: "Vous n'en avez pas autant à vendre.", minPrice: "Indiquez un prix d'au moins 1 cuivre.", priceTooHigh: "Ce prix dépasse ce que le Marchand acceptera.", tooManyListings: "Vous pouvez garder au maximum {count} marchandises au marché à la fois.", tooFar: "Vous êtes trop loin du Marchand.", listingUnavailable: "Cette annonce n'est plus disponible.", ownListing: "C'est votre propre annonce. Annulez-la pour la récupérer.", cannotAfford: "Vous n'avez pas les moyens.", notYourListing: "Cette annonce n'est pas la vôtre.", nothingToCollect: "Vous n'avez rien à récupérer." },
     },
   },
-  fr_CA: {} as typeof phase5En,
-  en_CA: phase5En,
+  fr_CA: {} as typeof itemStringsEn,
+  en_CA: itemStringsEn,
   it_IT: {
     itemUi: {
       money: { goldShort: "o", silverShort: "a", copperShort: "r", gold: "oro", silver: "argento", copper: "rame" },
@@ -5760,8 +5760,8 @@ const phase5 = {
   },
 };
 
-phase5.es_ES = phase5.es;
-phase5.fr_CA = phase5.fr_FR;
+itemStrings.es_ES = itemStrings.es;
+itemStrings.fr_CA = itemStrings.fr_FR;
 
 type AbilityEntityTranslation = { name: string; description: string };
 type AbilityEntityTranslations = Record<string, AbilityEntityTranslation>;
@@ -5774,7 +5774,7 @@ function abilityTranslations(entries: readonly (readonly [string, string, string
   return translations;
 }
 
-const phase7En = {
+const classAbilityNamesEn = {
   entities: {
     abilities: abilityTranslations([
       ["heroic_strike", "Heroic Strike", "A strong attack that increases melee damage by {damage}. Activates on your next swing."],
@@ -5895,8 +5895,8 @@ const phase7En = {
   },
 };
 
-const phase7 = {
-  en: phase7En,
+const classAbilityNames = {
+  en: classAbilityNamesEn,
   es: {
     entities: {
       abilities: abilityTranslations([
@@ -6017,7 +6017,7 @@ const phase7 = {
       ]),
     },
   },
-  es_ES: {} as typeof phase7En,
+  es_ES: {} as typeof classAbilityNamesEn,
   fr_FR: {
     entities: {
       abilities: abilityTranslations([
@@ -6138,8 +6138,8 @@ const phase7 = {
       ]),
     },
   },
-  fr_CA: {} as typeof phase7En,
-  en_CA: phase7En,
+  fr_CA: {} as typeof classAbilityNamesEn,
+  en_CA: classAbilityNamesEn,
   it_IT: {
     entities: {
       abilities: abilityTranslations([
@@ -7102,8 +7102,8 @@ const phase7 = {
   },
 };
 
-phase7.es_ES = phase7.es;
-phase7.fr_CA = phase7.fr_FR;
+classAbilityNames.es_ES = classAbilityNames.es;
+classAbilityNames.fr_CA = classAbilityNames.fr_FR;
 
 const ITEM_ENTITY_IDS = [
   "worn_sword", "gnarled_staff", "rusty_dagger", "training_mace", "rusty_hatchet", "recruit_tunic", "apprentice_robe", "footpad_jerkin",
@@ -7147,13 +7147,13 @@ function itemTranslations(names: readonly string[]): ItemEntityTranslations {
   return translations;
 }
 
-const phase8En = {
+const itemNamesEn = {
   itemUi: {
-    ...phase5.en.itemUi,
+    ...itemStrings.en.itemUi,
     loot: { takeAll: "Take All", close: "Close loot" },
   },
   entities: {
-    ...phase7En.entities,
+    ...classAbilityNamesEn.entities,
     items: itemTranslations([
       "Worn Shortsword", "Gnarled Staff", "Rusty Dagger", "Training Mace", "Rusty Hatchet", "Recruit's Tunic", "Apprentice's Robe", "Footpad's Jerkin",
       "Redbrook Militia Blade", "Vale Apprentice Staff", "Keen Dirk", "Militia Chainvest", "Valewoven Robe", "Shadowstitch Jerkin", "Oiled Leather Boots", "Quilted Trousers",
@@ -7178,15 +7178,15 @@ const phase8En = {
   },
 };
 
-const phase8 = {
-  en: phase8En,
+const itemNames = {
+  en: itemNamesEn,
   es: {
     itemUi: {
-      ...phase5.es.itemUi,
+      ...itemStrings.es.itemUi,
       loot: { takeAll: "Recoger botín", close: "Cerrar botín" },
     },
     entities: {
-      ...phase7.es.entities,
+      ...classAbilityNames.es.entities,
       items: itemTranslations([
         "Espada corta desgastada", "Bastón nudoso", "Daga oxidada", "Maza de entrenamiento", "Hachuela oxidada", "Túnica de recluta", "Toga de aprendiz", "Jubón de salteador",
         "Hoja de la milicia de Redbrook", "Bastón de aprendiz del Valle", "Puñal afilado", "Coselete de malla de la milicia", "Toga Tejevalle", "Jubón Puntada Sombría", "Botas de cuero aceitado", "Pantalones acolchados",
@@ -7210,14 +7210,14 @@ const phase8 = {
       ]),
     },
   },
-  es_ES: {} as typeof phase8En,
+  es_ES: {} as typeof itemNamesEn,
   fr_FR: {
     itemUi: {
-      ...phase5.fr_FR.itemUi,
+      ...itemStrings.fr_FR.itemUi,
       loot: { takeAll: "Tout prendre", close: "Fermer le butin" },
     },
     entities: {
-      ...phase7.fr_FR.entities,
+      ...classAbilityNames.fr_FR.entities,
       items: itemTranslations([
         "Épée courte usée", "Bâton noueux", "Dague rouillée", "Masse d'entraînement", "Hachette rouillée", "Tunique de recrue", "Robe d'apprenti", "Pourpoint de coupe-jarret",
         "Lame de milice de Redbrook", "Bâton d'apprenti du Val", "Dague acérée", "Cotte de mailles de milice", "Robe tissée du Val", "Pourpoint cousu d'ombre", "Bottes en cuir huilé", "Pantalon matelassé",
@@ -7241,15 +7241,15 @@ const phase8 = {
       ]),
     },
   },
-  fr_CA: {} as typeof phase8En,
-  en_CA: phase8En,
+  fr_CA: {} as typeof itemNamesEn,
+  en_CA: itemNamesEn,
   it_IT: {
     itemUi: {
-      ...phase5.it_IT.itemUi,
+      ...itemStrings.it_IT.itemUi,
       loot: { takeAll: "Prendi tutto", close: "Chiudi bottino" },
     },
     entities: {
-      ...phase7.it_IT.entities,
+      ...classAbilityNames.it_IT.entities,
       items: itemTranslations([
         "Spada corta logora", "Bastone nodoso", "Pugnale arrugginito", "Mazza da addestramento", "Accetta arrugginita", "Tunica da recluta", "Veste dell'apprendista", "Giaco del tagliaborse",
         "Lama della milizia di Redbrook", "Bastone dell'apprendista della Valle", "Pugnale affilato", "Corpetto di maglia della milizia", "Veste Tessivalle", "Giaco Cucitura d'Ombra", "Stivali di cuoio oliato", "Pantaloni imbottiti",
@@ -7275,11 +7275,11 @@ const phase8 = {
   },
   de_DE: {
     itemUi: {
-      ...phase5.de_DE.itemUi,
+      ...itemStrings.de_DE.itemUi,
       loot: { takeAll: "Alles nehmen", close: "Beute schließen" },
     },
     entities: {
-      ...phase7.de_DE.entities,
+      ...classAbilityNames.de_DE.entities,
       items: itemTranslations([
         "Abgenutztes Kurzschwert", "Knorriger Stab", "Rostiger Dolch", "Übungsstreitkolben", "Rostiges Beil", "Rekrutentunika", "Lehrlingsrobe", "Wams des Wegelagerers",
         "Milizklinge von Redbrook", "Lehrlingsstab des Tals", "Scharfer Dolch", "Kettenweste der Miliz", "Talgewebte Robe", "Schattenstichwams", "Geölte Lederstiefel", "Gesteppte Hose",
@@ -7305,11 +7305,11 @@ const phase8 = {
   },
   zh_CN: {
     itemUi: {
-      ...phase5.zh_CN.itemUi,
+      ...itemStrings.zh_CN.itemUi,
       loot: { takeAll: "全部拾取", close: "关闭战利品" },
     },
     entities: {
-      ...phase7.zh_CN.entities,
+      ...classAbilityNames.zh_CN.entities,
       items: itemTranslations([
         "破旧短剑", "多节法杖", "生锈匕首", "训练钉锤", "生锈手斧", "新兵外套", "学徒长袍", "窃贼皮甲",
         "赤溪民兵之刃", "溪谷学徒法杖", "锋利短匕", "民兵链甲背心", "谷织长袍", "影缝皮甲", "浸油皮靴", "绗缝长裤",
@@ -7335,11 +7335,11 @@ const phase8 = {
   },
   zh_TW: {
     itemUi: {
-      ...phase5.zh_TW.itemUi,
+      ...itemStrings.zh_TW.itemUi,
       loot: { takeAll: "全部拾取", close: "關閉戰利品" },
     },
     entities: {
-      ...phase7.zh_TW.entities,
+      ...classAbilityNames.zh_TW.entities,
       items: itemTranslations([
         "破舊短劍", "多節法杖", "生鏽匕首", "訓練釘錘", "生鏽手斧", "新兵外套", "學徒長袍", "竊賊皮甲",
         "赤溪民兵之刃", "溪谷學徒法杖", "鋒利短匕", "民兵鎖甲背心", "谷織長袍", "影縫皮甲", "浸油皮靴", "絎縫長褲",
@@ -7365,11 +7365,11 @@ const phase8 = {
   },
   ko_KR: {
     itemUi: {
-      ...phase5.ko_KR.itemUi,
+      ...itemStrings.ko_KR.itemUi,
       loot: { takeAll: "모두 가져가기", close: "전리품 닫기" },
     },
     entities: {
-      ...phase7.ko_KR.entities,
+      ...classAbilityNames.ko_KR.entities,
       items: itemTranslations([
         "낡은 쇼트소드", "옹이진 지팡이", "녹슨 단검", "훈련용 철퇴", "녹슨 손도끼", "신병 튜닉", "견습생 로브", "노상강도의 웃옷",
         "레드브룩 민병대 검", "계곡 견습생 지팡이", "날카로운 더크", "민병대 사슬조끼", "계곡직조 로브", "그림자바느질 웃옷", "기름먹인 가죽 장화", "누빈 바지",
@@ -7395,11 +7395,11 @@ const phase8 = {
   },
   ja_JP: {
     itemUi: {
-      ...phase5.ja_JP.itemUi,
+      ...itemStrings.ja_JP.itemUi,
       loot: { takeAll: "すべて取る", close: "戦利品を閉じる" },
     },
     entities: {
-      ...phase7.ja_JP.entities,
+      ...classAbilityNames.ja_JP.entities,
       items: itemTranslations([
         "擦り切れたショートソード", "節くれだった杖", "錆びたダガー", "訓練用メイス", "錆びた手斧", "新兵のチュニック", "見習いのローブ", "追いはぎのジャーキン",
         "レッドブルック民兵の刃", "谷の見習い杖", "鋭いダーク", "民兵の鎖帷子ベスト", "谷織りのローブ", "影縫いのジャーキン", "油を塗った革のブーツ", "キルトのズボン",
@@ -7425,11 +7425,11 @@ const phase8 = {
   },
   pt_BR: {
     itemUi: {
-      ...phase5.pt_BR.itemUi,
+      ...itemStrings.pt_BR.itemUi,
       loot: { takeAll: "Pegar tudo", close: "Fechar saque" },
     },
     entities: {
-      ...phase7.pt_BR.entities,
+      ...classAbilityNames.pt_BR.entities,
       items: itemTranslations([
         "Espada curta gasta", "Cajado nodoso", "Adaga enferrujada", "Maça de treino", "Machadinha enferrujada", "Túnica de recruta", "Veste de aprendiz", "Gibão de salteador",
         "Lâmina da milícia de Redbrook", "Cajado de aprendiz do Vale", "Punhal afiado", "Colete de malha da milícia", "Veste Tecivale", "Gibão Costurasombra", "Botas de couro oleado", "Calças acolchoadas",
@@ -7455,11 +7455,11 @@ const phase8 = {
   },
   ru_RU: {
     itemUi: {
-      ...phase5.ru_RU.itemUi,
+      ...itemStrings.ru_RU.itemUi,
       loot: { takeAll: "Взять все", close: "Закрыть добычу" },
     },
     entities: {
-      ...phase7.ru_RU.entities,
+      ...classAbilityNames.ru_RU.entities,
       items: itemTranslations([
         "Изношенный короткий меч", "Сучковатый посох", "Ржавый кинжал", "Учебная булава", "Ржавый топорик", "Китель рекрута", "Роба ученика", "Куртка налетчика",
         "Клинок ополчения Редбрука", "Посох ученика долины", "Острый кортик", "Кольчужный жилет ополчения", "Долиннотканая роба", "Куртка Теневого шва", "Промасленные кожаные сапоги", "Стеганые штаны",
@@ -7485,10 +7485,10 @@ const phase8 = {
   },
 };
 
-phase8.es_ES = phase8.es;
-phase8.fr_CA = phase8.fr_FR;
+itemNames.es_ES = itemNames.es;
+itemNames.fr_CA = itemNames.fr_FR;
 
-const PHASE11_ITEM_IDS = [
+const MERGE_ITEM_IDS = [
   'bristleback_maul', 'broodmother_silk_robe', 'cryptbone_greaves', 'cryptstalker_jerkin', 'deathlord_legguards', 'deathlord_sabatons',
   'deathlord_warplate', 'drogmar_warboots', 'drowned_prayer_leggings', 'drowned_prayer_sandals', 'eelscale_leggings', 'eelscale_treads',
   'fen_reaver_glaive', 'gorraks_cruel_chopper', 'gravepath_treads', 'gravewoven_raiment', 'gravewyrm_sabatons', 'gravewyrm_stalkers_treads',
@@ -7500,32 +7500,32 @@ const PHASE11_ITEM_IDS = [
   'wyrmshadow_treads',
 ] as const;
 
-const PHASE11_MOB_IDS = [
+const MERGE_MOB_IDS = [
   'elder_bristleback', 'ironvein_foreman', 'ironvein_sapper', 'marrowlord_varkas', 'mirejaw_frenzy', 'mirejaw_the_ravenous',
   'mogger', 'mogger_lackey', 'nhalia_mourner', 'sableweb_hatchling', 'sableweb_matriarch', 'sister_nhalia', 'varkas_boneguard',
   'imp', 'voidwalker',
 ] as const;
 
-type Phase11NameTranslations<TId extends string> = Record<TId, { name: string }>;
+type MergeNameTranslations<TId extends string> = Record<TId, { name: string }>;
 
-function phase11NameTranslations<TId extends string>(
+function mergeNameTranslations<TId extends string>(
   ids: readonly TId[],
   names: readonly string[],
   label: string,
-): Phase11NameTranslations<TId> {
+): MergeNameTranslations<TId> {
   if (names.length !== ids.length) {
-    throw new Error(`Phase 11 ${label} translation count mismatch: expected ${ids.length}, got ${names.length}`);
+    throw new Error(`${label} translation count mismatch: expected ${ids.length}, got ${names.length}`);
   }
-  const translations = {} as Phase11NameTranslations<TId>;
+  const translations = {} as MergeNameTranslations<TId>;
   ids.forEach((id, index) => {
     const name = names[index];
-    if (!name) throw new Error(`Missing Phase 11 ${label} translation for ${id}`);
+    if (!name) throw new Error(`Missing ${label} translation for ${id}`);
     translations[id] = { name };
   });
   return translations;
 }
 
-const phase11PetHud = {
+const mergePetHud = {
   en: {
     attack: "Attack",
     taunt: "Taunt",
@@ -7847,22 +7847,22 @@ const phase11PetHud = {
   },
 };
 
-const phase11En = {
+const mergeStringsEn = {
   abilityUi: {
-    ...phase3.en.abilityUi,
+    ...abilityStrings.en.abilityUi,
     cast: { fishing: "Fishing", demonHeal: "Demon Heal" },
     actionBar: {
-      ...phase3.en.abilityUi.actionBar,
+      ...abilityStrings.en.abilityUi.actionBar,
       clearHint: "Shift-right-click or Shift-Delete to clear",
       itemInBags: "In bags: {count}",
       itemNoneInBags: "None in bags",
     },
   },
   itemUi: {
-    ...phase8.en.itemUi,
-    kind: { ...phase8.en.itemUi.kind, tool: "Tool", potion: "Potion" },
+    ...itemNames.en.itemUi,
+    kind: { ...itemNames.en.itemUi.kind, tool: "Tool", potion: "Potion" },
     tooltip: {
-      ...phase8.en.itemUi.tooltip,
+      ...itemNames.en.itemUi.tooltip,
       useFishing: "Use: Fish in nearby waters.",
       useHealingPotion: "Use: Instantly restores {amount} health. Usable in combat. 1 min cooldown.",
       useManaPotion: "Use: Instantly restores {amount} mana. Usable in combat. 1 min cooldown.",
@@ -7871,7 +7871,7 @@ const phase11En = {
       clickBuyback: "Click to buy back",
     },
     vendor: {
-      ...phase8.en.itemUi.vendor,
+      ...itemNames.en.itemUi.vendor,
       buybackTitle: "Buyback",
       buybackEmpty: "No items",
       buybackAria: "Buy back {item} for {price}",
@@ -7881,14 +7881,14 @@ const phase11En = {
       sellQuantityCancel: "Cancel",
     },
     logs: {
-      ...phase8.en.itemUi.logs,
+      ...itemNames.en.itemUi.logs,
       boughtBackItem: "Bought back {item} for {money}.",
     },
   },
   hud: {
-    ...phase2.en.hud,
+    ...hudStrings.en.hud,
     options: {
-      ...phase2.en.hud.options,
+      ...hudStrings.en.hud.options,
       mouseCamera: "Mouse Camera",
       keybindHelpMouseCamera: "Mouse Camera off: A/D turns, drag to orbit (classic). On: camera-relative WASD, A/D strafes. Click a key cell to rebind; Esc cancels.",
     },
@@ -7899,7 +7899,7 @@ const phase11En = {
         markerAria: "Set {marker} marker",
         markerSelectedAria: "{marker} marker selected",
       },
-      pet: phase11PetHud.en,
+      pet: mergePetHud.en,
       social: {
       title: "Social",
       friendsTab: "Friends",
@@ -7983,24 +7983,24 @@ const phase11En = {
   },
 };
 
-const phase11 = {
-  en: phase11En,
+const mergeStrings = {
+  en: mergeStringsEn,
   es: {
     abilityUi: {
-      ...phase3.es.abilityUi,
+      ...abilityStrings.es.abilityUi,
       cast: { fishing: "Pesca", demonHeal: "Sanación demoníaca" },
       actionBar: {
-        ...phase3.es.abilityUi.actionBar,
+        ...abilityStrings.es.abilityUi.actionBar,
         clearHint: "Mayús-clic derecho o Mayús-Supr para vaciar",
         itemInBags: "En bolsas: {count}",
         itemNoneInBags: "Ninguno en las bolsas",
       },
     },
     itemUi: {
-      ...phase8.es.itemUi,
-      kind: { ...phase8.es.itemUi.kind, tool: "Herramienta", potion: "Poción" },
+      ...itemNames.es.itemUi,
+      kind: { ...itemNames.es.itemUi.kind, tool: "Herramienta", potion: "Poción" },
       tooltip: {
-        ...phase8.es.itemUi.tooltip,
+        ...itemNames.es.itemUi.tooltip,
         useFishing: "Uso: pesca en aguas cercanas.",
         useHealingPotion: "Uso: restaura al instante {amount} de salud. Se puede usar en combate. Reutilización de 1 min.",
         useManaPotion: "Uso: restaura al instante {amount} de maná. Se puede usar en combate. Reutilización de 1 min.",
@@ -8009,7 +8009,7 @@ const phase11 = {
         clickBuyback: "Haz clic para recomprar",
       },
       vendor: {
-        ...phase8.es.itemUi.vendor,
+        ...itemNames.es.itemUi.vendor,
         buybackTitle: "Recomprar",
         buybackEmpty: "Sin objetos",
         buybackAria: "Recomprar {item} por {price}",
@@ -8019,14 +8019,14 @@ const phase11 = {
         sellQuantityCancel: "Cancelar",
       },
       logs: {
-        ...phase8.es.itemUi.logs,
+        ...itemNames.es.itemUi.logs,
         boughtBackItem: "Recompraste {item} por {money}.",
       },
     },
     hud: {
-      ...phase2.es.hud,
+      ...hudStrings.es.hud,
       options: {
-        ...phase2.es.hud.options,
+        ...hudStrings.es.hud.options,
         mouseCamera: "Cámara con ratón",
         keybindHelpMouseCamera: "Cámara con ratón desactivada: A/D gira, arrastra para orbitar (clásico). Activada: WASD relativo a la cámara, A/D desplaza. Haz clic en una celda de tecla para reasignar; Esc cancela.",
       },
@@ -8037,7 +8037,7 @@ const phase11 = {
         markerAria: "Poner marcador {marker}",
         markerSelectedAria: "Marcador {marker} seleccionado",
       },
-      pet: phase11PetHud.es,
+      pet: mergePetHud.es,
       social: {
         title: "Comunidad",
         friendsTab: "Amigos",
@@ -8120,23 +8120,23 @@ const phase11 = {
       },
     },
   },
-  es_ES: {} as typeof phase11En,
+  es_ES: {} as typeof mergeStringsEn,
   fr_FR: {
     abilityUi: {
-      ...phase3.fr_FR.abilityUi,
+      ...abilityStrings.fr_FR.abilityUi,
       cast: { fishing: "Pêche", demonHeal: "Soin démoniaque" },
       actionBar: {
-        ...phase3.fr_FR.abilityUi.actionBar,
+        ...abilityStrings.fr_FR.abilityUi.actionBar,
         clearHint: "Maj-clic droit ou Maj-Suppr pour vider",
         itemInBags: "Dans les sacs : {count}",
         itemNoneInBags: "Aucun dans les sacs",
       },
     },
     itemUi: {
-      ...phase8.fr_FR.itemUi,
-      kind: { ...phase8.fr_FR.itemUi.kind, tool: "Outil", potion: "Potion" },
+      ...itemNames.fr_FR.itemUi,
+      kind: { ...itemNames.fr_FR.itemUi.kind, tool: "Outil", potion: "Potion" },
       tooltip: {
-        ...phase8.fr_FR.itemUi.tooltip,
+        ...itemNames.fr_FR.itemUi.tooltip,
         useFishing: "Utiliser : pêcher dans les eaux proches.",
         useHealingPotion: "Utiliser : rend instantanément {amount} points de vie. Utilisable en combat. Recharge de 1 min.",
         useManaPotion: "Utiliser : rend instantanément {amount} mana. Utilisable en combat. Recharge de 1 min.",
@@ -8145,7 +8145,7 @@ const phase11 = {
         clickBuyback: "Cliquer pour racheter",
       },
       vendor: {
-        ...phase8.fr_FR.itemUi.vendor,
+        ...itemNames.fr_FR.itemUi.vendor,
         buybackTitle: "Rachat",
         buybackEmpty: "Aucun objet",
         buybackAria: "Racheter {item} pour {price}",
@@ -8155,14 +8155,14 @@ const phase11 = {
         sellQuantityCancel: "Annuler",
       },
       logs: {
-        ...phase8.fr_FR.itemUi.logs,
+        ...itemNames.fr_FR.itemUi.logs,
         boughtBackItem: "Vous avez racheté {item} pour {money}.",
       },
     },
     hud: {
-      ...phase2.fr_FR.hud,
+      ...hudStrings.fr_FR.hud,
       options: {
-        ...phase2.fr_FR.hud.options,
+        ...hudStrings.fr_FR.hud.options,
         mouseCamera: "Caméra à la souris",
         keybindHelpMouseCamera: "Caméra à la souris désactivée : A/D fait tourner, glisser pour orbiter (classique). Activée : WASD relatif à la caméra, A/D mitraille. Cliquez sur une case de touche pour réassigner ; Échap annule.",
       },
@@ -8173,7 +8173,7 @@ const phase11 = {
         markerAria: "Placer le marqueur {marker}",
         markerSelectedAria: "Marqueur {marker} sélectionné",
       },
-      pet: phase11PetHud.fr_FR,
+      pet: mergePetHud.fr_FR,
       social: {
         title: "Relations",
         friendsTab: "Amis",
@@ -8256,24 +8256,24 @@ const phase11 = {
       },
     },
   },
-  fr_CA: {} as typeof phase11En,
-  en_CA: phase11En,
+  fr_CA: {} as typeof mergeStringsEn,
+  en_CA: mergeStringsEn,
   it_IT: {
     abilityUi: {
-      ...phase3.it_IT.abilityUi,
+      ...abilityStrings.it_IT.abilityUi,
       cast: { fishing: "Pesca", demonHeal: "Cura demoniaca" },
       actionBar: {
-        ...phase3.it_IT.abilityUi.actionBar,
+        ...abilityStrings.it_IT.abilityUi.actionBar,
         clearHint: "Maiusc-clic destro o Maiusc-Canc per svuotare",
         itemInBags: "Nelle borse: {count}",
         itemNoneInBags: "Nessuno nelle borse",
       },
     },
     itemUi: {
-      ...phase8.it_IT.itemUi,
-      kind: { ...phase8.it_IT.itemUi.kind, tool: "Strumento", potion: "Pozione" },
+      ...itemNames.it_IT.itemUi,
+      kind: { ...itemNames.it_IT.itemUi.kind, tool: "Strumento", potion: "Pozione" },
       tooltip: {
-        ...phase8.it_IT.itemUi.tooltip,
+        ...itemNames.it_IT.itemUi.tooltip,
         useFishing: "Uso: pesca nelle acque vicine.",
         useHealingPotion: "Uso: ripristina istantaneamente {amount} salute. Usabile in combattimento. Recupero 1 min.",
         useManaPotion: "Uso: ripristina istantaneamente {amount} mana. Usabile in combattimento. Recupero 1 min.",
@@ -8282,7 +8282,7 @@ const phase11 = {
         clickBuyback: "Clicca per ricomprare",
       },
       vendor: {
-        ...phase8.it_IT.itemUi.vendor,
+        ...itemNames.it_IT.itemUi.vendor,
         buybackTitle: "Riacquisto",
         buybackEmpty: "Nessun oggetto",
         buybackAria: "Riacquista {item} per {price}",
@@ -8292,14 +8292,14 @@ const phase11 = {
         sellQuantityCancel: "Annulla",
       },
       logs: {
-        ...phase8.it_IT.itemUi.logs,
+        ...itemNames.it_IT.itemUi.logs,
         boughtBackItem: "Hai ricomprato {item} per {money}.",
       },
     },
     hud: {
-      ...phase2.it_IT.hud,
+      ...hudStrings.it_IT.hud,
       options: {
-        ...phase2.it_IT.hud.options,
+        ...hudStrings.it_IT.hud.options,
         mouseCamera: "Telecamera con mouse",
         keybindHelpMouseCamera: "Telecamera con mouse disattivata: A/D ruota, trascina per orbitare (classico). Attivata: WASD relativo alla telecamera, A/D fa spostare lateralmente. Clicca una cella tasto per riassegnare; Esc annulla.",
       },
@@ -8310,7 +8310,7 @@ const phase11 = {
         markerAria: "Imposta marcatore {marker}",
         markerSelectedAria: "Marcatore {marker} selezionato",
       },
-      pet: phase11PetHud.it_IT,
+      pet: mergePetHud.it_IT,
       social: {
         title: "Sociale",
         friendsTab: "Amici",
@@ -8395,20 +8395,20 @@ const phase11 = {
   },
   de_DE: {
     abilityUi: {
-      ...phase3.de_DE.abilityUi,
+      ...abilityStrings.de_DE.abilityUi,
       cast: { fishing: "Angeln", demonHeal: "Dämonenheilung" },
       actionBar: {
-        ...phase3.de_DE.abilityUi.actionBar,
+        ...abilityStrings.de_DE.abilityUi.actionBar,
         clearHint: "Umschalt-Rechtsklick oder Umschalt-Entf zum Leeren",
         itemInBags: "In Taschen: {count}",
         itemNoneInBags: "Keine in den Taschen",
       },
     },
     itemUi: {
-      ...phase8.de_DE.itemUi,
-      kind: { ...phase8.de_DE.itemUi.kind, tool: "Werkzeug", potion: "Trank" },
+      ...itemNames.de_DE.itemUi,
+      kind: { ...itemNames.de_DE.itemUi.kind, tool: "Werkzeug", potion: "Trank" },
       tooltip: {
-        ...phase8.de_DE.itemUi.tooltip,
+        ...itemNames.de_DE.itemUi.tooltip,
         useFishing: "Benutzen: Angelt in nahen Gewässern.",
         useHealingPotion: "Benutzen: Stellt sofort {amount} Gesundheit wieder her. Im Kampf nutzbar. 1 Min. Abklingzeit.",
         useManaPotion: "Benutzen: Stellt sofort {amount} Mana wieder her. Im Kampf nutzbar. 1 Min. Abklingzeit.",
@@ -8417,7 +8417,7 @@ const phase11 = {
         clickBuyback: "Zum Rückkaufen klicken",
       },
       vendor: {
-        ...phase8.de_DE.itemUi.vendor,
+        ...itemNames.de_DE.itemUi.vendor,
         buybackTitle: "Rückkauf",
         buybackEmpty: "Keine Gegenstände",
         buybackAria: "{item} für {price} zurückkaufen",
@@ -8427,14 +8427,14 @@ const phase11 = {
         sellQuantityCancel: "Abbrechen",
       },
       logs: {
-        ...phase8.de_DE.itemUi.logs,
+        ...itemNames.de_DE.itemUi.logs,
         boughtBackItem: "{item} für {money} zurückgekauft.",
       },
     },
     hud: {
-      ...phase2.de_DE.hud,
+      ...hudStrings.de_DE.hud,
       options: {
-        ...phase2.de_DE.hud.options,
+        ...hudStrings.de_DE.hud.options,
         mouseCamera: "Mauskamera",
         keybindHelpMouseCamera: "Mauskamera aus: A/D dreht, Ziehen umkreist (klassisch). An: WASD relativ zur Kamera, A/D strafen. Klicke eine Tastenzelle zum Neubelegen; Esc bricht ab.",
       },
@@ -8445,7 +8445,7 @@ const phase11 = {
         markerAria: "Marker {marker} setzen",
         markerSelectedAria: "Marker {marker} ausgewählt",
       },
-      pet: phase11PetHud.de_DE,
+      pet: mergePetHud.de_DE,
       social: {
         title: "Soziales",
         friendsTab: "Freunde",
@@ -8530,20 +8530,20 @@ const phase11 = {
   },
   zh_CN: {
     abilityUi: {
-      ...phase3.zh_CN.abilityUi,
+      ...abilityStrings.zh_CN.abilityUi,
       cast: { fishing: "钓鱼", demonHeal: "恶魔治疗" },
       actionBar: {
-        ...phase3.zh_CN.abilityUi.actionBar,
+        ...abilityStrings.zh_CN.abilityUi.actionBar,
         clearHint: "Shift-右键或 Shift-Delete 清除",
         itemInBags: "背包中：{count}",
         itemNoneInBags: "背包中没有",
       },
     },
     itemUi: {
-      ...phase8.zh_CN.itemUi,
-      kind: { ...phase8.zh_CN.itemUi.kind, tool: "工具", potion: "药水" },
+      ...itemNames.zh_CN.itemUi,
+      kind: { ...itemNames.zh_CN.itemUi.kind, tool: "工具", potion: "药水" },
       tooltip: {
-        ...phase8.zh_CN.itemUi.tooltip,
+        ...itemNames.zh_CN.itemUi.tooltip,
         useFishing: "使用：在附近水域钓鱼。",
         useHealingPotion: "使用：立即恢复 {amount} 点生命值。战斗中可用。1 分钟冷却。",
         useManaPotion: "使用：立即恢复 {amount} 点法力值。战斗中可用。1 分钟冷却。",
@@ -8552,7 +8552,7 @@ const phase11 = {
         clickBuyback: "点击回购",
       },
       vendor: {
-        ...phase8.zh_CN.itemUi.vendor,
+        ...itemNames.zh_CN.itemUi.vendor,
         buybackTitle: "回购",
         buybackEmpty: "没有物品",
         buybackAria: "以 {price} 回购 {item}",
@@ -8562,14 +8562,14 @@ const phase11 = {
         sellQuantityCancel: "取消",
       },
       logs: {
-        ...phase8.zh_CN.itemUi.logs,
+        ...itemNames.zh_CN.itemUi.logs,
         boughtBackItem: "你以 {money} 回购了 {item}。",
       },
     },
     hud: {
-      ...phase2.zh_CN.hud,
+      ...hudStrings.zh_CN.hud,
       options: {
-        ...phase2.zh_CN.hud.options,
+        ...hudStrings.zh_CN.hud.options,
         mouseCamera: "鼠标镜头",
         keybindHelpMouseCamera: "鼠标镜头关闭：A/D 转向，拖动环绕（经典）。开启：WASD 按镜头方向移动，A/D 平移。点击按键格可重新绑定；Esc 取消。",
       },
@@ -8580,7 +8580,7 @@ const phase11 = {
         markerAria: "设置{marker}标记",
         markerSelectedAria: "{marker}标记已选中",
       },
-      pet: phase11PetHud.zh_CN,
+      pet: mergePetHud.zh_CN,
       social: {
         title: "社交",
         friendsTab: "好友",
@@ -8665,20 +8665,20 @@ const phase11 = {
   },
   zh_TW: {
     abilityUi: {
-      ...phase3.zh_TW.abilityUi,
+      ...abilityStrings.zh_TW.abilityUi,
       cast: { fishing: "釣魚", demonHeal: "惡魔治療" },
       actionBar: {
-        ...phase3.zh_TW.abilityUi.actionBar,
+        ...abilityStrings.zh_TW.abilityUi.actionBar,
         clearHint: "Shift-右鍵或 Shift-Delete 清除",
         itemInBags: "背包中：{count}",
         itemNoneInBags: "背包中沒有",
       },
     },
     itemUi: {
-      ...phase8.zh_TW.itemUi,
-      kind: { ...phase8.zh_TW.itemUi.kind, tool: "工具", potion: "藥水" },
+      ...itemNames.zh_TW.itemUi,
+      kind: { ...itemNames.zh_TW.itemUi.kind, tool: "工具", potion: "藥水" },
       tooltip: {
-        ...phase8.zh_TW.itemUi.tooltip,
+        ...itemNames.zh_TW.itemUi.tooltip,
         useFishing: "使用：在附近水域釣魚。",
         useHealingPotion: "使用：立即恢復 {amount} 點生命值。戰鬥中可用。1 分鐘冷卻。",
         useManaPotion: "使用：立即恢復 {amount} 點法力值。戰鬥中可用。1 分鐘冷卻。",
@@ -8687,7 +8687,7 @@ const phase11 = {
         clickBuyback: "點擊買回",
       },
       vendor: {
-        ...phase8.zh_TW.itemUi.vendor,
+        ...itemNames.zh_TW.itemUi.vendor,
         buybackTitle: "買回",
         buybackEmpty: "沒有物品",
         buybackAria: "以 {price} 買回 {item}",
@@ -8697,14 +8697,14 @@ const phase11 = {
         sellQuantityCancel: "取消",
       },
       logs: {
-        ...phase8.zh_TW.itemUi.logs,
+        ...itemNames.zh_TW.itemUi.logs,
         boughtBackItem: "你以 {money} 買回了 {item}。",
       },
     },
     hud: {
-      ...phase2.zh_TW.hud,
+      ...hudStrings.zh_TW.hud,
       options: {
-        ...phase2.zh_TW.hud.options,
+        ...hudStrings.zh_TW.hud.options,
         mouseCamera: "滑鼠鏡頭",
         keybindHelpMouseCamera: "滑鼠鏡頭關閉：A/D 轉向，拖曳環繞（經典）。開啟：WASD 依鏡頭方向移動，A/D 平移。點擊按鍵格可重新綁定；Esc 取消。",
       },
@@ -8715,7 +8715,7 @@ const phase11 = {
         markerAria: "設定{marker}標記",
         markerSelectedAria: "{marker}標記已選取",
       },
-      pet: phase11PetHud.zh_TW,
+      pet: mergePetHud.zh_TW,
       social: {
         title: "社交",
         friendsTab: "好友",
@@ -8800,20 +8800,20 @@ const phase11 = {
   },
   ko_KR: {
     abilityUi: {
-      ...phase3.ko_KR.abilityUi,
+      ...abilityStrings.ko_KR.abilityUi,
       cast: { fishing: "낚시", demonHeal: "악마 치유" },
       actionBar: {
-        ...phase3.ko_KR.abilityUi.actionBar,
+        ...abilityStrings.ko_KR.abilityUi.actionBar,
         clearHint: "Shift-우클릭 또는 Shift-Delete로 비우기",
         itemInBags: "가방 보유: {count}",
         itemNoneInBags: "가방에 없음",
       },
     },
     itemUi: {
-      ...phase8.ko_KR.itemUi,
-      kind: { ...phase8.ko_KR.itemUi.kind, tool: "도구", potion: "물약" },
+      ...itemNames.ko_KR.itemUi,
+      kind: { ...itemNames.ko_KR.itemUi.kind, tool: "도구", potion: "물약" },
       tooltip: {
-        ...phase8.ko_KR.itemUi.tooltip,
+        ...itemNames.ko_KR.itemUi.tooltip,
         useFishing: "사용: 가까운 물가에서 낚시합니다.",
         useHealingPotion: "사용: 즉시 생명력을 {amount} 회복합니다. 전투 중 사용 가능. 재사용 대기시간 1분.",
         useManaPotion: "사용: 즉시 마나를 {amount} 회복합니다. 전투 중 사용 가능. 재사용 대기시간 1분.",
@@ -8822,7 +8822,7 @@ const phase11 = {
         clickBuyback: "클릭하여 되사기",
       },
       vendor: {
-        ...phase8.ko_KR.itemUi.vendor,
+        ...itemNames.ko_KR.itemUi.vendor,
         buybackTitle: "되사기",
         buybackEmpty: "물품 없음",
         buybackAria: "{item}을(를) {price}에 되사기",
@@ -8832,14 +8832,14 @@ const phase11 = {
         sellQuantityCancel: "취소",
       },
       logs: {
-        ...phase8.ko_KR.itemUi.logs,
+        ...itemNames.ko_KR.itemUi.logs,
         boughtBackItem: "{item}을(를) {money}에 되샀습니다.",
       },
     },
     hud: {
-      ...phase2.ko_KR.hud,
+      ...hudStrings.ko_KR.hud,
       options: {
-        ...phase2.ko_KR.hud.options,
+        ...hudStrings.ko_KR.hud.options,
         mouseCamera: "마우스 카메라",
         keybindHelpMouseCamera: "마우스 카메라 끔: A/D로 회전, 드래그로 궤도 이동(클래식). 켬: 카메라 기준 WASD, A/D는 좌우 이동. 키 셀을 클릭해 재지정하고 Esc로 취소합니다.",
       },
@@ -8850,7 +8850,7 @@ const phase11 = {
         markerAria: "{marker} 징표 설정",
         markerSelectedAria: "{marker} 징표 선택됨",
       },
-      pet: phase11PetHud.ko_KR,
+      pet: mergePetHud.ko_KR,
       social: {
         title: "소셜",
         friendsTab: "친구",
@@ -8935,20 +8935,20 @@ const phase11 = {
   },
   ja_JP: {
     abilityUi: {
-      ...phase3.ja_JP.abilityUi,
+      ...abilityStrings.ja_JP.abilityUi,
       cast: { fishing: "釣り", demonHeal: "悪魔の治癒" },
       actionBar: {
-        ...phase3.ja_JP.abilityUi.actionBar,
+        ...abilityStrings.ja_JP.abilityUi.actionBar,
         clearHint: "Shift-右クリックまたはShift-Deleteで消去",
         itemInBags: "バッグ内: {count}",
         itemNoneInBags: "バッグ内になし",
       },
     },
     itemUi: {
-      ...phase8.ja_JP.itemUi,
-      kind: { ...phase8.ja_JP.itemUi.kind, tool: "道具", potion: "ポーション" },
+      ...itemNames.ja_JP.itemUi,
+      kind: { ...itemNames.ja_JP.itemUi.kind, tool: "道具", potion: "ポーション" },
       tooltip: {
-        ...phase8.ja_JP.itemUi.tooltip,
+        ...itemNames.ja_JP.itemUi.tooltip,
         useFishing: "使用: 近くの水辺で釣りをします。",
         useHealingPotion: "使用: 即座に体力を{amount}回復します。戦闘中に使用可能。クールダウン1分。",
         useManaPotion: "使用: 即座にマナを{amount}回復します。戦闘中に使用可能。クールダウン1分。",
@@ -8957,7 +8957,7 @@ const phase11 = {
         clickBuyback: "クリックして買い戻す",
       },
       vendor: {
-        ...phase8.ja_JP.itemUi.vendor,
+        ...itemNames.ja_JP.itemUi.vendor,
         buybackTitle: "買い戻し",
         buybackEmpty: "アイテムなし",
         buybackAria: "{item}を{price}で買い戻す",
@@ -8967,14 +8967,14 @@ const phase11 = {
         sellQuantityCancel: "キャンセル",
       },
       logs: {
-        ...phase8.ja_JP.itemUi.logs,
+        ...itemNames.ja_JP.itemUi.logs,
         boughtBackItem: "{item}を{money}で買い戻しました。",
       },
     },
     hud: {
-      ...phase2.ja_JP.hud,
+      ...hudStrings.ja_JP.hud,
       options: {
-        ...phase2.ja_JP.hud.options,
+        ...hudStrings.ja_JP.hud.options,
         mouseCamera: "マウスカメラ",
         keybindHelpMouseCamera: "マウスカメラオフ: A/Dで旋回、ドラッグで周回（クラシック）。オン: カメラ基準のWASD、A/Dで横移動。キー欄をクリックして割り当て変更、Escでキャンセル。",
       },
@@ -8985,7 +8985,7 @@ const phase11 = {
         markerAria: "{marker}マーカーを設定",
         markerSelectedAria: "{marker}マーカー選択中",
       },
-      pet: phase11PetHud.ja_JP,
+      pet: mergePetHud.ja_JP,
       social: {
         title: "ソーシャル",
         friendsTab: "フレンド",
@@ -9070,20 +9070,20 @@ const phase11 = {
   },
   pt_BR: {
     abilityUi: {
-      ...phase3.pt_BR.abilityUi,
+      ...abilityStrings.pt_BR.abilityUi,
       cast: { fishing: "Pesca", demonHeal: "Cura demoníaca" },
       actionBar: {
-        ...phase3.pt_BR.abilityUi.actionBar,
+        ...abilityStrings.pt_BR.abilityUi.actionBar,
         clearHint: "Shift-clique direito ou Shift-Delete para limpar",
         itemInBags: "Nas bolsas: {count}",
         itemNoneInBags: "Nenhum nas bolsas",
       },
     },
     itemUi: {
-      ...phase8.pt_BR.itemUi,
-      kind: { ...phase8.pt_BR.itemUi.kind, tool: "Ferramenta", potion: "Poção" },
+      ...itemNames.pt_BR.itemUi,
+      kind: { ...itemNames.pt_BR.itemUi.kind, tool: "Ferramenta", potion: "Poção" },
       tooltip: {
-        ...phase8.pt_BR.itemUi.tooltip,
+        ...itemNames.pt_BR.itemUi.tooltip,
         useFishing: "Uso: pesca em águas próximas.",
         useHealingPotion: "Uso: restaura instantaneamente {amount} de vida. Pode ser usada em combate. Recarga de 1 min.",
         useManaPotion: "Uso: restaura instantaneamente {amount} de mana. Pode ser usada em combate. Recarga de 1 min.",
@@ -9092,7 +9092,7 @@ const phase11 = {
         clickBuyback: "Clique para recomprar",
       },
       vendor: {
-        ...phase8.pt_BR.itemUi.vendor,
+        ...itemNames.pt_BR.itemUi.vendor,
         buybackTitle: "Recompra",
         buybackEmpty: "Sem itens",
         buybackAria: "Recomprar {item} por {price}",
@@ -9102,14 +9102,14 @@ const phase11 = {
         sellQuantityCancel: "Cancelar",
       },
       logs: {
-        ...phase8.pt_BR.itemUi.logs,
+        ...itemNames.pt_BR.itemUi.logs,
         boughtBackItem: "Você recomprou {item} por {money}.",
       },
     },
     hud: {
-      ...phase2.pt_BR.hud,
+      ...hudStrings.pt_BR.hud,
       options: {
-        ...phase2.pt_BR.hud.options,
+        ...hudStrings.pt_BR.hud.options,
         mouseCamera: "Câmera pelo mouse",
         keybindHelpMouseCamera: "Câmera pelo mouse desligada: A/D gira, arraste para orbitar (clássico). Ligada: WASD relativo à câmera, A/D desloca de lado. Clique em uma célula de tecla para reatribuir; Esc cancela.",
       },
@@ -9120,7 +9120,7 @@ const phase11 = {
         markerAria: "Definir marcador {marker}",
         markerSelectedAria: "Marcador {marker} selecionado",
       },
-      pet: phase11PetHud.pt_BR,
+      pet: mergePetHud.pt_BR,
       social: {
         title: "Comunidade",
         friendsTab: "Amigos",
@@ -9205,20 +9205,20 @@ const phase11 = {
   },
   ru_RU: {
     abilityUi: {
-      ...phase3.ru_RU.abilityUi,
+      ...abilityStrings.ru_RU.abilityUi,
       cast: { fishing: "Рыбная ловля", demonHeal: "Исцеление демона" },
       actionBar: {
-        ...phase3.ru_RU.abilityUi.actionBar,
+        ...abilityStrings.ru_RU.abilityUi.actionBar,
         clearHint: "Shift-правый щелчок или Shift-Delete, чтобы очистить",
         itemInBags: "В сумках: {count}",
         itemNoneInBags: "В сумках нет",
       },
     },
     itemUi: {
-      ...phase8.ru_RU.itemUi,
-      kind: { ...phase8.ru_RU.itemUi.kind, tool: "Инструмент", potion: "Зелье" },
+      ...itemNames.ru_RU.itemUi,
+      kind: { ...itemNames.ru_RU.itemUi.kind, tool: "Инструмент", potion: "Зелье" },
       tooltip: {
-        ...phase8.ru_RU.itemUi.tooltip,
+        ...itemNames.ru_RU.itemUi.tooltip,
         useFishing: "Использование: ловите рыбу в ближайшей воде.",
         useHealingPotion: "Использование: мгновенно восстанавливает {amount} здоровья. Можно использовать в бою. Восстановление 1 мин.",
         useManaPotion: "Использование: мгновенно восстанавливает {amount} маны. Можно использовать в бою. Восстановление 1 мин.",
@@ -9227,7 +9227,7 @@ const phase11 = {
         clickBuyback: "Нажмите, чтобы выкупить",
       },
       vendor: {
-        ...phase8.ru_RU.itemUi.vendor,
+        ...itemNames.ru_RU.itemUi.vendor,
         buybackTitle: "Выкуп",
         buybackEmpty: "Нет предметов",
         buybackAria: "Выкупить {item} за {price}",
@@ -9237,14 +9237,14 @@ const phase11 = {
         sellQuantityCancel: "Отмена",
       },
       logs: {
-        ...phase8.ru_RU.itemUi.logs,
+        ...itemNames.ru_RU.itemUi.logs,
         boughtBackItem: "Вы выкупили {item} за {money}.",
       },
     },
     hud: {
-      ...phase2.ru_RU.hud,
+      ...hudStrings.ru_RU.hud,
       options: {
-        ...phase2.ru_RU.hud.options,
+        ...hudStrings.ru_RU.hud.options,
         mouseCamera: "Камера мышью",
         keybindHelpMouseCamera: "Камера мышью выкл.: A/D поворачивает, перетаскивание облетает (классика). Вкл.: WASD относительно камеры, A/D стрейф. Щелкните ячейку клавиши для переназначения; Esc отменяет.",
       },
@@ -9255,7 +9255,7 @@ const phase11 = {
         markerAria: "Поставить метку {marker}",
         markerSelectedAria: "Метка {marker} выбрана",
       },
-      pet: phase11PetHud.ru_RU,
+      pet: mergePetHud.ru_RU,
       social: {
         title: "Общение",
         friendsTab: "Друзья",
@@ -9340,11 +9340,11 @@ const phase11 = {
   },
 };
 
-phase11.es_ES = phase11.es;
-phase11.fr_CA = phase11.fr_FR;
+mergeStrings.es_ES = mergeStrings.es;
+mergeStrings.fr_CA = mergeStrings.fr_FR;
 
-const phase11EntitiesEn = {
-  items: phase11NameTranslations(PHASE11_ITEM_IDS, [
+const mergeEntitiesEn = {
+  items: mergeNameTranslations(MERGE_ITEM_IDS, [
     "Bristleback Maul", "Broodmother's Silk Robe", "Cryptbone Greaves", "Cryptstalker Jerkin", "Deathlord Legguards", "Deathlord Sabatons",
     "Deathlord Warplate", "Drogmar's Warboots", "Drowned Prayer Leggings", "Drowned Prayer Sandals", "Eelscale Leggings", "Eelscale Treads",
     "Fen Reaver Glaive", "Gorrak's Cruel Chopper", "Gravepath Treads", "Gravewoven Raiment", "Gravewyrm Sabatons", "Gravewyrm Stalker's Treads",
@@ -9355,7 +9355,7 @@ const phase11EntitiesEn = {
     "Tideguard Sabatons", "Valeborn Spellblade", "Voss's Sanctified Mace", "Wyrmcult Soulsteps", "Wyrmshadow Harness", "Wyrmshadow Legguards",
     "Wyrmshadow Treads",
   ], 'item'),
-  mobs: phase11NameTranslations(PHASE11_MOB_IDS, [
+  mobs: mergeNameTranslations(MERGE_MOB_IDS, [
     "Elder Bristleback", "Ironvein Foreman", "Ironvein Sapper", "Marrowlord Varkas", "Mirejaw Frenzy", "Mirejaw the Ravenous",
     "Mogger", "Mogger Lackey", "Nhalia Mourner", "Sableweb Hatchling", "Sableweb Matriarch", "Sister Nhalia", "Varkas Boneguard",
     "Imp", "Voidwalker",
@@ -9376,10 +9376,10 @@ const phase11EntitiesEn = {
   },
 };
 
-const phase11Entities = {
-  en: phase11EntitiesEn,
+const mergeEntities = {
+  en: mergeEntitiesEn,
   es: {
-    items: phase11NameTranslations(PHASE11_ITEM_IDS, [
+    items: mergeNameTranslations(MERGE_ITEM_IDS, [
       "Maza Bristleback", "Toga de seda de la Madre de la nidada", "Grebas Huesocripta", "Jubón Acechacripta", "Guardapiernas del Señor de la Muerte", "Escarpes del Señor de la Muerte",
       "Placa de guerra del Señor de la Muerte", "Botas de guerra de Drogmar", "Leotardos de Plegaria Ahogada", "Sandalias de Plegaria Ahogada", "Leotardos de escama de anguila", "Botines de escama de anguila",
       "Guja del Segador del pantano", "Tajadora cruel de Gorrak", "Botines Caminotumba", "Vestidura Tejetumba", "Escarpes del Gravewyrm", "Botines de acechador del Gravewyrm",
@@ -9390,7 +9390,7 @@ const phase11Entities = {
       "Escarpes Guardamarea", "Hoja mágica Natavalle", "Maza santificada de Voss", "Pisadas de alma del Culto del Wyrm", "Arnés Sombravermis", "Guardapiernas Sombravermis",
       "Botines Sombravermis",
     ], 'item'),
-    mobs: phase11NameTranslations(PHASE11_MOB_IDS, [
+    mobs: mergeNameTranslations(MERGE_MOB_IDS, [
       "Viejo Bristleback", "Capataz Vena de Hierro", "Zapador Vena de Hierro", "Señor de Médula Varkas", "Frenesí Mirejaw", "Mirejaw el Voraz",
       "Mogger", "Esbirro de Mogger", "Doliente de Nhalia", "Cría Sableweb", "Matriarca Sableweb", "Hermana Nhalia", "Guardahuesos de Varkas",
       "Diablillo", "Caminante del Vacío",
@@ -9410,9 +9410,9 @@ const phase11Entities = {
       },
     },
   },
-  es_ES: {} as typeof phase11EntitiesEn,
+  es_ES: {} as typeof mergeEntitiesEn,
   fr_FR: {
-    items: phase11NameTranslations(PHASE11_ITEM_IDS, [
+    items: mergeNameTranslations(MERGE_ITEM_IDS, [
       "Maillet Bristleback", "Robe de soie de la Mère des couvées", "Grèves d'os de crypte", "Pourpoint du Traquecrypte", "Garde-jambes du Seigneur de mort", "Solerets du Seigneur de mort",
       "Harnois de guerre du Seigneur de mort", "Bottes de guerre de Drogmar", "Jambières de prière noyée", "Sandales de prière noyée", "Jambières en écailles d'anguille", "Bottines en écailles d'anguille",
       "Glaive du faucheur des marais", "Tranchoir cruel de Gorrak", "Bottines Sentetombe", "Habit tissé de tombe", "Solerets du Gravewyrm", "Bottines du traqueur de Gravewyrm",
@@ -9423,7 +9423,7 @@ const phase11Entities = {
       "Solerets Garde-marée", "Lame-sort née du Val", "Masse sanctifiée de Voss", "Pas-d'âme du Culte du Wyrm", "Harnais Ombrewyrm", "Garde-jambes Ombrewyrm",
       "Bottines Ombrewyrm",
     ], 'item'),
-    mobs: phase11NameTranslations(PHASE11_MOB_IDS, [
+    mobs: mergeNameTranslations(MERGE_MOB_IDS, [
       "Ancien Bristleback", "Contremaître Veinefer", "Sapeur Veinefer", "Seigneur de moelle Varkas", "Frénésie Mirejaw", "Mirejaw l'Affamé",
       "Mogger", "Laquais de Mogger", "Pleureuse de Nhalia", "Jeune Sableweb", "Matriarche Sableweb", "Soeur Nhalia", "Garde-os de Varkas",
       "Diablotin", "Marcheur du Vide",
@@ -9443,10 +9443,10 @@ const phase11Entities = {
       },
     },
   },
-  fr_CA: {} as typeof phase11EntitiesEn,
-  en_CA: phase11EntitiesEn,
+  fr_CA: {} as typeof mergeEntitiesEn,
+  en_CA: mergeEntitiesEn,
   it_IT: {
-    items: phase11NameTranslations(PHASE11_ITEM_IDS, [
+    items: mergeNameTranslations(MERGE_ITEM_IDS, [
       "Maglio Bristleback", "Veste di seta della Madre della covata", "Schinieri d'osso di cripta", "Giaco Braccacripta", "Gambiere del Signore della Morte", "Calzari del Signore della Morte",
       "Piastra da guerra del Signore della Morte", "Stivali da guerra di Drogmar", "Gambiere della Preghiera Annegata", "Sandali della Preghiera Annegata", "Gambiere di scaglia d'anguilla", "Calzari di scaglia d'anguilla",
       "Falcione del Razziatore delle paludi", "Mannaia crudele di Gorrak", "Calzari Sentierotomba", "Paramento Intessitomba", "Calzari del Gravewyrm", "Calzari del braccatore del Gravewyrm",
@@ -9457,7 +9457,7 @@ const phase11Entities = {
       "Calzari Guardiamarea", "Lama magica Natavalle", "Mazza santificata di Voss", "Passi d'anima del Culto del Wyrm", "Finimenti Ombrawyrm", "Gambiere Ombrawyrm",
       "Calzari Ombrawyrm",
     ], 'item'),
-    mobs: phase11NameTranslations(PHASE11_MOB_IDS, [
+    mobs: mergeNameTranslations(MERGE_MOB_IDS, [
       "Bristleback anziano", "Caposquadra Venaferrata", "Zappatore Venaferrata", "Signore del Midollo Varkas", "Furia Mirejaw", "Mirejaw il Famelico",
       "Mogger", "Lacchè di Mogger", "Piangente di Nhalia", "Piccolo Sableweb", "Matriarca Sableweb", "Sorella Nhalia", "Guardia d'ossa di Varkas",
       "Folletto", "Camminatore del Vuoto",
@@ -9478,7 +9478,7 @@ const phase11Entities = {
     },
   },
   de_DE: {
-    items: phase11NameTranslations(PHASE11_ITEM_IDS, [
+    items: mergeNameTranslations(MERGE_ITEM_IDS, [
       "Bristleback-Schlägel", "Seidenrobe der Brutmutter", "Gruftknochenbeinschienen", "Gruftpirscherwams", "Beinschützer des Todeslords", "Sabatons des Todeslords",
       "Kriegsplatte des Todeslords", "Drogmars Kriegsstiefel", "Gamaschen des Ertrunkenen Gebets", "Sandalen des Ertrunkenen Gebets", "Aalschuppengamaschen", "Aalschuppentreter",
       "Moorhäscher-Gleve", "Gorraks grausamer Hackspalter", "Grabpfadtreter", "Grabgewobenes Gewand", "Gravewyrm-Sabatons", "Treter des Gravewyrm-Pirschers",
@@ -9489,7 +9489,7 @@ const phase11Entities = {
       "Gezeitenwachtsabatons", "Talgeborene Zauberklinge", "Voss' geheiligter Streitkolben", "Seelenschritte des Wyrmkults", "Wyrmschattenharnisch", "Wyrmschattenbeinschützer",
       "Wyrmschattentreter",
     ], 'item'),
-    mobs: phase11NameTranslations(PHASE11_MOB_IDS, [
+    mobs: mergeNameTranslations(MERGE_MOB_IDS, [
       "Alter Bristleback", "Eisenader-Vorarbeiter", "Eisenader-Pionier", "Marklord Varkas", "Mirejaw-Raserei", "Mirejaw der Gefräßige",
       "Mogger", "Moggers Lakai", "Nhalia-Trauernde", "Sableweb-Jungtier", "Sableweb-Matriarchin", "Schwester Nhalia", "Varkas' Knochenwache",
       "Wichtel", "Leerwandler",
@@ -9510,7 +9510,7 @@ const phase11Entities = {
     },
   },
   zh_CN: {
-    items: phase11NameTranslations(PHASE11_ITEM_IDS, [
+    items: mergeNameTranslations(MERGE_ITEM_IDS, [
       "硬鬃重槌", "蛛母丝袍", "墓骨护胫", "穴伏者皮甲", "死亡领主腿甲", "死亡领主护胫",
       "死亡领主战甲", "德罗格玛的战靴", "溺祷护腿", "溺祷便鞋", "鳗鳞护腿", "鳗鳞足垫",
       "沼泽劫掠者长刃", "戈拉克的残酷斩斧", "墓径足垫", "墓织法衣", "墓龙护胫", "墓龙潜猎者足垫",
@@ -9521,7 +9521,7 @@ const phase11Entities = {
       "潮卫护靴", "谷裔法刃", "沃斯的圣化战锤", "龙教魂步", "龙影挽具", "龙影腿甲",
       "龙影足垫",
     ], 'item'),
-    mobs: phase11NameTranslations(PHASE11_MOB_IDS, [
+    mobs: mergeNameTranslations(MERGE_MOB_IDS, [
       "年长硬鬃", "铁脉工头", "铁脉爆破手", "髓王瓦尔卡斯", "泥颚狂鱼", "贪食者泥颚",
       "莫格", "莫格的爪牙", "娜莉娅哀悼者", "黑网幼蛛", "黑网主母", "娜莉娅修女", "瓦尔卡斯骨卫",
       "小鬼", "虚空行者",
@@ -9542,7 +9542,7 @@ const phase11Entities = {
     },
   },
   zh_TW: {
-    items: phase11NameTranslations(PHASE11_ITEM_IDS, [
+    items: mergeNameTranslations(MERGE_ITEM_IDS, [
       "硬鬃重槌", "蛛母絲袍", "墓骨護脛", "穴伏者皮甲", "死亡領主腿甲", "死亡領主護脛",
       "死亡領主戰甲", "德羅格瑪的戰靴", "溺禱護腿", "溺禱便鞋", "鰻鱗護腿", "鰻鱗足墊",
       "沼澤劫掠者長刃", "戈拉克的殘酷斬斧", "墓徑足墊", "墓織法衣", "墓龍護脛", "墓龍潛獵者足墊",
@@ -9553,7 +9553,7 @@ const phase11Entities = {
       "潮衛護靴", "谷裔法刃", "沃斯的聖化戰錘", "龍教魂步", "龍影挽具", "龍影腿甲",
       "龍影足墊",
     ], 'item'),
-    mobs: phase11NameTranslations(PHASE11_MOB_IDS, [
+    mobs: mergeNameTranslations(MERGE_MOB_IDS, [
       "年長硬鬃", "鐵脈工頭", "鐵脈爆破手", "髓王瓦爾卡斯", "泥顎狂魚", "貪食者泥顎",
       "莫格", "莫格的爪牙", "娜莉亞哀悼者", "黑網幼蛛", "黑網主母", "娜莉亞修女", "瓦爾卡斯骨衛",
       "小鬼", "虛空行者",
@@ -9574,7 +9574,7 @@ const phase11Entities = {
     },
   },
   ko_KR: {
-    items: phase11NameTranslations(PHASE11_ITEM_IDS, [
+    items: mergeNameTranslations(MERGE_ITEM_IDS, [
       "뻣센등뼈 철퇴", "무리어미의 비단 로브", "묘지뼈 경갑", "묘지추적자 웃옷", "죽음군주 다리보호구", "죽음군주 쇠장화",
       "죽음군주 전쟁판금", "드로그마르의 전쟁장화", "익사한 기도 다리보호구", "익사한 기도 샌들", "뱀장어비늘 다리보호구", "뱀장어비늘 발보호구",
       "늪지 약탈자 글레이브", "고락의 잔혹 도끼", "무덤길 발보호구", "무덤직조 의복", "무덤고룡 쇠장화", "무덤고룡 추적자 발보호구",
@@ -9585,7 +9585,7 @@ const phase11Entities = {
       "파도수호 쇠장화", "계곡태생 주문검", "보스의 성화된 철퇴", "고룡교단 영혼걸음", "고룡그림자 멜빵", "고룡그림자 다리보호구",
       "고룡그림자 발보호구",
     ], 'item'),
-    mobs: phase11NameTranslations(PHASE11_MOB_IDS, [
+    mobs: mergeNameTranslations(MERGE_MOB_IDS, [
       "늙은 뻣센등뼈", "철맥 감독관", "철맥 폭파병", "골수군주 바르카스", "마이어죠 광란어", "굶주린 마이어죠",
       "모거", "모거의 졸개", "날리아 애도자", "검은그물 새끼", "검은그물 우두머리", "자매 날리아", "바르카스 뼈수호병",
       "임프", "공허추적자",
@@ -9606,7 +9606,7 @@ const phase11Entities = {
     },
   },
   ja_JP: {
-    items: phase11NameTranslations(PHASE11_ITEM_IDS, [
+    items: mergeNameTranslations(MERGE_ITEM_IDS, [
       "ブリストルバックの大槌", "ブルードマザーの絹ローブ", "墓骨のグリーヴ", "墓潜みのジャーキン", "死王のレッグガード", "死王のサバトン",
       "死王の戦鎧", "ドログマーの戦靴", "溺れし祈りのレギンス", "溺れし祈りのサンダル", "ウナギ鱗のレギンス", "ウナギ鱗の足具",
       "沼刈りのグレイブ", "ゴラックの残酷なチョッパー", "墓道の足具", "墓織りの衣", "グレイブワームのサバトン", "グレイブワーム追跡者の足具",
@@ -9617,7 +9617,7 @@ const phase11Entities = {
       "潮守りのサバトン", "谷生まれの呪文刃", "ヴォスの聖別メイス", "ワーム教団の魂歩き", "ワーム影のハーネス", "ワーム影のレッグガード",
       "ワーム影の足具",
     ], 'item'),
-    mobs: phase11NameTranslations(PHASE11_MOB_IDS, [
+    mobs: mergeNameTranslations(MERGE_MOB_IDS, [
       "老ブリストルバック", "鉄脈の現場監督", "鉄脈の爆破兵", "髄王ヴァーカス", "マイアジョーの狂魚", "貪るマイアジョー",
       "モガー", "モガーの手下", "ナリアの嘆き手", "セーブルウェブの幼体", "セーブルウェブの女家長", "シスター・ナリア", "ヴァーカスの骨衛兵",
       "インプ", "ヴォイドウォーカー",
@@ -9638,7 +9638,7 @@ const phase11Entities = {
     },
   },
   pt_BR: {
-    items: phase11NameTranslations(PHASE11_ITEM_IDS, [
+    items: mergeNameTranslations(MERGE_ITEM_IDS, [
       "Malho Bristleback", "Veste de seda da Mãe da ninhada", "Grevas Osso de Cripta", "Gibão Espreita-cripta", "Guarda-pernas do Senhor da Morte", "Escarpes do Senhor da Morte",
       "Placa de guerra do Senhor da Morte", "Botas de guerra de Drogmar", "Perneiras de Prece Afogada", "Sandálias de Prece Afogada", "Perneiras de escama de enguia", "Pisantes de escama de enguia",
       "Glaive do Ceifador do brejo", "Cutelo cruel de Gorrak", "Pisantes Caminho-túmulo", "Traje Tecetumba", "Escarpes do Gravewyrm", "Pisantes de espreitador do Gravewyrm",
@@ -9649,7 +9649,7 @@ const phase11Entities = {
       "Escarpes Guardamaré", "Lâmina mágica Nascivale", "Maça santificada de Voss", "Passos de alma do Culto do Wyrm", "Arnês Sombra de Wyrm", "Guarda-pernas Sombra de Wyrm",
       "Pisantes Sombra de Wyrm",
     ], 'item'),
-    mobs: phase11NameTranslations(PHASE11_MOB_IDS, [
+    mobs: mergeNameTranslations(MERGE_MOB_IDS, [
       "Bristleback ancião", "Capataz Veio de Ferro", "Sapador Veio de Ferro", "Senhor da Medula Varkas", "Frenesi Mirejaw", "Mirejaw, o Voraz",
       "Mogger", "Lacaio de Mogger", "Pranteadora de Nhalia", "Filhote Sableweb", "Matriarca Sableweb", "Irmã Nhalia", "Guardião dos ossos de Varkas",
       "Diabrete", "Caminhante do Vazio",
@@ -9670,7 +9670,7 @@ const phase11Entities = {
     },
   },
   ru_RU: {
-    items: phase11NameTranslations(PHASE11_ITEM_IDS, [
+    items: mergeNameTranslations(MERGE_ITEM_IDS, [
       "Кувалда Щетиноспина", "Шелковая роба Матери выводка", "Наголенники из склеповой кости", "Куртка Склепного охотника", "Поножи Владыки Смерти", "Сабатоны Владыки Смерти",
       "Боевая латы Владыки Смерти", "Боевые сапоги Дрогмара", "Поножи Утопленной молитвы", "Сандалии Утопленной молитвы", "Поножи из угриной чешуи", "Ступни из угриной чешуи",
       "Глефа Болотного жнеца", "Жестокий тесак Горрака", "Ступни Могильной тропы", "Могильнотканое облачение", "Сабатоны Могильного вирма", "Ступни охотника Могильного вирма",
@@ -9681,7 +9681,7 @@ const phase11Entities = {
       "Сабатоны Стража прилива", "Долиннорожденный чароклинок", "Освященная булава Восса", "Шаги души Культа вирма", "Сбруя Тени вирма", "Поножи Тени вирма",
       "Ступни Тени вирма",
     ], 'item'),
-    mobs: phase11NameTranslations(PHASE11_MOB_IDS, [
+    mobs: mergeNameTranslations(MERGE_MOB_IDS, [
       "Старый Щетиноспин", "Прораб Железной жилы", "Сапер Железной жилы", "Владыка костного мозга Варкас", "Бешенство Миреджо", "Миреджо Ненасытный",
       "Моггер", "Приспешник Моггера", "Плакальщица Налии", "Детеныш Сейблвеб", "Матриарх Сейблвеб", "Сестра Налия", "Костяной страж Варкаса",
       "Бес", "Страж Бездны",
@@ -9703,10 +9703,10 @@ const phase11Entities = {
   },
 };
 
-phase11Entities.es_ES = phase11Entities.es;
-phase11Entities.fr_CA = phase11Entities.fr_FR;
+mergeEntities.es_ES = mergeEntities.es;
+mergeEntities.fr_CA = mergeEntities.fr_FR;
 
-// Phase 11 overlay extension: class quality-of-life abilities + Drowned Temple
+// Merge overlay extension: class quality-of-life abilities + Drowned Temple
 // (PR #390/#392). Merged into each locale's entities below.
 const DROWNED_ITEM_IDS = [
   "briny_idol", "drowned_offering", "drownedmoon_kris", "drownedmoon_maul", "drownedmoon_scepter", "drownstep_sabatons", "drownstep_slippers", "drownstep_treads", "moongate_rubbing", "moonpale_scale", "moonscale_saber", "moonshroud_breastplate", "moonshroud_robe", "moonshroud_tunic", "pale_pearl", "palecoil_heartscale", "palecoil_rod", "selthes_seastriders", "tideglass_dirk", "tidewatchers_wraps", "ysols_pearl_greaves"
@@ -9716,7 +9716,7 @@ const DROWNED_MOB_IDS = [
   "choirmother_selthe", "drowned_templeguard", "drowned_votary", "glimmermere_wader", "glimmerscale_lurker", "moonspawn", "pale_choir_acolyte", "pearlguard_sentinel", "sethrael_palecoil", "warlock_imp", "warlock_voidwalker", "ysolei"
 ] as const;
 
-const phase11ExtraEn = {
+const mergeExtraEn = {
     abilities: abilityTranslations([
       ["bear_charge", "Bear Charge", "Charge an enemy, generating 9 rage and stunning it for 1 sec. 8-25 yd range. Bear Form only."],
       ["demoralizing_roar", "Demoralizing Roar", "Demoralizes nearby enemies, reducing their attack power by 20 for 20 sec. Bear Form only."],
@@ -9724,10 +9724,10 @@ const phase11ExtraEn = {
       ["rake", "Rake", "A stealth opener that rakes the enemy for weapon damage plus {damage} and causes bleeding damage over 9 sec. Awards 1 combo point. Wolf Form only."],
       ["revive_pet", "Revive Pet", "Revives your dead pet and returns it to your side."],
     ]),
-    items: phase11NameTranslations(DROWNED_ITEM_IDS, [
+    items: mergeNameTranslations(DROWNED_ITEM_IDS, [
       "Briny Idol", "Drowned Offering", "Drowned Moon Kris", "Drowned Moon Maul", "Drowned Moon Scepter", "Drownstep Sabatons", "Drownstep Slippers", "Drownstep Treads", "Warding Rubbing", "Moonpale Scale", "Moonscale Saber", "Moonshroud Breastplate", "Moonshroud Robe", "Moonshroud Tunic", "Pale Pearl", "Sethrael's Heartscale", "Palecoil Rod", "Selthe's Sea-Striders", "Tideglass Dirk", "Tidewatcher's Wraps", "Ysolei's Pearl Greaves"
     ], 'drowned item'),
-    mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
+    mobs: mergeNameTranslations(DROWNED_MOB_IDS, [
       "Choirmother Selthe", "Drowned Templeguard", "Drowned Votary", "Glimmermere Wader", "Glimmerscale Lurker", "Moonspawn", "Pale Choir Acolyte", "Pearlguard Sentinel", "Sethrael the Palecoil", "Fire Demon", "Void Demon", "Ysolei, Avatar of the Drowned Moon"
     ], 'drowned mob'),
     npcs: {
@@ -9776,8 +9776,8 @@ const phase11ExtraEn = {
     },
 };
 
-const phase11Extra = {
-  en: phase11ExtraEn,
+const mergeExtra = {
+  en: mergeExtraEn,
   es: {
     abilities: abilityTranslations([
       ["bear_charge", "Embestida del oso", "Embiste a un enemigo, generando 9 de furia y aturdiéndolo durante 1 s. Alcance de 7 a 23 m. Solo en Forma de oso."],
@@ -9786,10 +9786,10 @@ const phase11Extra = {
       ["rake", "Zarpazo", "Una apertura sigilosa que desgarra al enemigo causando el daño del arma más {damage} y provoca daño por sangrado durante 9 s. Otorga 1 punto de combo. Solo en Forma de lobo."],
       ["revive_pet", "Revivir mascota", "Revive a tu mascota muerta y la devuelve a tu lado."],
     ]),
-    items: phase11NameTranslations(DROWNED_ITEM_IDS, [
+    items: mergeNameTranslations(DROWNED_ITEM_IDS, [
       "Ídolo salobre", "Ofrenda ahogada", "Kris de la Luna Ahogada", "Maza de la Luna Ahogada", "Cetro de la Luna Ahogada", "Escarpes de Paso Ahogado", "Babuchas de Paso Ahogado", "Botas de Paso Ahogado", "Calco protector", "Escama de Lunapálida", "Sable de Escama Lunar", "Peto del Sudario Lunar", "Túnica del Sudario Lunar", "Sobreveste del Sudario Lunar", "Perla pálida", "Escama del corazón de Sethrael", "Vara de Espiral Pálida", "Zancadas marinas de Selthe", "Daga de Vidriomarea", "Vendas del Vigía de la Marea", "Grebas de perla de Ysolei"
     ], 'drowned item'),
-    mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
+    mobs: mergeNameTranslations(DROWNED_MOB_IDS, [
       "Selthe, madre del coro", "Guardián ahogado del templo", "Devoto ahogado", "Vadeador de Glimmermere", "Acechador de Escama Reluciente", "Engendro lunar", "Acólito del Coro Pálido", "Centinela de la Guardia de Perla", "Sethrael, la Espiral Pálida", "Demonio de fuego", "Demonio del vacío", "Ysolei, Avatar de la Luna Ahogada"
     ], 'drowned mob'),
     npcs: {
@@ -9845,10 +9845,10 @@ const phase11Extra = {
       ["rake", "Lacérer", "Une attaque d'ouverture en camouflage qui lacère l'ennemi pour les dégâts de l'arme plus {damage} et inflige des dégâts de saignement sur 9 sec. Octroie 1 point de combo. Forme de loup uniquement."],
       ["revive_pet", "Ranimer le familier", "Ranime votre familier mort et le ramène à vos côtés."],
     ]),
-    items: phase11NameTranslations(DROWNED_ITEM_IDS, [
+    items: mergeNameTranslations(DROWNED_ITEM_IDS, [
       "Idole saumâtre", "Offrande noyée", "Kriss de la Lune noyée", "Maillet de la Lune noyée", "Sceptre de la Lune noyée", "Solerets du Pas noyé", "Chaussons du Pas noyé", "Sandales du Pas noyé", "Frottis de protection", "Écaille de Pâlelune", "Sabre en écailles de lune", "Plastron du Linceul de lune", "Robe du Linceul de lune", "Tunique du Linceul de lune", "Perle blafarde", "Écaille de cœur de Sethrael", "Verge de Pâlanneau", "Arpenteuses des mers de Selthe", "Dague de verre de marée", "Bandes du Veille-marées", "Jambières de perle d'Ysolei"
     ], 'drowned item'),
-    mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
+    mobs: mergeNameTranslations(DROWNED_MOB_IDS, [
       "Selthe, mère de chœur", "Garde du temple noyé", "Dévot noyé", "Pataugeur de Lac-miroitant", "Rôdeur aux écailles miroitantes", "Engeance de lune", "Acolyte du Chœur blafard", "Sentinelle de la Garde de perle", "Sethrael le Pâlanneau", "Démon de feu", "Démon du néant", "Ysolei, avatar de la Lune noyée"
     ], 'drowned mob'),
     npcs: {
@@ -9904,10 +9904,10 @@ const phase11Extra = {
       ["rake", "Sventramento", "Un'apertura furtiva che dilania il nemico infliggendo danno dell'arma più {damage} e provoca danno da sanguinamento per 9 sec. Conferisce 1 punto combo. Solo in Forma del Lupo."],
       ["revive_pet", "Rianima Famiglio", "Rianima il tuo famiglio morto e lo richiama al tuo fianco."],
     ]),
-    items: phase11NameTranslations(DROWNED_ITEM_IDS, [
+    items: mergeNameTranslations(DROWNED_ITEM_IDS, [
       "Idolo Salmastro", "Offerta Annegata", "Kris della Luna Annegata", "Maglio della Luna Annegata", "Scettro della Luna Annegata", "Scarpe d'Arme di Passoannegato", "Pantofole di Passoannegato", "Stivali di Passoannegato", "Calco Protettivo", "Squama di Lunapallida", "Sciabola di Lunasquama", "Corazza del Sudario Lunare", "Veste del Sudario Lunare", "Tunica del Sudario Lunare", "Perla Pallida", "Squamacuore di Sethrael", "Verga di Spiropallido", "Camminamari di Selthe", "Pugnale di Vetromarea", "Fasce del Guardamarea", "Schinieri di Perla di Ysolei"
     ], 'drowned item'),
-    mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
+    mobs: mergeNameTranslations(DROWNED_MOB_IDS, [
       "Selthe Madre del Coro", "Guardiano del Tempio Annegato", "Devoto Annegato", "Guadatore di Glimmermere", "Acquattato di Glimmerscaglia", "Progenie Lunare", "Accolito del Coro Pallido", "Sentinella della Guardia di Perla", "Sethrael lo Spiropallido", "Demone di Fuoco", "Demone del Vuoto", "Ysolei, Avatar della Luna Annegata"
     ], 'drowned mob'),
     npcs: {
@@ -9963,10 +9963,10 @@ const phase11Extra = {
       ["rake", "Krallenhieb", "Ein Schleicheröffner, der den Gegner für Waffenschaden plus {damage} aufreißt und über 9 Sek. Blutungsschaden verursacht. Gewährt 1 Combopunkt. Nur in Wolfsgestalt."],
       ["revive_pet", "Begleiter wiederbeleben", "Belebt deinen toten Begleiter wieder und ruft ihn an deine Seite zurück."],
     ]),
-    items: phase11NameTranslations(DROWNED_ITEM_IDS, [
+    items: mergeNameTranslations(DROWNED_ITEM_IDS, [
       "Salzlaken-Götze", "Ertränkte Opfergabe", "Kris des Ertränkten Mondes", "Streitkolben des Ertränkten Mondes", "Zepter des Ertränkten Mondes", "Ertränkungsschritt-Eisenschuhe", "Ertränkungsschritt-Schläppchen", "Ertränkungsschritt-Trittlinge", "Schutzzeichen-Abrieb", "Mondbleiche Schuppe", "Mondschuppen-Säbel", "Mondschleier-Brustpanzer", "Mondschleier-Robe", "Mondschleier-Wams", "Bleiche Perle", "Sethraels Herzschuppe", "Bleichwinder-Rute", "Selthes Meeresschreiter", "Gezeitenglas-Dolch", "Bandagen des Gezeitenwächters", "Ysoleis Perlenbeinschienen"
     ], 'drowned item'),
-    mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
+    mobs: mergeNameTranslations(DROWNED_MOB_IDS, [
       "Chormutter Selthe", "Ertränkte Tempelwache", "Ertränkter Andächtiger", "Schimmersee-Wäter", "Schimmerschuppen-Lauerer", "Mondbrut", "Akolyth des Bleichen Chors", "Perlwächter-Schildwache", "Sethrael der Bleichwinder", "Feuerdämon", "Leerendämon", "Ysolei, Avatar des Ertränkten Mondes"
     ], 'drowned mob'),
     npcs: {
@@ -10022,10 +10022,10 @@ const phase11Extra = {
       ["rake", "撕抓", "一记潜行起手技，以武器伤害外加{damage}撕抓敌人，并造成持续9秒的流血伤害。获得1点连击点数。仅限狼形态使用。"],
       ["revive_pet", "复活宠物", "复活你死去的宠物，并将其召回身边。"],
     ]),
-    items: phase11NameTranslations(DROWNED_ITEM_IDS, [
+    items: mergeNameTranslations(DROWNED_ITEM_IDS, [
       "咸海神像", "溺亡祭品", "溺月波刃匕", "溺月巨锤", "溺月权杖", "溺踪战靴", "溺踪软鞋", "溺踪皮靴", "守誓拓文", "苍月之鳞", "月鳞军刀", "月帷胸甲", "月帷长袍", "月帷外衣", "苍白之珠", "瑟斯雷尔的心鳞", "苍盘法杖", "塞尔瑟的踏海者", "潮镜短刃", "守潮者裹手", "伊索蕾的珍珠护胫"
     ], 'drowned item'),
-    mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
+    mobs: mergeNameTranslations(DROWNED_MOB_IDS, [
       "唱诗母塞尔瑟", "溺亡神殿卫", "溺亡信徒", "微光潭涉行者", "微光鳞潜伏者", "月之孽生", "苍白唱诗侍僧", "珍珠卫哨兵", "苍盘者瑟斯雷尔", "火焰恶魔", "虚空恶魔", "伊索蕾，溺月化身"
     ], 'drowned mob'),
     npcs: {
@@ -10081,10 +10081,10 @@ const phase11Extra = {
       ["rake", "撕裂", "一招隱匿起手技，以武器傷害外加 {damage} 撕裂敵人，並造成持續 9 秒的流血傷害。給予 1 點連擊點數。僅限狼形態。"],
       ["revive_pet", "復活寵物", "復活你已死亡的寵物，並使其重回你身邊。"],
     ]),
-    items: phase11NameTranslations(DROWNED_ITEM_IDS, [
+    items: mergeNameTranslations(DROWNED_ITEM_IDS, [
       "鹹海神像", "溺者供品", "溺月波刃匕", "溺月巨槌", "溺月權杖", "沉踏戰靴", "沉踏軟履", "沉踏踏靴", "守護拓印", "蒼月之鱗", "月鱗彎刀", "月帷胸甲", "月帷長袍", "月帷外衣", "蒼白珍珠", "賽斯瑞爾的心鱗", "蒼盤法杖", "瑟爾瑟的踏海靴", "潮鏡短劍", "守潮者護腕", "伊索蕾的珍珠脛甲"
     ], 'drowned item'),
-    mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
+    mobs: mergeNameTranslations(DROWNED_MOB_IDS, [
       "唱詩之母瑟爾瑟", "溺亡神殿守衛", "溺亡信徒", "微光湖涉者", "微鱗潛伏者", "月之裔", "蒼白唱詩侍僧", "珍珠衛哨兵", "蒼盤者賽斯瑞爾", "火焰惡魔", "虛空惡魔", "伊索蕾，溺月化身"
     ], 'drowned mob'),
     npcs: {
@@ -10140,10 +10140,10 @@ const phase11Extra = {
       ["rake", "할퀴기", "은신 상태에서 적을 할퀴어 무기 피해에 더해 {damage}의 피해를 입히고 9초에 걸쳐 출혈 피해를 줍니다. 연계 점수 1을 부여합니다. 늑대 변신 상태에서만 사용 가능."],
       ["revive_pet", "소환수 소생", "죽은 소환수를 되살려 당신의 곁으로 되돌립니다."],
     ]),
-    items: phase11NameTranslations(DROWNED_ITEM_IDS, [
+    items: mergeNameTranslations(DROWNED_ITEM_IDS, [
       "소금기 어린 우상", "익사한 제물", "익사한 달의 크리스 단검", "익사한 달의 대망치", "익사한 달의 홀", "드라운스텝 사바톤", "드라운스텝 슬리퍼", "드라운스텝 군화", "수호의 탁본", "창백한 달빛 비늘", "달비늘 세이버", "달수의 흉갑", "달수의 법복", "달수의 튜닉", "창백한 진주", "세스라엘의 심장 비늘", "페일코일 막대", "셀세의 바다걸음 장화", "조수유리 단검", "조수지기의 손싸개", "이솔레이의 진주 정강이받이"
     ], 'drowned item'),
-    mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
+    mobs: mergeNameTranslations(DROWNED_MOB_IDS, [
       "성가대모 셀세", "익사한 신전 수호병", "익사한 신도", "글리머미어 물거리", "반짝비늘 잠복자", "달의 부산물", "창백한 성가대 수습 사제", "진주수호 파수병", "페일코일의 세스라엘", "화염 악마", "공허 악마", "이솔레이, 익사한 달의 화신"
     ], 'drowned mob'),
     npcs: {
@@ -10199,10 +10199,10 @@ const phase11Extra = {
       ["rake", "切り裂き", "ステルス状態からの先制攻撃で、武器ダメージに加えて{damage}のダメージを与え、9秒かけて出血ダメージを与える。コンボポイントを1獲得する。ウルフフォーム時のみ使用可能。"],
       ["revive_pet", "ペット蘇生", "死んだペットを蘇生させ、自分のそばに呼び戻す。"],
     ]),
-    items: phase11NameTranslations(DROWNED_ITEM_IDS, [
+    items: mergeNameTranslations(DROWNED_ITEM_IDS, [
       "潮辛の偶像", "溺れし供物", "溺月のクリス", "溺月の大槌", "溺月の笏", "溺歩のサバトン", "溺歩のスリッパ", "溺歩のトレッド", "守護の拓本", "蒼白月の鱗", "月鱗のサーベル", "月帷子の胸甲", "月帷子のローブ", "月帷子のチュニック", "蒼白の真珠", "セスラエルの心鱗", "蒼渦のロッド", "セルセの潮渡り靴", "潮硝子の短剣", "潮見の手布", "イソレイの真珠脚甲"
     ], 'drowned item'),
-    mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
+    mobs: mergeNameTranslations(DROWNED_MOB_IDS, [
       "聖歌母セルセ", "溺れし神殿守", "溺れし信徒", "煌めき沼の渡り手", "煌鱗の潜み者", "月の落とし子", "蒼白聖歌隊の侍祭", "真珠衛の歩哨", "蒼渦のセスラエル", "炎の魔物", "虚無の魔物", "イソレイ、溺月の化身"
     ], 'drowned mob'),
     npcs: {
@@ -10258,10 +10258,10 @@ const phase11Extra = {
       ["rake", "Dilacerar", "Um golpe de abertura furtivo que dilacera o inimigo causando dano de arma mais {damage} e provoca sangramento ao longo de 9 seg. Concede 1 ponto de combo. Apenas na Forma de Lobo."],
       ["revive_pet", "Reviver Mascote", "Revive seu mascote morto e o traz de volta ao seu lado."],
     ]),
-    items: phase11NameTranslations(DROWNED_ITEM_IDS, [
+    items: mergeNameTranslations(DROWNED_ITEM_IDS, [
       "Ídolo Salobro", "Oferenda Afogada", "Kris da Lua Afogada", "Maça da Lua Afogada", "Cetro da Lua Afogada", "Soleretes do Passo Afogado", "Sapatilhas do Passo Afogado", "Botinas do Passo Afogado", "Decalque Protetor", "Escama Pálido-Lunar", "Sabre de Escama Lunar", "Peitoral do Sudário Lunar", "Túnica do Sudário Lunar", "Gibão do Sudário Lunar", "Pérola Pálida", "Escama do Coração de Sethrael", "Vara do Anel Pálido", "Anda-Mares de Selthe", "Adaga de Vidro-Maré", "Faixas do Vigia das Marés", "Grevas de Pérola de Ysolei"
     ], 'drowned item'),
-    mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
+    mobs: mergeNameTranslations(DROWNED_MOB_IDS, [
       "Mãe-do-Coro Selthe", "Guarda do Templo Afogado", "Devoto Afogado", "Vadeador de Glimmermere", "Espreitador de Escama Reluzente", "Cria da Lua", "Acólito do Coro Pálido", "Sentinela da Guarda Pérola", "Sethrael, o Anel Pálido", "Demônio de Fogo", "Demônio do Vazio", "Ysolei, Avatar da Lua Afogada"
     ], 'drowned mob'),
     npcs: {
@@ -10317,10 +10317,10 @@ const phase11Extra = {
       ["rake", "Раздирание", "Скрытная атака из засады, наносящая врагу урон оружием плюс {damage} и вызывающая кровотечение в течение 9 сек. Даёт 1 очко серии приёмов. Только в облике волка."],
       ["revive_pet", "Оживление питомца", "Оживляет вашего павшего питомца и возвращает его к вам."],
     ]),
-    items: phase11NameTranslations(DROWNED_ITEM_IDS, [
+    items: mergeNameTranslations(DROWNED_ITEM_IDS, [
       "Просоленный идол", "Подношение утопленников", "Крис Утонувшей луны", "Молот Утонувшей луны", "Скипетр Утонувшей луны", "Сабатоны Утопшего шага", "Туфли Утопшего шага", "Поступь Утопшего шага", "Оттиск оберега", "Чешуя Бледной луны", "Сабля из лунной чешуи", "Кираса Лунного савана", "Одеяние Лунного савана", "Туника Лунного савана", "Бледная жемчужина", "Сердечная чешуя Сетраэля", "Жезл Бледного кольца", "Морестопы Селте", "Кинжал Приливного стекла", "Обмотки Стража приливов", "Жемчужные поножи Изолеи"
     ], 'drowned item'),
-    mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
+    mobs: mergeNameTranslations(DROWNED_MOB_IDS, [
       "Матерь хора Селте", "Утонувший храмовый страж", "Утонувший служитель", "Бродяга Мерцающего омута", "Затаившийся Мерцающечешуйный", "Лунное отродье", "Послушник Бледного хора", "Часовой Жемчужной стражи", "Сетраэль Бледное Кольцо", "Огненный демон", "Демон Пустоты", "Изолея, Воплощение Утонувшей луны"
     ], 'drowned mob'),
     npcs: {
@@ -10368,12 +10368,12 @@ const phase11Extra = {
       drowned_temple: { name: "Утонувший храм", enterText: "Ты проходишь сквозь лунные врата — воздух обращается в холодную воду и бледный свет, и пение смыкается над твоей головой.", leaveText: "Ты всплываешь сквозь лунные врата в горную ночь." },
     },
   },
-  es_ES: {} as typeof phase11ExtraEn,
-  fr_CA: {} as typeof phase11ExtraEn,
-  en_CA: phase11ExtraEn,
+  es_ES: {} as typeof mergeExtraEn,
+  fr_CA: {} as typeof mergeExtraEn,
+  en_CA: mergeExtraEn,
 };
-phase11Extra.es_ES = phase11Extra.es;
-phase11Extra.fr_CA = phase11Extra.fr_FR;
+mergeExtra.es_ES = mergeExtra.es;
+mergeExtra.fr_CA = mergeExtra.fr_FR;
 
 // In-game HUD strings for the Max-Level XP Overflow / post-cap progression
 // system. These route through t() per the i18n constraint; each supported
@@ -11060,24 +11060,24 @@ export const en = {
     friends: "Friends & Guild",
     chat: "Open Chat",
   },
-  ...phase1.en,
-  ...phase2.en,
-  ...phase3.en,
-  ...phase4.en,
-  ...phase5.en,
-  ...phase7.en,
-  ...phase8.en,
-  ...phase9.en,
-  ...phase11.en,
+  ...shellStrings.en,
+  ...hudStrings.en,
+  ...abilityStrings.en,
+  ...questStrings.en,
+  ...itemStrings.en,
+  ...classAbilityNames.en,
+  ...itemNames.en,
+  ...worldNames.en,
+  ...mergeStrings.en,
   entities: {
-    ...phase8.en.entities,
-    ...phase9.en.entities,
-    abilities: { ...phase8.en.entities.abilities, ...phase11Extra.en.abilities },
-    items: { ...phase8.en.entities.items, ...phase11Entities.en.items, ...phase11Extra.en.items },
-    mobs: { ...phase9.en.entities.mobs, ...phase11Entities.en.mobs, ...phase11Extra.en.mobs },
-    npcs: { ...phase9.en.entities.npcs, ...phase11Extra.en.npcs },
-    quests: { ...phase9.en.entities.quests, ...phase11Entities.en.quests, ...phase11Extra.en.quests },
-    dungeons: { ...phase9.en.entities.dungeons, ...phase11Extra.en.dungeons },
+    ...itemNames.en.entities,
+    ...worldNames.en.entities,
+    abilities: { ...itemNames.en.entities.abilities, ...mergeExtra.en.abilities },
+    items: { ...itemNames.en.entities.items, ...mergeEntities.en.items, ...mergeExtra.en.items },
+    mobs: { ...worldNames.en.entities.mobs, ...mergeEntities.en.mobs, ...mergeExtra.en.mobs },
+    npcs: { ...worldNames.en.entities.npcs, ...mergeExtra.en.npcs },
+    quests: { ...worldNames.en.entities.quests, ...mergeEntities.en.quests, ...mergeExtra.en.quests },
+    dungeons: { ...worldNames.en.entities.dungeons, ...mergeExtra.en.dungeons },
   },
 };
 
@@ -11214,24 +11214,24 @@ export const es: typeof en = {
     friends: "Amigos y Hermandad",
     chat: "Abrir Chat",
   },
-  ...phase1.es,
-  ...phase2.es,
-  ...phase3.es,
-  ...phase4.es,
-  ...phase5.es,
-  ...phase7.es,
-  ...phase8.es,
-  ...phase9.es,
-  ...phase11.es,
+  ...shellStrings.es,
+  ...hudStrings.es,
+  ...abilityStrings.es,
+  ...questStrings.es,
+  ...itemStrings.es,
+  ...classAbilityNames.es,
+  ...itemNames.es,
+  ...worldNames.es,
+  ...mergeStrings.es,
   entities: {
-    ...phase8.es.entities,
-    ...phase9.es.entities,
-    abilities: { ...phase8.es.entities.abilities, ...phase11Extra.es.abilities },
-    items: { ...phase8.es.entities.items, ...phase11Entities.es.items, ...phase11Extra.es.items },
-    mobs: { ...phase9.es.entities.mobs, ...phase11Entities.es.mobs, ...phase11Extra.es.mobs },
-    npcs: { ...phase9.es.entities.npcs, ...phase11Extra.es.npcs },
-    quests: { ...phase9.es.entities.quests, ...phase11Entities.es.quests, ...phase11Extra.es.quests },
-    dungeons: { ...phase9.es.entities.dungeons, ...phase11Extra.es.dungeons },
+    ...itemNames.es.entities,
+    ...worldNames.es.entities,
+    abilities: { ...itemNames.es.entities.abilities, ...mergeExtra.es.abilities },
+    items: { ...itemNames.es.entities.items, ...mergeEntities.es.items, ...mergeExtra.es.items },
+    mobs: { ...worldNames.es.entities.mobs, ...mergeEntities.es.mobs, ...mergeExtra.es.mobs },
+    npcs: { ...worldNames.es.entities.npcs, ...mergeExtra.es.npcs },
+    quests: { ...worldNames.es.entities.quests, ...mergeEntities.es.quests, ...mergeExtra.es.quests },
+    dungeons: { ...worldNames.es.entities.dungeons, ...mergeExtra.es.dungeons },
   },
 };
 
@@ -11368,24 +11368,24 @@ export const es_ES: typeof en = {
     friends: "Amigos y hermandad",
     chat: "Abrir chat",
   },
-  ...phase1.es_ES,
-  ...phase2.es_ES,
-  ...phase3.es_ES,
-  ...phase4.es_ES,
-  ...phase5.es_ES,
-  ...phase7.es_ES,
-  ...phase8.es_ES,
-  ...phase9.es_ES,
-  ...phase11.es_ES,
+  ...shellStrings.es_ES,
+  ...hudStrings.es_ES,
+  ...abilityStrings.es_ES,
+  ...questStrings.es_ES,
+  ...itemStrings.es_ES,
+  ...classAbilityNames.es_ES,
+  ...itemNames.es_ES,
+  ...worldNames.es_ES,
+  ...mergeStrings.es_ES,
   entities: {
-    ...phase8.es_ES.entities,
-    ...phase9.es_ES.entities,
-    abilities: { ...phase8.es_ES.entities.abilities, ...phase11Extra.es_ES.abilities },
-    items: { ...phase8.es_ES.entities.items, ...phase11Entities.es_ES.items, ...phase11Extra.es_ES.items },
-    mobs: { ...phase9.es_ES.entities.mobs, ...phase11Entities.es_ES.mobs, ...phase11Extra.es_ES.mobs },
-    npcs: { ...phase9.es_ES.entities.npcs, ...phase11Extra.es_ES.npcs },
-    quests: { ...phase9.es_ES.entities.quests, ...phase11Entities.es_ES.quests, ...phase11Extra.es_ES.quests },
-    dungeons: { ...phase9.es_ES.entities.dungeons, ...phase11Extra.es_ES.dungeons },
+    ...itemNames.es_ES.entities,
+    ...worldNames.es_ES.entities,
+    abilities: { ...itemNames.es_ES.entities.abilities, ...mergeExtra.es_ES.abilities },
+    items: { ...itemNames.es_ES.entities.items, ...mergeEntities.es_ES.items, ...mergeExtra.es_ES.items },
+    mobs: { ...worldNames.es_ES.entities.mobs, ...mergeEntities.es_ES.mobs, ...mergeExtra.es_ES.mobs },
+    npcs: { ...worldNames.es_ES.entities.npcs, ...mergeExtra.es_ES.npcs },
+    quests: { ...worldNames.es_ES.entities.quests, ...mergeEntities.es_ES.quests, ...mergeExtra.es_ES.quests },
+    dungeons: { ...worldNames.es_ES.entities.dungeons, ...mergeExtra.es_ES.dungeons },
   },
 };
 
@@ -11522,24 +11522,24 @@ export const fr_FR: typeof en = {
     friends: "Amis et guilde",
     chat: "Ouvrir le chat",
   },
-  ...phase1.fr_FR,
-  ...phase2.fr_FR,
-  ...phase3.fr_FR,
-  ...phase4.fr_FR,
-  ...phase5.fr_FR,
-  ...phase7.fr_FR,
-  ...phase8.fr_FR,
-  ...phase9.fr_FR,
-  ...phase11.fr_FR,
+  ...shellStrings.fr_FR,
+  ...hudStrings.fr_FR,
+  ...abilityStrings.fr_FR,
+  ...questStrings.fr_FR,
+  ...itemStrings.fr_FR,
+  ...classAbilityNames.fr_FR,
+  ...itemNames.fr_FR,
+  ...worldNames.fr_FR,
+  ...mergeStrings.fr_FR,
   entities: {
-    ...phase8.fr_FR.entities,
-    ...phase9.fr_FR.entities,
-    abilities: { ...phase8.fr_FR.entities.abilities, ...phase11Extra.fr_FR.abilities },
-    items: { ...phase8.fr_FR.entities.items, ...phase11Entities.fr_FR.items, ...phase11Extra.fr_FR.items },
-    mobs: { ...phase9.fr_FR.entities.mobs, ...phase11Entities.fr_FR.mobs, ...phase11Extra.fr_FR.mobs },
-    npcs: { ...phase9.fr_FR.entities.npcs, ...phase11Extra.fr_FR.npcs },
-    quests: { ...phase9.fr_FR.entities.quests, ...phase11Entities.fr_FR.quests, ...phase11Extra.fr_FR.quests },
-    dungeons: { ...phase9.fr_FR.entities.dungeons, ...phase11Extra.fr_FR.dungeons },
+    ...itemNames.fr_FR.entities,
+    ...worldNames.fr_FR.entities,
+    abilities: { ...itemNames.fr_FR.entities.abilities, ...mergeExtra.fr_FR.abilities },
+    items: { ...itemNames.fr_FR.entities.items, ...mergeEntities.fr_FR.items, ...mergeExtra.fr_FR.items },
+    mobs: { ...worldNames.fr_FR.entities.mobs, ...mergeEntities.fr_FR.mobs, ...mergeExtra.fr_FR.mobs },
+    npcs: { ...worldNames.fr_FR.entities.npcs, ...mergeExtra.fr_FR.npcs },
+    quests: { ...worldNames.fr_FR.entities.quests, ...mergeEntities.fr_FR.quests, ...mergeExtra.fr_FR.quests },
+    dungeons: { ...worldNames.fr_FR.entities.dungeons, ...mergeExtra.fr_FR.dungeons },
   },
 };
 
@@ -11676,24 +11676,24 @@ export const fr_CA: typeof en = {
     friends: "Amis et guilde",
     chat: "Ouvrir le chat",
   },
-  ...phase1.fr_CA,
-  ...phase2.fr_CA,
-  ...phase3.fr_CA,
-  ...phase4.fr_CA,
-  ...phase5.fr_CA,
-  ...phase7.fr_CA,
-  ...phase8.fr_CA,
-  ...phase9.fr_CA,
-  ...phase11.fr_CA,
+  ...shellStrings.fr_CA,
+  ...hudStrings.fr_CA,
+  ...abilityStrings.fr_CA,
+  ...questStrings.fr_CA,
+  ...itemStrings.fr_CA,
+  ...classAbilityNames.fr_CA,
+  ...itemNames.fr_CA,
+  ...worldNames.fr_CA,
+  ...mergeStrings.fr_CA,
   entities: {
-    ...phase8.fr_CA.entities,
-    ...phase9.fr_CA.entities,
-    abilities: { ...phase8.fr_CA.entities.abilities, ...phase11Extra.fr_CA.abilities },
-    items: { ...phase8.fr_CA.entities.items, ...phase11Entities.fr_CA.items, ...phase11Extra.fr_CA.items },
-    mobs: { ...phase9.fr_CA.entities.mobs, ...phase11Entities.fr_CA.mobs, ...phase11Extra.fr_CA.mobs },
-    npcs: { ...phase9.fr_CA.entities.npcs, ...phase11Extra.fr_CA.npcs },
-    quests: { ...phase9.fr_CA.entities.quests, ...phase11Entities.fr_CA.quests, ...phase11Extra.fr_CA.quests },
-    dungeons: { ...phase9.fr_CA.entities.dungeons, ...phase11Extra.fr_CA.dungeons },
+    ...itemNames.fr_CA.entities,
+    ...worldNames.fr_CA.entities,
+    abilities: { ...itemNames.fr_CA.entities.abilities, ...mergeExtra.fr_CA.abilities },
+    items: { ...itemNames.fr_CA.entities.items, ...mergeEntities.fr_CA.items, ...mergeExtra.fr_CA.items },
+    mobs: { ...worldNames.fr_CA.entities.mobs, ...mergeEntities.fr_CA.mobs, ...mergeExtra.fr_CA.mobs },
+    npcs: { ...worldNames.fr_CA.entities.npcs, ...mergeExtra.fr_CA.npcs },
+    quests: { ...worldNames.fr_CA.entities.quests, ...mergeEntities.fr_CA.quests, ...mergeExtra.fr_CA.quests },
+    dungeons: { ...worldNames.fr_CA.entities.dungeons, ...mergeExtra.fr_CA.dungeons },
   },
 };
 
@@ -11830,24 +11830,24 @@ export const en_CA: typeof en = {
     friends: "Friends & Guild",
     chat: "Open Chat",
   },
-  ...phase1.en_CA,
-  ...phase2.en_CA,
-  ...phase3.en_CA,
-  ...phase4.en_CA,
-  ...phase5.en_CA,
-  ...phase7.en_CA,
-  ...phase8.en_CA,
-  ...phase9.en_CA,
-  ...phase11.en_CA,
+  ...shellStrings.en_CA,
+  ...hudStrings.en_CA,
+  ...abilityStrings.en_CA,
+  ...questStrings.en_CA,
+  ...itemStrings.en_CA,
+  ...classAbilityNames.en_CA,
+  ...itemNames.en_CA,
+  ...worldNames.en_CA,
+  ...mergeStrings.en_CA,
   entities: {
-    ...phase8.en_CA.entities,
-    ...phase9.en_CA.entities,
-    abilities: { ...phase8.en_CA.entities.abilities, ...phase11Extra.en_CA.abilities },
-    items: { ...phase8.en_CA.entities.items, ...phase11Entities.en_CA.items, ...phase11Extra.en_CA.items },
-    mobs: { ...phase9.en_CA.entities.mobs, ...phase11Entities.en_CA.mobs, ...phase11Extra.en_CA.mobs },
-    npcs: { ...phase9.en_CA.entities.npcs, ...phase11Extra.en_CA.npcs },
-    quests: { ...phase9.en_CA.entities.quests, ...phase11Entities.en_CA.quests, ...phase11Extra.en_CA.quests },
-    dungeons: { ...phase9.en_CA.entities.dungeons, ...phase11Extra.en_CA.dungeons },
+    ...itemNames.en_CA.entities,
+    ...worldNames.en_CA.entities,
+    abilities: { ...itemNames.en_CA.entities.abilities, ...mergeExtra.en_CA.abilities },
+    items: { ...itemNames.en_CA.entities.items, ...mergeEntities.en_CA.items, ...mergeExtra.en_CA.items },
+    mobs: { ...worldNames.en_CA.entities.mobs, ...mergeEntities.en_CA.mobs, ...mergeExtra.en_CA.mobs },
+    npcs: { ...worldNames.en_CA.entities.npcs, ...mergeExtra.en_CA.npcs },
+    quests: { ...worldNames.en_CA.entities.quests, ...mergeEntities.en_CA.quests, ...mergeExtra.en_CA.quests },
+    dungeons: { ...worldNames.en_CA.entities.dungeons, ...mergeExtra.en_CA.dungeons },
   },
 };
 
@@ -11984,24 +11984,24 @@ export const it_IT: typeof en = {
     friends: "Amici e gilda",
     chat: "Apri chat",
   },
-  ...phase1.it_IT,
-  ...phase2.it_IT,
-  ...phase3.it_IT,
-  ...phase4.it_IT,
-  ...phase5.it_IT,
-  ...phase7.it_IT,
-  ...phase8.it_IT,
-  ...phase9.it_IT,
-  ...phase11.it_IT,
+  ...shellStrings.it_IT,
+  ...hudStrings.it_IT,
+  ...abilityStrings.it_IT,
+  ...questStrings.it_IT,
+  ...itemStrings.it_IT,
+  ...classAbilityNames.it_IT,
+  ...itemNames.it_IT,
+  ...worldNames.it_IT,
+  ...mergeStrings.it_IT,
   entities: {
-    ...phase8.it_IT.entities,
-    ...phase9.it_IT.entities,
-    abilities: { ...phase8.it_IT.entities.abilities, ...phase11Extra.it_IT.abilities },
-    items: { ...phase8.it_IT.entities.items, ...phase11Entities.it_IT.items, ...phase11Extra.it_IT.items },
-    mobs: { ...phase9.it_IT.entities.mobs, ...phase11Entities.it_IT.mobs, ...phase11Extra.it_IT.mobs },
-    npcs: { ...phase9.it_IT.entities.npcs, ...phase11Extra.it_IT.npcs },
-    quests: { ...phase9.it_IT.entities.quests, ...phase11Entities.it_IT.quests, ...phase11Extra.it_IT.quests },
-    dungeons: { ...phase9.it_IT.entities.dungeons, ...phase11Extra.it_IT.dungeons },
+    ...itemNames.it_IT.entities,
+    ...worldNames.it_IT.entities,
+    abilities: { ...itemNames.it_IT.entities.abilities, ...mergeExtra.it_IT.abilities },
+    items: { ...itemNames.it_IT.entities.items, ...mergeEntities.it_IT.items, ...mergeExtra.it_IT.items },
+    mobs: { ...worldNames.it_IT.entities.mobs, ...mergeEntities.it_IT.mobs, ...mergeExtra.it_IT.mobs },
+    npcs: { ...worldNames.it_IT.entities.npcs, ...mergeExtra.it_IT.npcs },
+    quests: { ...worldNames.it_IT.entities.quests, ...mergeEntities.it_IT.quests, ...mergeExtra.it_IT.quests },
+    dungeons: { ...worldNames.it_IT.entities.dungeons, ...mergeExtra.it_IT.dungeons },
   },
 };
 
@@ -12138,24 +12138,24 @@ export const de_DE: typeof en = {
     friends: "Freunde und Gilde",
     chat: "Chat öffnen",
   },
-  ...phase1.de_DE,
-  ...phase2.de_DE,
-  ...phase3.de_DE,
-  ...phase4.de_DE,
-  ...phase5.de_DE,
-  ...phase7.de_DE,
-  ...phase8.de_DE,
-  ...phase9.de_DE,
-  ...phase11.de_DE,
+  ...shellStrings.de_DE,
+  ...hudStrings.de_DE,
+  ...abilityStrings.de_DE,
+  ...questStrings.de_DE,
+  ...itemStrings.de_DE,
+  ...classAbilityNames.de_DE,
+  ...itemNames.de_DE,
+  ...worldNames.de_DE,
+  ...mergeStrings.de_DE,
   entities: {
-    ...phase8.de_DE.entities,
-    ...phase9.de_DE.entities,
-    abilities: { ...phase8.de_DE.entities.abilities, ...phase11Extra.de_DE.abilities },
-    items: { ...phase8.de_DE.entities.items, ...phase11Entities.de_DE.items, ...phase11Extra.de_DE.items },
-    mobs: { ...phase9.de_DE.entities.mobs, ...phase11Entities.de_DE.mobs, ...phase11Extra.de_DE.mobs },
-    npcs: { ...phase9.de_DE.entities.npcs, ...phase11Extra.de_DE.npcs },
-    quests: { ...phase9.de_DE.entities.quests, ...phase11Entities.de_DE.quests, ...phase11Extra.de_DE.quests },
-    dungeons: { ...phase9.de_DE.entities.dungeons, ...phase11Extra.de_DE.dungeons },
+    ...itemNames.de_DE.entities,
+    ...worldNames.de_DE.entities,
+    abilities: { ...itemNames.de_DE.entities.abilities, ...mergeExtra.de_DE.abilities },
+    items: { ...itemNames.de_DE.entities.items, ...mergeEntities.de_DE.items, ...mergeExtra.de_DE.items },
+    mobs: { ...worldNames.de_DE.entities.mobs, ...mergeEntities.de_DE.mobs, ...mergeExtra.de_DE.mobs },
+    npcs: { ...worldNames.de_DE.entities.npcs, ...mergeExtra.de_DE.npcs },
+    quests: { ...worldNames.de_DE.entities.quests, ...mergeEntities.de_DE.quests, ...mergeExtra.de_DE.quests },
+    dungeons: { ...worldNames.de_DE.entities.dungeons, ...mergeExtra.de_DE.dungeons },
   },
 };
 
@@ -12292,24 +12292,24 @@ export const zh_CN: typeof en = {
     friends: "好友与公会",
     chat: "打开聊天框",
   },
-  ...phase1.zh_CN,
-  ...phase2.zh_CN,
-  ...phase3.zh_CN,
-  ...phase4.zh_CN,
-  ...phase5.zh_CN,
-  ...phase7.zh_CN,
-  ...phase8.zh_CN,
-  ...phase9.zh_CN,
-  ...phase11.zh_CN,
+  ...shellStrings.zh_CN,
+  ...hudStrings.zh_CN,
+  ...abilityStrings.zh_CN,
+  ...questStrings.zh_CN,
+  ...itemStrings.zh_CN,
+  ...classAbilityNames.zh_CN,
+  ...itemNames.zh_CN,
+  ...worldNames.zh_CN,
+  ...mergeStrings.zh_CN,
   entities: {
-    ...phase8.zh_CN.entities,
-    ...phase9.zh_CN.entities,
-    abilities: { ...phase8.zh_CN.entities.abilities, ...phase11Extra.zh_CN.abilities },
-    items: { ...phase8.zh_CN.entities.items, ...phase11Entities.zh_CN.items, ...phase11Extra.zh_CN.items },
-    mobs: { ...phase9.zh_CN.entities.mobs, ...phase11Entities.zh_CN.mobs, ...phase11Extra.zh_CN.mobs },
-    npcs: { ...phase9.zh_CN.entities.npcs, ...phase11Extra.zh_CN.npcs },
-    quests: { ...phase9.zh_CN.entities.quests, ...phase11Entities.zh_CN.quests, ...phase11Extra.zh_CN.quests },
-    dungeons: { ...phase9.zh_CN.entities.dungeons, ...phase11Extra.zh_CN.dungeons },
+    ...itemNames.zh_CN.entities,
+    ...worldNames.zh_CN.entities,
+    abilities: { ...itemNames.zh_CN.entities.abilities, ...mergeExtra.zh_CN.abilities },
+    items: { ...itemNames.zh_CN.entities.items, ...mergeEntities.zh_CN.items, ...mergeExtra.zh_CN.items },
+    mobs: { ...worldNames.zh_CN.entities.mobs, ...mergeEntities.zh_CN.mobs, ...mergeExtra.zh_CN.mobs },
+    npcs: { ...worldNames.zh_CN.entities.npcs, ...mergeExtra.zh_CN.npcs },
+    quests: { ...worldNames.zh_CN.entities.quests, ...mergeEntities.zh_CN.quests, ...mergeExtra.zh_CN.quests },
+    dungeons: { ...worldNames.zh_CN.entities.dungeons, ...mergeExtra.zh_CN.dungeons },
   },
 };
 
@@ -12446,24 +12446,24 @@ export const zh_TW: typeof en = {
     friends: "好友與公會",
     chat: "開啟對話框",
   },
-  ...phase1.zh_TW,
-  ...phase2.zh_TW,
-  ...phase3.zh_TW,
-  ...phase4.zh_TW,
-  ...phase5.zh_TW,
-  ...phase7.zh_TW,
-  ...phase8.zh_TW,
-  ...phase9.zh_TW,
-  ...phase11.zh_TW,
+  ...shellStrings.zh_TW,
+  ...hudStrings.zh_TW,
+  ...abilityStrings.zh_TW,
+  ...questStrings.zh_TW,
+  ...itemStrings.zh_TW,
+  ...classAbilityNames.zh_TW,
+  ...itemNames.zh_TW,
+  ...worldNames.zh_TW,
+  ...mergeStrings.zh_TW,
   entities: {
-    ...phase8.zh_TW.entities,
-    ...phase9.zh_TW.entities,
-    abilities: { ...phase8.zh_TW.entities.abilities, ...phase11Extra.zh_TW.abilities },
-    items: { ...phase8.zh_TW.entities.items, ...phase11Entities.zh_TW.items, ...phase11Extra.zh_TW.items },
-    mobs: { ...phase9.zh_TW.entities.mobs, ...phase11Entities.zh_TW.mobs, ...phase11Extra.zh_TW.mobs },
-    npcs: { ...phase9.zh_TW.entities.npcs, ...phase11Extra.zh_TW.npcs },
-    quests: { ...phase9.zh_TW.entities.quests, ...phase11Entities.zh_TW.quests, ...phase11Extra.zh_TW.quests },
-    dungeons: { ...phase9.zh_TW.entities.dungeons, ...phase11Extra.zh_TW.dungeons },
+    ...itemNames.zh_TW.entities,
+    ...worldNames.zh_TW.entities,
+    abilities: { ...itemNames.zh_TW.entities.abilities, ...mergeExtra.zh_TW.abilities },
+    items: { ...itemNames.zh_TW.entities.items, ...mergeEntities.zh_TW.items, ...mergeExtra.zh_TW.items },
+    mobs: { ...worldNames.zh_TW.entities.mobs, ...mergeEntities.zh_TW.mobs, ...mergeExtra.zh_TW.mobs },
+    npcs: { ...worldNames.zh_TW.entities.npcs, ...mergeExtra.zh_TW.npcs },
+    quests: { ...worldNames.zh_TW.entities.quests, ...mergeEntities.zh_TW.quests, ...mergeExtra.zh_TW.quests },
+    dungeons: { ...worldNames.zh_TW.entities.dungeons, ...mergeExtra.zh_TW.dungeons },
   },
 };
 
@@ -12600,24 +12600,24 @@ export const ko_KR: typeof en = {
     friends: "친구 및 길드",
     chat: "채팅창 열기",
   },
-  ...phase1.ko_KR,
-  ...phase2.ko_KR,
-  ...phase3.ko_KR,
-  ...phase4.ko_KR,
-  ...phase5.ko_KR,
-  ...phase7.ko_KR,
-  ...phase8.ko_KR,
-  ...phase9.ko_KR,
-  ...phase11.ko_KR,
+  ...shellStrings.ko_KR,
+  ...hudStrings.ko_KR,
+  ...abilityStrings.ko_KR,
+  ...questStrings.ko_KR,
+  ...itemStrings.ko_KR,
+  ...classAbilityNames.ko_KR,
+  ...itemNames.ko_KR,
+  ...worldNames.ko_KR,
+  ...mergeStrings.ko_KR,
   entities: {
-    ...phase8.ko_KR.entities,
-    ...phase9.ko_KR.entities,
-    abilities: { ...phase8.ko_KR.entities.abilities, ...phase11Extra.ko_KR.abilities },
-    items: { ...phase8.ko_KR.entities.items, ...phase11Entities.ko_KR.items, ...phase11Extra.ko_KR.items },
-    mobs: { ...phase9.ko_KR.entities.mobs, ...phase11Entities.ko_KR.mobs, ...phase11Extra.ko_KR.mobs },
-    npcs: { ...phase9.ko_KR.entities.npcs, ...phase11Extra.ko_KR.npcs },
-    quests: { ...phase9.ko_KR.entities.quests, ...phase11Entities.ko_KR.quests, ...phase11Extra.ko_KR.quests },
-    dungeons: { ...phase9.ko_KR.entities.dungeons, ...phase11Extra.ko_KR.dungeons },
+    ...itemNames.ko_KR.entities,
+    ...worldNames.ko_KR.entities,
+    abilities: { ...itemNames.ko_KR.entities.abilities, ...mergeExtra.ko_KR.abilities },
+    items: { ...itemNames.ko_KR.entities.items, ...mergeEntities.ko_KR.items, ...mergeExtra.ko_KR.items },
+    mobs: { ...worldNames.ko_KR.entities.mobs, ...mergeEntities.ko_KR.mobs, ...mergeExtra.ko_KR.mobs },
+    npcs: { ...worldNames.ko_KR.entities.npcs, ...mergeExtra.ko_KR.npcs },
+    quests: { ...worldNames.ko_KR.entities.quests, ...mergeEntities.ko_KR.quests, ...mergeExtra.ko_KR.quests },
+    dungeons: { ...worldNames.ko_KR.entities.dungeons, ...mergeExtra.ko_KR.dungeons },
   },
 };
 
@@ -12754,24 +12754,24 @@ export const ja_JP: typeof en = {
     friends: "フレンド & ギルド",
     chat: "チャットを開く",
   },
-  ...phase1.ja_JP,
-  ...phase2.ja_JP,
-  ...phase3.ja_JP,
-  ...phase4.ja_JP,
-  ...phase5.ja_JP,
-  ...phase7.ja_JP,
-  ...phase8.ja_JP,
-  ...phase9.ja_JP,
-  ...phase11.ja_JP,
+  ...shellStrings.ja_JP,
+  ...hudStrings.ja_JP,
+  ...abilityStrings.ja_JP,
+  ...questStrings.ja_JP,
+  ...itemStrings.ja_JP,
+  ...classAbilityNames.ja_JP,
+  ...itemNames.ja_JP,
+  ...worldNames.ja_JP,
+  ...mergeStrings.ja_JP,
   entities: {
-    ...phase8.ja_JP.entities,
-    ...phase9.ja_JP.entities,
-    abilities: { ...phase8.ja_JP.entities.abilities, ...phase11Extra.ja_JP.abilities },
-    items: { ...phase8.ja_JP.entities.items, ...phase11Entities.ja_JP.items, ...phase11Extra.ja_JP.items },
-    mobs: { ...phase9.ja_JP.entities.mobs, ...phase11Entities.ja_JP.mobs, ...phase11Extra.ja_JP.mobs },
-    npcs: { ...phase9.ja_JP.entities.npcs, ...phase11Extra.ja_JP.npcs },
-    quests: { ...phase9.ja_JP.entities.quests, ...phase11Entities.ja_JP.quests, ...phase11Extra.ja_JP.quests },
-    dungeons: { ...phase9.ja_JP.entities.dungeons, ...phase11Extra.ja_JP.dungeons },
+    ...itemNames.ja_JP.entities,
+    ...worldNames.ja_JP.entities,
+    abilities: { ...itemNames.ja_JP.entities.abilities, ...mergeExtra.ja_JP.abilities },
+    items: { ...itemNames.ja_JP.entities.items, ...mergeEntities.ja_JP.items, ...mergeExtra.ja_JP.items },
+    mobs: { ...worldNames.ja_JP.entities.mobs, ...mergeEntities.ja_JP.mobs, ...mergeExtra.ja_JP.mobs },
+    npcs: { ...worldNames.ja_JP.entities.npcs, ...mergeExtra.ja_JP.npcs },
+    quests: { ...worldNames.ja_JP.entities.quests, ...mergeEntities.ja_JP.quests, ...mergeExtra.ja_JP.quests },
+    dungeons: { ...worldNames.ja_JP.entities.dungeons, ...mergeExtra.ja_JP.dungeons },
   },
 };
 
@@ -12908,24 +12908,24 @@ export const pt_BR: typeof en = {
     friends: "Amigos e guilda",
     chat: "Abrir chat",
   },
-  ...phase1.pt_BR,
-  ...phase2.pt_BR,
-  ...phase3.pt_BR,
-  ...phase4.pt_BR,
-  ...phase5.pt_BR,
-  ...phase7.pt_BR,
-  ...phase8.pt_BR,
-  ...phase9.pt_BR,
-  ...phase11.pt_BR,
+  ...shellStrings.pt_BR,
+  ...hudStrings.pt_BR,
+  ...abilityStrings.pt_BR,
+  ...questStrings.pt_BR,
+  ...itemStrings.pt_BR,
+  ...classAbilityNames.pt_BR,
+  ...itemNames.pt_BR,
+  ...worldNames.pt_BR,
+  ...mergeStrings.pt_BR,
   entities: {
-    ...phase8.pt_BR.entities,
-    ...phase9.pt_BR.entities,
-    abilities: { ...phase8.pt_BR.entities.abilities, ...phase11Extra.pt_BR.abilities },
-    items: { ...phase8.pt_BR.entities.items, ...phase11Entities.pt_BR.items, ...phase11Extra.pt_BR.items },
-    mobs: { ...phase9.pt_BR.entities.mobs, ...phase11Entities.pt_BR.mobs, ...phase11Extra.pt_BR.mobs },
-    npcs: { ...phase9.pt_BR.entities.npcs, ...phase11Extra.pt_BR.npcs },
-    quests: { ...phase9.pt_BR.entities.quests, ...phase11Entities.pt_BR.quests, ...phase11Extra.pt_BR.quests },
-    dungeons: { ...phase9.pt_BR.entities.dungeons, ...phase11Extra.pt_BR.dungeons },
+    ...itemNames.pt_BR.entities,
+    ...worldNames.pt_BR.entities,
+    abilities: { ...itemNames.pt_BR.entities.abilities, ...mergeExtra.pt_BR.abilities },
+    items: { ...itemNames.pt_BR.entities.items, ...mergeEntities.pt_BR.items, ...mergeExtra.pt_BR.items },
+    mobs: { ...worldNames.pt_BR.entities.mobs, ...mergeEntities.pt_BR.mobs, ...mergeExtra.pt_BR.mobs },
+    npcs: { ...worldNames.pt_BR.entities.npcs, ...mergeExtra.pt_BR.npcs },
+    quests: { ...worldNames.pt_BR.entities.quests, ...mergeEntities.pt_BR.quests, ...mergeExtra.pt_BR.quests },
+    dungeons: { ...worldNames.pt_BR.entities.dungeons, ...mergeExtra.pt_BR.dungeons },
   },
 };
 
@@ -13062,24 +13062,24 @@ export const ru_RU: typeof en = {
     friends: "Друзья и гильдия",
     chat: "Открыть чат",
   },
-  ...phase1.ru_RU,
-  ...phase2.ru_RU,
-  ...phase3.ru_RU,
-  ...phase4.ru_RU,
-  ...phase5.ru_RU,
-  ...phase7.ru_RU,
-  ...phase8.ru_RU,
-  ...phase9.ru_RU,
-  ...phase11.ru_RU,
+  ...shellStrings.ru_RU,
+  ...hudStrings.ru_RU,
+  ...abilityStrings.ru_RU,
+  ...questStrings.ru_RU,
+  ...itemStrings.ru_RU,
+  ...classAbilityNames.ru_RU,
+  ...itemNames.ru_RU,
+  ...worldNames.ru_RU,
+  ...mergeStrings.ru_RU,
   entities: {
-    ...phase8.ru_RU.entities,
-    ...phase9.ru_RU.entities,
-    abilities: { ...phase8.ru_RU.entities.abilities, ...phase11Extra.ru_RU.abilities },
-    items: { ...phase8.ru_RU.entities.items, ...phase11Entities.ru_RU.items, ...phase11Extra.ru_RU.items },
-    mobs: { ...phase9.ru_RU.entities.mobs, ...phase11Entities.ru_RU.mobs, ...phase11Extra.ru_RU.mobs },
-    npcs: { ...phase9.ru_RU.entities.npcs, ...phase11Extra.ru_RU.npcs },
-    quests: { ...phase9.ru_RU.entities.quests, ...phase11Entities.ru_RU.quests, ...phase11Extra.ru_RU.quests },
-    dungeons: { ...phase9.ru_RU.entities.dungeons, ...phase11Extra.ru_RU.dungeons },
+    ...itemNames.ru_RU.entities,
+    ...worldNames.ru_RU.entities,
+    abilities: { ...itemNames.ru_RU.entities.abilities, ...mergeExtra.ru_RU.abilities },
+    items: { ...itemNames.ru_RU.entities.items, ...mergeEntities.ru_RU.items, ...mergeExtra.ru_RU.items },
+    mobs: { ...worldNames.ru_RU.entities.mobs, ...mergeEntities.ru_RU.mobs, ...mergeExtra.ru_RU.mobs },
+    npcs: { ...worldNames.ru_RU.entities.npcs, ...mergeExtra.ru_RU.npcs },
+    quests: { ...worldNames.ru_RU.entities.quests, ...mergeEntities.ru_RU.quests, ...mergeExtra.ru_RU.quests },
+    dungeons: { ...worldNames.ru_RU.entities.dungeons, ...mergeExtra.ru_RU.dungeons },
   },
 };
 
