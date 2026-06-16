@@ -9709,7 +9709,7 @@ phase11Entities.fr_CA = phase11Entities.fr_FR;
 // Phase 11 overlay extension: class quality-of-life abilities + Drowned Temple
 // (PR #390/#392). Merged into each locale's entities below.
 const DROWNED_ITEM_IDS = [
-  "briny_idol", "drowned_offering", "drownedmoon_kris", "drownedmoon_maul", "drownedmoon_scepter", "drownstep_sabatons", "drownstep_slippers", "drownstep_treads", "moongate_rubbing", "moonpale_scale", "moonscale_saber", "moonshroud_breastplate", "moonshroud_robe", "moonshroud_tunic", "pale_pearl", "palecoil_heartscale", "palecoil_rod", "selthes_seastriders", "tideglass_dirk", "tidewatchers_wraps", "ysols_pearl_greaves"
+  "briny_idol", "drowned_offering", "drownedmoon_kris", "drownedmoon_maul", "drownedmoon_scepter", "drownstep_sabatons", "drownstep_slippers", "drownstep_treads", "moongate_rubbing", "moonpale_scale", "moonscale_saber", "moonshroud_breastplate", "moonshroud_robe", "moonshroud_tunic", "pale_pearl", "palecoil_heartscale", "palecoil_rod", "selthes_seastriders", "tideglass_dirk", "tidewatchers_wraps", "ysols_pearl_greaves", "the_codfather"
 ] as const;
 
 const DROWNED_MOB_IDS = [
@@ -9725,7 +9725,7 @@ const phase11ExtraEn = {
       ["revive_pet", "Revive Pet", "Revives your dead pet and returns it to your side."],
     ]),
     items: phase11NameTranslations(DROWNED_ITEM_IDS, [
-      "Briny Idol", "Drowned Offering", "Drowned Moon Kris", "Drowned Moon Maul", "Drowned Moon Scepter", "Drownstep Sabatons", "Drownstep Slippers", "Drownstep Treads", "Warding Rubbing", "Moonpale Scale", "Moonscale Saber", "Moonshroud Breastplate", "Moonshroud Robe", "Moonshroud Tunic", "Pale Pearl", "Sethrael's Heartscale", "Palecoil Rod", "Selthe's Sea-Striders", "Tideglass Dirk", "Tidewatcher's Wraps", "Ysolei's Pearl Greaves"
+      "Briny Idol", "Drowned Offering", "Drowned Moon Kris", "Drowned Moon Maul", "Drowned Moon Scepter", "Drownstep Sabatons", "Drownstep Slippers", "Drownstep Treads", "Warding Rubbing", "Moonpale Scale", "Moonscale Saber", "Moonshroud Breastplate", "Moonshroud Robe", "Moonshroud Tunic", "Pale Pearl", "Sethrael's Heartscale", "Palecoil Rod", "Selthe's Sea-Striders", "Tideglass Dirk", "Tidewatcher's Wraps", "Ysolei's Pearl Greaves", "The Codfather"
     ], 'drowned item'),
     mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
       "Choirmother Selthe", "Drowned Templeguard", "Drowned Votary", "Glimmermere Wader", "Glimmerscale Lurker", "Moonspawn", "Pale Choir Acolyte", "Pearlguard Sentinel", "Sethrael the Palecoil", "Fire Demon", "Void Demon", "Ysolei, Avatar of the Drowned Moon"
@@ -9770,6 +9770,12 @@ const phase11ExtraEn = {
         completion: "Ten back in the water. They feel no cold, {playerName}, and no fear — only the pull of that gate. Whatever sings to them, it sings loud.",
         objectives: { 0: { label: "Glimmermere Wader slain" } },
       },
+      q_the_codfather: {
+        title: "The Codfather",
+        text: "The Codfather isn't just a fish, {playerName}, he's a cold-blooded killer. Old-timers swear he eats Mire Prowlers for breakfast, and even the Mirefen Widows won't spin their webs near the Deepfen Shallows out of sheer terror. He rules those waters. Grab a fishing pole, drag that old devil out of his waters, and I will admit you have joined the family.",
+        completion: "By the damp saints... The Codfather himself. Look at those whiskers. Fenbridge will eat stories off this catch for a year, {playerName}.",
+        objectives: { 0: { label: "The Codfather" } },
+      },
     },
     dungeons: {
       drowned_temple: { name: "The Drowned Temple", enterText: "You step through the moongate — the air turns to cold water and pale light, and the singing closes over your head.", leaveText: "You surface through the moongate into the mountain night." },
@@ -9787,7 +9793,7 @@ const phase11Extra = {
       ["revive_pet", "Revivir mascota", "Revive a tu mascota muerta y la devuelve a tu lado."],
     ]),
     items: phase11NameTranslations(DROWNED_ITEM_IDS, [
-      "Ídolo salobre", "Ofrenda ahogada", "Kris de la Luna Ahogada", "Maza de la Luna Ahogada", "Cetro de la Luna Ahogada", "Escarpes de Paso Ahogado", "Babuchas de Paso Ahogado", "Botas de Paso Ahogado", "Calco protector", "Escama de Lunapálida", "Sable de Escama Lunar", "Peto del Sudario Lunar", "Túnica del Sudario Lunar", "Sobreveste del Sudario Lunar", "Perla pálida", "Escama del corazón de Sethrael", "Vara de Espiral Pálida", "Zancadas marinas de Selthe", "Daga de Vidriomarea", "Vendas del Vigía de la Marea", "Grebas de perla de Ysolei"
+      "Ídolo salobre", "Ofrenda ahogada", "Kris de la Luna Ahogada", "Maza de la Luna Ahogada", "Cetro de la Luna Ahogada", "Escarpes de Paso Ahogado", "Babuchas de Paso Ahogado", "Botas de Paso Ahogado", "Calco protector", "Escama de Lunapálida", "Sable de Escama Lunar", "Peto del Sudario Lunar", "Túnica del Sudario Lunar", "Sobreveste del Sudario Lunar", "Perla pálida", "Escama del corazón de Sethrael", "Vara de Espiral Pálida", "Zancadas marinas de Selthe", "Daga de Vidriomarea", "Vendas del Vigía de la Marea", "Grebas de perla de Ysolei", "El Bacaladrino"
     ], 'drowned item'),
     mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
       "Selthe, madre del coro", "Guardián ahogado del templo", "Devoto ahogado", "Vadeador de Glimmermere", "Acechador de Escama Reluciente", "Engendro lunar", "Acólito del Coro Pálido", "Centinela de la Guardia de Perla", "Sethrael, la Espiral Pálida", "Demonio de fuego", "Demonio del vacío", "Ysolei, Avatar de la Luna Ahogada"
@@ -9832,6 +9838,12 @@ const phase11Extra = {
         completion: "Diez de vuelta al agua. No sienten frío, {playerName}, ni miedo: solo la atracción de esa puerta. Sea lo que sea lo que les canta, canta fuerte.",
         objectives: { 0: { label: "Vadeador de Glimmermere abatido" } },
       },
+      q_the_codfather: {
+        title: "El Bacaladrino",
+        text: "El Bacaladrino no es solo un pez, {playerName}, es un asesino de sangre fría. Los veteranos juran que desayuna merodeadores del lodazal, e incluso las viudas de Mirefen no tejen sus redes cerca de los Bajíos de Deepfen por puro terror. Gobierna esas aguas. Toma una caña de pescar, arranca a ese viejo demonio de sus aguas y admitiré que ya eres de la familia.",
+        completion: "Por los santos húmedos... El Bacaladrino en persona. Mira esos bigotes. Fenbridge vivirá un año entero contando historias de esta captura, {playerName}.",
+        objectives: { 0: { label: "El Bacaladrino" } },
+      },
     },
     dungeons: {
       drowned_temple: { name: "El Templo Ahogado", enterText: "Atraviesas la puerta lunar: el aire se vuelve agua fría y luz pálida, y el canto se cierra sobre tu cabeza.", leaveText: "Emerges a través de la puerta lunar a la noche de la montaña." },
@@ -9846,7 +9858,7 @@ const phase11Extra = {
       ["revive_pet", "Ranimer le familier", "Ranime votre familier mort et le ramène à vos côtés."],
     ]),
     items: phase11NameTranslations(DROWNED_ITEM_IDS, [
-      "Idole saumâtre", "Offrande noyée", "Kriss de la Lune noyée", "Maillet de la Lune noyée", "Sceptre de la Lune noyée", "Solerets du Pas noyé", "Chaussons du Pas noyé", "Sandales du Pas noyé", "Frottis de protection", "Écaille de Pâlelune", "Sabre en écailles de lune", "Plastron du Linceul de lune", "Robe du Linceul de lune", "Tunique du Linceul de lune", "Perle blafarde", "Écaille de cœur de Sethrael", "Verge de Pâlanneau", "Arpenteuses des mers de Selthe", "Dague de verre de marée", "Bandes du Veille-marées", "Jambières de perle d'Ysolei"
+      "Idole saumâtre", "Offrande noyée", "Kriss de la Lune noyée", "Maillet de la Lune noyée", "Sceptre de la Lune noyée", "Solerets du Pas noyé", "Chaussons du Pas noyé", "Sandales du Pas noyé", "Frottis de protection", "Écaille de Pâlelune", "Sabre en écailles de lune", "Plastron du Linceul de lune", "Robe du Linceul de lune", "Tunique du Linceul de lune", "Perle blafarde", "Écaille de cœur de Sethrael", "Verge de Pâlanneau", "Arpenteuses des mers de Selthe", "Dague de verre de marée", "Bandes du Veille-marées", "Jambières de perle d'Ysolei", "Capitaine brochet"
     ], 'drowned item'),
     mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
       "Selthe, mère de chœur", "Garde du temple noyé", "Dévot noyé", "Pataugeur de Lac-miroitant", "Rôdeur aux écailles miroitantes", "Engeance de lune", "Acolyte du Chœur blafard", "Sentinelle de la Garde de perle", "Sethrael le Pâlanneau", "Démon de feu", "Démon du néant", "Ysolei, avatar de la Lune noyée"
@@ -9891,6 +9903,12 @@ const phase11Extra = {
         completion: "Dix rendus à l'eau. Ils ne ressentent ni le froid, {playerName}, ni la peur — seulement l'attrait de cette porte. Quoi qu'il leur chante, cela chante fort.",
         objectives: { 0: { label: "Pataugeur de Lac-miroitant tué" } },
       },
+      q_the_codfather: {
+        title: "Capitaine brochet",
+        text: "Capitaine brochet n'est pas qu'un poisson, {playerName}, c'est un tueur à sang froid. Les anciens jurent qu'il mange des rôdeurs du bourbier au petit-déjeuner, et même les veuves de Mirefen ne tissent pas leurs toiles près des hauts-fonds de Deepfen, tant elles le craignent. Il règne sur ces eaux. Prenez une canne à pêche, tirez ce vieux démon hors de ses eaux, et j'admettrai que vous faites partie de la famille.",
+        completion: "Je n'en crois pas mes yeux ! Capitaine brochet lui-même. Regardez moi ces moustaches diaboliques ! Tout Fenbridge parlera de votre belle prise durant un bon moment, {playerName}.",
+        objectives: { 0: { label: "Capitaine brochet" } },
+      },
     },
     dungeons: {
       drowned_temple: { name: "Le Temple noyé", enterText: "Tu franchis la porte de lune — l'air se mue en eau froide et en lumière blafarde, et le chant se referme au-dessus de ta tête.", leaveText: "Tu refais surface par la porte de lune dans la nuit de la montagne." },
@@ -9905,7 +9923,7 @@ const phase11Extra = {
       ["revive_pet", "Rianima Famiglio", "Rianima il tuo famiglio morto e lo richiama al tuo fianco."],
     ]),
     items: phase11NameTranslations(DROWNED_ITEM_IDS, [
-      "Idolo Salmastro", "Offerta Annegata", "Kris della Luna Annegata", "Maglio della Luna Annegata", "Scettro della Luna Annegata", "Scarpe d'Arme di Passoannegato", "Pantofole di Passoannegato", "Stivali di Passoannegato", "Calco Protettivo", "Squama di Lunapallida", "Sciabola di Lunasquama", "Corazza del Sudario Lunare", "Veste del Sudario Lunare", "Tunica del Sudario Lunare", "Perla Pallida", "Squamacuore di Sethrael", "Verga di Spiropallido", "Camminamari di Selthe", "Pugnale di Vetromarea", "Fasce del Guardamarea", "Schinieri di Perla di Ysolei"
+      "Idolo Salmastro", "Offerta Annegata", "Kris della Luna Annegata", "Maglio della Luna Annegata", "Scettro della Luna Annegata", "Scarpe d'Arme di Passoannegato", "Pantofole di Passoannegato", "Stivali di Passoannegato", "Calco Protettivo", "Squama di Lunapallida", "Sciabola di Lunasquama", "Corazza del Sudario Lunare", "Veste del Sudario Lunare", "Tunica del Sudario Lunare", "Perla Pallida", "Squamacuore di Sethrael", "Verga di Spiropallido", "Camminamari di Selthe", "Pugnale di Vetromarea", "Fasce del Guardamarea", "Schinieri di Perla di Ysolei", "Il Pescadrino"
     ], 'drowned item'),
     mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
       "Selthe Madre del Coro", "Guardiano del Tempio Annegato", "Devoto Annegato", "Guadatore di Glimmermere", "Acquattato di Glimmerscaglia", "Progenie Lunare", "Accolito del Coro Pallido", "Sentinella della Guardia di Perla", "Sethrael lo Spiropallido", "Demone di Fuoco", "Demone del Vuoto", "Ysolei, Avatar della Luna Annegata"
@@ -9950,6 +9968,12 @@ const phase11Extra = {
         completion: "Dieci di nuovo nell'acqua. Non sentono il freddo, {playerName}, né la paura — solo il richiamo di quel cancello. Qualunque cosa canti per loro, canta forte.",
         objectives: { 0: { label: "Guadatore di Glimmermere ucciso" } },
       },
+      q_the_codfather: {
+        title: "Il Pescadrino",
+        text: "Il Pescadrino non è solo un pesce, {playerName}, è un assassino a sangue freddo. I vecchi giurano che mangi predatori del pantano a colazione, e persino le vedove di Mirefen non tessono le loro ragnatele vicino ai bassifondi di Deepfen per puro terrore. Governa quelle acque. Prendi una canna da pesca, trascina quel vecchio demonio fuori dalle sue acque e ammetterò che sei entrato nella famiglia.",
+        completion: "Per i santi fradici... Il Pescadrino in persona. Guarda quei baffi. Fenbridge vivrà per un anno raccontando storie su questa cattura, {playerName}.",
+        objectives: { 0: { label: "Il Pescadrino" } },
+      },
     },
     dungeons: {
       drowned_temple: { name: "Il Tempio Annegato", enterText: "Attraversi il cancello lunare — l'aria si fa acqua gelida e luce pallida, e il canto si richiude sopra la tua testa.", leaveText: "Riemergi attraverso il cancello lunare nella notte della montagna." },
@@ -9964,7 +9988,7 @@ const phase11Extra = {
       ["revive_pet", "Begleiter wiederbeleben", "Belebt deinen toten Begleiter wieder und ruft ihn an deine Seite zurück."],
     ]),
     items: phase11NameTranslations(DROWNED_ITEM_IDS, [
-      "Salzlaken-Götze", "Ertränkte Opfergabe", "Kris des Ertränkten Mondes", "Streitkolben des Ertränkten Mondes", "Zepter des Ertränkten Mondes", "Ertränkungsschritt-Eisenschuhe", "Ertränkungsschritt-Schläppchen", "Ertränkungsschritt-Trittlinge", "Schutzzeichen-Abrieb", "Mondbleiche Schuppe", "Mondschuppen-Säbel", "Mondschleier-Brustpanzer", "Mondschleier-Robe", "Mondschleier-Wams", "Bleiche Perle", "Sethraels Herzschuppe", "Bleichwinder-Rute", "Selthes Meeresschreiter", "Gezeitenglas-Dolch", "Bandagen des Gezeitenwächters", "Ysoleis Perlenbeinschienen"
+      "Salzlaken-Götze", "Ertränkte Opfergabe", "Kris des Ertränkten Mondes", "Streitkolben des Ertränkten Mondes", "Zepter des Ertränkten Mondes", "Ertränkungsschritt-Eisenschuhe", "Ertränkungsschritt-Schläppchen", "Ertränkungsschritt-Trittlinge", "Schutzzeichen-Abrieb", "Mondbleiche Schuppe", "Mondschuppen-Säbel", "Mondschleier-Brustpanzer", "Mondschleier-Robe", "Mondschleier-Wams", "Bleiche Perle", "Sethraels Herzschuppe", "Bleichwinder-Rute", "Selthes Meeresschreiter", "Gezeitenglas-Dolch", "Bandagen des Gezeitenwächters", "Ysoleis Perlenbeinschienen", "Der Kabeljaupate"
     ], 'drowned item'),
     mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
       "Chormutter Selthe", "Ertränkte Tempelwache", "Ertränkter Andächtiger", "Schimmersee-Wäter", "Schimmerschuppen-Lauerer", "Mondbrut", "Akolyth des Bleichen Chors", "Perlwächter-Schildwache", "Sethrael der Bleichwinder", "Feuerdämon", "Leerendämon", "Ysolei, Avatar des Ertränkten Mondes"
@@ -10009,6 +10033,12 @@ const phase11Extra = {
         completion: "Zehn zurück im Wasser. Sie spüren keine Kälte, {playerName}, und keine Furcht — nur den Sog jenes Tores. Was auch immer ihnen singt, es singt laut.",
         objectives: { 0: { label: "Schimmersee-Wäter erschlagen" } },
       },
+      q_the_codfather: {
+        title: "Der Kabeljaupate",
+        text: "Der Kabeljaupate ist nicht nur ein Fisch, {playerName}, er ist ein kaltblütiger Mörder. Die Alten schwören, er frisst Moorpirscher zum Frühstück, und selbst die Mirefen-Witwen spinnen aus blanker Furcht keine Netze nahe den Deepfen-Untiefen. Er herrscht über diese Wasser. Schnapp dir eine Angel, zieh diesen alten Teufel aus seinen Gewässern, und ich gebe zu, dass du zur Familie gehörst.",
+        completion: "Bei den klammen Heiligen... Der Kabeljaupate höchstpersönlich. Sieh dir diese Barteln an. Fenbridge wird ein Jahr lang Geschichten von diesem Fang erzählen, {playerName}.",
+        objectives: { 0: { label: "Der Kabeljaupate" } },
+      },
     },
     dungeons: {
       drowned_temple: { name: "Der Ertränkte Tempel", enterText: "Du trittst durch das Mondtor — die Luft wird zu kaltem Wasser und bleichem Licht, und der Gesang schließt sich über deinem Haupt.", leaveText: "Du tauchst durch das Mondtor empor in die Bergnacht." },
@@ -10023,7 +10053,7 @@ const phase11Extra = {
       ["revive_pet", "复活宠物", "复活你死去的宠物，并将其召回身边。"],
     ]),
     items: phase11NameTranslations(DROWNED_ITEM_IDS, [
-      "咸海神像", "溺亡祭品", "溺月波刃匕", "溺月巨锤", "溺月权杖", "溺踪战靴", "溺踪软鞋", "溺踪皮靴", "守誓拓文", "苍月之鳞", "月鳞军刀", "月帷胸甲", "月帷长袍", "月帷外衣", "苍白之珠", "瑟斯雷尔的心鳞", "苍盘法杖", "塞尔瑟的踏海者", "潮镜短刃", "守潮者裹手", "伊索蕾的珍珠护胫"
+      "咸海神像", "溺亡祭品", "溺月波刃匕", "溺月巨锤", "溺月权杖", "溺踪战靴", "溺踪软鞋", "溺踪皮靴", "守誓拓文", "苍月之鳞", "月鳞军刀", "月帷胸甲", "月帷长袍", "月帷外衣", "苍白之珠", "瑟斯雷尔的心鳞", "苍盘法杖", "塞尔瑟的踏海者", "潮镜短刃", "守潮者裹手", "伊索蕾的珍珠护胫", "鳕鱼教父"
     ], 'drowned item'),
     mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
       "唱诗母塞尔瑟", "溺亡神殿卫", "溺亡信徒", "微光潭涉行者", "微光鳞潜伏者", "月之孽生", "苍白唱诗侍僧", "珍珠卫哨兵", "苍盘者瑟斯雷尔", "火焰恶魔", "虚空恶魔", "伊索蕾，溺月化身"
@@ -10068,6 +10098,12 @@ const phase11Extra = {
         completion: "十个都回到了水里。它们感觉不到寒冷，{playerName}，也毫无惧意——只有那门户的牵引。无论是什么在向它们歌唱，那歌声都唱得震天响。",
         objectives: { 0: { label: "微光潭涉行者已被消灭" } },
       },
+      q_the_codfather: {
+        title: "鳕鱼教父",
+        text: "鳕鱼教父不只是一条鱼，{playerName}，它是个冷血杀手。老人们发誓说它拿湿地徘徊者当早饭，就连米尔芬寡妇也会因恐惧而不敢在深沼浅滩附近结网。那片水域归它统治。拿上鱼竿，把那个老恶魔从它的水域里拖出来，我就承认你入了这个家族。",
+        completion: "湿地诸圣在上……鳕鱼教父本尊。看看那些胡须。芬桥会把这次收获讲上一整年，{playerName}。",
+        objectives: { 0: { label: "鳕鱼教父" } },
+      },
     },
     dungeons: {
       drowned_temple: { name: "溺亡神殿", enterText: "你踏过那道月门——空气化作冰冷的水与苍白的光，歌声在你头顶合拢。", leaveText: "你穿过月门，浮上山间的夜色之中。" },
@@ -10082,7 +10118,7 @@ const phase11Extra = {
       ["revive_pet", "復活寵物", "復活你已死亡的寵物，並使其重回你身邊。"],
     ]),
     items: phase11NameTranslations(DROWNED_ITEM_IDS, [
-      "鹹海神像", "溺者供品", "溺月波刃匕", "溺月巨槌", "溺月權杖", "沉踏戰靴", "沉踏軟履", "沉踏踏靴", "守護拓印", "蒼月之鱗", "月鱗彎刀", "月帷胸甲", "月帷長袍", "月帷外衣", "蒼白珍珠", "賽斯瑞爾的心鱗", "蒼盤法杖", "瑟爾瑟的踏海靴", "潮鏡短劍", "守潮者護腕", "伊索蕾的珍珠脛甲"
+      "鹹海神像", "溺者供品", "溺月波刃匕", "溺月巨槌", "溺月權杖", "沉踏戰靴", "沉踏軟履", "沉踏踏靴", "守護拓印", "蒼月之鱗", "月鱗彎刀", "月帷胸甲", "月帷長袍", "月帷外衣", "蒼白珍珠", "賽斯瑞爾的心鱗", "蒼盤法杖", "瑟爾瑟的踏海靴", "潮鏡短劍", "守潮者護腕", "伊索蕾的珍珠脛甲", "鱈魚教父"
     ], 'drowned item'),
     mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
       "唱詩之母瑟爾瑟", "溺亡神殿守衛", "溺亡信徒", "微光湖涉者", "微鱗潛伏者", "月之裔", "蒼白唱詩侍僧", "珍珠衛哨兵", "蒼盤者賽斯瑞爾", "火焰惡魔", "虛空惡魔", "伊索蕾，溺月化身"
@@ -10127,6 +10163,12 @@ const phase11Extra = {
         completion: "十隻已回歸水中。牠們感受不到寒冷，{playerName}，也感受不到恐懼——只感受得到那道門的牽引。無論是什麼在向牠們歌唱，那歌聲都響亮得很。",
         objectives: { 0: { label: "微光湖涉者已被擊殺" } },
       },
+      q_the_codfather: {
+        title: "鱈魚教父",
+        text: "鱈魚教父不只是一條魚，{playerName}，牠是個冷血殺手。老人們發誓說牠拿濕地徘徊者當早飯，就連米爾芬寡婦也會因恐懼而不敢在深沼淺灘附近結網。那片水域歸牠統治。拿上釣竿，把那個老惡魔從牠的水域裡拖出來，我就承認你入了這個家族。",
+        completion: "濕地諸聖在上……鱈魚教父本尊。看看那些鬚。芬橋會把這次收穫講上一整年，{playerName}。",
+        objectives: { 0: { label: "鱈魚教父" } },
+      },
     },
     dungeons: {
       drowned_temple: { name: "溺亡神殿", enterText: "你踏過月門——空氣化作冰冷的水與蒼白的光，歌聲在你頭頂之上闔攏。", leaveText: "你穿過月門浮出水面，回到山間的夜色之中。" },
@@ -10141,7 +10183,7 @@ const phase11Extra = {
       ["revive_pet", "소환수 소생", "죽은 소환수를 되살려 당신의 곁으로 되돌립니다."],
     ]),
     items: phase11NameTranslations(DROWNED_ITEM_IDS, [
-      "소금기 어린 우상", "익사한 제물", "익사한 달의 크리스 단검", "익사한 달의 대망치", "익사한 달의 홀", "드라운스텝 사바톤", "드라운스텝 슬리퍼", "드라운스텝 군화", "수호의 탁본", "창백한 달빛 비늘", "달비늘 세이버", "달수의 흉갑", "달수의 법복", "달수의 튜닉", "창백한 진주", "세스라엘의 심장 비늘", "페일코일 막대", "셀세의 바다걸음 장화", "조수유리 단검", "조수지기의 손싸개", "이솔레이의 진주 정강이받이"
+      "소금기 어린 우상", "익사한 제물", "익사한 달의 크리스 단검", "익사한 달의 대망치", "익사한 달의 홀", "드라운스텝 사바톤", "드라운스텝 슬리퍼", "드라운스텝 군화", "수호의 탁본", "창백한 달빛 비늘", "달비늘 세이버", "달수의 흉갑", "달수의 법복", "달수의 튜닉", "창백한 진주", "세스라엘의 심장 비늘", "페일코일 막대", "셀세의 바다걸음 장화", "조수유리 단검", "조수지기의 손싸개", "이솔레이의 진주 정강이받이", "대구 대부"
     ], 'drowned item'),
     mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
       "성가대모 셀세", "익사한 신전 수호병", "익사한 신도", "글리머미어 물거리", "반짝비늘 잠복자", "달의 부산물", "창백한 성가대 수습 사제", "진주수호 파수병", "페일코일의 세스라엘", "화염 악마", "공허 악마", "이솔레이, 익사한 달의 화신"
@@ -10186,6 +10228,12 @@ const phase11Extra = {
         completion: "열 마리를 물속으로 되돌려 보냈군. 그것들은 추위도, 두려움도 느끼지 못한다네, {playerName} — 오직 저 관문의 끌림만을 느낄 뿐이지. 무엇이 그것들에게 노래하든, 그 노래는 참으로 크게 울리는군.",
         objectives: { 0: { label: "글리머미어 물거리 처치" } },
       },
+      q_the_codfather: {
+        title: "대구 대부",
+        text: "대구 대부는 그저 물고기가 아니라네, {playerName}. 냉혈한 살인자지. 노인들은 놈이 늪지 배회자를 아침으로 먹는다고 맹세하고, 미어펜 과부거미조차 순전한 공포 때문에 딥펜 여울 근처에는 거미줄을 치지 않는다네. 놈이 그 물을 지배하지. 낚싯대를 들고 그 늙은 악마를 제 물가에서 끌어내 오게. 그러면 자네가 가족이 되었다고 인정하지.",
+        completion: "축축한 성자들이시여... 대구 대부 그 자체로군. 저 수염 좀 보게. 펜브리지는 이 한 마리로 일 년 내내 이야깃거리를 삼을 걸세, {playerName}.",
+        objectives: { 0: { label: "대구 대부" } },
+      },
     },
     dungeons: {
       drowned_temple: { name: "익사한 신전", enterText: "당신은 달의 관문을 지나갑니다 — 공기가 차가운 물과 창백한 빛으로 변하고, 노랫소리가 당신의 머리 위로 닫혀 옵니다.", leaveText: "당신은 달의 관문을 통해 산속의 밤으로 떠오릅니다." },
@@ -10200,7 +10248,7 @@ const phase11Extra = {
       ["revive_pet", "ペット蘇生", "死んだペットを蘇生させ、自分のそばに呼び戻す。"],
     ]),
     items: phase11NameTranslations(DROWNED_ITEM_IDS, [
-      "潮辛の偶像", "溺れし供物", "溺月のクリス", "溺月の大槌", "溺月の笏", "溺歩のサバトン", "溺歩のスリッパ", "溺歩のトレッド", "守護の拓本", "蒼白月の鱗", "月鱗のサーベル", "月帷子の胸甲", "月帷子のローブ", "月帷子のチュニック", "蒼白の真珠", "セスラエルの心鱗", "蒼渦のロッド", "セルセの潮渡り靴", "潮硝子の短剣", "潮見の手布", "イソレイの真珠脚甲"
+      "潮辛の偶像", "溺れし供物", "溺月のクリス", "溺月の大槌", "溺月の笏", "溺歩のサバトン", "溺歩のスリッパ", "溺歩のトレッド", "守護の拓本", "蒼白月の鱗", "月鱗のサーベル", "月帷子の胸甲", "月帷子のローブ", "月帷子のチュニック", "蒼白の真珠", "セスラエルの心鱗", "蒼渦のロッド", "セルセの潮渡り靴", "潮硝子の短剣", "潮見の手布", "イソレイの真珠脚甲", "タラのゴッドファーザー"
     ], 'drowned item'),
     mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
       "聖歌母セルセ", "溺れし神殿守", "溺れし信徒", "煌めき沼の渡り手", "煌鱗の潜み者", "月の落とし子", "蒼白聖歌隊の侍祭", "真珠衛の歩哨", "蒼渦のセスラエル", "炎の魔物", "虚無の魔物", "イソレイ、溺月の化身"
@@ -10245,6 +10293,12 @@ const phase11Extra = {
         completion: "十体が水に還った。奴らは寒さも恐れも感じぬのだ、{playerName}——ただあの門の引き寄せだけを感じている。奴らに何が歌いかけているにせよ、その歌は大きく響いているのだ。",
         objectives: { 0: { label: "煌めき沼の渡り手を討伐した" } },
       },
+      q_the_codfather: {
+        title: "タラのゴッドファーザー",
+        text: "タラのゴッドファーザーはただの魚ではない、{playerName}。冷血の殺し屋だ。古老たちは、奴がミレの徘徊者を朝飯に食うと誓っているし、ミレフェンのウィドウでさえ恐怖のあまりディープフェン浅瀬の近くには巣を張らぬ。あの水域は奴のものだ。釣り竿を手に取り、その老いた悪魔を奴の水域から引きずり出せ。そうすれば、お前もファミリーの一員と認めよう。",
+        completion: "湿った聖人たちよ……タラのゴッドファーザーそのものだ。あのヒゲを見ろ。フェンブリッジはこの一匹の話で一年は食っていけるぞ、{playerName}。",
+        objectives: { 0: { label: "タラのゴッドファーザー" } },
+      },
     },
     dungeons: {
       drowned_temple: { name: "溺れし神殿", enterText: "月の門をくぐり抜けると——大気は冷たい水と蒼白の光に変わり、歌声が頭上で閉ざされていく。", leaveText: "月の門を抜けて、山の夜へと浮かび上がる。" },
@@ -10259,7 +10313,7 @@ const phase11Extra = {
       ["revive_pet", "Reviver Mascote", "Revive seu mascote morto e o traz de volta ao seu lado."],
     ]),
     items: phase11NameTranslations(DROWNED_ITEM_IDS, [
-      "Ídolo Salobro", "Oferenda Afogada", "Kris da Lua Afogada", "Maça da Lua Afogada", "Cetro da Lua Afogada", "Soleretes do Passo Afogado", "Sapatilhas do Passo Afogado", "Botinas do Passo Afogado", "Decalque Protetor", "Escama Pálido-Lunar", "Sabre de Escama Lunar", "Peitoral do Sudário Lunar", "Túnica do Sudário Lunar", "Gibão do Sudário Lunar", "Pérola Pálida", "Escama do Coração de Sethrael", "Vara do Anel Pálido", "Anda-Mares de Selthe", "Adaga de Vidro-Maré", "Faixas do Vigia das Marés", "Grevas de Pérola de Ysolei"
+      "Ídolo Salobro", "Oferenda Afogada", "Kris da Lua Afogada", "Maça da Lua Afogada", "Cetro da Lua Afogada", "Soleretes do Passo Afogado", "Sapatilhas do Passo Afogado", "Botinas do Passo Afogado", "Decalque Protetor", "Escama Pálido-Lunar", "Sabre de Escama Lunar", "Peitoral do Sudário Lunar", "Túnica do Sudário Lunar", "Gibão do Sudário Lunar", "Pérola Pálida", "Escama do Coração de Sethrael", "Vara do Anel Pálido", "Anda-Mares de Selthe", "Adaga de Vidro-Maré", "Faixas do Vigia das Marés", "Grevas de Pérola de Ysolei", "O Bacalhau-Padrinho"
     ], 'drowned item'),
     mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
       "Mãe-do-Coro Selthe", "Guarda do Templo Afogado", "Devoto Afogado", "Vadeador de Glimmermere", "Espreitador de Escama Reluzente", "Cria da Lua", "Acólito do Coro Pálido", "Sentinela da Guarda Pérola", "Sethrael, o Anel Pálido", "Demônio de Fogo", "Demônio do Vazio", "Ysolei, Avatar da Lua Afogada"
@@ -10304,6 +10358,12 @@ const phase11Extra = {
         completion: "Dez de volta à água. Não sentem frio, {playerName}, nem medo — apenas a atração daquele portão. Seja o que for que canta para eles, canta bem alto.",
         objectives: { 0: { label: "Vadeador de Glimmermere abatido" } },
       },
+      q_the_codfather: {
+        title: "O Bacalhau-Padrinho",
+        text: "O Bacalhau-Padrinho não é só um peixe, {playerName}, é um assassino de sangue frio. Os veteranos juram que ele come espreitadores do pântano no café da manhã, e nem as viúvas de Mirefen tecem suas teias perto dos Baixios de Deepfen de tanto terror. Ele manda nessas águas. Pegue uma vara de pesca, arranque esse velho demônio das águas dele e admitirei que você entrou para a família.",
+        completion: "Pelos santos encharcados... O Bacalhau-Padrinho em pessoa. Veja esses bigodes. Fenbridge vai viver um ano inteiro de histórias com essa pescaria, {playerName}.",
+        objectives: { 0: { label: "O Bacalhau-Padrinho" } },
+      },
     },
     dungeons: {
       drowned_temple: { name: "O Templo Afogado", enterText: "Você atravessa o portão lunar — o ar se transforma em água fria e luz pálida, e o cântico se fecha sobre a sua cabeça.", leaveText: "Você emerge através do portão lunar para a noite da montanha." },
@@ -10318,7 +10378,7 @@ const phase11Extra = {
       ["revive_pet", "Оживление питомца", "Оживляет вашего павшего питомца и возвращает его к вам."],
     ]),
     items: phase11NameTranslations(DROWNED_ITEM_IDS, [
-      "Просоленный идол", "Подношение утопленников", "Крис Утонувшей луны", "Молот Утонувшей луны", "Скипетр Утонувшей луны", "Сабатоны Утопшего шага", "Туфли Утопшего шага", "Поступь Утопшего шага", "Оттиск оберега", "Чешуя Бледной луны", "Сабля из лунной чешуи", "Кираса Лунного савана", "Одеяние Лунного савана", "Туника Лунного савана", "Бледная жемчужина", "Сердечная чешуя Сетраэля", "Жезл Бледного кольца", "Морестопы Селте", "Кинжал Приливного стекла", "Обмотки Стража приливов", "Жемчужные поножи Изолеи"
+      "Просоленный идол", "Подношение утопленников", "Крис Утонувшей луны", "Молот Утонувшей луны", "Скипетр Утонувшей луны", "Сабатоны Утопшего шага", "Туфли Утопшего шага", "Поступь Утопшего шага", "Оттиск оберега", "Чешуя Бледной луны", "Сабля из лунной чешуи", "Кираса Лунного савана", "Одеяние Лунного савана", "Туника Лунного савана", "Бледная жемчужина", "Сердечная чешуя Сетраэля", "Жезл Бледного кольца", "Морестопы Селте", "Кинжал Приливного стекла", "Обмотки Стража приливов", "Жемчужные поножи Изолеи", "Крестная треска"
     ], 'drowned item'),
     mobs: phase11NameTranslations(DROWNED_MOB_IDS, [
       "Матерь хора Селте", "Утонувший храмовый страж", "Утонувший служитель", "Бродяга Мерцающего омута", "Затаившийся Мерцающечешуйный", "Лунное отродье", "Послушник Бледного хора", "Часовой Жемчужной стражи", "Сетраэль Бледное Кольцо", "Огненный демон", "Демон Пустоты", "Изолея, Воплощение Утонувшей луны"
@@ -10362,6 +10422,12 @@ const phase11Extra = {
         text: "С тех пор как открылись врата, в сумерках из омута выползают твари — раздувшиеся, бледные, с плавниками там, где должны быть руки. Бродяги Мерцающего омута, так зовут их старые оттиски. Они утаскивают всё живое за собой вниз. Истреби десятерых, прежде чем они сведут мою стражу на нет.",
         completion: "Десять вернулись в воду. Они не чувствуют ни холода, {playerName}, ни страха — лишь зов тех врат. Что бы ни пело им, поёт оно громко.",
         objectives: { 0: { label: "Бродяга Мерцающего омута повержен" } },
+      },
+      q_the_codfather: {
+        title: "Крестная треска",
+        text: "Крестная треска не просто рыба, {playerName}, а хладнокровный убийца. Старики клянутся, что она ест болотных рыскунов на завтрак, и даже мирефенские вдовы от ужаса не плетут паутину у отмелей Дипфена. Она правит этими водами. Возьми удочку, вытащи этого старого дьявола из его вод, и я признаю, что ты вошел в семью.",
+        completion: "Во имя промокших святых... Сама Крестная треска. Только взгляни на эти усы. Фенбридж будет целый год кормиться историями об этом улове, {playerName}.",
+        objectives: { 0: { label: "Крестная треска" } },
       },
     },
     dungeons: {

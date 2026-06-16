@@ -5,7 +5,7 @@ import {
   type SimEvent, dist2d, FISHING_CAST_ID, FISHING_CAST_TIME, MAX_LEVEL, xpForLevel, mobXpValue,
   rageConversion, rageFromDealing, rageFromTaking, spellHitChance, meleeMissChance,
 } from '../src/sim/types';
-import { LAKE, QUESTS, GROUND_OBJECTS, ITEMS, abilitiesKnownAt } from '../src/sim/data';
+import { DEEPFEN_SHALLOWS_LAKE, LAKE, QUESTS, GROUND_OBJECTS, ITEMS, abilitiesKnownAt } from '../src/sim/data';
 import { GROUND_PICKUP_LINES } from '../src/sim/content/ground_pickup_lines';
 import { terrainHeight, WATER_LEVEL } from '../src/sim/world';
 
@@ -59,6 +59,42 @@ function mirrorLakeFishingSpot(seed: number) {
     }
   }
   throw new Error('No dry Mirror Lake fishing spot found');
+}
+
+function deepfenFishingSpot(seed: number) {
+  for (let r = DEEPFEN_SHALLOWS_LAKE.radius * 0.7; r <= DEEPFEN_SHALLOWS_LAKE.radius + 10; r += 1) {
+    for (let i = 0; i < 72; i++) {
+      const a = (i / 72) * Math.PI * 2;
+      const x = DEEPFEN_SHALLOWS_LAKE.x + Math.cos(a) * r;
+      const z = DEEPFEN_SHALLOWS_LAKE.z + Math.sin(a) * r;
+      if (terrainHeight(x, z, seed) < WATER_LEVEL) continue;
+      const facing = Math.atan2(DEEPFEN_SHALLOWS_LAKE.x - x, DEEPFEN_SHALLOWS_LAKE.z - z);
+      if (hasFishableWaterAhead(x, z, facing, seed)) return { x, z, facing };
+    }
+  }
+  throw new Error('No dry Deepfen Shallows fishing spot found');
+}
+
+function despawnMobs(sim: Sim) {
+  for (const e of sim.entities.values()) {
+    if (e.kind !== 'mob') continue;
+    e.dead = true;
+    e.hp = 0;
+    e.pos.x += 10000;
+    e.pos.z += 10000;
+    e.prevPos = { ...e.pos };
+    e.spawnPos = { ...e.pos };
+    e.leashAnchor = { ...e.pos };
+    e.aiState = 'dead';
+    e.respawnTimer = 9999;
+    e.corpseTimer = 9999;
+    e.inCombat = false;
+    e.aggroTargetId = null;
+    e.targetId = null;
+    e.threat.clear();
+    e.auras = [];
+    e.castingAbility = null;
+  }
 }
 
 describe('classic formulas', () => {
@@ -826,6 +862,53 @@ describe('food, drink, vendor', () => {
       }));
     }
     expect(sim.countItem('simple_fishing_pole')).toBe(1);
+  });
+
+  it('catches The Codfather in Deepfen Shallows while its quest is active', () => {
+    const sim = makeSim('warrior');
+    const spot = deepfenFishingSpot(sim.cfg.seed);
+    const meta = sim.meta(sim.playerId)!;
+    meta.questLog.set('q_the_codfather', { questId: 'q_the_codfather', counts: [0], state: 'active' });
+    despawnMobs(sim);
+    teleportTo(sim, spot.x, spot.z);
+    sim.player.facing = spot.facing;
+    sim.addItem('simple_fishing_pole', 1);
+    sim.useItem('simple_fishing_pole');
+    expect(sim.player.castingAbility).toBe(FISHING_CAST_ID);
+
+    const events: SimEvent[] = [];
+    for (let i = 0; i < 20 * 6 && sim.player.castingAbility; i++) events.push(...sim.tick());
+
+    expect(sim.player.castingAbility).toBe(null);
+    expect(events).toContainEqual(expect.objectContaining({ type: 'castStop', success: true }));
+    expect(sim.countItem('the_codfather')).toBe(1);
+    expect(sim.questState('q_the_codfather')).toBe('ready');
+    expect(sim.countItem('simple_fishing_pole')).toBe(1);
+  });
+
+  it('does not catch The Codfather without the active quest or outside Deepfen Shallows', () => {
+    const deepfenSim = makeSim('warrior');
+    const deepfenSpot = deepfenFishingSpot(deepfenSim.cfg.seed);
+    despawnMobs(deepfenSim);
+    teleportTo(deepfenSim, deepfenSpot.x, deepfenSpot.z);
+    deepfenSim.player.facing = deepfenSpot.facing;
+    deepfenSim.addItem('simple_fishing_pole', 1);
+    deepfenSim.useItem('simple_fishing_pole');
+    for (let i = 0; i < 20 * 6 && deepfenSim.player.castingAbility; i++) deepfenSim.tick();
+    expect(deepfenSim.countItem('the_codfather')).toBe(0);
+  });
+
+  it('does not catch The Codfather outside Deepfen Shallows even with the active quest', () => {
+    const mirrorSim = makeSim('warrior');
+    const mirrorSpot = mirrorLakeFishingSpot(mirrorSim.cfg.seed);
+    mirrorSim.meta(mirrorSim.playerId)!.questLog.set('q_the_codfather', { questId: 'q_the_codfather', counts: [0], state: 'active' });
+    despawnMobs(mirrorSim);
+    teleportTo(mirrorSim, mirrorSpot.x, mirrorSpot.z);
+    mirrorSim.player.facing = mirrorSpot.facing;
+    mirrorSim.addItem('simple_fishing_pole', 1);
+    mirrorSim.useItem('simple_fishing_pole');
+    for (let i = 0; i < 20 * 6 && mirrorSim.player.castingAbility; i++) mirrorSim.tick();
+    expect(mirrorSim.countItem('the_codfather')).toBe(0);
   });
 
   it('movement cancels fishing before any catch is granted', () => {

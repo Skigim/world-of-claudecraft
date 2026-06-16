@@ -7,6 +7,8 @@ import type {
   CampDef, GroundObjectDef, ItemDef, MobTemplate, NpcDef, PlayerClass, QuestDef, ZoneDef, ZonePropsDef,
 } from '../types';
 
+export const DEEPFEN_SHALLOWS_LAKE = { x: -110, z: 310, radius: 35 };
+
 export const ZONE2_ZONE: ZoneDef = {
   id: 'mirefen_marsh',
   name: 'Mirefen Marsh',
@@ -17,7 +19,7 @@ export const ZONE2_ZONE: ZoneDef = {
   hub: { x: 0, z: 300, radius: 20, name: 'Fenbridge' },
   graveyard: { x: -18, z: 286 },
   lakes: [
-    { x: -110, z: 310, radius: 35 },
+    DEEPFEN_SHALLOWS_LAKE,
     { x: 60, z: 380, radius: 25 },
     { x: -40, z: 450, radius: 20 },
   ],
@@ -236,7 +238,7 @@ export const ZONE2_NPCS: Record<string, NpcDef> = {
   provisioner_hale: {
     id: 'provisioner_hale', name: 'Provisioner Hale', title: 'Provisioner',
     pos: { x: -4, z: 308 }, facing: Math.PI / 2, color: 0x1e8449,
-    questIds: ['q_prowler_pelts', 'q_fen_supplies', 'q_grubjaw'],
+    questIds: ['q_prowler_pelts', 'q_fen_supplies', 'q_the_codfather', 'q_grubjaw'],
     vendorItems: [
       'fenbridge_rye', 'marsh_mint_tea', 'smoked_eel', 'silvermist_cordial',
       'bogiron_mace', 'fenreed_staff', 'mirefen_skinner', 'bogiron_hauberk',
@@ -296,6 +298,15 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
     objectives: [{ type: 'collect', itemId: 'lost_caravan_goods', count: 5, label: 'Lost Caravan Goods' }],
     xpReward: 900, copperReward: 350, itemRewards: {},
     minLevel: 7,
+  },
+  q_the_codfather: {
+    id: 'q_the_codfather', name: 'The Codfather',
+    giverNpcId: 'provisioner_hale', turnInNpcId: 'provisioner_hale',
+    text: "The Codfather isn't just a fish, $N, he's a cold-blooded killer. Old-timers swear he eats Mire Prowlers for breakfast, and even the Mirefen Widows won't spin their webs near the Deepfen Shallows out of sheer terror. He rules those waters. Grab a fishing pole, drag that old devil out of his waters, and I will admit you have joined the family.",
+    completionText: "By the damp saints... The Codfather himself. Look at those whiskers. Fenbridge will eat stories off this catch for a year, $N.",
+    objectives: [{ type: 'collect', itemId: 'the_codfather', count: 1, label: 'The Codfather' }],
+    xpReward: 950, copperReward: 450, itemRewards: {},
+    minLevel: 6,
   },
   q_deepfen: {
     id: 'q_deepfen', name: 'The Deepfen Stirs',
@@ -474,7 +485,7 @@ export const ZONE2_QUESTS: Record<string, QuestDef> = {
 
 export const ZONE2_QUEST_ORDER = [
   'q_fenbridge_muster', 'q_prowlers', 'q_prowler_pelts', 'q_fen_supplies',
-  'q_deepfen', 'q_idols', 'q_deepfen_purge', 'q_widows', 'q_broodmother',
+  'q_the_codfather', 'q_deepfen', 'q_idols', 'q_deepfen_purge', 'q_widows', 'q_broodmother',
   'q_drowned', 'q_drowned_censers', 'q_no_rest', 'q_trolls', 'q_troll_fetishes',
   'q_grubjaw', 'q_cult_camp', 'q_summoners', 'q_deacon', 'q_bastion_door',
   'q_olen', 'q_mistcaller',
@@ -556,6 +567,7 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
   fen_muster_order: { id: 'fen_muster_order', name: 'Fenbridge Muster Order', kind: 'quest', sellValue: 0, questId: 'q_fenbridge_muster' },
   mire_prowler_pelt: { id: 'mire_prowler_pelt', name: 'Mire Prowler Pelt', kind: 'quest', sellValue: 0, questId: 'q_prowler_pelts' },
   lost_caravan_goods: { id: 'lost_caravan_goods', name: 'Lost Caravan Goods', kind: 'quest', sellValue: 0, questId: 'q_fen_supplies' },
+  the_codfather: { id: 'the_codfather', name: 'The Codfather', kind: 'quest', sellValue: 0, questId: 'q_the_codfather' },
   waterlogged_idol: { id: 'waterlogged_idol', name: 'Waterlogged Idol', kind: 'quest', sellValue: 0, questId: 'q_idols' },
   widow_venom_sac: { id: 'widow_venom_sac', name: 'Widow Venom Sac', kind: 'quest', sellValue: 0, questId: 'q_widows' },
   rusted_censer: { id: 'rusted_censer', name: 'Rusted Censer', kind: 'quest', sellValue: 0, questId: 'q_drowned_censers' },

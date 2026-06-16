@@ -2,6 +2,7 @@ import {
   ABILITIES, ARENA_SLOT_COUNT, CAMPS, CLASSES, DUNGEONS, DUNGEON_LIST, DungeonDef, arenaOrigin, dungeonAt,
   DUNGEON_X_THRESHOLD, GROUND_OBJECTS, GROUP_XP_BONUS, INSTANCE_SLOT_COUNT, isArenaPos,
   ITEMS, MOBS, NPCS, PLAYER_START, QUESTS, questRewardItemId, abilitiesKnownAt, instanceOrigin,
+  DEEPFEN_SHALLOWS_LAKE,
   zoneAt, ZONES,
 } from './data';
 import { ARENA_SPAWN_A, ARENA_SPAWN_B } from './dungeon_layout';
@@ -160,6 +161,9 @@ const SWIM_SURFACE_Y = WATER_LEVEL - 0.75; // body bobs just below the water lin
 const SWIM_DEPTH = 0.8; // ground this far under the water line = deep water
 const SWIM_SPEED_MULT = 0.65;
 const FISHING_SAMPLE_DISTANCES = [4, 8, 12, 16, 20, 24];
+const DEEPFEN_FISHING_SHORE_MARGIN = 10;
+const THE_CODFATHER_ITEM_ID = 'the_codfather';
+const THE_CODFATHER_QUEST_ID = 'q_the_codfather';
 const DOOR_TRIGGER_RADIUS = 2.0; // walking this close to a dungeon door teleports you
 const BODY_RADIUS = 0.5;
 const CHARGE_SPEED_MULT = 3; // warrior charge runs at 3x normal speed
@@ -4619,6 +4623,18 @@ export class Sim {
       groundHeight(p.pos.x + sin * d, p.pos.z + cos * d, this.cfg.seed) < WATER_LEVEL - SWIM_DEPTH);
   }
 
+  private isAtDeepfenShallowsFishingSpot(p: Entity): boolean {
+    const d = Math.hypot(p.pos.x - DEEPFEN_SHALLOWS_LAKE.x, p.pos.z - DEEPFEN_SHALLOWS_LAKE.z);
+    return d <= DEEPFEN_SHALLOWS_LAKE.radius + DEEPFEN_FISHING_SHORE_MARGIN;
+  }
+
+  private shouldCatchCodfather(p: Entity, meta: PlayerMeta): boolean {
+    const qp = meta.questLog.get(THE_CODFATHER_QUEST_ID);
+    return qp?.state === 'active'
+      && this.countItem(THE_CODFATHER_ITEM_ID, meta.entityId) === 0
+      && this.isAtDeepfenShallowsFishingSpot(p);
+  }
+
   private startFishing(p: Entity, meta: PlayerMeta): void {
     if (p.dead) { this.error(meta.entityId, "You can't do that while dead."); return; }
     if (p.inCombat) { this.error(meta.entityId, "You can't do that while in combat."); return; }
@@ -4634,6 +4650,10 @@ export class Sim {
   }
 
   private completeFishing(p: Entity, meta: PlayerMeta): void {
+    if (this.shouldCatchCodfather(p, meta)) {
+      this.addItem(THE_CODFATHER_ITEM_ID, 1, meta.entityId);
+      return;
+    }
     const roll = this.rng.next();
     if (roll < 0.7) {
       this.addItem('raw_mirror_trout', 1, meta.entityId);
