@@ -39,8 +39,27 @@ const appBuildId = env([
   'CF_PAGES_COMMIT_SHA',
 ]) ?? gitSha() ?? appBuildDate.replace(/[-:TZ.]/g, '').slice(0, 12);
 
+// Pretty-URL aliases for the standalone official-channels page (public/links.html).
+// Mirrors the production server's rewrite in server/main.ts (LINKS_ALIASES) so the
+// same /links, /social, /social-media-links paths resolve in dev and preview too.
+const LINKS_ALIASES = new Set([
+  '/links', '/links/', '/social', '/social/', '/social-media-links', '/social-media-links/',
+]);
+function linksAliasPlugin() {
+  const rewrite = (req: { url?: string }) => {
+    const url = req.url ?? '';
+    const pathOnly = url.split('?')[0];
+    if (LINKS_ALIASES.has(pathOnly)) req.url = '/links.html' + url.slice(pathOnly.length);
+  };
+  const attach = (server: { middlewares: { use: (fn: (req: { url?: string }, res: unknown, next: () => void) => void) => void } }) => {
+    server.middlewares.use((req, _res, next) => { rewrite(req); next(); });
+  };
+  return { name: 'woc-links-alias', configureServer: attach, configurePreviewServer: attach };
+}
+
 export default defineConfig({
   base: '/',
+  plugins: [linksAliasPlugin()],
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),
     __APP_BUILD_ID__: JSON.stringify(appBuildId.slice(0, 12)),
