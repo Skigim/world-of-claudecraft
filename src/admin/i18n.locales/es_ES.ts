@@ -188,4 +188,9 @@ export const es_ES: Record<string, string> = {
   "dungeon.hollow_crypt": "La Cripta Hueca",
   "dungeon.sunken_bastion": "El Bastión Sumergido",
   "dungeon.gravewyrm_sanctum": "Santuario del Gravewyrm",
+  "alert.addWordFailed": "No se pudo añadir la palabra.",
+  "detail.chatMute1h": "Silenciar chat 1 h",
+  "chatFilter.softPlaceholder": "añadir una palabra suave",
+  "chatFilter.hardPlaceholder": "añadir una palabra fuerte",
+  "chatFilter.add": "Añadir",
 };
