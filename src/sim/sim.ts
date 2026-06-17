@@ -30,7 +30,7 @@ import {
   angleTo, armorReduction, dist2d, emptyMoveInput, isConsuming, meleeMissChance, mobXpValue, normAngle,
   rageFromDealing, rageFromTaking, spellHitChance, xpForLevel,
   MILESTONES, virtualLevel, xpToReachLevel, canPrestige,
-  ArenaFormat, ArenaCombatant,
+  ArenaFormat, ArenaStanding, ArenaCombatant,
 } from './types';
 
 const LEASH_DISTANCE = 45;
@@ -219,7 +219,7 @@ export type { ArenaFormat } from './types';
 
 export interface ArenaQueueUnit {
   pids: number[]; // length 1 (solo) or 2 (premade)
-  rating: number; // avg member arenaRating
+  rating: number; // avg member rating for this queue's bracket
 }
 
 // A live arena bout. Combatants are teleported into a private arena instance
@@ -318,10 +318,14 @@ export interface PlayerMeta {
   // sim.time when this character entered the world; powers /played. Session-only
   // (sim.time resets to 0 each server boot), so it reports time this session.
   joinedAt: number;
-  // Ashen Coliseum standing — persisted in CharacterState
+  // Ashen Coliseum standings. Legacy arenaRating/Wins/Losses are the 1v1
+  // bracket; 2v2 is fully independent and persisted alongside them.
   arenaRating: number;
   arenaWins: number;
   arenaLosses: number;
+  arena2v2Rating: number;
+  arena2v2Wins: number;
+  arena2v2Losses: number;
   // Talents & Specializations. `talents` is the active allocation; `talentMods`
   // is its precomputed flat struct — resolved only on allocation/respec/loadout
   // change (recomputeTalents), never walked on the combat or stat hot path.
@@ -400,9 +404,17 @@ export interface CharacterState {
   vendorBuyback?: InvSlot[];
   questLog: { questId: string; counts: number[]; state: 'active' | 'ready' | 'done' }[];
   questsDone: string[];
+  // Legacy arenaRating/Wins/Losses are treated as 1v1 data. The explicit
+  // 1v1 fields are written by new saves, while old saves fall back cleanly.
   arenaRating?: number;
   arenaWins?: number;
   arenaLosses?: number;
+  arena1v1Rating?: number;
+  arena1v1Wins?: number;
+  arena1v1Losses?: number;
+  arena2v2Rating?: number;
+  arena2v2Wins?: number;
+  arena2v2Losses?: number;
   // Talents & Specializations (JSONB; no schema migration). All optional so
   // characters saved before talents existed load cleanly (default: no points spent).
   talents?: TalentAllocation;
@@ -670,6 +682,16 @@ export class Sim {
     const startPos = savedPos
       ? this.groundPos(savedPos.x, savedPos.z)
       : this.groundPos(PLAYER_START.x, PLAYER_START.z);
+    const savedArena1v1: ArenaStanding = {
+      rating: opts?.state?.arena1v1Rating ?? opts?.state?.arenaRating ?? ARENA_BASE_RATING,
+      wins: opts?.state?.arena1v1Wins ?? opts?.state?.arenaWins ?? 0,
+      losses: opts?.state?.arena1v1Losses ?? opts?.state?.arenaLosses ?? 0,
+    };
+    const savedArena2v2: ArenaStanding = {
+      rating: opts?.state?.arena2v2Rating ?? ARENA_BASE_RATING,
+      wins: opts?.state?.arena2v2Wins ?? 0,
+      losses: opts?.state?.arena2v2Losses ?? 0,
+    };
     const player = createPlayer(this.nextId++, cls, startPos, name);
     this.addEntity(player);
     const classDef = CLASSES[cls];
@@ -693,9 +715,12 @@ export class Sim {
       counters: freshCounters(),
       autoEquip: opts?.autoEquip ?? false,
       joinedAt: this.time,
-      arenaRating: opts?.state?.arenaRating ?? ARENA_BASE_RATING,
-      arenaWins: opts?.state?.arenaWins ?? 0,
-      arenaLosses: opts?.state?.arenaLosses ?? 0,
+      arenaRating: savedArena1v1.rating,
+      arenaWins: savedArena1v1.wins,
+      arenaLosses: savedArena1v1.losses,
+      arena2v2Rating: savedArena2v2.rating,
+      arena2v2Wins: savedArena2v2.wins,
+      arena2v2Losses: savedArena2v2.losses,
       talents: emptyAllocation(),
       talentMods: emptyModifiers(),
       loadouts: [],
@@ -821,6 +846,12 @@ export class Sim {
       arenaRating: meta.arenaRating,
       arenaWins: meta.arenaWins,
       arenaLosses: meta.arenaLosses,
+      arena1v1Rating: meta.arenaRating,
+      arena1v1Wins: meta.arenaWins,
+      arena1v1Losses: meta.arenaLosses,
+      arena2v2Rating: meta.arena2v2Rating,
+      arena2v2Wins: meta.arena2v2Wins,
+      arena2v2Losses: meta.arena2v2Losses,
       talents: cloneAllocation(meta.talents),
       loadouts: meta.loadouts.map((l) => ({ name: l.name, alloc: cloneAllocation(l.alloc), bar: [...l.bar] })),
       activeLoadout: meta.activeLoadout,
@@ -6269,7 +6300,7 @@ export class Sim {
       if (this.trades.has(mPid)) { this.error(id, `${mMeta.name} must finish trading before queueing.`); return; }
       if (e.pos.x > DUNGEON_X_THRESHOLD) { this.error(id, `${mMeta.name} cannot queue from inside an instance.`); return; }
     }
-    const unit: ArenaQueueUnit = { pids: unitPids, rating: this.arenaTeamRating(unitPids) };
+    const unit: ArenaQueueUnit = { pids: unitPids, rating: this.arenaTeamRating(unitPids, '2v2') };
     this.arenaQueue2v2.push(unit);
     const position = this.arenaQueue2v2PlayerCount();
     for (const mPid of unitPids) {
@@ -6346,10 +6377,36 @@ export class Sim {
     return [...match.teamA, ...match.teamB];
   }
 
-  private arenaTeamRating(pids: number[]): number {
+  private arenaStanding(meta: PlayerMeta, format: ArenaFormat): ArenaStanding {
+    return format === '2v2'
+      ? { rating: meta.arena2v2Rating, wins: meta.arena2v2Wins, losses: meta.arena2v2Losses }
+      : { rating: meta.arenaRating, wins: meta.arenaWins, losses: meta.arenaLosses };
+  }
+
+  private arenaRatingForPid(pid: number, format: ArenaFormat): number {
+    const meta = this.players.get(pid);
+    return meta ? this.arenaStanding(meta, format).rating : ARENA_BASE_RATING;
+  }
+
+  private addArenaResult(meta: PlayerMeta, format: ArenaFormat, delta: number, won: boolean | null): { before: number; after: number } {
+    const before = this.arenaStanding(meta, format).rating;
+    const after = Math.max(ARENA_MIN_RATING, before + delta);
+    if (format === '2v2') {
+      meta.arena2v2Rating = after;
+      if (won === true) meta.arena2v2Wins++;
+      else if (won === false) meta.arena2v2Losses++;
+    } else {
+      meta.arenaRating = after;
+      if (won === true) meta.arenaWins++;
+      else if (won === false) meta.arenaLosses++;
+    }
+    return { before, after };
+  }
+
+  private arenaTeamRating(pids: number[], format: ArenaFormat): number {
     if (pids.length === 0) return ARENA_BASE_RATING;
     let sum = 0;
-    for (const pid of pids) sum += this.players.get(pid)?.arenaRating ?? ARENA_BASE_RATING;
+    for (const pid of pids) sum += this.arenaRatingForPid(pid, format);
     return sum / pids.length;
   }
 
@@ -6451,11 +6508,11 @@ export class Sim {
       });
       if (this.arenaQueue1v1.length < 2 || this.freeArenaSlot() === null) return;
       const aPid = this.arenaQueue1v1[0];
-      const aRating = this.players.get(aPid)?.arenaRating ?? ARENA_BASE_RATING;
+      const aRating = this.arenaRatingForPid(aPid, '1v1');
       let bPid = -1, bestGap = Infinity;
       for (let i = 1; i < this.arenaQueue1v1.length; i++) {
         const id = this.arenaQueue1v1[i];
-        const gap = Math.abs((this.players.get(id)?.arenaRating ?? ARENA_BASE_RATING) - aRating);
+        const gap = Math.abs(this.arenaRatingForPid(id, '1v1') - aRating);
         if (gap < bestGap) { bestGap = gap; bPid = id; }
       }
       if (bPid < 0) return;
@@ -6549,8 +6606,8 @@ export class Sim {
       } else {
         const okA = teamA.every((pid) => this.entities.get(pid) && !this.arenaMatches.has(pid));
         const okB = teamB.every((pid) => this.entities.get(pid) && !this.arenaMatches.has(pid));
-        if (okB) this.arenaQueue2v2.unshift({ pids: teamB, rating: this.arenaTeamRating(teamB) });
-        if (okA) this.arenaQueue2v2.unshift({ pids: teamA, rating: this.arenaTeamRating(teamA) });
+        if (okB) this.arenaQueue2v2.unshift({ pids: teamB, rating: this.arenaTeamRating(teamB, format) });
+        if (okA) this.arenaQueue2v2.unshift({ pids: teamA, rating: this.arenaTeamRating(teamA, format) });
       }
       return;
     }
@@ -6562,7 +6619,7 @@ export class Sim {
     }
     const match: ArenaMatch = {
       id: this.nextArenaMatchId++, format, teamA, teamB, slot, state: 'countdown', timer: ARENA_COUNTDOWN,
-      returns, ratingA: this.arenaTeamRating(teamA), ratingB: this.arenaTeamRating(teamB),
+      returns, ratingA: this.arenaTeamRating(teamA, format), ratingB: this.arenaTeamRating(teamB, format),
       defeated: new Set(),
     };
     for (const pid of allPids) this.arenaMatches.set(pid, match);
@@ -6674,14 +6731,11 @@ export class Sim {
       for (const pid of pids) {
         const meta = this.players.get(pid);
         if (!meta) continue;
-        const ratingBefore = meta.arenaRating;
-        meta.arenaRating = Math.max(ARENA_MIN_RATING, ratingBefore + delta);
-        if (won === true) meta.arenaWins++;
-        else if (won === false) meta.arenaLosses++;
+        const { before: ratingBefore, after: ratingAfter } = this.addArenaResult(meta, match.format, delta, won);
         this.emit({
           type: 'arenaEnd', pid, format: match.format,
           draw: winnerTeam === null, won: won === true,
-          oppName: enemyNames, ratingBefore, ratingAfter: meta.arenaRating,
+          oppName: enemyNames, ratingBefore, ratingAfter,
           allies: this.arenaCombatants(pids.filter((p) => p !== pid)),
           enemies: this.arenaCombatants(enemies),
         });
@@ -6734,12 +6788,13 @@ export class Sim {
   }
 
   // Live standings of rated players currently online, best first.
-  arenaLadder(): import('../world_api').ArenaLadderEntry[] {
+  arenaLadder(format: ArenaFormat = '1v1'): import('../world_api').ArenaLadderEntry[] {
     const rows: import('../world_api').ArenaLadderEntry[] = [];
     for (const meta of this.players.values()) {
       const e = this.entities.get(meta.entityId);
       if (!e) continue;
-      rows.push({ pid: meta.entityId, name: meta.name, cls: meta.cls, rating: meta.arenaRating, wins: meta.arenaWins, losses: meta.arenaLosses });
+      const standing = this.arenaStanding(meta, format);
+      rows.push({ pid: meta.entityId, name: meta.name, cls: meta.cls, rating: standing.rating, wins: standing.wins, losses: standing.losses });
     }
     rows.sort((x, y) => y.rating - x.rating || y.wins - x.wins);
     return rows.slice(0, ARENA_LADDER_SIZE);
@@ -6770,19 +6825,31 @@ export class Sim {
         }
       }
     }
+    const standings: Record<ArenaFormat, ArenaStanding> = {
+      '1v1': this.arenaStanding(meta, '1v1'),
+      '2v2': this.arenaStanding(meta, '2v2'),
+    };
+    const ladders: Record<ArenaFormat, import('../world_api').ArenaLadderEntry[]> = {
+      '1v1': this.arenaLadder('1v1'),
+      '2v2': this.arenaLadder('2v2'),
+    };
     const format = match?.format ?? queuedFmt;
+    const readoutFormat = format ?? '1v1';
+    const standing = standings[readoutFormat];
     const queueSize = format === '2v2' ? this.arenaQueue2v2PlayerCount()
       : format === '1v1' ? this.arenaQueue1v1.length
       : 0;
     return {
-      rating: meta.arenaRating,
-      wins: meta.arenaWins,
-      losses: meta.arenaLosses,
+      rating: standing.rating,
+      wins: standing.wins,
+      losses: standing.losses,
+      standings,
       format,
       queued: queuedFmt !== null,
       queueSize,
       match: matchInfo,
-      ladder: this.arenaLadder(),
+      ladder: ladders[readoutFormat],
+      ladders,
     };
   }
 
@@ -7451,11 +7518,13 @@ export class Sim {
   // persisted PlayerMeta arena fields (no new state). Draws count as neither a
   // win nor a loss (see resolveArena), so "matches played" is wins + losses.
   private arenaReadout(meta: PlayerMeta): string {
-    const { arenaRating: rating, arenaWins: wins, arenaLosses: losses } = meta;
-    const played = wins + losses;
-    if (played <= 0) return `Arena: Rating ${rating} — no matches played yet.`;
-    const pct = Math.round((wins / played) * 100);
-    return `Arena: Rating ${rating} — ${wins} wins, ${losses} losses (${pct}% win rate).`;
+    const part = (label: ArenaFormat, rating: number, wins: number, losses: number): string => {
+      const played = wins + losses;
+      if (played <= 0) return `${label} Rating ${rating} - no matches played yet`;
+      const pct = Math.round((wins / played) * 100);
+      return `${label} Rating ${rating} - ${wins} wins, ${losses} losses (${pct}% win rate)`;
+    };
+    return `Arena: ${part('1v1', meta.arenaRating, meta.arenaWins, meta.arenaLosses)}. ${part('2v2', meta.arena2v2Rating, meta.arena2v2Wins, meta.arena2v2Losses)}.`;
   }
   private buybackReadout(meta: PlayerMeta): string {
     const slots = meta.vendorBuyback.filter((s) => ITEMS[s.itemId] && s.count > 0);

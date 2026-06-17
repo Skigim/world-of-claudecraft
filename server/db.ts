@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import type { CharacterState, MarketSave } from '../src/sim/sim';
-import type { PlayerClass } from '../src/sim/types';
+import type { ArenaFormat, PlayerClass } from '../src/sim/types';
 import type { ChatLogRow } from './chat_log';
 import { SOCIAL_SCHEMA } from './social_db';
 import { seedChatFilterDefaults } from './chat_filter_db';
@@ -482,16 +482,26 @@ export interface ArenaLeaderRow {
   losses: number;
 }
 
-export async function topArenaRatings(limit = 20): Promise<ArenaLeaderRow[]> {
+export async function topArenaRatings(limit = 20, format: ArenaFormat = '1v1'): Promise<ArenaLeaderRow[]> {
+  const fmt: ArenaFormat = format === '2v2' ? '2v2' : '1v1';
+  const ratingExpr = fmt === '2v2'
+    ? "COALESCE((state->>'arena2v2Rating')::int, 1500)"
+    : "COALESCE((state->>'arena1v1Rating')::int, (state->>'arenaRating')::int, 1500)";
+  const winsExpr = fmt === '2v2'
+    ? "COALESCE((state->>'arena2v2Wins')::int, 0)"
+    : "COALESCE((state->>'arena1v1Wins')::int, (state->>'arenaWins')::int, 0)";
+  const lossesExpr = fmt === '2v2'
+    ? "COALESCE((state->>'arena2v2Losses')::int, 0)"
+    : "COALESCE((state->>'arena1v1Losses')::int, (state->>'arenaLosses')::int, 0)";
   const res = await pool.query(
     `SELECT name, class, level,
-            COALESCE((state->>'arenaRating')::int, 1500) AS rating,
-            COALESCE((state->>'arenaWins')::int, 0)     AS wins,
-            COALESCE((state->>'arenaLosses')::int, 0)   AS losses
+            ${ratingExpr} AS rating,
+            ${winsExpr} AS wins,
+            ${lossesExpr} AS losses
        FROM characters
       WHERE realm = $1
         AND state IS NOT NULL
-        AND COALESCE((state->>'arenaWins')::int, 0) + COALESCE((state->>'arenaLosses')::int, 0) > 0
+        AND ${winsExpr} + ${lossesExpr} > 0
       ORDER BY rating DESC, wins DESC, name ASC
       LIMIT $2`,
     [REALM, Math.max(1, Math.min(100, limit))],

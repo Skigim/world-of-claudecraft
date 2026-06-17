@@ -18,6 +18,12 @@ export type PlayerClass =
   | 'shaman' | 'mage' | 'warlock' | 'druid';
 export type ArenaFormat = '1v1' | '2v2';
 
+export interface ArenaStanding {
+  rating: number;
+  wins: number;
+  losses: number;
+}
+
 export interface ArenaCombatant {
   pid: number;
   name: string;

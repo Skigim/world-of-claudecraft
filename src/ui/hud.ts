@@ -1,5 +1,5 @@
 import type { ResolvedAbility } from '../sim/sim';
-import { OVERHEAD_EMOTES, isOverheadEmoteId, type FriendInfo, type IWorld, type LeaderboardEntry, type MarketInfo, type OverheadEmoteId } from '../world_api';
+import { OVERHEAD_EMOTES, isOverheadEmoteId, type ArenaFormat, type FriendInfo, type IWorld, type LeaderboardEntry, type MarketInfo, type OverheadEmoteId } from '../world_api';
 import { Renderer } from '../render/renderer';
 import { CharacterPreview } from '../render/characters';
 import { skinCount } from '../render/characters/manifest';
@@ -289,15 +289,15 @@ export class Hud {
   private lastArenaSig = '';
   private lastArenaStatusSig = '';
   private arenaMatchSeen = false; // closes the queue panel once a bout starts
-  private arenaBracket: import('../world_api').ArenaFormat = '1v1';
+  private arenaBracket: ArenaFormat = '1v1';
   // World Market (the Merchant's auction house)
   private marketOpen = false;
   private marketTab: 'browse' | 'sell' | 'collect' = 'browse';
   private marketSellItem: string | null = null; // bag item staged for listing
   private lastMarketSig = '';
   // all-time ladder, fetched best-effort from the server (online only)
-  private arenaAllTime: { name: string; class: string; level: number; rating: number; wins: number; losses: number }[] | null = null;
-  private arenaLbFetchedAt = 0;
+  private arenaAllTime: Partial<Record<ArenaFormat, { name: string; class: string; level: number; rating: number; wins: number; losses: number }[]>> = {};
+  private arenaLbFetchedAt: Partial<Record<ArenaFormat, number>> = {};
   private lastCombatEventAt = 0;
   private lastZoneId = '';
   private mapZoneId = ''; // zone the cached map-window canvas was rendered for
@@ -2067,20 +2067,20 @@ export class Hud {
     this.closeOtherWindows('#arena-window');
     el.style.display = 'block';
     this.lastArenaSig = '';
-    this.fetchArenaLeaderboard();
+    this.fetchArenaLeaderboard(this.arenaBracket);
     this.renderArenaWindow();
   }
 
   // Best-effort all-time ladder pull. Throttled; silently no-ops offline (no
   // server) so the panel still shows the live online ladder either way.
-  private fetchArenaLeaderboard(): void {
+  private fetchArenaLeaderboard(format: ArenaFormat): void {
     const now = performance.now();
-    if (now - this.arenaLbFetchedAt < 15000) return;
-    this.arenaLbFetchedAt = now;
-    fetch('/api/arena/leaderboard')
+    if (now - (this.arenaLbFetchedAt[format] ?? 0) < 15000) return;
+    this.arenaLbFetchedAt[format] = now;
+    fetch(`/api/arena/leaderboard?format=${encodeURIComponent(format)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (d && Array.isArray(d.leaders)) { this.arenaAllTime = d.leaders; this.lastArenaSig = ''; }
+        if (d && Array.isArray(d.leaders)) { this.arenaAllTime[format] = d.leaders; this.lastArenaSig = ''; }
       })
       .catch(() => { /* offline or no server — live ladder only */ });
   }
@@ -2100,12 +2100,14 @@ export class Hud {
     const bracket = a.match?.format ?? queuedFmt ?? this.arenaBracket;
     if (queuedFmt || a.match) this.arenaBracket = bracket;
     const canSwitchBracket = !a.queued && !inMatch;
+    const standing = a.standings[bracket];
+    const ladderRows = a.ladders[bracket];
     const myPid = this.sim.playerId;
     const party = this.sim.partyInfo;
     const partySize = party?.members.length ?? 1;
     const isLeader = !party || party.leader === myPid;
 
-    const ladder = a.ladder.map((r, i) => {
+    const ladder = ladderRows.map((r, i) => {
       const me = r.pid === myPid;
       const classId = r.cls as PlayerClass;
       const cls = CLASSES[classId] ? classDisplayName(classId) : r.cls;
@@ -2115,7 +2117,7 @@ export class Hud {
         + `<span class="lr-wl">${esc(formatNumber(r.wins, { maximumFractionDigits: 0 }))}-${esc(formatNumber(r.losses, { maximumFractionDigits: 0 }))}</span></div>`;
     }).join('') || `<div class="ladder-empty">${esc(t('hud.arena.noChallengers'))}</div>`;
 
-    const bracketBtn = (fmt: import('../world_api').ArenaFormat) => {
+    const bracketBtn = (fmt: ArenaFormat) => {
       const active = bracket === fmt;
       const locked = !canSwitchBracket && !active;
       return `<button class="arena-bracket${active ? ' active' : ''}${locked ? ' locked' : ''}" data-bracket="${fmt}" aria-pressed="${active ? 'true' : 'false'}"${locked ? ' disabled' : ''}>${esc(fmt)}</button>`;
@@ -2161,8 +2163,9 @@ export class Hud {
         + `<div class="arena-note">${esc(t('hud.arena.queueNote'))}</div>`;
     }
 
-    this.fetchArenaLeaderboard();
-    const allTime = (this.arenaAllTime ?? []).map((r, i) => {
+    this.fetchArenaLeaderboard(bracket);
+    const allTimeRows = this.arenaAllTime[bracket] ?? null;
+    const allTime = (allTimeRows ?? []).map((r, i) => {
       const me = r.name === this.sim.player.name;
       const classId = r.class as PlayerClass;
       const cls = CLASSES[classId] ? classDisplayName(classId) : r.class;
@@ -2175,20 +2178,20 @@ export class Hud {
         + `<span class="lr-rating">${esc(formatNumber(r.rating, { maximumFractionDigits: 0 }))}</span>`
         + `<span class="lr-wl">${esc(formatNumber(r.wins, { maximumFractionDigits: 0 }))}-${esc(formatNumber(r.losses, { maximumFractionDigits: 0 }))}</span></div>`;
     }).join('');
-    const allTimeSection = this.arenaAllTime && this.arenaAllTime.length > 0
+    const allTimeSection = allTimeRows && allTimeRows.length > 0
       ? `<div class="arena-sub">${esc(t('hud.arena.ladderAllTime'))}</div>${allTime}`
       : '';
 
-    const sig = JSON.stringify([a.rating, a.wins, a.losses, a.queued, a.queueSize, inMatch, a.ladder, this.arenaAllTime, bracket, party, canSwitchBracket]);
+    const sig = JSON.stringify([standing, a.queued, a.queueSize, inMatch, ladderRows, allTimeRows, bracket, party, canSwitchBracket]);
     if (sig === this.lastArenaSig) return;
     this.lastArenaSig = sig;
 
     el.innerHTML = `<div class="panel-title"><span>${esc(t('hud.arena.title'))} <span class="arena-bracket-tag">${esc(bracket)}</span></span><button type="button" class="x-btn" data-close aria-label="${esc(t('hud.arena.close'))}">${svgIcon('close')}</button></div>`
       + bracketTabs
-      + `<div class="arena-rank"><span class="rating">${esc(formatNumber(a.rating, { maximumFractionDigits: 0 }))}</span>`
+      + `<div class="arena-rank"><span class="rating">${esc(formatNumber(standing.rating, { maximumFractionDigits: 0 }))}</span>`
       + `<span class="wl">${esc(t('hud.arena.ratingSummary', {
-        wins: formatNumber(a.wins, { maximumFractionDigits: 0 }),
-        losses: formatNumber(a.losses, { maximumFractionDigits: 0 }),
+        wins: formatNumber(standing.wins, { maximumFractionDigits: 0 }),
+        losses: formatNumber(standing.losses, { maximumFractionDigits: 0 }),
       }))}</span></div>`
       + partySection
       + action
@@ -2199,7 +2202,7 @@ export class Hud {
     el.querySelector('[data-close]')?.addEventListener('click', () => { el.style.display = 'none'; });
     el.querySelectorAll('[data-bracket]:not([disabled])').forEach((btn) => {
       btn.addEventListener('click', () => {
-        this.arenaBracket = (btn as HTMLElement).dataset.bracket as import('../world_api').ArenaFormat;
+        this.arenaBracket = (btn as HTMLElement).dataset.bracket as ArenaFormat;
         this.lastArenaSig = '';
         this.renderArenaWindow();
         audio.click();

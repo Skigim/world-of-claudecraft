@@ -1,4 +1,4 @@
-import { OVERHEAD_EMOTE_IDS, type ArenaCombatant, type ArenaFormat, type Entity, type EquipSlot, type InvSlot, type MoveInput, type OverheadEmoteId, type PetMode, type PlayerClass, type QuestProgress, type QuestState, type ResourceType } from './sim/types';
+import { OVERHEAD_EMOTE_IDS, type ArenaCombatant, type ArenaFormat, type ArenaStanding, type Entity, type EquipSlot, type InvSlot, type MoveInput, type OverheadEmoteId, type PetMode, type PlayerClass, type QuestProgress, type QuestState, type ResourceType } from './sim/types';
 import type { ResolvedAbility } from './sim/sim';
 import type { TalentAllocation, SavedLoadout, Role } from './sim/content/talents';
 
@@ -120,7 +120,7 @@ export interface LeaderboardEntry {
   realm?: string; // present on the global (cross-realm) home-page board
 }
 
-export type { ArenaFormat, ArenaCombatant };
+export type { ArenaFormat, ArenaCombatant, ArenaStanding };
 
 export interface ArenaLadderEntry {
   pid: number;
@@ -132,9 +132,11 @@ export interface ArenaLadderEntry {
 }
 
 export interface ArenaInfo {
+  // Backwards-compatible view of the currently selected/queued/matched bracket.
   rating: number;
   wins: number;
   losses: number;
+  standings: Record<ArenaFormat, ArenaStanding>;
   format: ArenaFormat | null;
   queued: boolean;
   queueSize: number;
@@ -150,8 +152,10 @@ export interface ArenaInfo {
     enemies: ArenaCombatant[];
     returnIn?: number; // whole seconds left in the post-bout aftermath ('over')
   } | null;
-  // live standings of rated players currently online, best first
+  // Backwards-compatible live ladder for the currently selected bracket.
   ladder: ArenaLadderEntry[];
+  // live standings of rated players currently online, best first, by bracket
+  ladders: Record<ArenaFormat, ArenaLadderEntry[]>;
 }
 
 // ---------------------------------------------------------------------------

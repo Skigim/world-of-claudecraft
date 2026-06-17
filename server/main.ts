@@ -499,7 +499,9 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
     }
     if (req.method === 'GET' && url === '/api/arena/leaderboard') {
       // public all-time Ashen Coliseum ladder (top rated characters)
-      return json(res, 200, { leaders: await topArenaRatings(20) });
+      const params = new URLSearchParams((req.url ?? '').split('?')[1] ?? '');
+      const format = params.get('format') === '2v2' ? '2v2' : '1v1';
+      return json(res, 200, { format, leaders: await topArenaRatings(20, format) });
     }
     if (req.method === 'GET' && url === '/api/leaderboard') {
       // lifetime-XP leaderboard (Max-Level XP Overflow), served from the
