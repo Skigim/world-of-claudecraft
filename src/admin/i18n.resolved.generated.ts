@@ -1559,7 +1559,7 @@ export const it_IT: AdminTranslations = {
   "chatFilter.softHint": "mascherate con **** nella chat dei giocatori; i giocatori possono disattivare il filtro",
   "chatFilter.softPlaceholder": "aggiungi una parola moderata",
   "chatFilter.hardTitle": "Parole gravi",
-  "chatFilter.hardHint": "insulti: messaggio bloccato e silenziamenti progressivi; mai mostrate a nessuno, non disattivabili",
+  "chatFilter.hardHint": "insulti: messaggio bloccato e silenziamenti progressivi; mai mostrati a nessuno, non disattivabili",
   "chatFilter.hardPlaceholder": "aggiungi una parola grave",
   "chatFilter.add": "Aggiungi"
 };
