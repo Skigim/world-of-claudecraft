@@ -358,6 +358,7 @@ export class Input {
     if (e.code === 'Escape') { this.cb.onUiKey('escape'); return; }
     if (this.cb.canUseGameKeys && !this.cb.canUseGameKeys()) return;
     if (e.code === 'Tab') e.preventDefault();
+    if (e.code === 'Space') e.preventDefault?.();
     const action = this.keybinds.actionForCode(e.code);
     if (action === null) return;
     if (actionKind(action) === 'held') {

@@ -1085,8 +1085,7 @@ export class Hud {
   private focusFirstInteractive(root: HTMLElement, preferredSelector?: string): void {
     window.setTimeout(() => {
       const target = (preferredSelector ? root.querySelector<HTMLElement>(preferredSelector) : null)
-        ?? root.querySelector<HTMLElement>('button:not([disabled]):not([data-close]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')
-        ?? root.querySelector<HTMLElement>('button:not([disabled])');
+        ?? root.querySelector<HTMLElement>('button:not([disabled]):not([data-close]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
       (target ?? root).focus();
     }, 0);
   }
@@ -4642,7 +4641,7 @@ export class Hud {
   toggleQuestLog(): void {
     const el = $('#quest-log-window');
     if (el.style.display === 'block') { this.closeQuestLog(); return; }
-    this.questLogReturnFocus = this.currentFocusableElement() ?? $('#mm-quest');
+    this.questLogReturnFocus = this.currentFocusableElement();
     this.closeOtherWindows('#quest-log-window');
     this.renderQuestLog();
     el.style.display = 'block';
@@ -4651,9 +4650,9 @@ export class Hud {
   private closeQuestLog(restoreFocus = true): void {
     $('#quest-log-window').style.display = 'none';
     this.hideTooltip();
-    const target = this.questLogReturnFocus ?? $('#mm-quest');
+    const target = this.questLogReturnFocus;
     this.questLogReturnFocus = null;
-    if (restoreFocus) this.restoreFocus(target, $('#mm-quest'));
+    if (restoreFocus) this.restoreFocus(target);
   }
 
   renderQuestLog(): void {

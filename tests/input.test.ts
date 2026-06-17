@@ -362,6 +362,19 @@ describe('Input Escape handling', () => {
   });
 });
 
+describe('Input Space handling', () => {
+  it('prevents native Space button activation while preserving jump input', () => {
+    const { input, windowListeners } = makeInput();
+    (globalThis as any).document.activeElement = { tagName: 'BUTTON' };
+    const preventDefault = vi.fn();
+
+    windowListeners.get('keydown')!({ code: 'Space', repeat: false, preventDefault });
+
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(input.readMoveInput().jump).toBe(true);
+  });
+});
+
 describe('Input movement is not cancelled by a camera drag', () => {
   // Discord regression: walking with W (or any held key) then right/left-drag to
   // look around and releasing the button stopped movement, because exiting
