@@ -3544,11 +3544,11 @@
   body.mobile-touch #actionbar-row { pointer-events: auto; }
   body.mobile-touch #xpbar {
     position: fixed;
-    left: max(8px, env(safe-area-inset-left));
+    left: calc(max(8px, env(safe-area-inset-left)) + 52px);
     right: auto;
     top: calc(max(8px, env(safe-area-inset-top)) + 70px);
     bottom: auto;
-    width: 246px;
+    width: 194px;
     min-width: 0;
     height: 6px;
     display: block;
@@ -3653,9 +3653,18 @@
   }
   body.mobile-touch #target-frame {
     left: max(8px, env(safe-area-inset-left));
-    top: calc(max(8px, env(safe-area-inset-top)) + 64px);
+    top: calc(max(8px, env(safe-area-inset-top)) + 90px);
     transform: scale(0.82);
     transform-origin: left top;
+  }
+  body.mobile-touch #party-frames {
+    position: fixed;
+    left: max(8px, env(safe-area-inset-left));
+    top: calc(max(8px, env(safe-area-inset-top)) + 92px);
+    z-index: 5;
+  }
+  body.mobile-touch #party-frames.below-target {
+    top: calc(max(8px, env(safe-area-inset-top)) + 148px);
   }
   body.mobile-touch #buff-bar { right: max(10px, env(safe-area-inset-right)); top: max(140px, env(safe-area-inset-top)); max-width: 180px; }
   body.mobile-touch #minimap-wrap { right: max(8px, env(safe-area-inset-right)); top: max(8px, env(safe-area-inset-top)); transform: scale(0.72); transform-origin: right top; }
@@ -4077,6 +4086,18 @@
   }
 
   @media (orientation: landscape) {
+    body.mobile-touch .mode-row {
+      flex-direction: row;
+      align-items: stretch;
+      width: min(620px, calc(100vw - 96px));
+      gap: 14px;
+    }
+    body.mobile-touch .mode-card {
+      flex: 1 1 0;
+      width: auto;
+      max-width: none;
+      padding: 16px 14px;
+    }
     body.mobile-touch .mobile-joystick {
       width: 100px; height: 100px; bottom: calc(15px + env(safe-area-inset-bottom));
       opacity: 0.72; border-color: #d2bd6a66;
@@ -4121,10 +4142,10 @@
     body.mobile-touch #actionbar.many-spells { grid-template-columns: repeat(6, 40px); }
     body.mobile-touch .action-btn { width: 40px; height: 40px; }
     body.mobile-touch #xpbar {
-      left: max(6px, env(safe-area-inset-left));
+      left: calc(max(6px, env(safe-area-inset-left)) + 38px);
       top: calc(max(6px, env(safe-area-inset-top)) + 48px);
       bottom: auto;
-      width: 180px;
+      width: 142px;
       min-width: 0;
       height: 5px;
     }
@@ -4158,8 +4179,15 @@
     }
     body.mobile-touch #target-frame {
       left: max(6px, env(safe-area-inset-left));
-      top: calc(max(6px, env(safe-area-inset-top)) + 50px);
+      top: calc(max(6px, env(safe-area-inset-top)) + 68px);
       transform: scale(0.6);
+    }
+    body.mobile-touch #party-frames {
+      left: max(6px, env(safe-area-inset-left));
+      top: calc(max(6px, env(safe-area-inset-top)) + 70px);
+    }
+    body.mobile-touch #party-frames.below-target {
+      top: calc(max(6px, env(safe-area-inset-top)) + 112px);
     }
     body.mobile-touch #buff-bar { right: calc(98px + env(safe-area-inset-right)); top: max(8px, env(safe-area-inset-top)); max-width: 160px; transform: scale(0.85); transform-origin: right top; }
     body.mobile-touch #minimap-wrap { right: max(6px, env(safe-area-inset-right)); top: max(6px, env(safe-area-inset-top)); transform: scale(0.46); }

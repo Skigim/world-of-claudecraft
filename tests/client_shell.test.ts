@@ -69,11 +69,14 @@ describe('client HTML shell', () => {
 
   it('renders the mobile XP bar under the top-left player card', () => {
     expect(html).toContain('body.mobile-touch #xpbar {\n    position: fixed;');
-    expect(html).toContain('left: max(8px, env(safe-area-inset-left));');
+    expect(html).toContain('left: calc(max(8px, env(safe-area-inset-left)) + 52px);');
     expect(html).toContain('top: calc(max(8px, env(safe-area-inset-top)) + 70px);');
     expect(html).toContain('bottom: auto;');
-    expect(html).toContain('width: 246px;');
+    expect(html).toContain('width: 194px;');
     expect(html).toContain('height: 6px;\n    display: block;');
+    expect(html).toContain('body.mobile-touch #target-frame {\n    left: max(8px, env(safe-area-inset-left));\n    top: calc(max(8px, env(safe-area-inset-top)) + 90px);');
+    expect(html).toContain('body.mobile-touch #party-frames {\n    position: fixed;\n    left: max(8px, env(safe-area-inset-left));\n    top: calc(max(8px, env(safe-area-inset-top)) + 92px);');
+    expect(html).toContain('body.mobile-touch #party-frames.below-target {\n    top: calc(max(8px, env(safe-area-inset-top)) + 148px);');
     expect(html).not.toContain('body.mobile-touch.mobile-left-handed #xpbar,');
   });
 
@@ -90,6 +93,12 @@ describe('client HTML shell', () => {
     expect(html).toContain('body.mobile-touch #mobile-extra-controls .mobile-btn');
     expect(html).toContain('flex-direction: row;');
     expect(html).toContain('body.mobile-touch #mobile-extra-controls .mobile-btn .ui-icon');
+  });
+
+  it('lays out the mobile mode cards side-by-side in landscape', () => {
+    expect(html).toContain('@media (orientation: landscape) {\n    body.mobile-touch .mode-row {\n      flex-direction: row;');
+    expect(html).toContain('width: min(620px, calc(100vw - 96px));');
+    expect(html).toContain('body.mobile-touch .mode-card {\n      flex: 1 1 0;\n      width: auto;');
   });
 
   it('omits Meters from the mobile More tray while keeping the desktop window', () => {
