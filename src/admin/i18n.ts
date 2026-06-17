@@ -98,11 +98,13 @@ function interpolate(tmpl: string, params?: Record<string, string | number>): st
 }
 
 // The table the admin t() resolves against. Normally DICT[current]; the en_XA
-// pseudo table only when the dev pseudo-locale is active. en_XA is referenced solely
-// inside the !import.meta.env.PROD branch, so the production admin build tree-shakes
-// it away.
+// pseudo table only when the dev pseudo-locale is active AND the requested locale is
+// the current one (so an explicit read of some other locale is never shadowed by the
+// pseudo table). Mirrors the game runtime guard in src/ui/i18n.ts. en_XA is
+// referenced solely inside the !import.meta.env.PROD branch (kept FIRST so it is the
+// static literal Rollup uses), so the production admin build tree-shakes it away.
 function tableFor(lang: string): Record<string, string> {
-  if (!import.meta.env.PROD && pseudoActive) return en_XA as Record<string, string>;
+  if (!import.meta.env.PROD && pseudoActive && lang === current) return en_XA as Record<string, string>;
   return DICT[lang] ?? DICT.en;
 }
 
