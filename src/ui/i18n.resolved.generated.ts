@@ -302,6 +302,183 @@ export const en: EnTranslations = {
     "friends": "Friends & Guild",
     "chat": "Open Chat"
   },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
+  },
   "seo": {
     "title": "World of ClaudeCraft: Classic-Style Web MMO",
     "description": "Embark on an epic adventure in World of ClaudeCraft, a classic-style micro-MMO playable directly in your browser. Join a persistent shared realm, level up classes, and defeat enemies!",
@@ -2896,6 +3073,27 @@ export const en: EnTranslations = {
       "bound_guardian": {
         "name": "The Bound Guardian"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "Elder Bristleback"
       },
@@ -3109,6 +3307,11 @@ export const en: EnTranslations = {
         "name": "Loremaster Caddis",
         "title": "Loremaster",
         "greeting": "Mind the loose shale, {className}. The mountain has been... restless of late. I intend to learn why."
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "Ondrel Vane",
@@ -3951,6 +4154,9 @@ export const en: EnTranslations = {
           },
           "7": {
             "label": "Fallen Chapel"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -4046,6 +4252,18 @@ export const en: EnTranslations = {
         "name": "The Drowned Temple",
         "enterText": "You step through the moongate — the air turns to cold water and pale light, and the singing closes over your head.",
         "leaveText": "You surface through the moongate into the mountain night."
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -4349,6 +4567,183 @@ export const es: EnTranslations = {
     "emoteWheel": "Mantener rueda de gestos",
     "friends": "Amigos y Hermandad",
     "chat": "Abrir Chat"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft: MMO web de estilo clásico",
@@ -6944,6 +7339,27 @@ export const es: EnTranslations = {
       "bound_guardian": {
         "name": "Guardián Vinculado"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "Viejo Bristleback"
       },
@@ -7157,6 +7573,11 @@ export const es: EnTranslations = {
         "name": "Maestro de saber Caddis",
         "title": "Maestro de saber",
         "greeting": "Cuida la pizarra suelta, {className}. La montaña está inquieta últimamente y quiero saber por qué."
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "Ondrel Vane",
@@ -7999,6 +8420,9 @@ export const es: EnTranslations = {
           },
           "7": {
             "label": "Capilla caída"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -8094,6 +8518,18 @@ export const es: EnTranslations = {
         "name": "El Templo Ahogado",
         "enterText": "Atraviesas la puerta lunar: el aire se vuelve agua fría y luz pálida, y el canto se cierra sobre tu cabeza.",
         "leaveText": "Emerges a través de la puerta lunar a la noche de la montaña."
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -8397,6 +8833,183 @@ export const es_ES: EnTranslations = {
     "emoteWheel": "Mantener rueda de gestos",
     "friends": "Amigos y hermandad",
     "chat": "Abrir chat"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft: MMO web de estilo clásico",
@@ -10992,6 +11605,27 @@ export const es_ES: EnTranslations = {
       "bound_guardian": {
         "name": "Guardián Vinculado"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "Viejo Bristleback"
       },
@@ -11205,6 +11839,11 @@ export const es_ES: EnTranslations = {
         "name": "Maestro de saber Caddis",
         "title": "Maestro de saber",
         "greeting": "Cuida la pizarra suelta, {className}. La montaña está inquieta últimamente y quiero saber por qué."
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "Ondrel Vane",
@@ -12047,6 +12686,9 @@ export const es_ES: EnTranslations = {
           },
           "7": {
             "label": "Capilla caída"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -12142,6 +12784,18 @@ export const es_ES: EnTranslations = {
         "name": "El Templo Ahogado",
         "enterText": "Atraviesas la puerta lunar: el aire se vuelve agua fría y luz pálida, y el canto se cierra sobre tu cabeza.",
         "leaveText": "Emerges a través de la puerta lunar a la noche de la montaña."
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -12445,6 +13099,183 @@ export const fr_FR: EnTranslations = {
     "emoteWheel": "Maintenir la roue des emotes",
     "friends": "Amis et guilde",
     "chat": "Ouvrir le chat"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft: MMO web de style classique",
@@ -15040,6 +15871,27 @@ export const fr_FR: EnTranslations = {
       "bound_guardian": {
         "name": "Gardien lié"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "Ancien Bristleback"
       },
@@ -15253,6 +16105,11 @@ export const fr_FR: EnTranslations = {
         "name": "Maître du savoir Caddis",
         "title": "Maître du savoir",
         "greeting": "Méfiez-vous des schistes instables, {className}. La montagne est agitée ces temps-ci, et je veux savoir pourquoi."
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "Ondrel Vane",
@@ -16095,6 +16952,9 @@ export const fr_FR: EnTranslations = {
           },
           "7": {
             "label": "Chapelle tombée"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -16190,6 +17050,18 @@ export const fr_FR: EnTranslations = {
         "name": "Le Temple noyé",
         "enterText": "Tu franchis la porte de lune — l'air se mue en eau froide et en lumière blafarde, et le chant se referme au-dessus de ta tête.",
         "leaveText": "Tu refais surface par la porte de lune dans la nuit de la montagne."
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -16493,6 +17365,183 @@ export const fr_CA: EnTranslations = {
     "emoteWheel": "Maintenir la roue des emotes",
     "friends": "Amis et guilde",
     "chat": "Ouvrir le chat"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft: MMO Web de style classique",
@@ -19088,6 +20137,27 @@ export const fr_CA: EnTranslations = {
       "bound_guardian": {
         "name": "Gardien lié"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "Ancien Bristleback"
       },
@@ -19301,6 +20371,11 @@ export const fr_CA: EnTranslations = {
         "name": "Maître du savoir Caddis",
         "title": "Maître du savoir",
         "greeting": "Méfiez-vous des schistes instables, {className}. La montagne est agitée ces temps-ci, et je veux savoir pourquoi."
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "Ondrel Vane",
@@ -20143,6 +21218,9 @@ export const fr_CA: EnTranslations = {
           },
           "7": {
             "label": "Chapelle tombée"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -20238,6 +21316,18 @@ export const fr_CA: EnTranslations = {
         "name": "Le Temple noyé",
         "enterText": "Tu franchis la porte de lune — l'air se mue en eau froide et en lumière blafarde, et le chant se referme au-dessus de ta tête.",
         "leaveText": "Tu refais surface par la porte de lune dans la nuit de la montagne."
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -20541,6 +21631,183 @@ export const en_CA: EnTranslations = {
     "emoteWheel": "Hold Emote Wheel",
     "friends": "Friends & Guild",
     "chat": "Open Chat"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft: Classic-Style Web MMO",
@@ -23136,6 +24403,27 @@ export const en_CA: EnTranslations = {
       "bound_guardian": {
         "name": "The Bound Guardian"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "Elder Bristleback"
       },
@@ -23349,6 +24637,11 @@ export const en_CA: EnTranslations = {
         "name": "Loremaster Caddis",
         "title": "Loremaster",
         "greeting": "Mind the loose shale, {className}. The mountain has been... restless of late. I intend to learn why."
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "Ondrel Vane",
@@ -24191,6 +25484,9 @@ export const en_CA: EnTranslations = {
           },
           "7": {
             "label": "Fallen Chapel"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -24286,6 +25582,18 @@ export const en_CA: EnTranslations = {
         "name": "The Drowned Temple",
         "enterText": "You step through the moongate — the air turns to cold water and pale light, and the singing closes over your head.",
         "leaveText": "You surface through the moongate into the mountain night."
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -24589,6 +25897,183 @@ export const it_IT: EnTranslations = {
     "emoteWheel": "Tieni premuta la ruota emote",
     "friends": "Amici e gilda",
     "chat": "Apri chat"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft: MMO web in stile classico",
@@ -27184,6 +28669,27 @@ export const it_IT: EnTranslations = {
       "bound_guardian": {
         "name": "Guardiano Vincolato"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "Bristleback anziano"
       },
@@ -27397,6 +28903,11 @@ export const it_IT: EnTranslations = {
         "name": "Maestro del sapere Caddis",
         "title": "Maestro del sapere",
         "greeting": "Fai attenzione allo scisto instabile, {className}. La montagna è inquieta da qualche tempo, e voglio sapere perché."
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "Ondrel Vane",
@@ -28239,6 +29750,9 @@ export const it_IT: EnTranslations = {
           },
           "7": {
             "label": "Cappella caduta"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -28334,6 +29848,18 @@ export const it_IT: EnTranslations = {
         "name": "Il Tempio Annegato",
         "enterText": "Attraversi il cancello lunare — l'aria si fa acqua gelida e luce pallida, e il canto si richiude sopra la tua testa.",
         "leaveText": "Riemergi attraverso il cancello lunare nella notte della montagna."
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -28637,6 +30163,183 @@ export const de_DE: EnTranslations = {
     "emoteWheel": "Emote-Rad gedrückt halten",
     "friends": "Freunde und Gilde",
     "chat": "Chat öffnen"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft: Klassisches Web-MMO",
@@ -31232,6 +32935,27 @@ export const de_DE: EnTranslations = {
       "bound_guardian": {
         "name": "Gebundener Wächter"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "Alter Bristleback"
       },
@@ -31445,6 +33169,11 @@ export const de_DE: EnTranslations = {
         "name": "Lehrmeister Caddis",
         "title": "Lehrmeister",
         "greeting": "Achte auf lockeren Schiefer, {className}. Der Berg ist unruhig geworden, und ich will wissen warum."
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "Ondrel Vane",
@@ -32287,6 +34016,9 @@ export const de_DE: EnTranslations = {
           },
           "7": {
             "label": "Gefallene Kapelle"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -32382,6 +34114,18 @@ export const de_DE: EnTranslations = {
         "name": "Der Ertränkte Tempel",
         "enterText": "Du trittst durch das Mondtor — die Luft wird zu kaltem Wasser und bleichem Licht, und der Gesang schließt sich über deinem Haupt.",
         "leaveText": "Du tauchst durch das Mondtor empor in die Bergnacht."
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -32685,6 +34429,183 @@ export const zh_CN: EnTranslations = {
     "emoteWheel": "按住表情轮盘",
     "friends": "好友与公会",
     "chat": "打开聊天框"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft：经典风格网页 MMO",
@@ -35280,6 +37201,27 @@ export const zh_CN: EnTranslations = {
       "bound_guardian": {
         "name": "受缚守卫者"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "年长硬鬃"
       },
@@ -35493,6 +37435,11 @@ export const zh_CN: EnTranslations = {
         "name": "凯迪斯博学者",
         "title": "博学者",
         "greeting": "小心松动的页岩，{className}。这座山近来不安，我想知道原因。"
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "翁德雷尔·凡恩",
@@ -36335,6 +38282,9 @@ export const zh_CN: EnTranslations = {
           },
           "7": {
             "label": "倒塌礼拜堂"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -36430,6 +38380,18 @@ export const zh_CN: EnTranslations = {
         "name": "溺亡神殿",
         "enterText": "你踏过那道月门——空气化作冰冷的水与苍白的光，歌声在你头顶合拢。",
         "leaveText": "你穿过月门，浮上山间的夜色之中。"
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -36733,6 +38695,183 @@ export const zh_TW: EnTranslations = {
     "emoteWheel": "按住表情輪盤",
     "friends": "好友與公會",
     "chat": "開啟對話框"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft：經典風格網頁 MMO",
@@ -39328,6 +41467,27 @@ export const zh_TW: EnTranslations = {
       "bound_guardian": {
         "name": "受縛守衛者"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "年長硬鬃"
       },
@@ -39541,6 +41701,11 @@ export const zh_TW: EnTranslations = {
         "name": "凱迪斯博學者",
         "title": "博學者",
         "greeting": "小心鬆動的頁岩，{className}。這座山近來不安，我想知道原因。"
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "翁德瑞爾·韋恩",
@@ -40383,6 +42548,9 @@ export const zh_TW: EnTranslations = {
           },
           "7": {
             "label": "倒塌禮拜堂"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -40478,6 +42646,18 @@ export const zh_TW: EnTranslations = {
         "name": "溺亡神殿",
         "enterText": "你踏過月門——空氣化作冰冷的水與蒼白的光，歌聲在你頭頂之上闔攏。",
         "leaveText": "你穿過月門浮出水面，回到山間的夜色之中。"
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -40781,6 +42961,183 @@ export const ko_KR: EnTranslations = {
     "emoteWheel": "감정표현 휠 길게 누르기",
     "friends": "친구 및 길드",
     "chat": "채팅창 열기"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft: 클래식 스타일 웹 MMO",
@@ -43376,6 +45733,27 @@ export const ko_KR: EnTranslations = {
       "bound_guardian": {
         "name": "속박된 수호자"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "늙은 뻣센등뼈"
       },
@@ -43589,6 +45967,11 @@ export const ko_KR: EnTranslations = {
         "name": "현자 캐디스",
         "title": "현자",
         "greeting": "느슨한 혈암을 조심하십시오, {className}. 산이 요즘 불안정해졌고, 나는 그 이유를 알고 싶습니다."
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "온드렐 베인",
@@ -44431,6 +46814,9 @@ export const ko_KR: EnTranslations = {
           },
           "7": {
             "label": "무너진 예배당"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -44526,6 +46912,18 @@ export const ko_KR: EnTranslations = {
         "name": "익사한 신전",
         "enterText": "당신은 달의 관문을 지나갑니다 — 공기가 차가운 물과 창백한 빛으로 변하고, 노랫소리가 당신의 머리 위로 닫혀 옵니다.",
         "leaveText": "당신은 달의 관문을 통해 산속의 밤으로 떠오릅니다."
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -44829,6 +47227,183 @@ export const ja_JP: EnTranslations = {
     "emoteWheel": "エモートホイールを長押し",
     "friends": "フレンド & ギルド",
     "chat": "チャットを開く"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft: クラシック風Web MMO",
@@ -47424,6 +49999,27 @@ export const ja_JP: EnTranslations = {
       "bound_guardian": {
         "name": "縛られし守護者"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "老ブリストルバック"
       },
@@ -47637,6 +50233,11 @@ export const ja_JP: EnTranslations = {
         "name": "博識者キャディス",
         "title": "博識者",
         "greeting": "崩れやすい頁岩に気をつけてください、{className}。山は近ごろ落ち着きがなく、その理由を知りたいのです。"
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "オンドレル・ヴェイン",
@@ -48479,6 +51080,9 @@ export const ja_JP: EnTranslations = {
           },
           "7": {
             "label": "倒れた礼拝堂"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -48574,6 +51178,18 @@ export const ja_JP: EnTranslations = {
         "name": "溺れし神殿",
         "enterText": "月の門をくぐり抜けると——大気は冷たい水と蒼白の光に変わり、歌声が頭上で閉ざされていく。",
         "leaveText": "月の門を抜けて、山の夜へと浮かび上がる。"
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -48877,6 +51493,183 @@ export const pt_BR: EnTranslations = {
     "emoteWheel": "Segurar roda de emotes",
     "friends": "Amigos e guilda",
     "chat": "Abrir chat"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft: MMO web em estilo clássico",
@@ -51472,6 +54265,27 @@ export const pt_BR: EnTranslations = {
       "bound_guardian": {
         "name": "Guardião Vinculado"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "Bristleback ancião"
       },
@@ -51685,6 +54499,11 @@ export const pt_BR: EnTranslations = {
         "name": "Mestre do saber Caddis",
         "title": "Mestre do saber",
         "greeting": "Cuidado com a ardósia solta, {className}. A montanha anda inquieta, e quero saber por quê."
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "Ondrel Vane",
@@ -52527,6 +55346,9 @@ export const pt_BR: EnTranslations = {
           },
           "7": {
             "label": "Capela caída"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -52622,6 +55444,18 @@ export const pt_BR: EnTranslations = {
         "name": "O Templo Afogado",
         "enterText": "Você atravessa o portão lunar — o ar se transforma em água fria e luz pálida, e o cântico se fecha sobre a sua cabeça.",
         "leaveText": "Você emerge através do portão lunar para a noite da montanha."
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
       }
     }
   },
@@ -52925,6 +55759,183 @@ export const ru_RU: EnTranslations = {
     "emoteWheel": "Удерживать колесо эмоций",
     "friends": "Друзья и гильдия",
     "chat": "Открыть чат"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "You cannot enter a delve right now.",
+      "leaveDungeonFirst": "Leave the dungeon first.",
+      "leaveArenaFirst": "Leave the arena first.",
+      "alreadyInDelve": "You are already in a delve.",
+      "whileTrading": "You cannot enter a delve while trading.",
+      "duringDuel": "You cannot enter a delve during a duel.",
+      "duringArena": "You cannot enter a delve during an arena match.",
+      "unknownTier": "Unknown delve tier.",
+      "levelRequired": "You must be level {level} to enter {name}.",
+      "instancesBusy": "All instances of {name} are busy. Try again soon.",
+      "runFailed": "{name} run failed.",
+      "complete": "{name} complete.",
+      "mechanismOpen": "A mechanism clicks open nearby. A passage opens to the north — find the exit portal ahead.",
+      "raiseDead": "{name} begins Raise Dead.",
+      "graveFalters": "The grave rite falters.",
+      "doorAlreadyOpen": "The door is already open.",
+      "companionRankUp": "{name} reaches rank {rank}.",
+      "bossChest": "The boss falls. A warded reliquary chest rises on the dais — pick its lock to claim your spoils.",
+      "surfaceStairs": "A stairway to the surface opens. Press F at the stairs to leave.",
+      "moduleEnter": "{name} — {objective}",
+      "tombstoneHint": "A tombstone passage opens to the north when the room is cleared.",
+      "tombstoneOpen": "A sealed tombstone passage grinds open to the north. Walk into it to continue.",
+      "tombstoneInto": "You pass through the tombstone into {name}.",
+      "chestEmpty": "The chest is empty.",
+      "notInDelve": "You are not in a delve.",
+      "cannotInteract": "You cannot interact with that.",
+      "tooFar": "You are too far away.",
+      "graveSilent": "The grave is silent for now.",
+      "doorLocked": "The door is locked.",
+      "strikeWall": "Strike the wall to break through.",
+      "nothingHappens": "Nothing happens.",
+      "unknownCompanion": "Unknown companion.",
+      "companionMaxRank": "This companion is already fully upgraded.",
+      "companionMarksRequired": "You need {marks} Delve Marks to upgrade {name}.",
+      "cannotAffordCompanionUpgrade": "You cannot afford this upgrade.",
+      "passageSealed": "The passage is sealed.",
+      "moveCloserPassage": "Move closer to the passage.",
+      "moveCloserChest": "Move closer to the chest.",
+      "wayOutNotOpen": "The way out is not yet open.",
+      "moveCloserStairs": "Move closer to the stairs."
+    },
+    "lockpick": {
+      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "alreadyInProgress": "Someone is already working the lock.",
+      "cannotPickThat": "You cannot pick that.",
+      "chooseAnte": "Choose 1, 2, or 3 picks.",
+      "noAttempt": "No lock attempt in progress.",
+      "notYours": "That is not your lock.",
+      "toolSlips": "That tool slips off this lock.",
+      "lockJammed": "The lock is jammed beyond picking — clear the delve again for another attempt.",
+      "lastPickSnaps": "The last pick snaps. The lock jams — the chest is lost unless you clear the delve again."
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "Delve Board",
+      "enter": "Enter Delve",
+      "enterAria": "Enter {delve} on {tier} difficulty",
+      "openDelve": "Collapsed Reliquary",
+      "openDelveAria": "Open Delve Board from {name}",
+      "marks": "Delve Marks: {count}",
+      "minLevel": "Requires Level {level}",
+      "tier": {
+        "normal": "Normal",
+        "heroic": "Heroic"
+      },
+      "companion": {
+        "pick": "Choose a companion",
+        "tessa": "Acolyte Tessa",
+        "rank": "Rank {rank}"
+      }
+    },
+    "tracker": {
+      "title": "Delve",
+      "objective": "Objective",
+      "module": "Module {current} of {total}",
+      "affix": "Affixes",
+      "complete": "Complete",
+      "marks": "Delve Marks: {count}"
+    },
+    "objective": {
+      "kill_boss": "Slay {boss}",
+      "recover_artifact": "Recover the burial ledger"
+    },
+    "summary": {
+      "title": "Delve Complete",
+      "marks": "{count} Delve Marks earned",
+      "loreUnlock": "Lore unlocked: {title}"
+    },
+    "death": {
+      "warning": "One more death will end this delve run."
+    },
+    "run": {
+      "failed": "The delve run has failed. You are returned to Brother Halven."
+    },
+    "npc": {
+      "halven": {
+        "greeting": "The reliquary below has shifted again. We hear chanting through the floor after midnight, and Acolyte Tessa swears the burial ledgers are changing their own ink. If you have courage enough, {playerName}, take a candle and go below. Do not trust every voice you hear down there. Some of them knew your name before you were born."
+      }
+    },
+    "intro": {
+      "normal": "The stairwell is cold and dark. Broken saint-stones litter the descent, and a soft bell note hangs in the damp air. Acolyte Tessa whispers, \"The reliquary should not be open this far. Stay close, {playerName}.\"",
+      "heroic": "The doors groan shut behind you. Names scrape across the stone like fingernails. Tessa's candle burns blue. \"They are not calling the dead now, {playerName}. They are answering something.\""
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "Water seeps through burial shelves, carrying old ash in silver-black streams.",
+      "reliquary_bell_niche": "Dozens of handbells hang in silence, each tied with funeral cloth.",
+      "reliquary_saintless_hall": "Statues with faces chiseled away with careful hatred.",
+      "reliquary_finale": "The buried bell tolls once beneath your boots."
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
+        "low_hp": "Breathe. I still have prayers left for you.",
+        "trap_spotted": "Hold — something in the floor remembers footsteps.",
+        "boss_pull": "That bell knows your weight, {playerName}. Do not kneel.",
+        "completion": "The ledger can rest another night. Well done.",
+        "rank": {
+          "1": "Chapel Novice",
+          "2": "Candle-Bearer",
+          "3": "Reliquary Acolyte",
+          "4": "Gravecall Witness",
+          "5": "Chapel Warden"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "Deacon Varric grips the buried bell with both hands!",
+          "log": "Deacon Varric begins to toll the burial bell.",
+          "warning": "Move away from Deacon Varric!",
+          "impact": "The bell's toll cracks the chamber floor!",
+          "lesson": "Bell Toll — a ground slam every twelve seconds. Move out before it lands."
+        },
+        "raise": {
+          "emote": "Deacon Varric calls names from the broken graves!",
+          "log": "Deacon Varric begins Raise Dead.",
+          "warning": "Stop the grave rite!",
+          "object": "The cracked grave shudders with stolen breath.",
+          "interrupt_ok": "The grave rite falters.",
+          "interrupt_fail": "The dead answer Deacon Varric's call!",
+          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+        },
+        "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
+        "intro": "No soul is lost. Only misplaced.",
+        "mid60": "Deacon Varric reads names from the ledger with shaking triumph.",
+        "mid30": "The burial bell answers every name he speaks.",
+        "defeat": "No... I had the names... I had them all..."
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "A water-stained page from Eastbrook's burial ledger. Names crossed out and rewritten in a hand that is not human.",
+      "first_collapse": "Chapel records note the first sinkage: saint-stones cracked, shelves tilted, and a bell-note heard from below ground.",
+      "gravecaller_mark": "A sigil scraped into coffin wood — not Morthen's seal, but an older gravecaller mark predating the Hollow Crypt.",
+      "bell_below": "Tessa's margin note: \"There is a second bell under the reliquary. It tolls for the misplaced, not the dead.\"",
+      "tessa_note": "Folded scrap in Tessa's script: \"If the ledgers change while we are below, trust the candle, not the voices.\""
+    },
+    "affix": {
+      "restless_graves": "Restless Graves",
+      "bad_air": "Bad Air",
+      "candleblind": "Candleblind",
+      "old_mechanisms": "Old Mechanisms",
+      "flooded_paths": "Flooded Paths",
+      "grave_tax": "Grave Tax",
+      "unstable_roof": "Unstable Roof",
+      "cult_remnants": "Cult Remnants"
+    },
+    "blessing": {
+      "chapel_candle": "Chapel Candle — safer run, one fewer Mark on completion."
+    },
+    "chest": {
+      "flavor": "The dead have surrendered what they can spare."
+    }
   },
   "seo": {
     "title": "World of ClaudeCraft: веб-MMO в классическом стиле",
@@ -55520,6 +58531,27 @@ export const ru_RU: EnTranslations = {
       "bound_guardian": {
         "name": "Связанный страж"
       },
+      "reliquary_funeral_ringer": {
+        "name": "Funeral Ringer"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "Gravecall Acolyte"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "Ledger Wraith"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "Saintless Effigy"
+      },
+      "deacon_varric": {
+        "name": "Deacon Varric"
+      },
+      "acolyte_tessa": {
+        "name": "Acolyte Tessa"
+      },
+      "placeholder_boss": {
+        "name": "Trial Warden"
+      },
       "elder_bristleback": {
         "name": "Старый Щетиноспин"
       },
@@ -55733,6 +58765,11 @@ export const ru_RU: EnTranslations = {
         "name": "Хранитель знаний Каддис",
         "title": "Хранитель знаний",
         "greeting": "Осторожнее с рыхлым сланцем, {className}. Гора стала беспокойной, и я намерен узнать почему."
+      },
+      "brother_halven": {
+        "name": "Brother Halven",
+        "title": "Reliquary Keeper",
+        "greeting": "The reliquary below has shifted again."
       },
       "tidewatcher_ondrel": {
         "name": "Ондрел Вейн",
@@ -56575,6 +59612,9 @@ export const ru_RU: EnTranslations = {
           },
           "7": {
             "label": "Павшая часовня"
+          },
+          "8": {
+            "label": "Reliquary Hill"
           }
         }
       },
@@ -56671,6 +59711,18 @@ export const ru_RU: EnTranslations = {
         "enterText": "Ты проходишь сквозь лунные врата — воздух обращается в холодную воду и бледный свет, и пение смыкается над твоей головой.",
         "leaveText": "Ты всплываешь сквозь лунные врата в горную ночь."
       }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "The Collapsed Reliquary",
+        "enterText": "You descend into the collapsed reliquary.",
+        "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      },
+      "delve_placeholder": {
+        "name": "Shallow Trial Crypt",
+        "enterText": "You descend into the shallow trial crypt.",
+        "leaveText": "You climb back to the surface."
+      }
     }
   },
   "worldContent": {
@@ -56699,19 +59751,1711 @@ export const translations = {
 };
 
 export const pending: Record<string, readonly string[]> = {
-  "es": [],
-  "es_ES": [],
-  "fr_FR": [],
-  "fr_CA": [],
+  "es": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ],
+  "es_ES": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ],
+  "fr_FR": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ],
+  "fr_CA": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ],
   "en_CA": [],
-  "it_IT": [],
-  "de_DE": [],
-  "zh_CN": [],
-  "zh_TW": [],
-  "ko_KR": [],
-  "ja_JP": [],
-  "pt_BR": [],
-  "ru_RU": []
+  "it_IT": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ],
+  "de_DE": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ],
+  "zh_CN": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ],
+  "zh_TW": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ],
+  "ko_KR": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ],
+  "ja_JP": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ],
+  "pt_BR": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ],
+  "ru_RU": [
+    "delveUi.affix.bad_air",
+    "delveUi.affix.candleblind",
+    "delveUi.affix.cult_remnants",
+    "delveUi.affix.flooded_paths",
+    "delveUi.affix.grave_tax",
+    "delveUi.affix.old_mechanisms",
+    "delveUi.affix.restless_graves",
+    "delveUi.affix.unstable_roof",
+    "delveUi.blessing.chapel_candle",
+    "delveUi.board.companion.pick",
+    "delveUi.board.companion.rank",
+    "delveUi.board.companion.tessa",
+    "delveUi.board.enter",
+    "delveUi.board.enterAria",
+    "delveUi.board.marks",
+    "delveUi.board.minLevel",
+    "delveUi.board.openDelve",
+    "delveUi.board.openDelveAria",
+    "delveUi.board.tier.heroic",
+    "delveUi.board.tier.normal",
+    "delveUi.board.title",
+    "delveUi.boss.varric.bell.emote",
+    "delveUi.boss.varric.bell.impact",
+    "delveUi.boss.varric.bell.lesson",
+    "delveUi.boss.varric.bell.log",
+    "delveUi.boss.varric.bell.warning",
+    "delveUi.boss.varric.defeat",
+    "delveUi.boss.varric.intro",
+    "delveUi.boss.varric.mid30",
+    "delveUi.boss.varric.mid60",
+    "delveUi.boss.varric.pull",
+    "delveUi.boss.varric.raise.emote",
+    "delveUi.boss.varric.raise.interrupt_fail",
+    "delveUi.boss.varric.raise.interrupt_ok",
+    "delveUi.boss.varric.raise.lesson",
+    "delveUi.boss.varric.raise.log",
+    "delveUi.boss.varric.raise.object",
+    "delveUi.boss.varric.raise.warning",
+    "delveUi.chest.flavor",
+    "delveUi.companion.tessa.boss_pull",
+    "delveUi.companion.tessa.combat_start",
+    "delveUi.companion.tessa.completion",
+    "delveUi.companion.tessa.low_hp",
+    "delveUi.companion.tessa.rank.1",
+    "delveUi.companion.tessa.rank.2",
+    "delveUi.companion.tessa.rank.3",
+    "delveUi.companion.tessa.rank.4",
+    "delveUi.companion.tessa.rank.5",
+    "delveUi.companion.tessa.trap_spotted",
+    "delveUi.death.warning",
+    "delveUi.intro.heroic",
+    "delveUi.intro.normal",
+    "delveUi.lore.bell_below",
+    "delveUi.lore.eastbrook_ledger",
+    "delveUi.lore.first_collapse",
+    "delveUi.lore.gravecaller_mark",
+    "delveUi.lore.tessa_note",
+    "delveUi.module.reliquary_bell_niche",
+    "delveUi.module.reliquary_finale",
+    "delveUi.module.reliquary_saintless_hall",
+    "delveUi.module.reliquary_sunken_ossuary",
+    "delveUi.npc.halven.greeting",
+    "delveUi.objective.kill_boss",
+    "delveUi.objective.recover_artifact",
+    "delveUi.run.failed",
+    "delveUi.summary.loreUnlock",
+    "delveUi.summary.marks",
+    "delveUi.summary.title",
+    "delveUi.tracker.affix",
+    "delveUi.tracker.complete",
+    "delveUi.tracker.marks",
+    "delveUi.tracker.module",
+    "delveUi.tracker.objective",
+    "delveUi.tracker.title",
+    "entities.delves.collapsed_reliquary.enterText",
+    "entities.delves.collapsed_reliquary.leaveText",
+    "entities.delves.collapsed_reliquary.name",
+    "entities.delves.delve_placeholder.enterText",
+    "entities.delves.delve_placeholder.leaveText",
+    "entities.delves.delve_placeholder.name",
+    "entities.mobs.acolyte_tessa.name",
+    "entities.mobs.deacon_varric.name",
+    "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_funeral_ringer.name",
+    "entities.mobs.reliquary_gravecall_acolyte.name",
+    "entities.mobs.reliquary_ledger_wraith.name",
+    "entities.mobs.reliquary_saintless_effigy.name",
+    "entities.npcs.brother_halven.greeting",
+    "entities.npcs.brother_halven.name",
+    "entities.npcs.brother_halven.title",
+    "entities.zones.eastbrook_vale.pois.8.label",
+    "sim.delve.alreadyInDelve",
+    "sim.delve.bossChest",
+    "sim.delve.cannotAffordCompanionUpgrade",
+    "sim.delve.cannotEnterNow",
+    "sim.delve.cannotInteract",
+    "sim.delve.chestEmpty",
+    "sim.delve.companionMarksRequired",
+    "sim.delve.companionMaxRank",
+    "sim.delve.companionRankUp",
+    "sim.delve.complete",
+    "sim.delve.doorAlreadyOpen",
+    "sim.delve.doorLocked",
+    "sim.delve.duringArena",
+    "sim.delve.duringDuel",
+    "sim.delve.graveFalters",
+    "sim.delve.graveSilent",
+    "sim.delve.instancesBusy",
+    "sim.delve.leaveArenaFirst",
+    "sim.delve.leaveDungeonFirst",
+    "sim.delve.levelRequired",
+    "sim.delve.mechanismOpen",
+    "sim.delve.moduleEnter",
+    "sim.delve.moveCloserChest",
+    "sim.delve.moveCloserPassage",
+    "sim.delve.moveCloserStairs",
+    "sim.delve.notInDelve",
+    "sim.delve.nothingHappens",
+    "sim.delve.passageSealed",
+    "sim.delve.raiseDead",
+    "sim.delve.runFailed",
+    "sim.delve.strikeWall",
+    "sim.delve.surfaceStairs",
+    "sim.delve.tombstoneHint",
+    "sim.delve.tombstoneInto",
+    "sim.delve.tombstoneOpen",
+    "sim.delve.tooFar",
+    "sim.delve.unknownCompanion",
+    "sim.delve.unknownTier",
+    "sim.delve.wayOutNotOpen",
+    "sim.delve.whileTrading",
+    "sim.lockpick.alreadyInProgress",
+    "sim.lockpick.cannotPickThat",
+    "sim.lockpick.chooseAnte",
+    "sim.lockpick.lastPickSnaps",
+    "sim.lockpick.lockJammed",
+    "sim.lockpick.lockYields",
+    "sim.lockpick.noAttempt",
+    "sim.lockpick.notYours",
+    "sim.lockpick.toolSlips"
+  ]
 };
 
 export const en_XA: EnTranslations = {
@@ -57006,6 +61750,183 @@ export const en_XA: EnTranslations = {
     "emoteWheel": "[Ĥóļð Éɱóţé Ŵĥééļ]",
     "friends": "[Ƒŕíéñðš & Ĝúíļð]",
     "chat": "[Óþéñ Çĥáţ]"
+  },
+  "sim": {
+    "delve": {
+      "cannotEnterNow": "[Ýóú çáññóţ éñţéŕ á ðéļʋé ŕíĝĥţ ñóŵ.]",
+      "leaveDungeonFirst": "[Ļéáʋé ţĥé ðúñĝéóñ ƒíŕšţ.]",
+      "leaveArenaFirst": "[Ļéáʋé ţĥé áŕéñá ƒíŕšţ.]",
+      "alreadyInDelve": "[Ýóú áŕé áļŕéáðý íñ á ðéļʋé.]",
+      "whileTrading": "[Ýóú çáññóţ éñţéŕ á ðéļʋé ŵĥíļé ţŕáðíñĝ.]",
+      "duringDuel": "[Ýóú çáññóţ éñţéŕ á ðéļʋé ðúŕíñĝ á ðúéļ.]",
+      "duringArena": "[Ýóú çáññóţ éñţéŕ á ðéļʋé ðúŕíñĝ áñ áŕéñá ɱáţçĥ.]",
+      "unknownTier": "[Úñķñóŵñ ðéļʋé ţíéŕ.]",
+      "levelRequired": "[Ýóú ɱúšţ ƀé ļéʋéļ {level} ţó éñţéŕ {name}.]",
+      "instancesBusy": "[Áļļ íñšţáñçéš óƒ {name} áŕé ƀúšý. Ţŕý áĝáíñ šóóñ.]",
+      "runFailed": "[{name} ŕúñ ƒáíļéð.]",
+      "complete": "[{name} çóɱþļéţé.]",
+      "mechanismOpen": "[Á ɱéçĥáñíšɱ çļíçķš óþéñ ñéáŕƀý. Á þáššáĝé óþéñš ţó ţĥé ñóŕţĥ — ƒíñð ţĥé éẋíţ þóŕţáļ áĥéáð.]",
+      "raiseDead": "[{name} ƀéĝíñš Ŕáíšé Ðéáð.]",
+      "graveFalters": "[Ţĥé ĝŕáʋé ŕíţé ƒáļţéŕš.]",
+      "doorAlreadyOpen": "[Ţĥé ðóóŕ íš áļŕéáðý óþéñ.]",
+      "companionRankUp": "[{name} ŕéáçĥéš ŕáñķ {rank}.]",
+      "bossChest": "[Ţĥé ƀóšš ƒáļļš. Á ŵáŕðéð ŕéļíɋúáŕý çĥéšţ ŕíšéš óñ ţĥé ðáíš — þíçķ íţš ļóçķ ţó çļáíɱ ýóúŕ šþóíļš.]",
+      "surfaceStairs": "[Á šţáíŕŵáý ţó ţĥé šúŕƒáçé óþéñš. Þŕéšš Ƒ áţ ţĥé šţáíŕš ţó ļéáʋé.]",
+      "moduleEnter": "[{name} — {objective}]",
+      "tombstoneHint": "[Á ţóɱƀšţóñé þáššáĝé óþéñš ţó ţĥé ñóŕţĥ ŵĥéñ ţĥé ŕóóɱ íš çļéáŕéð.]",
+      "tombstoneOpen": "[Á šéáļéð ţóɱƀšţóñé þáššáĝé ĝŕíñðš óþéñ ţó ţĥé ñóŕţĥ. Ŵáļķ íñţó íţ ţó çóñţíñúé.]",
+      "tombstoneInto": "[Ýóú þášš ţĥŕóúĝĥ ţĥé ţóɱƀšţóñé íñţó {name}.]",
+      "chestEmpty": "[Ţĥé çĥéšţ íš éɱþţý.]",
+      "notInDelve": "[Ýóú áŕé ñóţ íñ á ðéļʋé.]",
+      "cannotInteract": "[Ýóú çáññóţ íñţéŕáçţ ŵíţĥ ţĥáţ.]",
+      "tooFar": "[Ýóú áŕé ţóó ƒáŕ áŵáý.]",
+      "graveSilent": "[Ţĥé ĝŕáʋé íš šíļéñţ ƒóŕ ñóŵ.]",
+      "doorLocked": "[Ţĥé ðóóŕ íš ļóçķéð.]",
+      "strikeWall": "[Šţŕíķé ţĥé ŵáļļ ţó ƀŕéáķ ţĥŕóúĝĥ.]",
+      "nothingHappens": "[Ñóţĥíñĝ ĥáþþéñš.]",
+      "unknownCompanion": "[Úñķñóŵñ çóɱþáñíóñ.]",
+      "companionMaxRank": "[Ţĥíš çóɱþáñíóñ íš áļŕéáðý ƒúļļý úþĝŕáðéð.]",
+      "companionMarksRequired": "[Ýóú ñééð {marks} Ðéļʋé Ɱáŕķš ţó úþĝŕáðé {name}.]",
+      "cannotAffordCompanionUpgrade": "[Ýóú çáññóţ áƒƒóŕð ţĥíš úþĝŕáðé.]",
+      "passageSealed": "[Ţĥé þáššáĝé íš šéáļéð.]",
+      "moveCloserPassage": "[Ɱóʋé çļóšéŕ ţó ţĥé þáššáĝé.]",
+      "moveCloserChest": "[Ɱóʋé çļóšéŕ ţó ţĥé çĥéšţ.]",
+      "wayOutNotOpen": "[Ţĥé ŵáý óúţ íš ñóţ ýéţ óþéñ.]",
+      "moveCloserStairs": "[Ɱóʋé çļóšéŕ ţó ţĥé šţáíŕš.]"
+    },
+    "lockpick": {
+      "lockYields": "[Ţĥé ļóçķ ýíéļðš! {tier} šþóíļš{detail}.]",
+      "alreadyInProgress": "[Šóɱéóñé íš áļŕéáðý ŵóŕķíñĝ ţĥé ļóçķ.]",
+      "cannotPickThat": "[Ýóú çáññóţ þíçķ ţĥáţ.]",
+      "chooseAnte": "[Çĥóóšé 1, 2, óŕ 3 þíçķš.]",
+      "noAttempt": "[Ñó ļóçķ áţţéɱþţ íñ þŕóĝŕéšš.]",
+      "notYours": "[Ţĥáţ íš ñóţ ýóúŕ ļóçķ.]",
+      "toolSlips": "[Ţĥáţ ţóóļ šļíþš óƒƒ ţĥíš ļóçķ.]",
+      "lockJammed": "[Ţĥé ļóçķ íš ĵáɱɱéð ƀéýóñð þíçķíñĝ — çļéáŕ ţĥé ðéļʋé áĝáíñ ƒóŕ áñóţĥéŕ áţţéɱþţ.]",
+      "lastPickSnaps": "[Ţĥé ļášţ þíçķ šñáþš. Ţĥé ļóçķ ĵáɱš — ţĥé çĥéšţ íš ļóšţ úñļéšš ýóú çļéáŕ ţĥé ðéļʋé áĝáíñ.]"
+    }
+  },
+  "delveUi": {
+    "board": {
+      "title": "[Ðéļʋé Ɓóáŕð]",
+      "enter": "[Éñţéŕ Ðéļʋé]",
+      "enterAria": "[Éñţéŕ {delve} óñ {tier} ðíƒƒíçúļţý]",
+      "openDelve": "[Çóļļáþšéð Ŕéļíɋúáŕý]",
+      "openDelveAria": "[Óþéñ Ðéļʋé Ɓóáŕð ƒŕóɱ {name}]",
+      "marks": "[Ðéļʋé Ɱáŕķš: {count}]",
+      "minLevel": "[Ŕéɋúíŕéš Ļéʋéļ {level}]",
+      "tier": {
+        "normal": "[Ñóŕɱáļ]",
+        "heroic": "[Ĥéŕóíç]"
+      },
+      "companion": {
+        "pick": "[Çĥóóšé á çóɱþáñíóñ]",
+        "tessa": "[Áçóļýţé Ţéššá]",
+        "rank": "[Ŕáñķ {rank}]"
+      }
+    },
+    "tracker": {
+      "title": "[Ðéļʋé]",
+      "objective": "[Óƀĵéçţíʋé]",
+      "module": "[Ɱóðúļé {current} óƒ {total}]",
+      "affix": "[Áƒƒíẋéš]",
+      "complete": "[Çóɱþļéţé]",
+      "marks": "[Ðéļʋé Ɱáŕķš: {count}]"
+    },
+    "objective": {
+      "kill_boss": "[Šļáý {boss}]",
+      "recover_artifact": "[Ŕéçóʋéŕ ţĥé ƀúŕíáļ ļéðĝéŕ]"
+    },
+    "summary": {
+      "title": "[Ðéļʋé Çóɱþļéţé]",
+      "marks": "[{count} Ðéļʋé Ɱáŕķš éáŕñéð]",
+      "loreUnlock": "[Ļóŕé úñļóçķéð: {title}]"
+    },
+    "death": {
+      "warning": "[Óñé ɱóŕé ðéáţĥ ŵíļļ éñð ţĥíš ðéļʋé ŕúñ.]"
+    },
+    "run": {
+      "failed": "[Ţĥé ðéļʋé ŕúñ ĥáš ƒáíļéð. Ýóú áŕé ŕéţúŕñéð ţó Ɓŕóţĥéŕ Ĥáļʋéñ.]"
+    },
+    "npc": {
+      "halven": {
+        "greeting": "[Ţĥé ŕéļíɋúáŕý ƀéļóŵ ĥáš šĥíƒţéð áĝáíñ. Ŵé ĥéáŕ çĥáñţíñĝ ţĥŕóúĝĥ ţĥé ƒļóóŕ áƒţéŕ ɱíðñíĝĥţ, áñð Áçóļýţé Ţéššá šŵéáŕš ţĥé ƀúŕíáļ ļéðĝéŕš áŕé çĥáñĝíñĝ ţĥéíŕ óŵñ íñķ. Íƒ ýóú ĥáʋé çóúŕáĝé éñóúĝĥ, {playerName}, ţáķé á çáñðļé áñð ĝó ƀéļóŵ. Ðó ñóţ ţŕúšţ éʋéŕý ʋóíçé ýóú ĥéáŕ ðóŵñ ţĥéŕé. Šóɱé óƒ ţĥéɱ ķñéŵ ýóúŕ ñáɱé ƀéƒóŕé ýóú ŵéŕé ƀóŕñ.]"
+      }
+    },
+    "intro": {
+      "normal": "[Ţĥé šţáíŕŵéļļ íš çóļð áñð ðáŕķ. Ɓŕóķéñ šáíñţ-šţóñéš ļíţţéŕ ţĥé ðéšçéñţ, áñð á šóƒţ ƀéļļ ñóţé ĥáñĝš íñ ţĥé ðáɱþ áíŕ. Áçóļýţé Ţéššá ŵĥíšþéŕš, \"Ţĥé ŕéļíɋúáŕý šĥóúļð ñóţ ƀé óþéñ ţĥíš ƒáŕ. Šţáý çļóšé, {playerName}.\"]",
+      "heroic": "[Ţĥé ðóóŕš ĝŕóáñ šĥúţ ƀéĥíñð ýóú. Ñáɱéš šçŕáþé áçŕóšš ţĥé šţóñé ļíķé ƒíñĝéŕñáíļš. Ţéššá'š çáñðļé ƀúŕñš ƀļúé. \"Ţĥéý áŕé ñóţ çáļļíñĝ ţĥé ðéáð ñóŵ, {playerName}. Ţĥéý áŕé áñšŵéŕíñĝ šóɱéţĥíñĝ.\"]"
+    },
+    "module": {
+      "reliquary_sunken_ossuary": "[Ŵáţéŕ šééþš ţĥŕóúĝĥ ƀúŕíáļ šĥéļʋéš, çáŕŕýíñĝ óļð ášĥ íñ šíļʋéŕ-ƀļáçķ šţŕéáɱš.]",
+      "reliquary_bell_niche": "[Ðóžéñš óƒ ĥáñðƀéļļš ĥáñĝ íñ šíļéñçé, éáçĥ ţíéð ŵíţĥ ƒúñéŕáļ çļóţĥ.]",
+      "reliquary_saintless_hall": "[Šţáţúéš ŵíţĥ ƒáçéš çĥíšéļéð áŵáý ŵíţĥ çáŕéƒúļ ĥáţŕéð.]",
+      "reliquary_finale": "[Ţĥé ƀúŕíéð ƀéļļ ţóļļš óñçé ƀéñéáţĥ ýóúŕ ƀóóţš.]"
+    },
+    "companion": {
+      "tessa": {
+        "combat_start": "[Ķééþ ýóúŕ ƒóóţíñĝ, {playerName}. Ţĥé ðéáð áŕé ŕéšţļéšš ĥéŕé.]",
+        "low_hp": "[Ɓŕéáţĥé. Í šţíļļ ĥáʋé þŕáýéŕš ļéƒţ ƒóŕ ýóú.]",
+        "trap_spotted": "[Ĥóļð — šóɱéţĥíñĝ íñ ţĥé ƒļóóŕ ŕéɱéɱƀéŕš ƒóóţšţéþš.]",
+        "boss_pull": "[Ţĥáţ ƀéļļ ķñóŵš ýóúŕ ŵéíĝĥţ, {playerName}. Ðó ñóţ ķñééļ.]",
+        "completion": "[Ţĥé ļéðĝéŕ çáñ ŕéšţ áñóţĥéŕ ñíĝĥţ. Ŵéļļ ðóñé.]",
+        "rank": {
+          "1": "[Çĥáþéļ Ñóʋíçé]",
+          "2": "[Çáñðļé-Ɓéáŕéŕ]",
+          "3": "[Ŕéļíɋúáŕý Áçóļýţé]",
+          "4": "[Ĝŕáʋéçáļļ Ŵíţñéšš]",
+          "5": "[Çĥáþéļ Ŵáŕðéñ]"
+        }
+      }
+    },
+    "boss": {
+      "varric": {
+        "bell": {
+          "emote": "[Ðéáçóñ Ʋáŕŕíç ĝŕíþš ţĥé ƀúŕíéð ƀéļļ ŵíţĥ ƀóţĥ ĥáñðš!]",
+          "log": "[Ðéáçóñ Ʋáŕŕíç ƀéĝíñš ţó ţóļļ ţĥé ƀúŕíáļ ƀéļļ.]",
+          "warning": "[Ɱóʋé áŵáý ƒŕóɱ Ðéáçóñ Ʋáŕŕíç!]",
+          "impact": "[Ţĥé ƀéļļ'š ţóļļ çŕáçķš ţĥé çĥáɱƀéŕ ƒļóóŕ!]",
+          "lesson": "[Ɓéļļ Ţóļļ — á ĝŕóúñð šļáɱ éʋéŕý ţŵéļʋé šéçóñðš. Ɱóʋé óúţ ƀéƒóŕé íţ ļáñðš.]"
+        },
+        "raise": {
+          "emote": "[Ðéáçóñ Ʋáŕŕíç çáļļš ñáɱéš ƒŕóɱ ţĥé ƀŕóķéñ ĝŕáʋéš!]",
+          "log": "[Ðéáçóñ Ʋáŕŕíç ƀéĝíñš Ŕáíšé Ðéáð.]",
+          "warning": "[Šţóþ ţĥé ĝŕáʋé ŕíţé!]",
+          "object": "[Ţĥé çŕáçķéð ĝŕáʋé šĥúððéŕš ŵíţĥ šţóļéñ ƀŕéáţĥ.]",
+          "interrupt_ok": "[Ţĥé ĝŕáʋé ŕíţé ƒáļţéŕš.]",
+          "interrupt_fail": "[Ţĥé ðéáð áñšŵéŕ Ðéáçóñ Ʋáŕŕíç'š çáļļ!]",
+          "lesson": "[Íñţéŕŕúþţ ţĥé çŕáçķéð ĝŕáʋé ŵíţĥíñ ƒíʋé šéçóñðš óŕ ƀóñéŵáļķéŕš ŕíšé.]"
+        },
+        "pull": "[Ýóú šţéþ óñ ĥáļļóŵéð ðúšţ ŵíţĥ úñçļéáñ þúŕþóšé. Ķñééļ, áñð ƀé çóúñţéð.]",
+        "intro": "[Ñó šóúļ íš ļóšţ. Óñļý ɱíšþļáçéð.]",
+        "mid60": "[Ðéáçóñ Ʋáŕŕíç ŕéáðš ñáɱéš ƒŕóɱ ţĥé ļéðĝéŕ ŵíţĥ šĥáķíñĝ ţŕíúɱþĥ.]",
+        "mid30": "[Ţĥé ƀúŕíáļ ƀéļļ áñšŵéŕš éʋéŕý ñáɱé ĥé šþéáķš.]",
+        "defeat": "[Ñó... Í ĥáð ţĥé ñáɱéš... Í ĥáð ţĥéɱ áļļ...]"
+      }
+    },
+    "lore": {
+      "eastbrook_ledger": "[Á ŵáţéŕ-šţáíñéð þáĝé ƒŕóɱ Éášţƀŕóóķ'š ƀúŕíáļ ļéðĝéŕ. Ñáɱéš çŕóššéð óúţ áñð ŕéŵŕíţţéñ íñ á ĥáñð ţĥáţ íš ñóţ ĥúɱáñ.]",
+      "first_collapse": "[Çĥáþéļ ŕéçóŕðš ñóţé ţĥé ƒíŕšţ šíñķáĝé: šáíñţ-šţóñéš çŕáçķéð, šĥéļʋéš ţíļţéð, áñð á ƀéļļ-ñóţé ĥéáŕð ƒŕóɱ ƀéļóŵ ĝŕóúñð.]",
+      "gravecaller_mark": "[Á šíĝíļ šçŕáþéð íñţó çóƒƒíñ ŵóóð — ñóţ Ɱóŕţĥéñ'š šéáļ, ƀúţ áñ óļðéŕ ĝŕáʋéçáļļéŕ ɱáŕķ þŕéðáţíñĝ ţĥé Ĥóļļóŵ Çŕýþţ.]",
+      "bell_below": "[Ţéššá'š ɱáŕĝíñ ñóţé: \"Ţĥéŕé íš á šéçóñð ƀéļļ úñðéŕ ţĥé ŕéļíɋúáŕý. Íţ ţóļļš ƒóŕ ţĥé ɱíšþļáçéð, ñóţ ţĥé ðéáð.\"]",
+      "tessa_note": "[Ƒóļðéð šçŕáþ íñ Ţéššá'š šçŕíþţ: \"Íƒ ţĥé ļéðĝéŕš çĥáñĝé ŵĥíļé ŵé áŕé ƀéļóŵ, ţŕúšţ ţĥé çáñðļé, ñóţ ţĥé ʋóíçéš.\"]"
+    },
+    "affix": {
+      "restless_graves": "[Ŕéšţļéšš Ĝŕáʋéš]",
+      "bad_air": "[Ɓáð Áíŕ]",
+      "candleblind": "[Çáñðļéƀļíñð]",
+      "old_mechanisms": "[Óļð Ɱéçĥáñíšɱš]",
+      "flooded_paths": "[Ƒļóóðéð Þáţĥš]",
+      "grave_tax": "[Ĝŕáʋé Ţáẋ]",
+      "unstable_roof": "[Úñšţáƀļé Ŕóóƒ]",
+      "cult_remnants": "[Çúļţ Ŕéɱñáñţš]"
+    },
+    "blessing": {
+      "chapel_candle": "[Çĥáþéļ Çáñðļé — šáƒéŕ ŕúñ, óñé ƒéŵéŕ Ɱáŕķ óñ çóɱþļéţíóñ.]"
+    },
+    "chest": {
+      "flavor": "[Ţĥé ðéáð ĥáʋé šúŕŕéñðéŕéð ŵĥáţ ţĥéý çáñ šþáŕé.]"
+    }
   },
   "seo": {
     "title": "[Ŵóŕļð óƒ ÇļáúðéÇŕáƒţ: Çļáššíç-Šţýļé Ŵéƀ ⱮⱮÓ]",
@@ -59601,6 +64522,27 @@ export const en_XA: EnTranslations = {
       "bound_guardian": {
         "name": "[Ţĥé Ɓóúñð Ĝúáŕðíáñ]"
       },
+      "reliquary_funeral_ringer": {
+        "name": "[Ƒúñéŕáļ Ŕíñĝéŕ]"
+      },
+      "reliquary_gravecall_acolyte": {
+        "name": "[Ĝŕáʋéçáļļ Áçóļýţé]"
+      },
+      "reliquary_ledger_wraith": {
+        "name": "[Ļéðĝéŕ Ŵŕáíţĥ]"
+      },
+      "reliquary_saintless_effigy": {
+        "name": "[Šáíñţļéšš Éƒƒíĝý]"
+      },
+      "deacon_varric": {
+        "name": "[Ðéáçóñ Ʋáŕŕíç]"
+      },
+      "acolyte_tessa": {
+        "name": "[Áçóļýţé Ţéššá]"
+      },
+      "placeholder_boss": {
+        "name": "[Ţŕíáļ Ŵáŕðéñ]"
+      },
       "elder_bristleback": {
         "name": "[Éļðéŕ Ɓŕíšţļéƀáçķ]"
       },
@@ -59814,6 +64756,11 @@ export const en_XA: EnTranslations = {
         "name": "[Ļóŕéɱášţéŕ Çáððíš]",
         "title": "[Ļóŕéɱášţéŕ]",
         "greeting": "[Ɱíñð ţĥé ļóóšé šĥáļé, {className}. Ţĥé ɱóúñţáíñ ĥáš ƀééñ... ŕéšţļéšš óƒ ļáţé. Í íñţéñð ţó ļéáŕñ ŵĥý.]"
+      },
+      "brother_halven": {
+        "name": "[Ɓŕóţĥéŕ Ĥáļʋéñ]",
+        "title": "[Ŕéļíɋúáŕý Ķééþéŕ]",
+        "greeting": "[Ţĥé ŕéļíɋúáŕý ƀéļóŵ ĥáš šĥíƒţéð áĝáíñ.]"
       },
       "tidewatcher_ondrel": {
         "name": "[Óñðŕéļ Ʋáñé]",
@@ -60656,6 +65603,9 @@ export const en_XA: EnTranslations = {
           },
           "7": {
             "label": "[Ƒáļļéñ Çĥáþéļ]"
+          },
+          "8": {
+            "label": "[Ŕéļíɋúáŕý Ĥíļļ]"
           }
         }
       },
@@ -60751,6 +65701,18 @@ export const en_XA: EnTranslations = {
         "name": "[Ţĥé Ðŕóŵñéð Ţéɱþļé]",
         "enterText": "[Ýóú šţéþ ţĥŕóúĝĥ ţĥé ɱóóñĝáţé — ţĥé áíŕ ţúŕñš ţó çóļð ŵáţéŕ áñð þáļé ļíĝĥţ, áñð ţĥé šíñĝíñĝ çļóšéš óʋéŕ ýóúŕ ĥéáð.]",
         "leaveText": "[Ýóú šúŕƒáçé ţĥŕóúĝĥ ţĥé ɱóóñĝáţé íñţó ţĥé ɱóúñţáíñ ñíĝĥţ.]"
+      }
+    },
+    "delves": {
+      "collapsed_reliquary": {
+        "name": "[Ţĥé Çóļļáþšéð Ŕéļíɋúáŕý]",
+        "enterText": "[Ýóú ðéšçéñð íñţó ţĥé çóļļáþšéð ŕéļíɋúáŕý.]",
+        "leaveText": "[Ýóú çļíɱƀ ƀáçķ ţó Ɓŕóţĥéŕ Ĥáļʋéñ áţ ţĥé ŕéļíɋúáŕý ŕúíñ.]"
+      },
+      "delve_placeholder": {
+        "name": "[Šĥáļļóŵ Ţŕíáļ Çŕýþţ]",
+        "enterText": "[Ýóú ðéšçéñð íñţó ţĥé šĥáļļóŵ ţŕíáļ çŕýþţ.]",
+        "leaveText": "[Ýóú çļíɱƀ ƀáçķ ţó ţĥé šúŕƒáçé.]"
       }
     }
   },

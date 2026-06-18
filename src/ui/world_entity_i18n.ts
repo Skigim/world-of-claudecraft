@@ -1,4 +1,4 @@
-import { DUNGEONS, MOBS, NPCS, QUESTS, ZONES } from '../sim/data';
+import { DELVES, DUNGEONS, MOBS, NPCS, QUESTS, ZONES } from '../sim/data';
 
 // English world-entity names + narratives (mobs, NPCs, quests, zones, dungeons).
 //
@@ -30,6 +30,9 @@ const MOB_IDS = [
   'fallen_captain_aldren', 'corrupted_priest_malric', 'deathstalker_voss',
   'vision_aldren_warrior', 'vision_malric_mage', 'vision_deathstalker_voss',
   'bound_guardian',
+  // Delve mobs (Collapsed Reliquary + placeholder trial crypt).
+  'reliquary_funeral_ringer', 'reliquary_gravecall_acolyte', 'reliquary_ledger_wraith',
+  'reliquary_saintless_effigy', 'deacon_varric', 'acolyte_tessa', 'placeholder_boss',
 ] as const;
 
 const NPC_IDS = [
@@ -38,6 +41,8 @@ const NPC_IDS = [
   'provisioner_hale', 'herbalist_yara', 'scout_maren', 'captain_thessaly',
   'brother_aldric_highwatch', 'scout_maren_highwatch', 'quartermaster_bree', 'armorer_hode',
   'loremaster_caddis',
+  // Delve board NPC (Collapsed Reliquary).
+  'brother_halven',
 ] as const;
 
 const QUEST_IDS = [
@@ -59,12 +64,14 @@ const QUEST_IDS = [
 
 const ZONE_IDS = ['eastbrook_vale', 'mirefen_marsh', 'thornpeak_heights'] as const;
 const DUNGEON_IDS = ['hollow_crypt', 'sunken_bastion', 'gravewyrm_sanctum', 'nythraxis_crypt'] as const;
+const DELVE_IDS = ['collapsed_reliquary', 'delve_placeholder'] as const;
 
 type MobId = typeof MOB_IDS[number];
 type NpcId = typeof NPC_IDS[number];
 type QuestId = typeof QUEST_IDS[number];
 type ZoneId = typeof ZONE_IDS[number];
 type DungeonId = typeof DUNGEON_IDS[number];
+type DelveId = typeof DELVE_IDS[number];
 
 type MobTranslations = Record<MobId, { name: string }>;
 type NpcTranslations = Record<NpcId, { name: string; title: string; greeting: string }>;
@@ -72,6 +79,7 @@ type QuestTranslation = { title: string; text: string; completion: string; objec
 type QuestTranslations = Record<QuestId, QuestTranslation>;
 type ZoneTranslations = Record<ZoneId, { name: string; welcome: string; pois: Record<number, { label: string }> }>;
 type DungeonTranslations = Record<DungeonId, { name: string; enterText: string; leaveText: string }>;
+type DelveTranslations = Record<DelveId, { name: string; enterText: string; leaveText: string }>;
 
 type WorldEntityTranslations = {
   worldContent: {
@@ -86,6 +94,7 @@ type WorldEntityTranslations = {
     quests: QuestTranslations;
     zones: ZoneTranslations;
     dungeons: DungeonTranslations;
+    delves: DelveTranslations;
   };
 };
 
@@ -148,6 +157,24 @@ function makeEnglishWorldEntities(): WorldEntityTranslations {
     };
   });
 
+  const delves = {} as DelveTranslations;
+  orderedValues(DELVE_IDS, DELVES).forEach((delve) => {
+    delves[delve.id as DelveId] = {
+      name: delve.name,
+      enterText: normalizeSourceText(delve.enterText),
+      leaveText: normalizeSourceText(delve.leaveText),
+    };
+  });
+  // The "delve_placeholder" DelveDef is dev scaffolding (Phase 1 stand-in, superseded
+  // by collapsed_reliquary). Its raw name/enterText literally contain "placeholder",
+  // which is dev-channel wording, not player copy. Give it shippable display text at
+  // the i18n boundary (sim data stays untouched) so the player-facing string is real.
+  delves.delve_placeholder = {
+    name: 'Shallow Trial Crypt',
+    enterText: 'You descend into the shallow trial crypt.',
+    leaveText: 'You climb back to the surface.',
+  };
+
   return {
     worldContent: {
       corpseName: '{name} (corpse)',
@@ -155,7 +182,7 @@ function makeEnglishWorldEntities(): WorldEntityTranslations {
       dungeonPartyWarning: '{name} is meant for a full party of {count}. Tread carefully.',
       dungeonInstanceBusy: 'All instances of {name} are busy. Try again soon.',
     },
-    entities: { mobs, npcs, quests, zones, dungeons },
+    entities: { mobs, npcs, quests, zones, dungeons, delves },
   };
 }
 

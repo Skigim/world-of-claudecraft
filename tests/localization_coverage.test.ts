@@ -26,7 +26,7 @@ import {
   t,
   type TranslationKey,
 } from "../src/ui/i18n";
-import { ABILITIES, CLASSES, DUNGEONS, ITEMS, MOBS, NPCS, QUESTS, ZONES } from "../src/sim/data";
+import { ABILITIES, CLASSES, DELVES, DUNGEONS, ITEMS, MOBS, NPCS, QUESTS, ZONES } from "../src/sim/data";
 import {
   assertEntityTranslationsReady,
   entityTranslationFallbackLog,
@@ -463,6 +463,9 @@ describe("i18n Localization Key Coverage", () => {
     if (entry.kind === "dungeon") {
       return { kind: "dungeon", id: entry.id, field: entry.field as "name" | "enterText" | "leaveText" };
     }
+    if (entry.kind === "delve") {
+      return { kind: "delve", id: entry.id, field: entry.field as "name" | "enterText" | "leaveText" };
+    }
     throw new Error(`Unexpected entity kind: ${entry.kind}`);
   }
 
@@ -648,6 +651,9 @@ describe("i18n Localization Key Coverage", () => {
     expect(entityCount("dungeon", "name")).toBe(Object.keys(DUNGEONS).length);
     expect(entityCount("dungeon", "enterText")).toBe(Object.keys(DUNGEONS).length);
     expect(entityCount("dungeon", "leaveText")).toBe(Object.keys(DUNGEONS).length);
+    expect(entityCount("delve", "name")).toBe(Object.keys(DELVES).length);
+    expect(entityCount("delve", "enterText")).toBe(Object.keys(DELVES).length);
+    expect(entityCount("delve", "leaveText")).toBe(Object.keys(DELVES).length);
   });
 
   it("should resolve class and ability text without canonical fallbacks", () => {
@@ -766,7 +772,8 @@ describe("i18n Localization Key Coverage", () => {
       + Object.values(QUESTS).reduce((sum, quest) => sum + quest.objectives.length, 0)
       + (ZONES.length * 2)
       + ZONES.reduce((sum, zone) => sum + zone.pois.length, 0)
-      + (Object.keys(DUNGEONS).length * 3);
+      + (Object.keys(DUNGEONS).length * 3)
+      + (Object.keys(DELVES).length * 3);
     expect(worldEntries).toHaveLength(expectedWorldCount);
 
     for (const lang of supportedLanguages) {

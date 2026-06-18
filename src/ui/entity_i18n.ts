@@ -1,4 +1,4 @@
-import { ABILITIES, CLASSES, DUNGEONS, ITEMS, MOBS, NPCS, QUESTS, ZONES } from '../sim/data';
+import { ABILITIES, CLASSES, DELVES, DUNGEONS, ITEMS, MOBS, NPCS, QUESTS, ZONES } from '../sim/data';
 import type { PlayerClass } from '../sim/types';
 import {
   en,
@@ -11,7 +11,7 @@ import {
 } from './i18n';
 
 export type EntityTranslationGroup = 'classAbility' | 'item' | 'world';
-export type EntityTranslationKind = 'class' | 'ability' | 'item' | 'mob' | 'npc' | 'quest' | 'questObjective' | 'zone' | 'zonePoi' | 'dungeon';
+export type EntityTranslationKind = 'class' | 'ability' | 'item' | 'mob' | 'npc' | 'quest' | 'questObjective' | 'zone' | 'zonePoi' | 'dungeon' | 'delve';
 export type EntityTranslationField = 'name' | 'description' | 'title' | 'text' | 'completion' | 'greeting' | 'label' | 'welcome' | 'enterText' | 'leaveText';
 
 export type EntityTranslationRequest =
@@ -24,7 +24,8 @@ export type EntityTranslationRequest =
   | { kind: 'questObjective'; questId: string; objectiveIndex: number; field: 'label'; values?: InterpolationValues }
   | { kind: 'zone'; id: string; field: 'name' | 'welcome'; values?: InterpolationValues }
   | { kind: 'zonePoi'; zoneId: string; poiIndex: number; field: 'label'; values?: InterpolationValues }
-  | { kind: 'dungeon'; id: string; field: 'name' | 'enterText' | 'leaveText'; values?: InterpolationValues };
+  | { kind: 'dungeon'; id: string; field: 'name' | 'enterText' | 'leaveText'; values?: InterpolationValues }
+  | { kind: 'delve'; id: string; field: 'name' | 'enterText' | 'leaveText'; values?: InterpolationValues };
 
 export interface EntityTranslationManifestEntry {
   kind: EntityTranslationKind;
@@ -153,6 +154,13 @@ function canonicalEntityText(request: EntityTranslationRequest): string {
       if (request.field === 'leaveText') return dungeon.leaveText;
       return dungeon.name;
     }
+    case 'delve': {
+      const delve = DELVES[request.id];
+      if (!delve) return request.id;
+      if (request.field === 'enterText') return delve.enterText;
+      if (request.field === 'leaveText') return delve.leaveText;
+      return delve.name;
+    }
   }
 }
 
@@ -178,6 +186,8 @@ export function entityTranslationKey(request: EntityTranslationRequest): string 
       return `entities.zones.${entityPathSegment(request.zoneId)}.pois.${request.poiIndex}.label`;
     case 'dungeon':
       return `entities.dungeons.${entityPathSegment(request.id)}.${request.field}`;
+    case 'delve':
+      return `entities.delves.${entityPathSegment(request.id)}.${request.field}`;
   }
 }
 
@@ -272,6 +282,11 @@ export function entityTranslationManifest(): EntityTranslationManifestEntry[] {
     entries.push(entry('dungeon', dungeon.id, 'name', dungeon.name, 'world', entityTranslationKey({ kind: 'dungeon', id: dungeon.id, field: 'name' })));
     entries.push(entry('dungeon', dungeon.id, 'enterText', dungeon.enterText, 'world', entityTranslationKey({ kind: 'dungeon', id: dungeon.id, field: 'enterText' })));
     entries.push(entry('dungeon', dungeon.id, 'leaveText', dungeon.leaveText, 'world', entityTranslationKey({ kind: 'dungeon', id: dungeon.id, field: 'leaveText' })));
+  }
+  for (const delve of Object.values(DELVES).sort(compareById)) {
+    entries.push(entry('delve', delve.id, 'name', delve.name, 'world', entityTranslationKey({ kind: 'delve', id: delve.id, field: 'name' })));
+    entries.push(entry('delve', delve.id, 'enterText', delve.enterText, 'world', entityTranslationKey({ kind: 'delve', id: delve.id, field: 'enterText' })));
+    entries.push(entry('delve', delve.id, 'leaveText', delve.leaveText, 'world', entityTranslationKey({ kind: 'delve', id: delve.id, field: 'leaveText' })));
   }
   return entries;
 }
