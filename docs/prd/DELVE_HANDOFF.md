@@ -206,12 +206,13 @@ Fixed the 6 `tsc` errors the Brother-move batch introduced; tree is green:
 ```
 x ≤ 600        overworld
 600–2799       dungeons (instanceOrigin 0–3 at 900/1500/2100/2700)
-≥ 2800         arena (ARENA_X = 3000)
-≥ 3600         delves (DELVE_X_MIN); per-slot footprint, walkable ±22, walls ±23
-               west-edge classification guard: DELVE_BAND_X_MIN = 3575
+≥ 4000         arena (ARENA_X = 4200, ARENA_X_MIN = 4000)
+≥ 4800         delves (DELVE_X_MIN); per-slot footprint, walkable ±22, walls ±23
+               west-edge classification guard: DELVE_BAND_X_MIN = 4775
+               (relocated from 3600 in v0.10.0: the arena moved to x=4200)
 
 Brother Halven / Reliquary Hill door: world (-5, -52); leave/eject return z = -56
-delveOrigin(0,0) → x = 3600, z = -1250; module span 80, gap 20 (4 modules)
+delveOrigin(0,0) → x = 4800, z = -1250; module span 80, gap 20 (4 modules)
 ```
 
 Key files: `src/sim/sim.ts` (delve lifecycle), `src/sim/data.ts`

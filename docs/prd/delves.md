@@ -139,6 +139,15 @@ delveDaily: {
 - **FR-5.3** **Mark payout:** full Marks for first **3** completions per UTC day (`markClears < 3`). After 3: Normal 50% chance for 1 Mark; Heroic 1 Mark guaranteed.
 - **FR-5.4** Copper and basic loot always available regardless of daily caps.
 
+> **Implementation note (v0.10.0).** This formula is implemented in
+> `delveMarkPayout` (full = 1 base Mark × tier `rewardMult`; after 3/day the
+> diminished rule applies; the lockpick ante adds a separate tier bonus). The
+> §6.7 Heroic "+30% Marks" rides `rewardMult` (1.3) but rounds to no per-clear
+> change at the base of 1 Mark, so the Heroic mark advantage is realised through
+> the post-3 guaranteed-vs-50% rule (and the ante bonus). The §6.6 per-tier XP
+> table (Heroic 1050/650, copper 16–24) is **not** yet wired — XP/copper are the
+> same both tiers today; a per-tier XP pass is tracked roadmap.
+
 ### 6.6 Rewards & economy
 
 - **FR-6.1** `delveMarks: number` on `PlayerMeta` (meta counter, not inventory item).
@@ -181,6 +190,12 @@ delveDaily: {
 | `cult_remnants` | Cult Remnants | crypt, vault, sewer | Ritual object buffs mobs until used |
 
 Crypt Heroic rolls from crypt-themed subset: `restless_graves`, `bad_air`, `candleblind`, `grave_tax`, `unstable_roof`, `cult_remnants`.
+
+> **Implementation note (v0.10.0).** Only `restless_graves`, `bad_air`, and
+> `candleblind` have sim hooks today, so `rollDelveAffixes` draws from that v1
+> subset only (`DELVE_IMPLEMENTED_AFFIXES`); a Heroic run never rolls an inert
+> affix. `grave_tax` / `unstable_roof` / `cult_remnants` keep their registry +
+> UI/i18n entries and join the roll once implemented.
 
 ### 6.8 Interactables (v1 mechanics)
 
@@ -227,8 +242,8 @@ Character JSONB: extend `serializeCharacter` / `CharacterState` — no SQL migra
 | `minLevel` | 7 |
 | `suggestedPlayers` | 2 |
 | `boardNpcId` | `brother_halven` (**new** — not `brother_aldric`) |
-| `doorPos` | Chapel ruin east of Aldric (~`x: -10, z: -8` — finalize unblocked coord in Phase 4) |
-| `objective` | `recover_artifact` + kill `deacon_varric` |
+| `doorPos` | Reliquary Hill, world `{ x: -5, z: -52 }` (relocated from the chapel ruin; see DELVE_HANDOFF §2) |
+| `objective` | kill `deacon_varric` *(shipped: kill-boss-only; the `recover_artifact` half + `chapel_coffer_relic` item were never built in either source branch — the finale chest/lockpick is the "recover" beat. Tracked as roadmap.)* |
 | `artifactItemId` | `chapel_coffer_relic` (quest-kind item, delve-only pickup) |
 
 ### 7.2 Brother Halven (board NPC)
@@ -256,7 +271,7 @@ Separate from Hollow Crypt's **Sexton Marrow** and zone 2's **Deacon Voss**.
 
 **Mechanics (max 2 active):**
 1. **Bell Toll** — `stomp` every 12s, 8 yd radius.
-2. **Raise Dead** — at 60% / 30% HP; 5s interrupt on `cracked_grave` object; else `summonAdds` (`raised_bonewalker`, 2).
+2. **Raise Dead** — at 60% / 30% HP; 5s interrupt on `cracked_grave` object; else `summonAdds` (2). *Shipped: summons `reliquary_funeral_ringer` (the crypt's own undead add); `raised_bonewalker` is a level-18 dungeon mob and is not reused here.*
 
 Heroic: +1 affix; optional `enrage` below 20% HP.
 
