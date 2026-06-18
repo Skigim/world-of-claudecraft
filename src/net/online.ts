@@ -36,6 +36,13 @@ export function buildWebSocketAuthMessage(token: string, characterId: number): {
   return { t: 'auth', token, character: characterId };
 }
 
+type ClientTraceSink = (
+  name: string,
+  startMs: number,
+  durationMs: number,
+  detail?: Record<string, unknown>,
+) => void;
+
 export type RealmType = 'Normal' | 'PvP' | 'RP' | 'RP-PvP';
 
 export interface RealmEntry {
@@ -313,6 +320,7 @@ export class ClientWorld implements IWorld {
   private pendingInputSeqSentAt = new Map<number, number>();
   private ackedInputSeq = 0;
   private inputEchoSamples: number[] = [];
+  private traceSink: ClientTraceSink | null = null;
 
   constructor(token: string, characterId: number, cls: PlayerClass, base = '') {
     this.characterId = characterId;
@@ -342,6 +350,10 @@ export class ClientWorld implements IWorld {
     clearInterval(this.sendTimer);
     this.ws.onclose = null;
     this.ws.close();
+  }
+
+  setTraceSink(sink: ClientTraceSink | null): void {
+    this.traceSink = sink;
   }
 
   get player(): Entity {
@@ -434,14 +446,22 @@ export class ClientWorld implements IWorld {
     this.cmd(payload);
   }
 
+  private markTrace(name: string, startMs: number, detail?: Record<string, unknown>): void {
+    this.traceSink?.(name, startMs, performance.now() - startMs, detail);
+  }
+
   private onMessage(raw: string): void {
+    const parseStart = performance.now();
     let msg: any;
     try {
       msg = JSON.parse(raw);
     } catch {
+      this.markTrace('net.ws.parse', parseStart, { bytes: raw.length, ok: false });
       return;
     }
+    this.markTrace('net.ws.parse', parseStart, { bytes: raw.length, type: typeof msg.t === 'string' ? msg.t : 'unknown' });
     if (msg.t === 'hello') {
+      const start = performance.now();
       this.playerId = msg.pid;
       this.cfg.seed = msg.seed;
       if (typeof msg.realm === 'string') this.realm = msg.realm;
@@ -450,14 +470,17 @@ export class ClientWorld implements IWorld {
         this.profanityDirty = true;
       }
       this.connected = true;
+      this.markTrace('net.hello', start, { softWords: this.profanityWords.length, realm: this.realm });
       return;
     }
     if (msg.t === 'censor') {
+      const start = performance.now();
       // live word-list update pushed after an admin edits the filter
       this.profanityWords = Array.isArray(msg.words)
         ? msg.words.filter((w: unknown): w is string => typeof w === 'string')
         : [];
       this.profanityDirty = true;
+      this.markTrace('net.censor', start, { words: this.profanityWords.length });
       return;
     }
     if (msg.t === 'error') {
@@ -466,15 +489,24 @@ export class ClientWorld implements IWorld {
       return;
     }
     if (msg.t === 'events') {
+      const start = performance.now();
       for (const ev of msg.list) this.eventQueue.push(ev as SimEvent);
+      this.markTrace('net.events.enqueue', start, { events: Array.isArray(msg.list) ? msg.list.length : 0 });
       return;
     }
     if (msg.t === 'social') {
+      const start = performance.now();
       this.socialInfo = { friends: msg.friends ?? [], blocks: msg.blocks ?? [], guild: msg.guild ?? null };
       this.socialDirty = true;
+      this.markTrace('net.social', start, {
+        friends: Array.isArray(msg.friends) ? msg.friends.length : 0,
+        blocks: Array.isArray(msg.blocks) ? msg.blocks.length : 0,
+        guildMembers: Array.isArray(msg.guild?.members) ? msg.guild.members.length : 0,
+      });
       return;
     }
     if (msg.t === 'socialpos') {
+      const start = performance.now();
       // live position refresh for friends/guildmates (drives the world map);
       // merge into the existing roster in place — snapshots own online/offline.
       if (this.socialInfo && Array.isArray(msg.list)) {
@@ -489,10 +521,20 @@ export class ClientWorld implements IWorld {
         apply(this.socialInfo.friends);
         if (this.socialInfo.guild) apply(this.socialInfo.guild.members);
       }
+      this.markTrace('net.socialpos', start, { rows: Array.isArray(msg.list) ? msg.list.length : 0 });
       return;
     }
     if (msg.t === 'snap') {
+      const start = performance.now();
       this.applySnapshot(msg);
+      this.markTrace('net.applySnapshot', start, {
+        bytes: raw.length,
+        ents: Array.isArray(msg.ents) ? msg.ents.length : 0,
+        keep: Array.isArray(msg.keep) ? msg.keep.length : 0,
+        hasSelf: !!msg.self,
+        entities: this.entities.size,
+        snapInterval: this.snapInterval,
+      });
     }
   }
 
@@ -525,21 +567,32 @@ export class ClientWorld implements IWorld {
     const seen = new Set<number>();
     const prevSelf = this.entities.get(this.playerId);
     const prevSelfFacing = prevSelf?.facing;
+    let addedEntities = 0;
+    let fullRecords = 0;
+    let liteRecords = 0;
+    let skippedLiteRecords = 0;
+    let teleportSnaps = 0;
 
     const applyWire = (w: any): Entity | null => {
       let e = this.entities.get(w.id);
       // identity fields ride only in "full" records: first sight and changes
       const hasIdentity = w.k !== undefined;
+      if (hasIdentity) fullRecords++;
+      else liteRecords++;
       if (!e) {
         // a lite record for an entity we never met would render as a
         // half-initialized ghost; skip it (the server sends identity first)
-        if (!hasIdentity) return null;
+        if (!hasIdentity) {
+          skippedLiteRecords++;
+          return null;
+        }
         e = blankEntity(w.id);
         e.pos = { x: w.x, y: w.y, z: w.z };
         copyPos(e.prevPos, e.pos);
         e.facing = w.f;
         e.prevFacing = w.f;
         this.entities.set(w.id, e);
+        addedEntities++;
       }
       if (hasIdentity) {
         e.kind = w.k;
@@ -595,6 +648,7 @@ export class ClientWorld implements IWorld {
       if ((wasDead && !nowDead) || teleDx * teleDx + teleDz * teleDz > TELEPORT_SNAP_DIST_SQ) {
         e.prevPos = { x: w.x, y: w.y, z: w.z };
         e.prevFacing = w.f;
+        teleportSnaps++;
       } else {
         e.prevPos = {
           x: e.prevPos.x + (e.pos.x - e.prevPos.x) * entAlpha,
@@ -632,16 +686,29 @@ export class ClientWorld implements IWorld {
       return e;
     };
 
+    let phaseStart = performance.now();
     for (const w of snap.ents) {
       if (applyWire(w) !== null) seen.add(w.id);
     }
+    this.markTrace('net.snapshot.entities', phaseStart, {
+      ents: Array.isArray(snap.ents) ? snap.ents.length : 0,
+      seen: seen.size,
+      added: addedEntities,
+      full: fullRecords,
+      lite: liteRecords,
+      skippedLite: skippedLiteRecords,
+      teleports: teleportSnaps,
+    });
     // entities listed in keep are alive but unchanged (or not due an update
     // at their distance tier this snapshot) — just protect them from pruning
+    phaseStart = performance.now();
     for (const id of snap.keep ?? []) {
       seen.add(id);
     }
+    this.markTrace('net.snapshot.keep', phaseStart, { keep: Array.isArray(snap.keep) ? snap.keep.length : 0, seen: seen.size });
 
     // self with extended state (always a full record)
+    phaseStart = performance.now();
     const s = snap.self;
     const e = s ? applyWire(s) : null;
     if (s && e) {
@@ -715,11 +782,25 @@ export class ClientWorld implements IWorld {
         this.pendingFacingDelta += d;
       }
     }
+    this.markTrace('net.snapshot.self', phaseStart, {
+      hasSelf: !!s,
+      inventory: s?.inv !== undefined,
+      quests: s?.qlog !== undefined || s?.qdone !== undefined,
+      talents: s?.tal !== undefined,
+      party: s?.party !== undefined,
+      socialEntities: seen.size,
+    });
 
     // prune entities that left our interest area
-    for (const [id, e] of this.entities) {
-      if (!seen.has(id)) this.entities.delete(id);
+    phaseStart = performance.now();
+    let removedEntities = 0;
+    for (const [id] of this.entities) {
+      if (!seen.has(id)) {
+        this.entities.delete(id);
+        removedEntities++;
+      }
     }
+    this.markTrace('net.snapshot.prune', phaseStart, { removed: removedEntities, entities: this.entities.size });
   }
 
   // -----------------------------------------------------------------------

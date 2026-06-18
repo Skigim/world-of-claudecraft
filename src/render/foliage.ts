@@ -9,7 +9,7 @@ import {
   generateDecorations, roadDistance, terrainHeight, zoneBiomeAt, WATER_LEVEL,
 } from '../sim/world';
 import type { Decoration } from '../sim/world';
-import { GFX, sharedUniforms } from './gfx';
+import { configureMaskedDoubleSidedVegetationMaterial, GFX, sharedUniforms } from './gfx';
 import { grassTuftTexture } from './textures';
 import { loadGltf } from './assets/loader';
 import { registerPreload } from './assets/preload';
@@ -42,10 +42,16 @@ import { registerPreload } from './assets/preload';
 //   canopy, so their bark casts instead.
 // - Ground dressing (bushes/ferns/mushrooms) is a new deterministic hash-grid
 //   scatter, walk-through by design (no colliders, like grass).
-// - Grass is a player-centered ring (O(radius^2), not O(world^2)) rebuilt
-//   when the player moves >12u, unchanged from the previous pass.
+// - Grass is streamed in deterministic chunks around the player. The old
+//   player-centered ring rebuilt O(radius^2) instances in one frame whenever
+//   the player moved far enough; chunking keeps both CPU generation and GPU
+//   instance-buffer uploads bounded.
 
-const GRASS_REBUILD_DIST = 12;
+const GRASS_CHUNK_SIZE = 48;
+const GRASS_CHUNK_BUILD_BUDGET_MS = 2.2;
+const GRASS_CHUNK_MAX_BUILDS_PER_FRAME = 1;
+const GRASS_CHUNK_CACHE_LIMIT_LOW = 96;
+const GRASS_CHUNK_CACHE_LIMIT_HIGH = 128;
 const TREE_WIND_STRENGTH = 0.06;
 const GRASS_WIND_STRENGTH = 0.08;
 // two x-halves x 240u z-bands: bucket count x variants-per-bucket is the
@@ -119,6 +125,25 @@ export interface FoliageView {
     eyeX: number, eyeY: number, eyeZ: number,
     fogFar: number,
   ): void;
+  setGrassQuality(level: number): void;
+  perfStats(): FoliagePerfStats;
+}
+
+export interface FoliagePerfStats {
+  grassEnabled: boolean;
+  grassQuality: number;
+  grassActiveRadius: number;
+  grassChunks: number;
+  grassReadyChunks: number;
+  grassVisibleChunks: number;
+  grassQueuedChunks: number;
+  grassTufts: number;
+  grassVisibleTufts: number;
+  grassBuiltChunks: number;
+  grassDisposedChunks: number;
+  grassLastBuildMs: number;
+  grassBuildMs: number;
+  grassCacheLimit: number;
 }
 
 // deterministic 0..1 hash on integer grid cells / world coords
@@ -786,10 +811,26 @@ function buildDressing(parent: THREE.Group, seed: number, registry: BucketMesh[]
 
 interface GrassRing {
   update(px: number, pz: number): void;
+  setQuality(level: number): void;
+  perfStats(): FoliagePerfStats;
 }
 
-// wind sway + edge fade for the grass tufts; the fade keys off the tuft's
-// instance origin so whole tufts dissolve cleanly against alphaTest
+interface GrassChunk {
+  key: string;
+  cx: number;
+  cz: number;
+  centerX: number;
+  centerZ: number;
+  ready: boolean;
+  queued: boolean;
+  lastSeen: number;
+  lastUsed: number;
+  prioritySq: number;
+  mesh?: THREE.InstancedMesh;
+}
+
+// wind sway + masked edge fade for the grass tufts; the fade keys off the
+// tuft's instance origin so alphaTest thins whole tufts without blending
 function applyGrassShader(
   mat: THREE.Material,
   uniforms: { uPlayerPos: { value: THREE.Vector2 }; uFadeFar: { value: number } },
@@ -828,11 +869,45 @@ function applyGrassShader(
   };
 }
 
+function loopbackHostname(hostname: string): boolean {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '[::1]';
+}
+
+function localGrassDisabled(): boolean {
+  if (!import.meta.env.DEV) return false;
+  if (typeof location === 'undefined') return false;
+  if (!loopbackHostname(location.hostname)) return false;
+  const params = new URLSearchParams(location.search);
+  return params.get('grass') === '0' || params.get('grass') === 'off' || params.get('noGrass') === '1';
+}
+
+function emptyGrassStats(enabled: boolean, cacheLimit = 0): FoliagePerfStats {
+  return {
+    grassEnabled: enabled,
+    grassQuality: enabled ? 1 : 0,
+    grassActiveRadius: 0,
+    grassChunks: 0,
+    grassReadyChunks: 0,
+    grassVisibleChunks: 0,
+    grassQueuedChunks: 0,
+    grassTufts: 0,
+    grassVisibleTufts: 0,
+    grassBuiltChunks: 0,
+    grassDisposedChunks: 0,
+    grassLastBuildMs: 0,
+    grassBuildMs: 0,
+    grassCacheLimit: cacheLimit,
+  };
+}
+
 function buildGrassRing(parent: THREE.Group, seed: number): GrassRing {
-  const radius = GFX.grassRadius;
+  const baseRadius = GFX.grassRadius;
   const step = GFX.grassStep;
-  const cells = Math.ceil((radius * 2) / step) + 2;
-  const maxCount = Math.ceil(cells * cells * 0.5);
+  const chunkCells = Math.ceil(GRASS_CHUNK_SIZE / step) + 3;
+  const maxChunkCount = Math.ceil(chunkCells * chunkCells * 0.5);
+  const chunkHalfDiag = Math.SQRT2 * GRASS_CHUNK_SIZE * 0.5;
+  const buildBudgetMs = GRASS_CHUNK_BUILD_BUDGET_MS;
+  const cacheLimit = GFX.standardMaterials ? GRASS_CHUNK_CACHE_LIMIT_HIGH : GRASS_CHUNK_CACHE_LIMIT_LOW;
 
   // high tier reads as a lush meadow: wider tufts with more blades; low keeps
   // the legacy sprite size
@@ -843,39 +918,78 @@ function buildGrassRing(parent: THREE.Group, seed: number): GrassRing {
   const geo = mergeGeometries([quad, quad2]);
 
   const tuftTex = grassTuftTexture(lush ? 30 : 18);
-  const uniforms = { uPlayerPos: { value: new THREE.Vector2(1e6, 1e6) }, uFadeFar: { value: radius } };
-  const mat = lush
+  let quality = 1;
+  const minRadiusScale = lush ? 0.58 : 0.48;
+  const activeRadius = (): number => Math.round(baseRadius * Math.max(minRadiusScale, quality) * 10) / 10;
+  const uniforms = { uPlayerPos: { value: new THREE.Vector2(1e6, 1e6) }, uFadeFar: { value: activeRadius() } };
+  const mat = configureMaskedDoubleSidedVegetationMaterial(lush
     ? new THREE.MeshStandardMaterial({
-      map: tuftTex, transparent: true, alphaTest: 0.3, side: THREE.DoubleSide, roughness: 0.9,
+      map: tuftTex, alphaTest: 0.3, roughness: 0.9,
     })
     : new THREE.MeshLambertMaterial({
-      map: tuftTex, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide,
-    });
+      map: tuftTex, alphaTest: 0.35,
+    }));
   applyGrassShader(mat, uniforms);
 
-  const im = new THREE.InstancedMesh(geo, mat, maxCount);
-  im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  im.frustumCulled = false; // ring is centered on the player; bounds churn isn't worth it
-  im.receiveShadow = true; // tufts must darken inside canopy shade, not glow through it
-  im.count = 0;
-  parent.add(im);
+  const chunks = new Map<string, GrassChunk>();
+  const buildQueue: GrassChunk[] = [];
+  let generation = 0;
+  let builtChunks = 0;
+  let disposedChunks = 0;
+  let buildMs = 0;
+  let lastBuildMs = 0;
 
-  let lastX = Infinity;
-  let lastZ = Infinity;
+  const chunkKey = (cx: number, cz: number): string => `${cx}:${cz}`;
+  const chunkCenter = (cidx: number): number => (cidx + 0.5) * GRASS_CHUNK_SIZE;
 
-  const rebuild = (px: number, pz: number): void => {
+  const createChunk = (cx: number, cz: number): GrassChunk => {
+    const chunk: GrassChunk = {
+      key: chunkKey(cx, cz),
+      cx,
+      cz,
+      centerX: chunkCenter(cx),
+      centerZ: chunkCenter(cz),
+      ready: false,
+      queued: false,
+      lastSeen: -1,
+      lastUsed: -1,
+      prioritySq: Infinity,
+    };
+    chunks.set(chunk.key, chunk);
+    return chunk;
+  };
+
+  const queueChunk = (chunk: GrassChunk): void => {
+    if (chunk.ready || chunk.queued) return;
+    chunk.queued = true;
+    buildQueue.push(chunk);
+  };
+
+  const buildChunk = (chunk: GrassChunk): void => {
+    const started = performance.now();
     let n = 0;
-    const i0 = Math.floor((px - radius) / step), i1 = Math.ceil((px + radius) / step);
-    const j0 = Math.floor((pz - radius) / step), j1 = Math.ceil((pz + radius) / step);
-    const r2 = radius * radius;
-    for (let i = i0; i <= i1 && n < maxCount; i++) {
-      for (let j = j0; j <= j1 && n < maxCount; j++) {
+    const im = new THREE.InstancedMesh(geo, mat, maxChunkCount);
+    im.userData.renderCategory = 'grass';
+    im.frustumCulled = true;
+    im.receiveShadow = true; // tufts must darken inside canopy shade, not glow through it
+    im.count = 0;
+
+    const minX = chunk.cx * GRASS_CHUNK_SIZE;
+    const maxX = minX + GRASS_CHUNK_SIZE;
+    const minZ = chunk.cz * GRASS_CHUNK_SIZE;
+    const maxZ = minZ + GRASS_CHUNK_SIZE;
+    const i0 = Math.floor(minX / step) - 1;
+    const i1 = Math.ceil(maxX / step) + 1;
+    const j0 = Math.floor(minZ / step) - 1;
+    const j1 = Math.ceil(maxZ / step) + 1;
+
+    for (let i = i0; i <= i1 && n < maxChunkCount; i++) {
+      for (let j = j0; j <= j1 && n < maxChunkCount; j++) {
         const r = hashAt(i, j, 0);
         if (r > 0.5) continue; // ~half the cells grow a tuft
         const x = i * step + (hashAt(i, j, 1) - 0.5) * step * 1.4;
         const z = j * step + (hashAt(i, j, 2) - 0.5) * step * 1.4;
-        const dx = x - px, dz = z - pz;
-        if (dx * dx + dz * dz > r2) continue;
+        if (x < minX || x >= maxX || z < minZ || z >= maxZ) continue;
         if (Math.abs(x) > WORLD_MAX_X - 16 || z < WORLD_MIN_Z + 16 || z > WORLD_MAX_Z - 16) continue;
         const h = terrainHeight(x, z, seed);
         if (h < WATER_LEVEL + 1.6) continue;
@@ -901,25 +1015,122 @@ function buildGrassRing(parent: THREE.Group, seed: number): GrassRing {
         n++;
       }
     }
-    im.count = n;
-    im.instanceMatrix.needsUpdate = true;
-    if (im.instanceColor) im.instanceColor.needsUpdate = true;
+    if (n > 0) {
+      im.count = n;
+      im.instanceMatrix.needsUpdate = true;
+      if (im.instanceColor) im.instanceColor.needsUpdate = true;
+      im.computeBoundingSphere();
+      im.visible = chunk.lastSeen === generation;
+      chunk.mesh = im;
+      parent.add(im);
+    }
+    chunk.ready = true;
+    builtChunks++;
+    lastBuildMs = Math.round((performance.now() - started) * 100) / 100;
+    buildMs = Math.round((buildMs + lastBuildMs) * 100) / 100;
+  };
+
+  const disposeChunk = (chunk: GrassChunk): void => {
+    if (chunk.mesh) {
+      parent.remove(chunk.mesh);
+      chunk.mesh.dispose();
+    }
+    disposedChunks++;
+    chunks.delete(chunk.key);
+  };
+
+  const retireStaleChunks = (): void => {
+    if (chunks.size <= cacheLimit) return;
+    const stale = [...chunks.values()]
+      .filter((chunk) => chunk.lastSeen !== generation)
+      .sort((a, b) => a.lastUsed - b.lastUsed);
+    for (const chunk of stale) {
+      if (chunks.size <= cacheLimit) break;
+      disposeChunk(chunk);
+    }
+  };
+
+  const buildQueuedChunks = (): void => {
+    if (buildQueue.length === 0) return;
+    buildQueue.sort((a, b) => a.prioritySq - b.prioritySq || a.key.localeCompare(b.key));
+    const deadline = performance.now() + buildBudgetMs;
+    let built = 0;
+    while (buildQueue.length > 0 && built < GRASS_CHUNK_MAX_BUILDS_PER_FRAME) {
+      const chunk = buildQueue.shift()!;
+      chunk.queued = false;
+      if (chunks.get(chunk.key) !== chunk || chunk.ready || chunk.lastSeen !== generation) continue;
+      buildChunk(chunk);
+      built++;
+      if (performance.now() >= deadline) break;
+    }
   };
 
   return {
+    setQuality(level: number): void {
+      quality = Math.min(1, Math.max(0, Number.isFinite(level) ? level : 1));
+      uniforms.uFadeFar.value = activeRadius();
+    },
     update(px: number, pz: number): void {
       uniforms.uPlayerPos.value.set(px, pz);
+      uniforms.uFadeFar.value = activeRadius();
       if (px > DUNGEON_X_THRESHOLD) {
         // dungeon instances live far outside the strip — no meadow indoors
-        if (im.count !== 0) im.count = 0;
-        lastX = Infinity;
+        if (parent.visible) parent.visible = false;
         return;
       }
-      if (Math.hypot(px - lastX, pz - lastZ) > GRASS_REBUILD_DIST) {
-        lastX = px;
-        lastZ = pz;
-        rebuild(px, pz);
+      if (!parent.visible) parent.visible = true;
+
+      generation++;
+      const coverRadius = activeRadius() + chunkHalfDiag;
+      const c0 = Math.floor((px - coverRadius) / GRASS_CHUNK_SIZE);
+      const c1 = Math.floor((px + coverRadius) / GRASS_CHUNK_SIZE);
+      const z0 = Math.floor((pz - coverRadius) / GRASS_CHUNK_SIZE);
+      const z1 = Math.floor((pz + coverRadius) / GRASS_CHUNK_SIZE);
+      for (let cx = c0; cx <= c1; cx++) {
+        for (let cz = z0; cz <= z1; cz++) {
+          const centerX = chunkCenter(cx);
+          const centerZ = chunkCenter(cz);
+          const dx = centerX - px;
+          const dz = centerZ - pz;
+          const prioritySq = dx * dx + dz * dz;
+          if (prioritySq > coverRadius * coverRadius) continue;
+          const key = chunkKey(cx, cz);
+          const chunk = chunks.get(key) ?? createChunk(cx, cz);
+          chunk.lastSeen = generation;
+          chunk.lastUsed = generation;
+          chunk.prioritySq = prioritySq;
+          if (chunk.mesh) chunk.mesh.visible = true;
+          queueChunk(chunk);
+        }
       }
+
+      for (const chunk of chunks.values()) {
+        if (chunk.lastSeen === generation) continue;
+        if (chunk.mesh?.visible) chunk.mesh.visible = false;
+      }
+      buildQueuedChunks();
+      retireStaleChunks();
+    },
+    perfStats(): FoliagePerfStats {
+      const stats = emptyGrassStats(true, cacheLimit);
+      stats.grassQuality = Math.round(quality * 100) / 100;
+      stats.grassActiveRadius = activeRadius();
+      stats.grassChunks = chunks.size;
+      stats.grassQueuedChunks = buildQueue.length;
+      stats.grassBuiltChunks = builtChunks;
+      stats.grassDisposedChunks = disposedChunks;
+      stats.grassLastBuildMs = lastBuildMs;
+      stats.grassBuildMs = buildMs;
+      for (const chunk of chunks.values()) {
+        if (chunk.ready) stats.grassReadyChunks++;
+        const tuftCount = chunk.mesh?.count ?? 0;
+        stats.grassTufts += tuftCount;
+        if (chunk.mesh?.visible) {
+          stats.grassVisibleChunks++;
+          stats.grassVisibleTufts += tuftCount;
+        }
+      }
+      return stats;
     },
   };
 }
@@ -986,9 +1197,18 @@ export function buildFoliage(seed: number): FoliageView {
   const treeHideables: TreeHideable[] = [];
   buildTrees(group, seed, bucketMeshes, treeHideables);
   if (GFX.standardMaterials) buildDressing(group, seed, bucketMeshes);
-  const grass = buildGrassRing(group, seed);
+  const grass = localGrassDisabled()
+    ? {
+      update(): void {},
+      setQuality(): void {},
+      perfStats(): FoliagePerfStats { return emptyGrassStats(false); },
+    }
+    : buildGrassRing(group, seed);
   return {
     group,
+    setGrassQuality(level: number): void {
+      grass.setQuality(level);
+    },
     update(
       px: number, pz: number,
       camX: number, camY: number, camZ: number,
@@ -1005,6 +1225,9 @@ export function buildFoliage(seed: number): FoliageView {
         b.mesh.visible = d >= (b.minDist ?? 0) && d < (b.maxDist ?? Infinity)
           && d - b.radius < fogFar;
       }
+    },
+    perfStats(): FoliagePerfStats {
+      return grass.perfStats();
     },
   };
 }

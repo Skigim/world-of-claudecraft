@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import * as THREE from 'three';
 import {
+  configureMaskedDoubleSidedVegetationMaterial,
   forcedTierFromSearch, graphicsPresetLabel, isConstrainedBrowser, isWeakIntegratedGpu,
   shouldUseAutoGovernor, tierFromHints, GFX_BUDGETS, type GfxRuntimeHints,
 } from '../src/render/gfx';
@@ -46,7 +48,7 @@ describe('graphics tier resolution', () => {
     expect(tierFromHints({ ...desktop, search: '?gfx=low', graphicsPreset: 3 }, false)).toBe('low');
   });
 
-  it('labels presets and only enables the runtime governor for unforced Auto', () => {
+  it('labels presets and runs the budget governor unless Ultra or URL-forced', () => {
     expect(graphicsPresetLabel(undefined)).toBe('auto');
     expect(graphicsPresetLabel(1)).toBe('low');
     expect(graphicsPresetLabel(2)).toBe('medium');
@@ -55,8 +57,15 @@ describe('graphics tier resolution', () => {
     expect(graphicsPresetLabel(5)).toBe('advanced');
     expect(shouldUseAutoGovernor({ search: '', graphicsPreset: 0 })).toBe(true);
     expect(shouldUseAutoGovernor({ search: '', graphicsPreset: undefined })).toBe(true);
-    expect(shouldUseAutoGovernor({ search: '', graphicsPreset: 3 })).toBe(false);
-    expect(shouldUseAutoGovernor({ search: '?gfx=high', graphicsPreset: 0 })).toBe(false);
+    expect(shouldUseAutoGovernor({ search: '', graphicsPreset: 1 })).toBe(true);
+    expect(shouldUseAutoGovernor({ search: '', graphicsPreset: 2 })).toBe(true);
+    expect(shouldUseAutoGovernor({ search: '', graphicsPreset: 3 })).toBe(true);
+    expect(shouldUseAutoGovernor({ search: '', graphicsPreset: 4 })).toBe(false);
+    expect(shouldUseAutoGovernor({ search: '', graphicsPreset: 5 })).toBe(true);
+    expect(shouldUseAutoGovernor({ search: '?gfx=low', graphicsPreset: 0 })).toBe(true);
+    expect(shouldUseAutoGovernor({ search: '?gfx=high', graphicsPreset: 0 })).toBe(true);
+    expect(shouldUseAutoGovernor({ search: '?gfx=ultra', graphicsPreset: 4 })).toBe(false);
+    expect(shouldUseAutoGovernor({ search: '?governor=0', graphicsPreset: 1 })).toBe(false);
   });
 
   it('keeps every quality tier bounded by explicit runtime budgets', () => {
@@ -75,5 +84,19 @@ describe('graphics tier resolution', () => {
     expect(isWeakIntegratedGpu('ANGLE (Intel, ANGLE Metal Renderer: Intel(R) Iris(TM) Plus Graphics 655)')).toBe(true);
     expect(isWeakIntegratedGpu('ANGLE (Apple, ANGLE Metal Renderer: Apple M2)')).toBe(false);
     expect(tierFromHints({ ...desktop, gpuRenderer: 'ANGLE (Intel, Intel(R) Iris(TM) Plus Graphics 655)' }, false)).toBe('low');
+  });
+
+  it('keeps masked double-sided vegetation off the transparent blended path', () => {
+    const mat = configureMaskedDoubleSidedVegetationMaterial(new THREE.MeshBasicMaterial({
+      alphaTest: 0.3,
+      transparent: true,
+    }));
+
+    expect(mat.alphaTest).toBe(0.3);
+    expect(mat.side).toBe(THREE.DoubleSide);
+    expect(mat.transparent).toBe(false);
+    expect(mat.forceSinglePass).toBe(true);
+    expect(mat.depthTest).toBe(true);
+    expect(mat.depthWrite).toBe(true);
   });
 });

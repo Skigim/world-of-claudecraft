@@ -12,7 +12,7 @@ import { accountForToken, getCharacter, insertClientPerfReport } from '../server
 
 const VALID_TOKEN = 'b'.repeat(64);
 
-function fakeReq(body: unknown, opts: { token?: string; method?: string } = {}) {
+function fakeReq(body: unknown, opts: { token?: string; method?: string; remoteAddress?: string } = {}) {
   const req: any = new EventEmitter();
   req.method = opts.method ?? 'POST';
   req.url = '/api/perf-report';
@@ -20,7 +20,8 @@ function fakeReq(body: unknown, opts: { token?: string; method?: string } = {}) 
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/605.1.15 Version/17.0 Safari/605.1.15',
     ...(opts.token ? { authorization: `Bearer ${opts.token}` } : {}),
   };
-  req.socket = { remoteAddress: '203.0.113.10' };
+  req.socket = { remoteAddress: opts.remoteAddress ?? '203.0.113.10' };
+  req.destroy = vi.fn();
   setImmediate(() => {
     req.emit('data', JSON.stringify(body));
     req.emit('end');
@@ -106,5 +107,103 @@ describe('perf report ingestion', () => {
     expect(perfReportInternalsForTest.bucketGpu('Google SwiftShader')).toBe('software');
     expect(perfReportInternalsForTest.bucketGpu('ANGLE (Intel, Intel(R) Iris(TM) Plus Graphics 655)')).toBe('intel-iris');
     expect(perfReportInternalsForTest.bucketGpu('ANGLE (AMD Radeon Pro)')).toBe('amd');
+  });
+
+  it('strips development trace data from public reports', async () => {
+    const res = fakeRes();
+
+    await handlePerfReport(fakeReq({
+      sessionId: 'public',
+      rawSummary: { seconds: 30, devTrace: { frames: [{ frameMs: 200 }] } },
+    }), res);
+
+    expect(res.statusCode).toBe(200);
+    expect(insertClientPerfReport).toHaveBeenCalledWith(expect.objectContaining({
+      rawSummary: { seconds: 30 },
+    }));
+  });
+
+  it('strips development trace data in production even on loopback', async () => {
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const res = fakeRes();
+
+      await handlePerfReport(fakeReq({
+        sessionId: 'prod-loopback',
+        rawSummary: { seconds: 30, devTrace: { frames: [{ frameMs: 200 }] } },
+      }, { remoteAddress: '127.0.0.1' }), res);
+
+      expect(res.statusCode).toBe(200);
+      expect(insertClientPerfReport).toHaveBeenCalledWith(expect.objectContaining({
+        rawSummary: { seconds: 30 },
+      }));
+    } finally {
+      if (previous === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previous;
+    }
+  });
+
+  it('allows larger development trace summaries from local non-production requests', async () => {
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
+    try {
+      const res = fakeRes();
+
+      await handlePerfReport(fakeReq({
+        sessionId: 'local-dev',
+        rawSummary: {
+          seconds: 30,
+          devTrace: {
+            frames: [{ frameMs: 200, detail: 'x'.repeat(9000) }],
+          },
+        },
+      }, { remoteAddress: '127.0.0.1' }), res);
+
+      expect(res.statusCode).toBe(200);
+      expect(insertClientPerfReport).toHaveBeenCalledWith(expect.objectContaining({
+        rawSummary: {
+          seconds: 30,
+          devTrace: {
+            frames: [{ frameMs: 200, detail: 'x'.repeat(9000) }],
+          },
+        },
+      }));
+    } finally {
+      if (previous === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previous;
+    }
+  });
+
+  it('accepts local development trace request bodies above the normal route limit', async () => {
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
+    try {
+      const res = fakeRes();
+      const detail = 'x'.repeat(260_000);
+
+      await handlePerfReport(fakeReq({
+        sessionId: 'local-large-dev',
+        rawSummary: {
+          seconds: 30,
+          devTrace: {
+            frames: [{ frameMs: 200, detail }],
+          },
+        },
+      }, { remoteAddress: '127.0.0.1' }), res);
+
+      expect(res.statusCode).toBe(200);
+      expect(insertClientPerfReport).toHaveBeenCalledWith(expect.objectContaining({
+        rawSummary: {
+          seconds: 30,
+          devTrace: {
+            frames: [{ frameMs: 200, detail }],
+          },
+        },
+      }));
+    } finally {
+      if (previous === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previous;
+    }
   });
 });

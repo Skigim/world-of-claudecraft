@@ -13,13 +13,17 @@ import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { loadGltf, loadTexture } from '../assets/loader';
 import { registerPreload } from '../assets/preload';
 import { GFX, addRimGlow } from '../gfx';
-import { manifestUrls, SKINS, VISUALS, VisualDef, type AttachDef } from './manifest';
+import {
+  manifestUrlsForGraphics,
+  SKINS,
+  visibleAttachmentsForGraphics,
+  VISUALS,
+  VisualDef,
+  visualAssetUrlForGraphics,
+  type AttachDef,
+} from './manifest';
 
 const DEFAULT_TINT_STRENGTH = 0.4;
-
-const LOW_URL_ALIAS: Record<string, string> = {
-  'models/chars/players/rogue_hooded.glb': 'models/chars/players/rogue.glb',
-};
 
 type HandGrip = {
   position: [number, number, number];
@@ -158,14 +162,10 @@ function attachProp(root: THREE.Object3D, bone: THREE.Object3D, att: AttachDef):
 const gltfByUrl = new Map<string, GLTF>();
 
 function assetUrl(url: string): string {
-  return GFX.standardMaterials ? url : (LOW_URL_ALIAS[url] ?? url);
+  return visualAssetUrlForGraphics(url, GFX.standardMaterials);
 }
 
-const preloadUrls = GFX.standardMaterials
-  ? manifestUrls()
-  : [...new Set(manifestUrls()
-    .filter((url) => !url.startsWith('models/weapons/'))
-    .map(assetUrl))];
+const preloadUrls = manifestUrlsForGraphics(GFX.standardMaterials);
 
 for (const url of preloadUrls) {
   registerPreload(loadGltf(url).then((g) => { gltfByUrl.set(url, g); }));
@@ -291,7 +291,9 @@ export function assembleModel(def: VisualDef): THREE.Object3D {
       }
     });
   }
-  const attachments = GFX.standardMaterials ? (def.attach ?? []) : [];
+  // Weapons and held props are gameplay-readable silhouettes, not decoration.
+  // Low tier still downgrades body/material cost, but keeps attachments visible.
+  const attachments = visibleAttachmentsForGraphics(def);
   for (const att of attachments) {
     // GLTFLoader sanitizes node names (PropertyBinding strips [].:/ chars),
     // so the authored "handslot.r" arrives as "handslotr" — try both

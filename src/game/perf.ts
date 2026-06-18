@@ -39,11 +39,96 @@ export interface PerfSnapshot {
     deviceMemory: number | null;
     maxTouchPoints: number;
   };
+  devTrace?: DevPerfTrace;
 }
 
 type TimedBucket = 'renderer' | 'hud' | 'events' | 'sim';
 const MAX_SAMPLES = 7200; // ~2 minutes at 60fps; enough for stable p95/p99 without unbounded growth.
 const MAX_WINDOW_MS = 30_000;
+const DEV_TRACE_WORST_FRAME_LIMIT = 40;
+const DEV_TRACE_LONG_TASK_LIMIT = 80;
+const DEV_TRACE_ATTRIBUTION_LIMIT = 4;
+const DEV_TRACE_MIN_FRAME_MS = 33;
+const DEV_TRACE_SPAN_LIMIT = 120;
+const DEV_TRACE_SPAN_MIN_MS = 8;
+const DEV_TRACE_DETAIL_LIMIT = 16;
+
+type RendererStats = NonNullable<ReturnType<Renderer['perfStats']>>;
+type DevRendererFrame = Omit<NonNullable<RendererStats['lastFrame']>, 'renderDiagnostics'>;
+type DevTraceDetail = Record<string, string | number | boolean | null>;
+
+interface DevPerfTraceFrame {
+  atMs: number;
+  frameMs: number;
+  scoreMs: number;
+  reasons: string[];
+  mainMs: Record<TimedBucket, number>;
+  renderer: {
+    calls: number;
+    triangles: number;
+    textures: number;
+    programs: number;
+    views: number;
+    renderScale: number;
+    effectiveRenderScale: number;
+    renderBudget: RendererStats['renderBudget'];
+    pixelRatio: number;
+    width: number;
+    height: number;
+    foliage: RendererStats['foliage'];
+    lastFrame: DevRendererFrame | null;
+  } | null;
+  browser: {
+    longTaskCount: number;
+    longTaskTotalMs: number;
+    longTaskLastAgeMs: number;
+    memoryUsedMb: number | null;
+  };
+  network: PerfSnapshot['network'];
+}
+
+interface DevPerfTraceSpan {
+  atMs: number;
+  startMs: number;
+  endMs: number;
+  durationMs: number;
+  name: string;
+  kind: 'bucket' | 'scope' | 'external';
+  detail?: DevTraceDetail;
+}
+
+interface DevLongTaskAttribution {
+  name: string;
+  entryType: string;
+  containerType: string;
+  containerName: string;
+  containerId: string;
+  containerSrc: string;
+}
+
+interface DevLongTaskRecord {
+  startMs: number;
+  endMs: number;
+  durationMs: number;
+  name: string;
+  entryType: string;
+  attribution: DevLongTaskAttribution[];
+  nearestFrameAtMs?: number;
+  nearestFrameMs?: number;
+  nearestFrameDeltaMs?: number;
+  nearestSpanName?: string;
+  nearestSpanMs?: number;
+  nearestSpanDeltaMs?: number;
+}
+
+export interface DevPerfTrace {
+  enabled: true;
+  worstFrameLimit: number;
+  minFrameMs: number;
+  frames: DevPerfTraceFrame[];
+  spans: DevPerfTraceSpan[];
+  longTasks: DevLongTaskRecord[];
+}
 
 interface FrameSample {
   at: number;
@@ -85,6 +170,41 @@ function pushSample(values: number[], sample: number): void {
   if (values.length > MAX_SAMPLES) values.splice(0, values.length - MAX_SAMPLES);
 }
 
+function sanitizeTraceDetail(detail?: Record<string, unknown>): DevTraceDetail | undefined {
+  if (!detail) return undefined;
+  const out: DevTraceDetail = {};
+  let count = 0;
+  for (const [key, value] of Object.entries(detail)) {
+    if (count >= DEV_TRACE_DETAIL_LIMIT) break;
+    const cleanKey = key.slice(0, 40);
+    if (typeof value === 'string') {
+      out[cleanKey] = value.slice(0, 120);
+    } else if (typeof value === 'number') {
+      out[cleanKey] = Number.isFinite(value) ? round(value) : null;
+    } else if (typeof value === 'boolean' || value === null) {
+      out[cleanKey] = value;
+    } else if (Array.isArray(value)) {
+      out[cleanKey] = value.slice(0, 8).map((v) => String(v).slice(0, 40)).join(',');
+    } else if (value !== undefined) {
+      out[cleanKey] = String(value).slice(0, 120);
+    }
+    count++;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function isLoopbackHostname(hostname: string): boolean {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '[::1]';
+}
+
+export function localDevPerfTraceEnabled(): boolean {
+  if (!import.meta.env.DEV) return false;
+  if (typeof location === 'undefined') return false;
+  const params = new URLSearchParams(location.search);
+  if (params.get('perfTrace') !== '1' && params.get('perf_trace') !== '1') return false;
+  return isLoopbackHostname(location.hostname);
+}
+
 export class PerfMonitor {
   readonly enabled: boolean;
   private overlay: HTMLDivElement | null = null;
@@ -97,8 +217,10 @@ export class PerfMonitor {
   private lastOverlayAt = 0;
   private frames = 0;
   private frameMs: number[] = [];
+  private lastFrameMs = 0;
   private frameWindow: FrameSample[] = [];
   private buckets: Record<TimedBucket, number[]> = { renderer: [], hud: [], events: [], sim: [] };
+  private lastBucketMs: Record<TimedBucket, number> = { renderer: 0, hud: 0, events: 0, sim: 0 };
   private lastSnapshot: PerfSnapshot | null = null;
   private network: PerfSnapshot['network'] = null;
   private inputIntents = 0;
@@ -115,10 +237,15 @@ export class PerfMonitor {
   private longTaskTotalMs = 0;
   private lastLongTaskAt = 0;
   private longTaskObserver: PerformanceObserver | null = null;
+  private readonly traceEnabled: boolean;
+  private devTraceFrames: DevPerfTraceFrame[] = [];
+  private devTraceSpans: DevPerfTraceSpan[] = [];
+  private devLongTasks: DevLongTaskRecord[] = [];
 
   constructor(private renderer: Renderer | null, private hud: { perfStats(): PerfSnapshot['hud'] } | null = null) {
     const params = new URLSearchParams(location.search);
-    this.enabled = params.has('perf') || localStorage.getItem('woc_perf') === '1';
+    this.traceEnabled = localDevPerfTraceEnabled();
+    this.enabled = this.traceEnabled || params.has('perf') || localStorage.getItem('woc_perf') === '1';
     if (this.enabled) {
       this.mountOverlay();
     }
@@ -136,6 +263,7 @@ export class PerfMonitor {
   frame(dt: number, now = performance.now()): void {
     this.frames++;
     const ms = Math.min(250, Math.max(0, dt * 1000));
+    this.lastFrameMs = ms;
     pushSample(this.frameMs, ms);
     this.frameWindow.push({ at: now, ms });
     while (this.frameWindow.length && now - this.frameWindow[0].at > MAX_WINDOW_MS) this.frameWindow.shift();
@@ -180,13 +308,56 @@ export class PerfMonitor {
     try {
       return fn();
     } finally {
-      pushSample(this.buckets[bucket], performance.now() - start);
+      const ms = performance.now() - start;
+      this.lastBucketMs[bucket] = round(ms);
+      pushSample(this.buckets[bucket], ms);
+      this.recordDevTraceSpan(bucket, start, ms, 'bucket');
     }
+  }
+
+  trace<T>(name: string, fn: () => T, detail?: Record<string, unknown>): T {
+    if (!this.traceEnabled) return fn();
+    const start = performance.now();
+    try {
+      return fn();
+    } finally {
+      this.recordDevTraceSpan(name, start, performance.now() - start, 'scope', detail);
+    }
+  }
+
+  markTraceSpan(name: string, startMs: number, durationMs: number, detail?: Record<string, unknown>): void {
+    this.recordDevTraceSpan(name, startMs, durationMs, 'external', detail);
   }
 
   setNetwork(stats: PerfSnapshot['network']): void {
     if (!this.enabled) return;
     this.network = stats;
+  }
+
+  private recordDevTraceSpan(
+    name: string,
+    startMs: number,
+    durationMs: number,
+    kind: DevPerfTraceSpan['kind'],
+    detail?: Record<string, unknown>,
+  ): void {
+    if (!this.traceEnabled || !Number.isFinite(durationMs) || durationMs < DEV_TRACE_SPAN_MIN_MS) return;
+    const startRel = Math.max(0, startMs - this.startedAt);
+    const span: DevPerfTraceSpan = {
+      atMs: round(startRel + durationMs),
+      startMs: round(startRel),
+      endMs: round(startRel + durationMs),
+      durationMs: round(durationMs),
+      name: name.slice(0, 80),
+      kind,
+    };
+    const cleanDetail = sanitizeTraceDetail(detail);
+    if (cleanDetail) span.detail = cleanDetail;
+    this.devTraceSpans.push(span);
+    this.devTraceSpans.sort((a, b) => b.durationMs - a.durationMs || a.startMs - b.startMs);
+    if (this.devTraceSpans.length > DEV_TRACE_SPAN_LIMIT) {
+      this.devTraceSpans.length = DEV_TRACE_SPAN_LIMIT;
+    }
   }
 
   private observeLongTasks(): void {
@@ -201,6 +372,7 @@ export class PerfMonitor {
           pushSample(this.longTaskMs, duration);
           this.longTaskTotalMs += duration;
           this.lastLongTaskAt = entry.startTime + duration;
+          if (this.traceEnabled) this.recordDevLongTask(entry);
         }
       });
       this.longTaskObserver.observe({ entryTypes: ['longtask'] });
@@ -224,7 +396,144 @@ export class PerfMonitor {
     };
   }
 
+  private recordDevLongTask(entry: PerformanceEntry): void {
+    const withAttribution = entry as PerformanceEntry & {
+      attribution?: Array<Partial<DevLongTaskAttribution>>;
+    };
+    const attribution = (withAttribution.attribution ?? []).slice(0, DEV_TRACE_ATTRIBUTION_LIMIT).map((a) => ({
+      name: String(a.name ?? '').slice(0, 80),
+      entryType: String(a.entryType ?? '').slice(0, 40),
+      containerType: String(a.containerType ?? '').slice(0, 40),
+      containerName: String(a.containerName ?? '').slice(0, 80),
+      containerId: String(a.containerId ?? '').slice(0, 80),
+      containerSrc: String(a.containerSrc ?? '').slice(0, 160),
+    }));
+    const startMs = Math.max(0, entry.startTime - this.startedAt);
+    this.devLongTasks.push({
+      startMs: round(startMs),
+      endMs: round(startMs + entry.duration),
+      durationMs: round(entry.duration),
+      name: String(entry.name ?? '').slice(0, 80),
+      entryType: String(entry.entryType ?? '').slice(0, 40),
+      attribution,
+    });
+    if (this.devLongTasks.length > DEV_TRACE_LONG_TASK_LIMIT) {
+      this.devLongTasks.splice(0, this.devLongTasks.length - DEV_TRACE_LONG_TASK_LIMIT);
+    }
+  }
+
+  private devTraceLongTasks(): DevLongTaskRecord[] {
+    return this.devLongTasks.map((task) => {
+      let nearest: DevPerfTraceFrame | null = null;
+      let nearestDelta = Infinity;
+      let nearestSpan: DevPerfTraceSpan | null = null;
+      let nearestSpanDelta = Infinity;
+      const taskMid = (task.startMs + task.endMs) / 2;
+      for (const frame of this.devTraceFrames) {
+        const delta = Math.abs(frame.atMs - taskMid);
+        if (delta < nearestDelta) {
+          nearest = frame;
+          nearestDelta = delta;
+        }
+      }
+      for (const span of this.devTraceSpans) {
+        const delta = taskMid >= span.startMs && taskMid <= span.endMs
+          ? 0
+          : Math.min(Math.abs(taskMid - span.startMs), Math.abs(taskMid - span.endMs));
+        if (delta < nearestSpanDelta) {
+          nearestSpan = span;
+          nearestSpanDelta = delta;
+        }
+      }
+      return nearest
+        ? {
+          ...task,
+          nearestFrameAtMs: nearest.atMs,
+          nearestFrameMs: nearest.frameMs,
+          nearestFrameDeltaMs: round(nearestDelta),
+          ...(nearestSpan
+            ? {
+              nearestSpanName: nearestSpan.name,
+              nearestSpanMs: nearestSpan.durationMs,
+              nearestSpanDeltaMs: round(nearestSpanDelta),
+            }
+            : {}),
+        }
+        : {
+          ...task,
+          ...(nearestSpan
+            ? {
+              nearestSpanName: nearestSpan.name,
+              nearestSpanMs: nearestSpan.durationMs,
+              nearestSpanDeltaMs: round(nearestSpanDelta),
+            }
+            : {}),
+        };
+    });
+  }
+
+  private recordDevTraceFrame(now: number): void {
+    const renderer = this.renderer?.perfStats() ?? null;
+    const rendererFrame = renderer?.lastFrame ?? null;
+    const bucketMax = Math.max(...Object.values(this.lastBucketMs));
+    const rendererTotal = rendererFrame?.phaseMs.total ?? 0;
+    const rendererSubmit = rendererFrame?.phaseMs.submit ?? 0;
+    const rendererWorld = rendererFrame?.phaseMs.world ?? 0;
+    const rendererEntities = rendererFrame?.phaseMs.entities ?? 0;
+    const scoreMs = Math.max(this.lastFrameMs, bucketMax, rendererTotal, rendererSubmit, rendererWorld, rendererEntities);
+    const reasons: string[] = [];
+    if (this.lastFrameMs >= DEV_TRACE_MIN_FRAME_MS) reasons.push('frame-gap');
+    if (bucketMax >= DEV_TRACE_MIN_FRAME_MS) reasons.push('main-bucket');
+    if (rendererTotal >= DEV_TRACE_MIN_FRAME_MS) reasons.push('renderer-total');
+    if (rendererSubmit >= DEV_TRACE_MIN_FRAME_MS) reasons.push('renderer-submit');
+    if (rendererWorld >= DEV_TRACE_MIN_FRAME_MS) reasons.push('renderer-world');
+    if (rendererEntities >= DEV_TRACE_MIN_FRAME_MS) reasons.push('renderer-entities');
+    if (reasons.length === 0) return;
+    const memory = this.memorySnapshot();
+    const devRendererFrame = rendererFrame
+      ? (() => {
+        const { renderDiagnostics: _renderDiagnostics, ...frame } = rendererFrame;
+        return frame;
+      })()
+      : null;
+    const frame: DevPerfTraceFrame = {
+      atMs: round(now - this.startedAt),
+      frameMs: round(this.lastFrameMs),
+      scoreMs: round(scoreMs),
+      reasons,
+      mainMs: { ...this.lastBucketMs },
+      renderer: renderer ? {
+        calls: renderer.calls,
+        triangles: renderer.triangles,
+        textures: renderer.textures,
+        programs: renderer.programs,
+        views: renderer.views,
+        renderScale: renderer.renderScale,
+        effectiveRenderScale: renderer.effectiveRenderScale,
+        renderBudget: renderer.renderBudget,
+        pixelRatio: renderer.pixelRatio,
+        width: renderer.width,
+        height: renderer.height,
+        foliage: renderer.foliage,
+        lastFrame: devRendererFrame,
+      } : null,
+      browser: {
+        longTaskCount: this.longTaskMs.length,
+        longTaskTotalMs: round(this.longTaskTotalMs),
+        longTaskLastAgeMs: this.lastLongTaskAt > 0 ? round(now - this.lastLongTaskAt) : -1,
+        memoryUsedMb: memory?.usedMB ?? null,
+      },
+      network: this.network,
+    };
+    this.devTraceFrames.push(frame);
+    this.devTraceFrames.sort((a, b) => b.scoreMs - a.scoreMs || b.frameMs - a.frameMs || a.atMs - b.atMs);
+    if (this.devTraceFrames.length > DEV_TRACE_WORST_FRAME_LIMIT) {
+      this.devTraceFrames.length = DEV_TRACE_WORST_FRAME_LIMIT;
+    }
+  }
+
   tick(now = performance.now()): void {
+    if (this.traceEnabled) this.recordDevTraceFrame(now);
     if (now - this.lastOverlayAt < 1000) return;
     this.lastOverlayAt = now;
     this.lastSnapshot = this.snapshot(now);
@@ -250,7 +559,7 @@ export class PerfMonitor {
         frameMs: summarizeFrames(samples.map((s) => s.ms)),
       };
     };
-    return {
+    const snapshot: PerfSnapshot = {
       seconds: round(seconds),
       frames: this.frames,
       fps: round(this.frames / seconds),
@@ -292,6 +601,17 @@ export class PerfMonitor {
         maxTouchPoints: navigator.maxTouchPoints || 0,
       },
     };
+    if (this.traceEnabled) {
+      snapshot.devTrace = {
+        enabled: true,
+        worstFrameLimit: DEV_TRACE_WORST_FRAME_LIMIT,
+        minFrameMs: DEV_TRACE_MIN_FRAME_MS,
+        frames: this.devTraceFrames,
+        spans: this.devTraceSpans,
+        longTasks: this.devTraceLongTasks(),
+      };
+    }
+    return snapshot;
   }
 
   report(): PerfSnapshot {
@@ -326,6 +646,11 @@ export class PerfMonitor {
     this.longTaskMs = [];
     this.longTaskTotalMs = 0;
     this.lastLongTaskAt = 0;
+    this.lastFrameMs = 0;
+    this.lastBucketMs = { renderer: 0, hud: 0, events: 0, sim: 0 };
+    this.devTraceFrames = [];
+    this.devTraceSpans = [];
+    this.devLongTasks = [];
   }
 
   private mountOverlay(): void {

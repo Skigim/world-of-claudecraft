@@ -168,6 +168,10 @@ const ENEMIES = 'models/chars/enemies';
 const CREATURES = 'models/creatures';
 const WEAPONS = 'models/weapons';
 
+const LOW_URL_ALIAS: Record<string, string> = {
+  'models/chars/players/rogue_hooded.glb': 'models/chars/players/rogue.glb',
+};
+
 const HUMANOID_H = 2.6;
 
 const SKINS_DIR = 'textures/skins';
@@ -559,4 +563,16 @@ export function manifestUrls(): string[] {
     for (const a of def.attach ?? []) urls.add(a.url);
   }
   return [...urls];
+}
+
+export function visualAssetUrlForGraphics(url: string, standardMaterials: boolean): string {
+  return standardMaterials ? url : (LOW_URL_ALIAS[url] ?? url);
+}
+
+export function manifestUrlsForGraphics(standardMaterials: boolean): string[] {
+  return [...new Set(manifestUrls().map((url) => visualAssetUrlForGraphics(url, standardMaterials)))];
+}
+
+export function visibleAttachmentsForGraphics(def: Pick<VisualDef, 'attach'>): readonly AttachDef[] {
+  return def.attach ?? [];
 }

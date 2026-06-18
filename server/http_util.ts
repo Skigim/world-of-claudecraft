@@ -16,14 +16,16 @@ export function isUniqueViolation(err: unknown): boolean {
   return e?.code === '23505' || (typeof e?.message === 'string' && e.message.includes('unique'));
 }
 
-export function readBody(req: http.IncomingMessage): Promise<any> {
+export function readBody(req: http.IncomingMessage, maxBytes = 64 * 1024): Promise<any> {
   return new Promise((resolve, reject) => {
     let data = '';
+    let bytes = 0;
     let aborted = false;
-    req.on('data', (c) => {
+    req.on('data', (c: Buffer | string) => {
       if (aborted) return;
+      bytes += typeof c === 'string' ? Buffer.byteLength(c) : c.byteLength;
       data += c;
-      if (data.length > 64 * 1024) {
+      if (bytes > maxBytes) {
         // Rejecting the promise does not pause the socket, so without
         // destroying the request a client could keep streaming unbounded
         // data into `data`. Stop reading and ignore any further chunks.

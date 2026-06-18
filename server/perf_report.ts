@@ -9,6 +9,9 @@ const PERF_REPORT_MAX_PER_MINUTE = 30;
 const PERF_REPORT_WINDOW_MS = 60_000;
 const PERF_REPORT_MAX_TRACKED_IPS = 5000;
 const RAW_SUMMARY_MAX_BYTES = 8192;
+const RAW_SUMMARY_DEV_TRACE_MAX_BYTES = 512 * 1024;
+const PERF_REPORT_MAX_BODY_BYTES = 64 * 1024;
+const PERF_REPORT_DEV_TRACE_MAX_BODY_BYTES = 768 * 1024;
 
 const perfReportAttempts = new Map<string, number[]>();
 
@@ -108,12 +111,25 @@ function viewportBucket(body: Record<string, unknown>): string {
   return `medium-${w}x${h}`;
 }
 
-function rawSummary(value: unknown): Record<string, unknown> {
+function isLoopbackIp(ip: string): boolean {
+  const normalized = ip.startsWith('::ffff:') ? ip.slice('::ffff:'.length) : ip;
+  return normalized === '::1' || normalized === '127.0.0.1' || normalized.startsWith('127.');
+}
+
+function allowDevTrace(req: http.IncomingMessage): boolean {
+  return process.env.NODE_ENV !== 'production' && isLoopbackIp(requestIp(req));
+}
+
+function rawSummary(value: unknown, devTraceAllowed = false): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
   try {
     const text = JSON.stringify(value);
-    if (Buffer.byteLength(text) > RAW_SUMMARY_MAX_BYTES) return { truncated: true };
-    return JSON.parse(text) as Record<string, unknown>;
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    if (!devTraceAllowed) delete parsed.devTrace;
+    const boundedText = JSON.stringify(parsed);
+    const maxBytes = devTraceAllowed ? RAW_SUMMARY_DEV_TRACE_MAX_BYTES : RAW_SUMMARY_MAX_BYTES;
+    if (Buffer.byteLength(boundedText) > maxBytes) return { truncated: true };
+    return JSON.parse(boundedText) as Record<string, unknown>;
   } catch {
     return {};
   }
@@ -137,7 +153,8 @@ export async function handlePerfReport(req: http.IncomingMessage, res: http.Serv
   if (req.method !== 'POST') return json(res, 405, { ok: false });
   if (rateLimitedPerfReport(req)) return json(res, 200, { ok: true });
 
-  const body = await readBody(req) as Record<string, unknown>;
+  const devTraceAllowed = allowDevTrace(req);
+  const body = await readBody(req, devTraceAllowed ? PERF_REPORT_DEV_TRACE_MAX_BODY_BYTES : PERF_REPORT_MAX_BODY_BYTES) as Record<string, unknown>;
   const accountId = await authenticatedAccountId(req);
   const userAgent = String(req.headers['user-agent'] ?? '');
   const glRenderer = textIn(body.glRenderer, 160);
@@ -183,7 +200,7 @@ export async function handlePerfReport(req: http.IncomingMessage, res: http.Serv
     glRendererBucket: bucketGpu(glRenderer || textIn(body.glRendererBucket, 80)),
     zoneOrScenario: textIn(body.zoneOrScenario, 80, source === 'benchmark' ? 'benchmark' : 'gameplay'),
     source,
-    rawSummary: rawSummary(body.rawSummary),
+    rawSummary: rawSummary(body.rawSummary, devTraceAllowed),
   };
 
   await insertClientPerfReport(row);
@@ -195,5 +212,6 @@ export const perfReportInternalsForTest = {
   browserFamily,
   osFamily,
   viewportBucket,
+  allowDevTrace,
   rawSummary,
 };

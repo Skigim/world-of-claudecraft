@@ -17,6 +17,23 @@ function installBrowserGlobals(): void {
   (globalThis as any).window = { innerWidth: 1440, innerHeight: 900 };
 }
 
+function renderDiagnostics() {
+  return {
+    enabled: false,
+    totalObjects: 0,
+    estimatedDraws: 0,
+    estimatedTriangles: 0,
+    estimatedPoints: 0,
+    programs: 0,
+    programDelta: 0,
+    textures: 0,
+    textureDelta: 0,
+    newMaterials: [],
+    firstVisibleObjects: [],
+    categories: {},
+  };
+}
+
 function snapshot(): PerfSnapshot {
   return {
     seconds: 80,
@@ -47,6 +64,27 @@ function snapshot(): PerfSnapshot {
       },
       renderScale: 1,
       effectiveRenderScale: 0.9,
+      renderBudget: {
+        enabled: true,
+        mode: 'stable',
+        reason: 'stable',
+        pressure: 0.4,
+        frameMsEma: 16.7,
+        submitMsEma: 1,
+        stableSeconds: 0,
+        cooldownSeconds: 0,
+        levels: { grass: 1, vfx: 1, resolution: 0.9 },
+        caps: {
+          targetCalls: 330,
+          urgentCalls: 500,
+          targetTriangles: 1100000,
+          urgentTriangles: 1750000,
+          targetGrassTufts: 2850,
+          urgentGrassTufts: 4500,
+          minGrassLevel: 0.6,
+          minVfxLevel: 0.68,
+        },
+      },
       pixelRatio: 1.5,
       width: 1440,
       height: 900,
@@ -55,6 +93,22 @@ function snapshot(): PerfSnapshot {
       textures: 80,
       programs: 30,
       views: 40,
+      foliage: {
+        grassEnabled: true,
+        grassQuality: 1,
+        grassActiveRadius: 82,
+        grassChunks: 48,
+        grassReadyChunks: 48,
+        grassVisibleChunks: 42,
+        grassQueuedChunks: 0,
+        grassTufts: 12000,
+        grassVisibleTufts: 9800,
+        grassBuiltChunks: 52,
+        grassDisposedChunks: 4,
+        grassLastBuildMs: 1.2,
+        grassBuildMs: 55,
+        grassCacheLimit: 96,
+      },
       glVendor: 'Apple',
       glRenderer: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro)',
       contextLost: 0,
@@ -67,6 +121,7 @@ function snapshot(): PerfSnapshot {
         submit: { count: 1, avg: 1, p95: 1, max: 1 },
         total: { count: 1, avg: 5, p95: 5, max: 5 },
       },
+      renderDiagnostics: renderDiagnostics(),
     },
     hud: null,
     assets: { preload: { tasks: 0, waitMs: 0, complete: true }, byType: {}, files: [] },
@@ -116,5 +171,114 @@ describe('perf reporter payload', () => {
     expect(body.source).toBe('benchmark');
     expect(body.zoneOrScenario).toBe('bench_dense_foliage');
     expect(JSON.stringify(body.rawSummary)).not.toContain('Safari/605');
+  });
+
+  it('keeps local dev trace frames and long-task correlation in raw summary', () => {
+    const settings = new Settings();
+    const snap = snapshot();
+    snap.devTrace = {
+      enabled: true,
+      worstFrameLimit: 40,
+      minFrameMs: 33,
+      frames: [{
+        atMs: 1200,
+        frameMs: 80,
+        scoreMs: 80,
+        reasons: ['frame-gap'],
+        mainMs: { renderer: 20, hud: 2, events: 0, sim: 0 },
+        renderer: {
+          calls: 200,
+          triangles: 300000,
+          textures: 80,
+          programs: 30,
+          views: 40,
+          renderScale: 1,
+          effectiveRenderScale: 0.9,
+          renderBudget: {
+            enabled: true,
+            mode: 'stable',
+            reason: 'stable',
+            pressure: 0.4,
+            frameMsEma: 16.7,
+            submitMsEma: 1,
+            stableSeconds: 0,
+            cooldownSeconds: 0,
+            levels: { grass: 1, vfx: 1, resolution: 0.9 },
+            caps: {
+              targetCalls: 330,
+              urgentCalls: 500,
+              targetTriangles: 1100000,
+              urgentTriangles: 1750000,
+              targetGrassTufts: 2850,
+              urgentGrassTufts: 4500,
+              minGrassLevel: 0.6,
+              minVfxLevel: 0.68,
+            },
+          },
+          pixelRatio: 1.5,
+          width: 1440,
+          height: 900,
+          foliage: {
+            grassEnabled: true,
+            grassQuality: 1,
+            grassActiveRadius: 82,
+            grassChunks: 48,
+            grassReadyChunks: 48,
+            grassVisibleChunks: 42,
+            grassQueuedChunks: 0,
+            grassTufts: 12000,
+            grassVisibleTufts: 9800,
+            grassBuiltChunks: 52,
+            grassDisposedChunks: 4,
+            grassLastBuildMs: 1.2,
+            grassBuildMs: 55,
+            grassCacheLimit: 96,
+          },
+          lastFrame: null,
+        },
+        browser: { longTaskCount: 1, longTaskTotalMs: 70, longTaskLastAgeMs: 15, memoryUsedMb: 100 },
+        network: null,
+      }],
+      spans: [{
+        atMs: 1190,
+        startMs: 1110,
+        endMs: 1190,
+        durationMs: 80,
+        name: 'net.applySnapshot',
+        kind: 'external',
+        detail: { ents: 42 },
+      }],
+      longTasks: [{
+        startMs: 1100,
+        endMs: 1170,
+        durationMs: 70,
+        name: 'self',
+        entryType: 'longtask',
+        attribution: [],
+        nearestFrameAtMs: 1200,
+        nearestFrameMs: 80,
+        nearestFrameDeltaMs: 65,
+        nearestSpanName: 'net.applySnapshot',
+        nearestSpanMs: 80,
+        nearestSpanDeltaMs: 0,
+      }],
+    };
+
+    const body = perfReporterInternalsForTest.payloadFromSnapshot(snap, settings, 'sess1', 42)!;
+
+    const rawSummary = body.rawSummary as {
+      devTrace: {
+        frames: Array<{ renderer: { calls: number } }>;
+        spans: Array<{ name: string; detail?: { ents?: number } }>;
+        longTasks: Array<{ nearestFrameMs?: number }>;
+      };
+    };
+    expect(rawSummary.devTrace.frames[0].renderer.calls).toBe(200);
+    expect(rawSummary.devTrace.spans[0].name).toBe('net.applySnapshot');
+    expect(rawSummary.devTrace.spans[0].detail?.ents).toBe(42);
+    expect(rawSummary.devTrace.longTasks[0].nearestFrameMs).toBe(80);
+    expect((body.rawSummary as { rendererFoliage?: { grassVisibleChunks?: number } }).rendererFoliage?.grassVisibleChunks).toBe(42);
+    expect((body.rawSummary as { rendererBudget?: { levels?: { grass?: number } } }).rendererBudget?.levels?.grass).toBe(1);
+    expect((body.rawSummary as { rendererDiagnostics?: { enabled?: boolean } }).rendererDiagnostics?.enabled).toBe(false);
   });
 });

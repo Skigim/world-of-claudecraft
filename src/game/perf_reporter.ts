@@ -1,5 +1,5 @@
 import { graphicsPresetLabel } from '../render/gfx';
-import type { PerfMonitor, PerfSnapshot } from './perf';
+import { localDevPerfTraceEnabled, type PerfMonitor, type PerfSnapshot } from './perf';
 import type { Settings } from './settings';
 
 declare const __APP_VERSION__: string;
@@ -7,8 +7,12 @@ declare const __APP_BUILD_ID__: string;
 
 const FIRST_REPORT_MS = 75_000;
 const REPEAT_REPORT_MS = 5 * 60_000;
+const DEV_TRACE_FIRST_REPORT_MS = 10_000;
+const DEV_TRACE_REPEAT_REPORT_MS = 15_000;
 const MIN_REPORT_SECONDS = 20;
+const MIN_DEV_TRACE_REPORT_SECONDS = 5;
 const MIN_REPORT_FRAMES = 30;
+const FETCH_KEEPALIVE_MAX_BYTES = 60 * 1024;
 const SESSION_KEY = 'woc_perf_session_id';
 
 export interface PerfReporterOptions {
@@ -16,6 +20,83 @@ export interface PerfReporterOptions {
   settings: Settings;
   tokenProvider: () => string | null;
   characterIdProvider: () => number | null;
+}
+
+export type PerfReporterSkipReason = 'disabled' | 'hidden' | 'not-ready' | 'no-renderer';
+
+export interface PerfReporterStatus {
+  enabled: boolean;
+  devTrace: boolean;
+  sessionId: string;
+  startedAt: number;
+  nextSendAt: number | null;
+  lastAttemptAt: number | null;
+  lastSuccessAt: number | null;
+  lastHttpStatus: number | null;
+  lastError: string | null;
+  lastSkipReason: PerfReporterSkipReason | null;
+  lastSnapshotSeconds: number;
+  lastSnapshotFrames: number;
+  lastBodyBytes: number;
+  sendCount: number;
+  successCount: number;
+  failCount: number;
+}
+
+interface PerfReporterDebug {
+  status: PerfReporterStatus;
+  sendNow: () => void;
+  stop: () => void;
+}
+
+declare global {
+  interface Window {
+    __wocPerfReporter?: PerfReporterDebug;
+  }
+}
+
+function makeStatus(enabled: boolean, devTrace: boolean, sessionId: string): PerfReporterStatus {
+  return {
+    enabled,
+    devTrace,
+    sessionId,
+    startedAt: Date.now(),
+    nextSendAt: null,
+    lastAttemptAt: null,
+    lastSuccessAt: null,
+    lastHttpStatus: null,
+    lastError: null,
+    lastSkipReason: enabled ? null : 'disabled',
+    lastSnapshotSeconds: 0,
+    lastSnapshotFrames: 0,
+    lastBodyBytes: 0,
+    sendCount: 0,
+    successCount: 0,
+    failCount: 0,
+  };
+}
+
+function exposeDebug(status: PerfReporterStatus, sendNow: () => void, stop: () => void): () => void {
+  if (!status.devTrace || typeof window === 'undefined') return () => {};
+  const debug: PerfReporterDebug = { status, sendNow, stop };
+  window.__wocPerfReporter = debug;
+  return () => {
+    if (window.__wocPerfReporter === debug) delete window.__wocPerfReporter;
+  };
+}
+
+function textBytes(text: string): number {
+  if (typeof TextEncoder !== 'undefined') return new TextEncoder().encode(text).byteLength;
+  return text.length;
+}
+
+function errorText(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+function devTraceLog(status: PerfReporterStatus, level: 'debug' | 'warn', message: string): void {
+  if (!status.devTrace) return;
+  console[level](`[perf-report] ${message}`);
 }
 
 function storedSessionId(): string {
@@ -144,6 +225,10 @@ function payloadFromSnapshot(
       windows: snapshot.windows,
       mainMs: snapshot.mainMs,
       rendererPhaseMs: renderer.phaseMs,
+      rendererFoliage: renderer.foliage,
+      rendererBudget: renderer.renderBudget,
+      rendererDiagnostics: renderer.renderDiagnostics,
+      rendererPrewarm: renderer.prewarm,
       assets: {
         preload: snapshot.assets.preload,
         byType: snapshot.assets.byType,
@@ -151,58 +236,136 @@ function payloadFromSnapshot(
       network: snapshot.network,
       input: snapshot.input,
       hud: snapshot.hud,
+      ...(snapshot.devTrace ? { devTrace: snapshot.devTrace } : {}),
     },
   };
 }
 
 export function startPerfReporter(options: PerfReporterOptions): () => void {
   const params = new URLSearchParams(location.search);
-  if (params.get('perfReport') === '0' || params.get('perf_report') === '0') return () => {};
+  const devTrace = localDevPerfTraceEnabled();
+  if (params.get('perfReport') === '0' || params.get('perf_report') === '0') {
+    const status = makeStatus(false, devTrace, '');
+    const cleanupDebug = exposeDebug(status, () => {}, () => {});
+    devTraceLog(status, 'debug', 'disabled by URL parameter');
+    return cleanupDebug;
+  }
 
   const sessionId = storedSessionId();
+  const status = makeStatus(true, devTrace, sessionId);
   let stopped = false;
   let timer: number | null = null;
+  let lastFinalFlushAt = 0;
+  let cleanupDebug = (): void => {};
 
   const schedule = (delay: number): void => {
     if (stopped) return;
-    timer = window.setTimeout(send, delay);
+    status.nextSendAt = Date.now() + delay;
+    timer = window.setTimeout(() => send(), delay);
   };
 
-  const send = (): void => {
+  function skip(reason: PerfReporterSkipReason, delay: number | null): void {
+    status.lastSkipReason = reason;
+    status.nextSendAt = null;
+    devTraceLog(status, 'debug', `skipped: ${reason}`);
+    if (delay !== null) schedule(delay);
+  }
+
+  function send(sendOptions: { allowHidden?: boolean; final?: boolean } = {}): void {
     timer = null;
     if (stopped) return;
-    if (document.visibilityState !== 'visible') {
-      schedule(REPEAT_REPORT_MS);
+    if (!sendOptions.allowHidden && document.visibilityState !== 'visible') {
+      skip('hidden', REPEAT_REPORT_MS);
       return;
     }
     const snapshot = options.perf.report();
-    if (snapshot.seconds < MIN_REPORT_SECONDS || snapshot.frames < MIN_REPORT_FRAMES) {
-      schedule(15_000);
+    status.lastSnapshotSeconds = snapshot.seconds;
+    status.lastSnapshotFrames = snapshot.frames;
+    const minSeconds = devTrace ? MIN_DEV_TRACE_REPORT_SECONDS : MIN_REPORT_SECONDS;
+    if (snapshot.seconds < minSeconds || snapshot.frames < MIN_REPORT_FRAMES) {
+      skip('not-ready', sendOptions.final ? null : 15_000);
       return;
     }
     const body = payloadFromSnapshot(snapshot, options.settings, sessionId, options.characterIdProvider());
     if (!body) {
-      schedule(REPEAT_REPORT_MS);
+      skip('no-renderer', sendOptions.final ? null : REPEAT_REPORT_MS);
       return;
     }
     const token = options.tokenProvider();
+    const bodyText = JSON.stringify(body);
+    status.lastAttemptAt = Date.now();
+    status.lastSkipReason = null;
+    status.lastError = null;
+    status.lastHttpStatus = null;
+    status.lastBodyBytes = textBytes(bodyText);
+    status.sendCount++;
+    const useKeepalive = Boolean(sendOptions.final && status.lastBodyBytes <= FETCH_KEEPALIVE_MAX_BYTES);
+    if (sendOptions.final && !useKeepalive) {
+      devTraceLog(status, 'debug', `final post too large for keepalive: ${status.lastBodyBytes} bytes`);
+    }
     void fetch('/api/perf-report', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify(body),
-      keepalive: true,
-    }).catch(() => {});
-    schedule(REPEAT_REPORT_MS);
-  };
+      body: bodyText,
+      keepalive: useKeepalive,
+    }).then(async (res) => {
+      status.lastHttpStatus = res.status;
+      if (!res.ok) {
+        const responseText = (await res.text().catch(() => '')).slice(0, 160);
+        status.failCount++;
+        status.lastError = responseText ? `HTTP ${res.status}: ${responseText}` : `HTTP ${res.status}`;
+        devTraceLog(status, 'warn', `post failed: ${status.lastError}`);
+        return;
+      }
+      status.successCount++;
+      status.lastSuccessAt = Date.now();
+      status.lastError = null;
+      devTraceLog(status, 'debug', `posted ${status.lastBodyBytes} bytes`);
+    }).catch((err: unknown) => {
+      status.failCount++;
+      status.lastError = errorText(err);
+      devTraceLog(status, 'warn', `post failed: ${status.lastError}`);
+    });
+    if (!sendOptions.final) schedule(devTrace ? DEV_TRACE_REPEAT_REPORT_MS : REPEAT_REPORT_MS);
+  }
 
-  schedule(FIRST_REPORT_MS);
-  return () => {
+  function sendNow(): void {
+    if (timer !== null) {
+      window.clearTimeout(timer);
+      timer = null;
+    }
+    send();
+  }
+
+  function flushFinal(): void {
+    const now = Date.now();
+    if (now - lastFinalFlushAt < 2000) return;
+    lastFinalFlushAt = now;
+    send({ allowHidden: true, final: true });
+  }
+
+  function handleVisibilityChange(): void {
+    if (document.visibilityState === 'hidden') flushFinal();
+  }
+
+  function stop(): void {
     stopped = true;
+    status.enabled = false;
+    status.nextSendAt = null;
     if (timer !== null) window.clearTimeout(timer);
-  };
+    window.removeEventListener('pagehide', flushFinal);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    cleanupDebug();
+  }
+
+  cleanupDebug = exposeDebug(status, sendNow, stop);
+  window.addEventListener('pagehide', flushFinal);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  schedule(devTrace ? DEV_TRACE_FIRST_REPORT_MS : FIRST_REPORT_MS);
+  return stop;
 }
 
 export const perfReporterInternalsForTest = {

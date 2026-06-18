@@ -73,7 +73,7 @@ const PRESET_ADVANCED = 5;
 export const GFX_BUDGETS: Record<GfxTier, GfxRuntimeBudget> = {
   low: {
     targetFps: 30,
-    minRenderScaleDesktop: 0.82,
+    minRenderScaleDesktop: 0.65,
     minRenderScaleMobile: 0.55,
     maxRenderScale: 1,
     dropFrameMs: 28,
@@ -142,8 +142,21 @@ export function graphicsPresetLabel(value: number | undefined): 'auto' | 'low' |
 
 export function shouldUseAutoGovernor(hints?: Pick<GfxRuntimeHints, 'search' | 'graphicsPreset'>): boolean {
   if (!hints) return false;
-  if (forcedTierFromSearch(hints.search)) return false;
-  return graphicsPresetLabel(hints.graphicsPreset) === 'auto';
+  const params = new URLSearchParams(hints.search);
+  const override = params.get('governor') ?? params.get('autoGovernor');
+  if (override === '1' || override === 'true' || override === 'on') return true;
+  if (override === '0' || override === 'false' || override === 'off') return false;
+  return graphicsPresetLabel(hints.graphicsPreset) !== 'ultra';
+}
+
+export function configureMaskedDoubleSidedVegetationMaterial<T extends THREE.Material>(mat: T): T {
+  mat.side = THREE.DoubleSide;
+  mat.transparent = false;
+  mat.alphaHash = false;
+  mat.forceSinglePass = true;
+  mat.depthTest = true;
+  mat.depthWrite = true;
+  return mat;
 }
 
 function settingsFor(
