@@ -7,11 +7,13 @@ import {
   type TalentAllocation, type SavedLoadout, type Role,
 } from '../sim/content/talents';
 import {
-  Entity, EquipSlot, InvSlot, MoveInput, PlayerClass, QuestProgress, QuestState, SimEvent,
+  DT, Entity, EquipSlot, InvSlot, MoveInput, PlayerClass, QuestProgress, QuestState, SimEvent,
   emptyMoveInput,
 } from '../sim/types';
 import { normalizeMoveFacing, sanitizeMoveInput } from '../sim/move_input';
-import { isOverheadEmoteId, type ArenaInfo, type CharacterSearchResult, type DuelInfo, type FriendInfo, type IWorld, type LeaderboardEntry, type MarketInfo, type OverheadEmoteId, type PartyInfo, type PresenceStatus, type SocialInfo, type TradeInfo } from '../world_api';
+import { LocalPredictionController, type MoveCommand } from './prediction';
+import { predictionTrace } from '../game/prediction_trace';
+import { isOverheadEmoteId, type ArenaInfo, type CharacterSearchResult, type DuelInfo, type FriendInfo, type IWorld, type LeaderboardEntry, type MarketInfo, type OverheadEmoteId, type PartyInfo, type PresenceStatus, type RenderPose, type SocialInfo, type TradeInfo } from '../world_api';
 
 // ---------------------------------------------------------------------------
 // REST
@@ -225,6 +227,160 @@ function copyPos(dst: { x: number; y: number; z: number }, src: { x: number; y: 
   dst.z = src.z;
 }
 
+function traceRound(v: number): number {
+  return Math.round(v * 1000) / 1000;
+}
+
+function tracePose(e: Entity | null | undefined): Record<string, unknown> | null {
+  if (!e) return null;
+  return {
+    x: traceRound(e.pos.x),
+    y: traceRound(e.pos.y),
+    z: traceRound(e.pos.z),
+    f: traceRound(e.facing),
+    prevX: traceRound(e.prevPos.x),
+    prevY: traceRound(e.prevPos.y),
+    prevZ: traceRound(e.prevPos.z),
+    prevF: traceRound(e.prevFacing),
+    vx: traceRound(e.vx),
+    vy: traceRound(e.vy),
+    vz: traceRound(e.vz),
+    onGround: e.onGround,
+    fallStartY: traceRound(e.fallStartY),
+  };
+}
+
+function traceWirePose(w: any): Record<string, unknown> | null {
+  if (!w) return null;
+  return {
+    x: traceRound(Number(w.x ?? 0)),
+    y: traceRound(Number(w.y ?? 0)),
+    z: traceRound(Number(w.z ?? 0)),
+    f: traceRound(Number(w.f ?? 0)),
+    vx: typeof w.vx === 'number' ? traceRound(w.vx) : null,
+    vy: typeof w.vy === 'number' ? traceRound(w.vy) : null,
+    vz: typeof w.vz === 'number' ? traceRound(w.vz) : null,
+    onGround: w.og === undefined ? null : !!w.og,
+    fallStartY: typeof w.fy === 'number' ? traceRound(w.fy) : null,
+  };
+}
+
+function tracePoseDist(a: Record<string, unknown> | null, b: Record<string, unknown> | null): number {
+  if (!a || !b) return 0;
+  const ax = Number(a.x), ay = Number(a.y), az = Number(a.z);
+  const bx = Number(b.x), by = Number(b.y), bz = Number(b.z);
+  if (![ax, ay, az, bx, by, bz].every(Number.isFinite)) return 0;
+  return traceRound(Math.hypot(ax - bx, ay - by, az - bz));
+}
+
+function traceInput(input: MoveInput): Record<string, number> {
+  return {
+    f: input.forward ? 1 : 0,
+    b: input.back ? 1 : 0,
+    tl: input.turnLeft ? 1 : 0,
+    tr: input.turnRight ? 1 : 0,
+    sl: input.strafeLeft ? 1 : 0,
+    sr: input.strafeRight ? 1 : 0,
+    j: input.jump ? 1 : 0,
+  };
+}
+
+function tracePayload(payload: string): Record<string, unknown> {
+  try {
+    const msg = JSON.parse(payload);
+    if (typeof msg !== 'object' || msg === null) return {};
+    return {
+      t: typeof msg.t === 'string' ? msg.t : null,
+      cmd: typeof msg.cmd === 'string' ? msg.cmd : null,
+      seq: typeof msg.seq === 'number' ? msg.seq : null,
+      tick: typeof msg.tick === 'number' ? Math.floor(msg.tick) : null,
+      ack: typeof msg.self?.ack === 'number' ? Math.floor(msg.self.ack) : null,
+    };
+  } catch {
+    return {};
+  }
+}
+
+const ENTITY_IDENTITY_KEYS = ['k', 'tid', 'nm', 'lv', 'sk', 'dgn', 'sc', 'c'] as const;
+
+function wireId(w: unknown): number | null {
+  if (typeof w !== 'object' || w === null) return null;
+  const id = (w as { id?: unknown }).id;
+  return typeof id === 'number' && Number.isFinite(id) ? id : null;
+}
+
+function hasWireIdentity(w: unknown): boolean {
+  return typeof w === 'object' && w !== null && (w as { k?: unknown }).k !== undefined;
+}
+
+function withPreviousWireIdentity(previousFull: Record<string, unknown>, currentLite: Record<string, unknown>): Record<string, unknown> {
+  const merged: Record<string, unknown> = {};
+  for (const key of ENTITY_IDENTITY_KEYS) {
+    if (previousFull[key] !== undefined) merged[key] = previousFull[key];
+  }
+  for (const [key, value] of Object.entries(currentLite)) merged[key] = value;
+  return merged;
+}
+
+interface PredictionReplayResult {
+  pendingBefore: number;
+  dropped: number;
+  replayed: number;
+  pendingAfter: number;
+  renderCorrectionDist: number;
+  replayDeltaDist: number;
+  anchorMode: 'dead' | 'none' | 'snap' | 'blend';
+}
+
+interface LaggedSocketFrame {
+  payload: string;
+  deliveryAt: number;
+}
+
+interface NetLagConfig {
+  upstreamMs: number;
+  downstreamMs: number;
+  jitterMs: number;
+}
+
+const NO_NET_LAG: NetLagConfig = { upstreamMs: 0, downstreamMs: 0, jitterMs: 0 };
+
+function numberParam(params: URLSearchParams, keys: string[]): number | null {
+  for (const key of keys) {
+    const raw = params.get(key);
+    if (raw === null || raw.trim() === '') continue;
+    const n = Number(raw);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+function readNetLagConfig(): NetLagConfig {
+  if (typeof location === 'undefined') return NO_NET_LAG;
+  const params = new URLSearchParams(location.search);
+  const rtt = Math.max(0, numberParam(params, ['netRtt', 'netLag']) ?? 0);
+  const upstreamMs = Math.max(0, numberParam(params, ['netUp', 'netUpstream']) ?? rtt / 2);
+  const downstreamMs = Math.max(0, numberParam(params, ['netDown', 'netDownstream']) ?? rtt / 2);
+  const jitterMs = Math.max(0, numberParam(params, ['netJitter']) ?? 0);
+  return { upstreamMs, downstreamMs, jitterMs };
+}
+
+function lagDelayMs(baseMs: number, jitterMs: number): number {
+  if (baseMs <= 0 && jitterMs <= 0) return 0;
+  const jitter = jitterMs > 0 ? (Math.random() * 2 - 1) * jitterMs : 0;
+  return Math.max(0, baseMs + jitter);
+}
+
+function nowMs(): number {
+  return typeof performance !== 'undefined' ? performance.now() : Date.now();
+}
+
+function orderedLagDelayMs(baseMs: number, jitterMs: number, nextDeliveryAt: number): { delayMs: number; deliveryAt: number } {
+  const now = nowMs();
+  const deliveryAt = Math.max(now + lagDelayMs(baseMs, jitterMs), nextDeliveryAt);
+  return { delayMs: Math.max(0, deliveryAt - now), deliveryAt };
+}
+
 // A single position update never moves an entity more than a few yards by
 // walking; anything past this is a teleport (arena pit, dungeon portal,
 // graveyard release). Those are snapped, not interpolated — see applyWire.
@@ -321,6 +477,20 @@ export class ClientWorld implements IWorld {
   private ackedInputSeq = 0;
   private inputEchoSamples: number[] = [];
   private traceSink: ClientTraceSink | null = null;
+  private pendingPredictions: MoveCommand[] = [];
+  private predictionController: LocalPredictionController | null = null;
+  private predictionAccumulator = 0;
+  private localPredictionTick = 0;
+  private lastSnapshotTick = -1;
+  private queuedSnapshot: any | null = null;
+  private netLag: NetLagConfig = NO_NET_LAG;
+  private lagTimers = new Set<ReturnType<typeof setTimeout>>();
+  private upstreamQueue: LaggedSocketFrame[] = [];
+  private downstreamQueue: LaggedSocketFrame[] = [];
+  private upstreamTimer: ReturnType<typeof setTimeout> | null = null;
+  private downstreamTimer: ReturnType<typeof setTimeout> | null = null;
+  private nextUpstreamDeliveryAt = 0;
+  private nextDownstreamDeliveryAt = 0;
 
   constructor(token: string, characterId: number, cls: PlayerClass, base = '') {
     this.characterId = characterId;
@@ -336,18 +506,25 @@ export class ClientWorld implements IWorld {
     this.ws.onopen = () => {
       this.ws.send(JSON.stringify(buildWebSocketAuthMessage(token, characterId)));
     };
-    this.ws.onmessage = (ev) => this.onMessage(String(ev.data));
+    this.netLag = readNetLagConfig();
+    this.ws.onmessage = (ev) => this.receiveSocketMessage(String(ev.data));
     this.ws.onclose = () => {
       this.connected = false;
       clearInterval(this.sendTimer);
+      this.clearLagTimers();
       this.onDisconnect?.('Connection to the server was lost.');
     };
-    // input stream at sim rate
-    this.sendTimer = window.setInterval(() => this.sendInput(), 50);
+    // Fallback keepalive so held input cannot go stale if rendering is paused.
+    // The normal 20Hz movement stream is sent by stepPrediction().
+    this.sendTimer = window.setInterval(() => {
+      const now = performance.now();
+      if (now - this.lastInputSentAt > 250) this.sendInput(now);
+    }, 250);
   }
 
   close(): void {
     clearInterval(this.sendTimer);
+    this.clearLagTimers();
     this.ws.onclose = null;
     this.ws.close();
   }
@@ -358,6 +535,13 @@ export class ClientWorld implements IWorld {
 
   get player(): Entity {
     return this.entities.get(this.playerId) ?? blankEntity(-1);
+  }
+
+  renderPoseFor(entityId: number, _alpha: number, now: number): RenderPose | null {
+    if (entityId !== this.playerId) return null;
+    const e = this.entities.get(this.playerId);
+    if (!e) return null;
+    return this.prediction().renderPose(e, now);
   }
 
   drainEvents(): SimEvent[] {
@@ -375,12 +559,16 @@ export class ClientWorld implements IWorld {
     this.mouselookFacing = normalizeMoveFacing(facing);
   }
 
+  private prediction(): LocalPredictionController {
+    return this.predictionController ??= new LocalPredictionController(this.cfg.seed, this.pendingPredictions);
+  }
+
   flushInput(now = performance.now()): boolean {
     return this.sendInput(now, true);
   }
 
   consumeInputEchoSamples(): number[] {
-    const samples = this.inputEchoSamples;
+    const samples = this.inputEchoSamples ?? [];
     this.inputEchoSamples = [];
     return samples;
   }
@@ -388,6 +576,87 @@ export class ClientWorld implements IWorld {
   // -----------------------------------------------------------------------
   // Socket
   // -----------------------------------------------------------------------
+
+  private clearLagTimers(): void {
+    for (const timer of this.lagTimers ?? []) clearTimeout(timer);
+    this.lagTimers?.clear();
+    this.upstreamTimer = null;
+    this.downstreamTimer = null;
+    this.upstreamQueue = [];
+    this.downstreamQueue = [];
+  }
+
+  private sendSocketPayload(payload: string): void {
+    const lag = this.netLag ?? NO_NET_LAG;
+    const { delayMs, deliveryAt } = orderedLagDelayMs(lag.upstreamMs, lag.jitterMs, this.nextUpstreamDeliveryAt ?? 0);
+    this.nextUpstreamDeliveryAt = deliveryAt;
+    predictionTrace.record('socket-send-scheduled', {
+      ...tracePayload(payload),
+      delayMs: traceRound(delayMs),
+      upstreamMs: lag.upstreamMs,
+      jitterMs: lag.jitterMs,
+    });
+    if (delayMs <= 0) {
+      predictionTrace.record('socket-send-delivered', tracePayload(payload));
+      this.ws.send(payload);
+      return;
+    }
+    this.upstreamQueue.push({ payload, deliveryAt });
+    this.scheduleLagDelivery('up');
+  }
+
+  private receiveSocketMessage(raw: string): void {
+    const lag = this.netLag ?? NO_NET_LAG;
+    const { delayMs, deliveryAt } = orderedLagDelayMs(lag.downstreamMs, lag.jitterMs, this.nextDownstreamDeliveryAt ?? 0);
+    this.nextDownstreamDeliveryAt = deliveryAt;
+    predictionTrace.record('socket-receive-scheduled', {
+      ...tracePayload(raw),
+      delayMs: traceRound(delayMs),
+      downstreamMs: lag.downstreamMs,
+      jitterMs: lag.jitterMs,
+    });
+    if (delayMs <= 0) {
+      predictionTrace.record('socket-receive-delivered', tracePayload(raw));
+      this.onMessage(raw);
+      return;
+    }
+    this.downstreamQueue.push({ payload: raw, deliveryAt });
+    this.scheduleLagDelivery('down');
+  }
+
+  private scheduleLagDelivery(direction: 'up' | 'down'): void {
+    const queue = direction === 'up' ? this.upstreamQueue : this.downstreamQueue;
+    if (queue.length === 0) return;
+    if (direction === 'up' ? this.upstreamTimer : this.downstreamTimer) return;
+    const delay = Math.max(0, queue[0].deliveryAt - nowMs());
+    const timer = setTimeout(() => {
+      this.lagTimers?.delete(timer);
+      if (direction === 'up') this.upstreamTimer = null;
+      else this.downstreamTimer = null;
+      this.deliverLagQueue(direction);
+    }, delay);
+    if (direction === 'up') this.upstreamTimer = timer;
+    else this.downstreamTimer = timer;
+    (this.lagTimers ??= new Set()).add(timer);
+  }
+
+  private deliverLagQueue(direction: 'up' | 'down'): void {
+    const queue = direction === 'up' ? this.upstreamQueue : this.downstreamQueue;
+    const now = nowMs() + 0.5;
+    while (queue.length > 0 && queue[0].deliveryAt <= now) {
+      const frame = queue.shift()!;
+      if (direction === 'up') {
+        if (this.ws.readyState === WebSocket.OPEN) {
+          predictionTrace.record('socket-send-delivered', tracePayload(frame.payload));
+          this.ws.send(frame.payload);
+        }
+      } else {
+        predictionTrace.record('socket-receive-delivered', tracePayload(frame.payload));
+        this.onMessage(frame.payload);
+      }
+    }
+    this.scheduleLagDelivery(direction);
+  }
 
   private inputSignature(): string {
     const mi = this.moveInput;
@@ -408,9 +677,11 @@ export class ClientWorld implements IWorld {
       if (now - this.lastInputSentAt < 16) return false;
     }
     const mi = this.moveInput;
+    const seq = ++this.inputSeq;
+    const facing = this.mouselookFacing;
     const msg: Record<string, unknown> = {
       t: 'input',
-      seq: ++this.inputSeq,
+      seq,
       mi: {
         f: mi.forward ? 1 : 0, b: mi.back ? 1 : 0,
         tl: mi.turnLeft ? 1 : 0, tr: mi.turnRight ? 1 : 0,
@@ -418,18 +689,81 @@ export class ClientWorld implements IWorld {
         j: mi.jump ? 1 : 0,
       },
     };
-    if (this.mouselookFacing !== null) msg.facing = this.mouselookFacing;
-    this.ws.send(JSON.stringify(msg));
+    if (facing !== null) msg.facing = facing;
+    predictionTrace.record('input-send', {
+      seq,
+      input: traceInput(mi),
+      facing: facing === null ? null : traceRound(facing),
+    });
+    this.sendSocketPayload(JSON.stringify(msg));
     this.lastInputSentAt = now;
     this.lastInputSig = sig;
-    this.pendingInputSeqSentAt.set(this.inputSeq, now);
+    this.pendingInputSeqSentAt.set(seq, now);
     if (this.pendingInputSeqSentAt.size > 120) {
-      const stale = this.inputSeq - 120;
+      const stale = seq - 120;
       for (const seq of this.pendingInputSeqSentAt.keys()) {
         if (seq <= stale) this.pendingInputSeqSentAt.delete(seq);
       }
     }
     return true;
+  }
+
+  private sendMoveCommand(command: MoveCommand, sig = this.inputSignature()): void {
+    const mi = command.moveInput;
+    const msg: Record<string, unknown> = {
+      t: 'input',
+      seq: command.seq,
+      mi: {
+        f: mi.forward ? 1 : 0, b: mi.back ? 1 : 0,
+        tl: mi.turnLeft ? 1 : 0, tr: mi.turnRight ? 1 : 0,
+        sl: mi.strafeLeft ? 1 : 0, sr: mi.strafeRight ? 1 : 0,
+        j: mi.jump ? 1 : 0,
+      },
+    };
+    if (command.facing !== null) msg.facing = command.facing;
+    predictionTrace.record('input-send', {
+      seq: command.seq,
+      input: traceInput(mi),
+      facing: command.facing === null ? null : traceRound(command.facing),
+    });
+    this.sendSocketPayload(JSON.stringify(msg));
+    this.lastInputSentAt = command.sentAt;
+    this.lastInputSig = sig;
+    this.pendingInputSeqSentAt.set(command.seq, command.sentAt);
+    if (this.pendingInputSeqSentAt.size > 120) {
+      const stale = command.seq - 120;
+      for (const seq of this.pendingInputSeqSentAt.keys()) {
+        if (seq <= stale) this.pendingInputSeqSentAt.delete(seq);
+      }
+    }
+  }
+
+  flushQueuedSnapshot(): boolean {
+    const snap = this.queuedSnapshot;
+    this.queuedSnapshot = null;
+    if (!snap) return false;
+    const start = performance.now();
+    this.applySnapshot(snap);
+    this.markTrace('net.applySnapshot', start, {
+      ents: Array.isArray(snap.ents) ? snap.ents.length : 0,
+      keep: Array.isArray(snap.keep) ? snap.keep.length : 0,
+      hasSelf: !!snap.self,
+      entities: this.entities.size,
+      snapInterval: this.snapInterval,
+    });
+    return true;
+  }
+
+  stepPrediction(frameDt: number, now = performance.now()): boolean {
+    if (!this.connected || this.ws.readyState !== WebSocket.OPEN) return false;
+    const dt = Math.max(0, Math.min(0.25, frameDt));
+    this.predictionAccumulator += dt;
+    let predicted = false;
+    while (this.predictionAccumulator >= DT) {
+      predicted = this.predictLocalTick(now) || predicted;
+      this.predictionAccumulator -= DT;
+    }
+    return predicted;
   }
 
   private canSendCommand(): boolean {
@@ -438,7 +772,7 @@ export class ClientWorld implements IWorld {
 
   private cmd(payload: Record<string, unknown>): void {
     if (!this.canSendCommand()) return;
-    this.ws.send(JSON.stringify({ t: 'cmd', ...payload }));
+    this.sendSocketPayload(JSON.stringify({ t: 'cmd', ...payload }));
   }
 
   /** Raw WS command — used by dev scripts and browser console when online. */
@@ -448,6 +782,78 @@ export class ClientWorld implements IWorld {
 
   private markTrace(name: string, startMs: number, detail?: Record<string, unknown>): void {
     this.traceSink?.(name, startMs, performance.now() - startMs, detail);
+  }
+
+  private renderedPose(e: Entity, alpha: number): RenderPose {
+    const a = Math.max(0, alpha);
+    const facingAlpha = Math.min(1, a);
+    return {
+      pos: {
+        x: e.prevPos.x + (e.pos.x - e.prevPos.x) * a,
+        y: e.prevPos.y + (e.pos.y - e.prevPos.y) * a,
+        z: e.prevPos.z + (e.pos.z - e.prevPos.z) * a,
+      },
+      facing: e.prevFacing + wrapAngle(e.facing - e.prevFacing) * facingAlpha,
+    };
+  }
+
+  private hasPredictableMovement(input: MoveInput, e: Entity): boolean {
+    return !!(input.forward || input.back || input.turnLeft || input.turnRight || input.strafeLeft || input.strafeRight || input.jump)
+      || !e.onGround
+      || e.vx !== 0
+      || e.vz !== 0
+      || e.vy !== 0;
+  }
+
+  private predictTick(frame: MoveCommand, now: number): number {
+    const e = this.entities.get(this.playerId);
+    if (!e || e.dead) return 0;
+    return this.prediction().applyCommand(e, frame, now).predictedDist;
+  }
+
+  private predictLocalTick(now: number): boolean {
+    const e = this.entities.get(this.playerId);
+    if (!e || e.dead) return false;
+    const mi = this.moveInput;
+    const facing = this.mouselookFacing;
+    const sig = this.inputSignature();
+    const inputChanged = sig !== this.lastInputSig;
+    if (!this.hasPredictableMovement(mi, e) && facing === null && !inputChanged) return false;
+    const prediction = this.prediction();
+    const frame = prediction.makeCommand(++this.inputSeq, ++this.localPredictionTick, mi, facing, now);
+    const beforePrediction = tracePose(e);
+    prediction.push(frame);
+    const predictedDist = this.predictTick(frame, now);
+    this.sendMoveCommand(frame, sig);
+    const afterPrediction = tracePose(e);
+    predictionTrace.record('input-predict', {
+      seq: frame.seq,
+      localTick: frame.localTick,
+      input: traceInput(mi),
+      facing: facing === null ? null : traceRound(facing),
+      pending: (this.pendingPredictions ?? []).length,
+      predictedDist: traceRound(predictedDist),
+      accumulator: traceRound(this.predictionAccumulator),
+      before: beforePrediction,
+      after: afterPrediction,
+      now: traceRound(now),
+    });
+    return true;
+  }
+
+  private replayPendingInputs(e: Entity, ack: number, renderedBefore: RenderPose | null, preReplayPose: Record<string, unknown> | null, now: number): PredictionReplayResult {
+    const replay = this.prediction().replayFromAck(e, ack);
+    const afterReplayPose = tracePose(e);
+    const correction = this.prediction().reconcilePresentation(e, renderedBefore, now);
+    return {
+      pendingBefore: replay.pendingBefore,
+      dropped: replay.dropped,
+      replayed: replay.replayed,
+      pendingAfter: replay.pendingAfter,
+      renderCorrectionDist: traceRound(correction.renderCorrectionDist),
+      replayDeltaDist: tracePoseDist(preReplayPose, afterReplayPose),
+      anchorMode: correction.anchorMode,
+    };
   }
 
   private onMessage(raw: string): void {
@@ -525,17 +931,68 @@ export class ClientWorld implements IWorld {
       return;
     }
     if (msg.t === 'snap') {
-      const start = performance.now();
-      this.applySnapshot(msg);
-      this.markTrace('net.applySnapshot', start, {
-        bytes: raw.length,
-        ents: Array.isArray(msg.ents) ? msg.ents.length : 0,
-        keep: Array.isArray(msg.keep) ? msg.keep.length : 0,
-        hasSelf: !!msg.self,
-        entities: this.entities.size,
-        snapInterval: this.snapInterval,
-      });
+      this.queueSnapshot(msg);
     }
+  }
+
+  private queueSnapshot(snap: any): void {
+    const tick = typeof snap.tick === 'number' && Number.isFinite(snap.tick) ? Math.floor(snap.tick) : null;
+    const queuedTick = typeof this.queuedSnapshot?.tick === 'number' && Number.isFinite(this.queuedSnapshot.tick)
+      ? Math.floor(this.queuedSnapshot.tick)
+      : null;
+    if (tick !== null && queuedTick !== null && tick < queuedTick) {
+      predictionTrace.record('snapshot-drop', { tick, queuedTick });
+      return;
+    }
+    this.queuedSnapshot = this.queuedSnapshot ? this.mergeQueuedSnapshot(this.queuedSnapshot, snap) : snap;
+    predictionTrace.record('snapshot-queued', {
+      tick,
+      queuedTick,
+      ack: typeof snap.self?.ack === 'number' ? Math.floor(snap.self.ack) : null,
+    });
+  }
+
+  private mergeQueuedSnapshot(previous: any, next: any): any {
+    const merged = {
+      ...next,
+      self: previous.self && next.self ? { ...previous.self, ...next.self } : (next.self ?? previous.self),
+    };
+    const previousFull = new Map<number, Record<string, unknown>>();
+    for (const w of Array.isArray(previous.ents) ? previous.ents : []) {
+      const id = wireId(w);
+      if (id !== null && hasWireIdentity(w)) previousFull.set(id, w as Record<string, unknown>);
+    }
+
+    const ents: unknown[] = [];
+    const included = new Set<number>();
+    for (const w of Array.isArray(next.ents) ? next.ents : []) {
+      const id = wireId(w);
+      if (id === null) {
+        ents.push(w);
+        continue;
+      }
+      const prev = previousFull.get(id);
+      ents.push(prev && !hasWireIdentity(w)
+        ? withPreviousWireIdentity(prev, w as Record<string, unknown>)
+        : w);
+      included.add(id);
+    }
+
+    const keep: number[] = [];
+    for (const id of Array.isArray(next.keep) ? next.keep : []) {
+      if (typeof id !== 'number' || included.has(id)) continue;
+      const prev = previousFull.get(id);
+      if (prev) {
+        ents.push(prev);
+        included.add(id);
+      } else {
+        keep.push(id);
+      }
+    }
+    merged.ents = ents;
+    if (keep.length > 0) merged.keep = keep;
+    else delete merged.keep;
+    return merged;
   }
 
   consumeSocialChanged(): boolean {
@@ -551,6 +1008,14 @@ export class ClientWorld implements IWorld {
   }
 
   private applySnapshot(snap: any): void {
+    if (typeof snap.tick === 'number' && Number.isFinite(snap.tick)) {
+      const tick = Math.floor(snap.tick);
+      if (tick < (this.lastSnapshotTick ?? -1)) {
+        predictionTrace.record('snapshot-drop', { tick, lastSnapshotTick: this.lastSnapshotTick ?? -1 });
+        return;
+      }
+      this.lastSnapshotTick = tick;
+    }
     const now = performance.now();
     // the interpolation alpha the render loop reached on its last frame
     // (same formula and caps as main.ts); used below to re-anchor the new
@@ -558,6 +1023,17 @@ export class ClientWorld implements IWorld {
     const contAlpha = this.lastSnapAt > 0
       ? Math.min(1.25, (now - this.lastSnapAt) / Math.max(20, this.snapInterval))
       : 1;
+    const prevSelf = this.entities.get(this.playerId);
+    const renderedSelfBefore = prevSelf
+      ? (this.predictionController ? this.prediction().renderPose(prevSelf, now) : this.renderedPose(prevSelf, contAlpha))
+      : null;
+    const selfBeforeSnapshot = tracePose(prevSelf);
+    const renderedSelfTrace = renderedSelfBefore ? {
+      x: traceRound(renderedSelfBefore.pos.x),
+      y: traceRound(renderedSelfBefore.pos.y),
+      z: traceRound(renderedSelfBefore.pos.z),
+      f: traceRound(renderedSelfBefore.facing),
+    } : null;
     if (this.lastSnapAt > 0) {
       const gap = now - this.lastSnapAt;
       if (gap > 5 && gap < 500) this.snapInterval = this.snapInterval * 0.9 + gap * 0.1;
@@ -565,7 +1041,6 @@ export class ClientWorld implements IWorld {
     this.lastSnapAt = now;
 
     const seen = new Set<number>();
-    const prevSelf = this.entities.get(this.playerId);
     const prevSelfFacing = prevSelf?.facing;
     let addedEntities = 0;
     let fullRecords = 0;
@@ -680,7 +1155,7 @@ export class ClientWorld implements IWorld {
       e.threat = new Map(w.thr ?? []);
       e.auras = (w.auras ?? []).map((a: any) => ({
         id: a.id, name: a.name, kind: a.kind, remaining: a.rem, duration: a.dur,
-        value: 0, sourceId: 0, school: 'physical' as const,
+        value: typeof a.v === 'number' ? a.v : 0, sourceId: 0, school: 'physical' as const,
       }));
       e.loot = w.lootList ?? null;
       return e;
@@ -713,19 +1188,32 @@ export class ClientWorld implements IWorld {
     const e = s ? applyWire(s) : null;
     if (s && e) {
       seen.add(s.id);
-      if (typeof s.ack === 'number' && s.ack > this.ackedInputSeq) {
-        for (let seq = this.ackedInputSeq + 1; seq <= s.ack; seq++) {
-          const sentAt = this.pendingInputSeqSentAt.get(seq);
+      let ackForReplay = this.ackedInputSeq ?? 0;
+      const previousAck = this.ackedInputSeq ?? 0;
+      const snapshotAck = typeof s.ack === 'number' && Number.isFinite(s.ack) ? Math.floor(s.ack) : null;
+      if (typeof s.ack === 'number' && s.ack > previousAck) {
+        const sentAtBySeq = (this.pendingInputSeqSentAt ??= new Map());
+        const echoSamples = (this.inputEchoSamples ??= []);
+        for (let seq = previousAck + 1; seq <= s.ack; seq++) {
+          const sentAt = sentAtBySeq.get(seq);
           if (sentAt !== undefined) {
-            this.inputEchoSamples.push(now - sentAt);
-            this.pendingInputSeqSentAt.delete(seq);
+            echoSamples.push(now - sentAt);
+            sentAtBySeq.delete(seq);
           }
         }
         this.ackedInputSeq = s.ack;
+        ackForReplay = s.ack;
       }
       e.resource = s.res;
       e.maxResource = s.mres;
       e.resourceType = s.rtype;
+      if (typeof s.vx === 'number') e.vx = s.vx;
+      if (typeof s.vz === 'number') e.vz = s.vz;
+      if (typeof s.vy === 'number') e.vy = s.vy;
+      if (s.og !== undefined) e.onGround = !!s.og;
+      if (typeof s.fy === 'number') e.fallStartY = s.fy;
+      const serverPose = traceWirePose(s);
+      const preReplayPose = tracePose(e);
       // delta fields: the server omits them while unchanged, so only the
       // snapshots that carry them rebuild the local structures
       if (s.cds !== undefined) e.cooldowns = new Map(Object.entries(s.cds).map(([k, v]) => [k, Number(v)]));
@@ -774,6 +1262,33 @@ export class ClientWorld implements IWorld {
       if (s.duel !== undefined) this.duelInfo = s.duel;
       if (s.arena !== undefined) this.arenaInfo = s.arena;
       if (s.market !== undefined) this.marketInfo = s.market;
+      const replay = this.replayPendingInputs(e, ackForReplay, renderedSelfBefore, preReplayPose, now);
+      const afterReplayPose = tracePose(e);
+      predictionTrace.record('snapshot-reconcile', {
+        tick: typeof snap.tick === 'number' ? Math.floor(snap.tick) : null,
+        time: typeof snap.time === 'number' ? traceRound(snap.time) : null,
+        ack: snapshotAck,
+        ackForReplay,
+        previousAck,
+        ackAdvanced: ackForReplay - previousAck,
+        ackLag: Math.max(0, (this.inputSeq ?? 0) - ackForReplay),
+        inputSeq: this.inputSeq ?? 0,
+        snapInterval: traceRound(this.snapInterval),
+        contAlpha: traceRound(contAlpha),
+        pendingBefore: replay.pendingBefore,
+        dropped: replay.dropped,
+        replayed: replay.replayed,
+        pendingAfter: replay.pendingAfter,
+        anchorMode: replay.anchorMode,
+        renderCorrectionDist: replay.renderCorrectionDist,
+        serverDeltaDist: tracePoseDist(selfBeforeSnapshot, serverPose),
+        replayDeltaDist: replay.replayDeltaDist,
+        renderedBefore: renderedSelfTrace,
+        before: selfBeforeSnapshot,
+        server: serverPose,
+        preReplay: preReplayPose,
+        after: afterReplayPose,
+      });
       // camera follows server-side facing changes when not mouselooking
       if (prevSelfFacing !== undefined && this.mouselookFacing === null) {
         let d = e.facing - prevSelfFacing;

@@ -1196,14 +1196,28 @@ export class Renderer {
     const p = this.sim.player;
     this.time += dt;
     sharedUniforms.uTime.value = this.time;
-    this.updateCamera(1, dt);
+    const selfPos = this.updateSelfRenderPosition(1, dt, 0);
+    this.updateCamera(selfPos, dt);
     this.updateAmbience(p.pos.x, this.camera.position.y, dt);
     this.budgetFireLights(p.pos.x, p.pos.z);
     this.waterView.update(this.time);
     const fogFar = (this.scene.fog as THREE.Fog).far;
     this.terrainView.update(this.camera.position.x, this.camera.position.z, fogFar);
-    this.propsView.update(this.camera.position.x, this.camera.position.y, this.camera.position.z, fogFar);
-    this.foliage.update(p.pos.x, p.pos.z, this.camera.position.x, this.camera.position.z, fogFar);
+    this.propsView.update(
+      this.camera.position.x, this.camera.position.y, this.camera.position.z,
+      this.cameraLookAt.x, this.cameraLookAt.y, this.cameraLookAt.z,
+      fogFar,
+    );
+    this.dungeons?.update(
+      this.camera.position.x, this.camera.position.y, this.camera.position.z,
+      this.cameraLookAt.x, this.cameraLookAt.y, this.cameraLookAt.z,
+    );
+    this.foliage.update(
+      p.pos.x, p.pos.z,
+      this.camera.position.x, this.camera.position.y, this.camera.position.z,
+      this.cameraLookAt.x, this.cameraLookAt.y, this.cameraLookAt.z,
+      fogFar,
+    );
     this.fish.update(p.pos.x, p.pos.z, dt);
     this.vfx.update(dt);
     const pv = this.views.get(p.id);
@@ -2010,11 +2024,12 @@ export class Renderer {
       const ea = e.id !== p.id && e.netUpdatedAt !== undefined && e.netInterval !== undefined
         ? Math.min(1.25, (now - e.netUpdatedAt) / Math.max(20, e.netInterval))
         : isSelf ? selfSnapshotAlpha(alpha, selfAlphaLead) : alpha;
-      const x = isSelf ? selfPos.x : e.prevPos.x + (e.pos.x - e.prevPos.x) * ea;
-      const y = isSelf ? selfPos.y : e.prevPos.y + (e.pos.y - e.prevPos.y) * ea;
-      const z = isSelf ? selfPos.z : e.prevPos.z + (e.pos.z - e.prevPos.z) * ea;
+      const renderPose = sim.renderPoseFor?.(e.id, ea, now) ?? null;
+      const x = renderPose ? renderPose.pos.x : isSelf ? selfPos.x : e.prevPos.x + (e.pos.x - e.prevPos.x) * ea;
+      const y = renderPose ? renderPose.pos.y : isSelf ? selfPos.y : e.prevPos.y + (e.pos.y - e.prevPos.y) * ea;
+      const z = renderPose ? renderPose.pos.z : isSelf ? selfPos.z : e.prevPos.z + (e.pos.z - e.prevPos.z) * ea;
       v.group.position.set(x, y, z);
-      let facing = e.prevFacing + shortestAngle(e.prevFacing, e.facing) * ea;
+      let facing = renderPose ? renderPose.facing : e.prevFacing + shortestAngle(e.prevFacing, e.facing) * ea;
       if (id === p.id && renderFacingOverride !== null) facing = renderFacingOverride;
       v.group.rotation.y = facing;
 
@@ -2192,7 +2207,7 @@ export class Renderer {
     this.vfx.update(dt);
     worldStart = markWorldPhase('vfx', worldStart);
 
-    this.updateCamera(selfPos, dt);
+    this.updateCamera(selfPos, dt, now);
     worldStart = markWorldPhase('camera', worldStart);
     // Fully-fogged terrain chunks / tree buckets are dropped before the
     // frustum; camera-ghost props hide against the current eye-to-camera ray.
@@ -2351,12 +2366,13 @@ export class Renderer {
     return this.selfRenderPosition;
   }
 
-  private updateCamera(selfPos: THREE.Vector3, dt: number): void {
+  private updateCamera(selfPos: THREE.Vector3, dt: number, now = performance.now()): void {
     const p = this.sim.player;
     const seed = this.sim.cfg.seed;
-    const px = selfPos.x;
-    const py = selfPos.y;
-    const pz = selfPos.z;
+    const renderPose = this.sim.renderPoseFor?.(p.id, 1, now) ?? null;
+    const px = renderPose ? renderPose.pos.x : selfPos.x;
+    const py = renderPose ? renderPose.pos.y : selfPos.y;
+    const pz = renderPose ? renderPose.pos.z : selfPos.z;
     const eyeY = py + 2.0;
     let cx = px - Math.sin(this.camYaw) * Math.cos(this.camPitch) * this.camDist;
     let cy = eyeY + Math.sin(this.camPitch) * this.camDist;

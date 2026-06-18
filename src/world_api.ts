@@ -183,6 +183,11 @@ export interface MarketInfo {
   myListingCount: number; // how many active listings the viewer already has
 }
 
+export interface RenderPose {
+  pos: { x: number; y: number; z: number };
+  facing: number;
+}
+
 // The surface the renderer + HUD need from a game world. The offline `Sim`
 // satisfies this structurally; the online `ClientWorld` implements it by
 // mirroring server snapshots and sending commands over the socket.
@@ -191,6 +196,7 @@ export interface IWorld {
   entities: Map<number, Entity>;
   playerId: number;
   player: Entity;
+  renderPoseFor?(entityId: number, alpha: number, now: number): RenderPose | null;
   moveInput: MoveInput;
   inventory: InvSlot[];
   vendorBuyback: InvSlot[];

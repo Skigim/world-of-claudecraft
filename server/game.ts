@@ -1,7 +1,7 @@
 import type { WebSocket } from 'ws';
 import { Sim } from '../src/sim/sim';
 import type { PlayerMeta } from '../src/sim/sim';
-import { DT, Entity, SimEvent, dist2d, emptyMoveInput } from '../src/sim/types';
+import { DT, Entity, SimEvent, dist2d, emptyMoveInput, type MoveInput } from '../src/sim/types';
 import { parseMoveInputFrame } from '../src/sim/move_input';
 import { stealthDetectionRadius, threatEntries } from '../src/sim/threat';
 import { zoneAt, DUNGEONS } from '../src/sim/data';
@@ -101,8 +101,12 @@ export interface ClientSession {
   lastWhisperFrom: string | null;
   // last explicit channel this player sent to; plain text follows it.
   rememberedChat: RememberedChat;
-  // last client input sequence processed; echoed in snapshots for latency telemetry
+  // last client input sequence received by the socket
   lastInputSeq: number;
+  // last input sequence reflected by a completed sim tick; echoed in snapshots
+  // for prediction reconciliation and latency telemetry
+  appliedInputSeq: number;
+  pendingMoveInputs: QueuedMoveInput[];
   // sim time of the last movement input frame, used to clear stale held input
   lastInputAt: number;
   // serialized form of each delta self field as last sent to this client;
@@ -119,6 +123,12 @@ export interface ClientSession {
   ip: string;
   // Behavioral bot-detection state. Ephemeral — reset on every join.
   bot: BotTracker;
+}
+
+interface QueuedMoveInput {
+  seq: number;
+  moveInput: MoveInput;
+  facing: number | null;
 }
 
 interface SentEntityVersions {
@@ -172,6 +182,7 @@ interface WireAura {
   kind: string;
   rem: number;
   dur: number;
+  v: number;
 }
 
 interface WhoRosterRow {
@@ -230,7 +241,9 @@ function dynamicFields(e: Entity): Record<string, unknown> {
   // top hate-table entries so the party threat meter shows real numbers
   if (e.kind === 'mob' && !e.dead && e.threat.size > 0) out.thr = threatEntries(e, 8);
   if (e.auras.length > 0) {
-    out.auras = e.auras.map((a): WireAura => ({ id: a.id, name: a.name, kind: a.kind, rem: round2(a.remaining), dur: a.duration }));
+    out.auras = e.auras.map((a): WireAura => ({
+      id: a.id, name: a.name, kind: a.kind, rem: round2(a.remaining), dur: a.duration, v: round2(a.value),
+    }));
   }
   if (e.kind === 'mob' && e.lootable && e.loot) {
     out.lootList = { copper: e.loot.copper, items: e.loot.items };
@@ -479,6 +492,7 @@ export class GameServer {
       acc += dt;
       while (acc >= DT) {
         this.clearStaleInputs();
+        this.markInputSeqsApplied();
         const events = this.sim.tick();
         this.routeEvents(events);
         this.runAntibotTick();
@@ -522,12 +536,26 @@ export class GameServer {
 
   private clearStaleInputs(): void {
     for (const session of this.clients.values()) {
+      if (session.pendingMoveInputs.length > 0) continue;
       if (this.sim.time - session.lastInputAt <= STALE_INPUT_SECONDS) continue;
       const meta = this.sim.meta(session.pid);
       if (!meta) continue;
       const mi = meta.moveInput;
       if (!(mi.forward || mi.back || mi.turnLeft || mi.turnRight || mi.strafeLeft || mi.strafeRight || mi.jump)) continue;
       Object.assign(meta.moveInput, emptyMoveInput());
+    }
+  }
+
+  private markInputSeqsApplied(): void {
+    for (const session of this.clients.values()) {
+      const next = session.pendingMoveInputs.shift();
+      if (!next) continue;
+      const meta = this.sim.meta(session.pid);
+      const e = this.sim.entities.get(session.pid);
+      if (!meta || !e) continue;
+      Object.assign(meta.moveInput, next.moveInput);
+      if (next.facing !== null && !e.dead) e.facing = next.facing;
+      session.appliedInputSeq = next.seq;
     }
   }
 
@@ -578,6 +606,8 @@ export class GameServer {
       lastWhisperFrom: null,
       rememberedChat: { channel: 'say' },
       lastInputSeq: 0,
+      appliedInputSeq: 0,
+      pendingMoveInputs: [],
       lastInputAt: this.sim.time,
       lastSent: {},
       sentEnts: new Map(),
@@ -910,13 +940,16 @@ export class GameServer {
       const e = sim.entities.get(pid);
       if (!meta || !e) return;
       const { moveInput, facing } = parseMoveInputFrame(msg);
-      Object.assign(meta.moveInput, moveInput);
       session.lastInputAt = sim.time;
       if (typeof msg.seq === 'number' && Number.isFinite(msg.seq) && msg.seq > 0) {
-        session.lastInputSeq = Math.max(session.lastInputSeq, Math.floor(msg.seq));
-      }
-      if (facing !== null && !e.dead) {
-        e.facing = facing;
+        const seq = Math.floor(msg.seq);
+        if (seq > session.lastInputSeq) {
+          session.lastInputSeq = seq;
+          session.pendingMoveInputs.push({ seq, moveInput, facing });
+          if (session.pendingMoveInputs.length > 80) {
+            session.pendingMoveInputs.splice(0, session.pendingMoveInputs.length - 80);
+          }
+        }
       }
       return;
     }
@@ -1291,7 +1324,12 @@ export class GameServer {
       eat: p.eating ? { remaining: round2(p.eating.remaining) } : null,
       drk: p.drinking ? { remaining: round2(p.drinking.remaining) } : null,
       opUntil: p.overpowerUntil > this.sim.time ? 1 : 0,
-      ack: session.lastInputSeq,
+      vx: round2(p.vx),
+      vz: round2(p.vz),
+      vy: round2(p.vy),
+      og: p.onGround ? 1 : 0,
+      fy: round2(p.fallStartY),
+      ack: session.appliedInputSeq,
     });
     const json = JSON.stringify(self);
     // heavy, rarely-changing fields ride along only when their serialized

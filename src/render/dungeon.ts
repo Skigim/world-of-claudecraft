@@ -382,7 +382,7 @@ export class DungeonInteriors {
     const variant = this.variantFor(interior, ox);
     const group = new THREE.Group();
     const p = new Placements();
-    const arenaWalls = variant === 'arena' ? this.pendingArenaWalls(layout, ox, oz) : null;
+    const arenaWalls = variant === 'arena' ? this.pendingArenaWalls(layout, ox, oz) : undefined;
 
     this.placeFloor(p, layout, variant);
     this.placeWalls(p, layout, variant, arenaWalls);

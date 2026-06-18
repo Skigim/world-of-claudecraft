@@ -29,6 +29,7 @@ import { portraitChipHtml, hydratePortraits } from './ui/portrait_chip';
 import { playerPortraitDataUrl } from './render/characters/portrait';
 import { createPerfMonitor } from './game/perf';
 import { startPerfReporter } from './game/perf_reporter';
+import { predictionTrace } from './game/prediction_trace';
 import { updateFollowCameraYaw, wrapAngle } from './game/camera_follow';
 
 
@@ -1163,7 +1164,7 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
         acc -= DT;
       }
       const pp = offlineSim.player;
-      perf.trace('camera.follow', () => updateCamera(frameDt, pp.prevFacing + wrapAngle(pp.facing - pp.prevFacing) * (acc / DT)), {
+      perf.trace('camera.follow', () => updateCamera(Math.min(frameDt, 1 / 30), pp.prevFacing + wrapAngle(pp.facing - pp.prevFacing) * (acc / DT)), {
         mode: 'offline',
         frameDtMs: frameDt * 1000,
       });
@@ -1189,7 +1190,9 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
     const netFacing = movementFacing ?? resolved.facing;
     Object.assign(net.moveInput, resolved.mi);
     net.setMouselookFacing(netFacing);
-    if (perf.trace('net.flushInput', () => net.flushInput(), { connected: net.connected })) perf.markInputSent(performance.now());
+    const predictionSent = perf.trace('net.stepPrediction', () => net.stepPrediction(frameDt), { connected: net.connected });
+    if (predictionSent) perf.markInputSent(performance.now());
+    perf.trace('net.flushQueuedSnapshot', () => net.flushQueuedSnapshot());
     const echoSamples = perf.trace('net.consumeInputEcho', () => net.consumeInputEchoSamples());
     for (const sample of echoSamples) {
       if (Number.isFinite(sample) && sample >= 0) {
@@ -1209,22 +1212,36 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
     if (net.consumeInventoryChanged()) {
       perf.trace('hud.onInventoryChanged', () => hud.onInventoryChanged());
     }
+    const frameNow = performance.now();
     const alpha = net.lastSnapAt > 0
-      ? Math.min(1.25, (performance.now() - net.lastSnapAt) / Math.max(20, net.snapInterval))
+      ? Math.min(1.25, (frameNow - net.lastSnapAt) / Math.max(20, net.snapInterval))
       : 1;
+    const lastSnapAge = net.lastSnapAt > 0 ? Math.round(frameNow - net.lastSnapAt) : -1;
     perf.setNetwork({
       connected: net.connected,
       snapInterval: Math.round(net.snapInterval),
-      lastSnapAge: net.lastSnapAt > 0 ? Math.round(performance.now() - net.lastSnapAt) : -1,
+      lastSnapAge,
       alpha: Math.round(alpha * 100) / 100,
     });
     const pe = world.player;
+    const renderPose = world.renderPoseFor?.(pe.id, alpha, frameNow) ?? null;
     // facing interp capped at 1 - extrapolating angles past the snapshot oscillates
-    perf.trace('camera.follow', () => updateCamera(frameDt, pe.prevFacing + wrapAngle(pe.facing - pe.prevFacing) * Math.min(1, alpha)), {
+    const interpFacing = renderPose
+      ? renderPose.facing
+      : pe.prevFacing + wrapAngle(pe.facing - pe.prevFacing) * Math.min(1, alpha);
+    const displayX = renderPose ? renderPose.pos.x : pe.prevPos.x + (pe.pos.x - pe.prevPos.x) * alpha;
+    const displayY = renderPose ? renderPose.pos.y : pe.prevPos.y + (pe.pos.y - pe.prevPos.y) * alpha;
+    const displayZ = renderPose ? renderPose.pos.z : pe.prevPos.z + (pe.pos.z - pe.prevPos.z) * alpha;
+    const tracePerf = predictionTrace.enabled && frameDt * 1000 >= 33 ? perf.snapshot(frameNow) : null;
+    const traceRenderer = tracePerf?.renderer;
+    const tracePhases = traceRenderer?.phaseMs;
+    const traceLongTasks = tracePerf?.browser.longTasks;
+    const traceMemory = tracePerf?.browser.memory;
+    perf.trace('camera.follow', () => updateCamera(Math.min(frameDt, 1 / 30), interpFacing), {
       mode: 'online',
       alpha,
       frameDtMs: frameDt * 1000,
-      lastSnapAge: net.lastSnapAt > 0 ? performance.now() - net.lastSnapAt : -1,
+      lastSnapAge,
     });
     renderer.camYaw = input.camYaw;
     renderer.camPitch = input.camPitch;
@@ -1235,6 +1252,47 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
       alpha,
       frameDtMs: frameDt * 1000,
     }));
+    predictionTrace.recordFrame({
+      frameDtMs: Math.round(frameDt * 100_000) / 100,
+      alpha: Math.round(alpha * 1000) / 1000,
+      snapInterval: Math.round(net.snapInterval),
+      lastSnapAge,
+      displayX: Math.round(displayX * 1000) / 1000,
+      displayY: Math.round(displayY * 1000) / 1000,
+      displayZ: Math.round(displayZ * 1000) / 1000,
+      entityX: Math.round(pe.pos.x * 1000) / 1000,
+      entityY: Math.round(pe.pos.y * 1000) / 1000,
+      entityZ: Math.round(pe.pos.z * 1000) / 1000,
+      prevX: Math.round(pe.prevPos.x * 1000) / 1000,
+      prevY: Math.round(pe.prevPos.y * 1000) / 1000,
+      prevZ: Math.round(pe.prevPos.z * 1000) / 1000,
+      interpFacing: Math.round(interpFacing * 1000) / 1000,
+      playerFacing: Math.round(pe.facing * 1000) / 1000,
+      prevFacing: Math.round(pe.prevFacing * 1000) / 1000,
+      camYaw: Math.round(input.camYaw * 1000) / 1000,
+      renderFacing: movementFacing === null ? null : Math.round(movementFacing * 1000) / 1000,
+      mouselook,
+      moveForward: resolved.mi.forward ? 1 : 0,
+      moveBack: resolved.mi.back ? 1 : 0,
+      strafeLeft: resolved.mi.strafeLeft ? 1 : 0,
+      strafeRight: resolved.mi.strafeRight ? 1 : 0,
+      mainRendererP95: tracePerf?.mainMs.renderer.p95,
+      mainHudP95: tracePerf?.mainMs.hud.p95,
+      mainEventsP95: tracePerf?.mainMs.events.p95,
+      rendererCalls: traceRenderer?.calls,
+      rendererTriangles: traceRenderer?.triangles,
+      rendererViews: traceRenderer?.views,
+      renderScale: traceRenderer?.effectiveRenderScale,
+      rphEntitiesP95: tracePhases?.entities.p95,
+      rphWorldP95: tracePhases?.world.p95,
+      rphNameplatesP95: tracePhases?.nameplates.p95,
+      rphSubmitP95: tracePhases?.submit.p95,
+      rphTotalP95: tracePhases?.total.p95,
+      longTaskCount: traceLongTasks?.count,
+      longTaskP95: traceLongTasks?.p95,
+      longTaskMax: traceLongTasks?.max,
+      heapUsedMB: traceMemory?.usedMB,
+    });
     perf.trace('ui.clickMoveMarker', () => updateClickMoveMarker());
     maybeShowImmobileNote(now);
     perf.markInputVisible(performance.now());
@@ -1980,6 +2038,7 @@ async function enterWorld(c: CharacterSummary, button?: HTMLButtonElement): Prom
   // wait for hello + first snapshot so the world starts populated
   const waitStart = Date.now();
   const poll = setInterval(() => {
+    world.flushQueuedSnapshot();
     if (world.connected && world.entities.has(world.playerId)) {
       clearInterval(poll);
       void startGame(world, null, world);

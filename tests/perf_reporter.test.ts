@@ -122,6 +122,7 @@ function snapshot(): PerfSnapshot {
         total: { count: 1, avg: 5, p95: 5, max: 5 },
       },
       renderDiagnostics: renderDiagnostics(),
+      prewarm: null,
     },
     hud: null,
     assets: { preload: { tasks: 0, waitMs: 0, complete: true }, byType: {}, files: [] },

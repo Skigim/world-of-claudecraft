@@ -153,7 +153,7 @@ describe('activePvpOpponentIds', () => {
     const ids = activePvpOpponentIds({
       playerId: 1,
       player,
-      duelInfo: { otherPid: 2, otherName: 'Duelist', state: 'pending' },
+      duelInfo: { otherPid: 2, otherName: 'Duelist', state: 'countdown' },
       arenaInfo: {
         queued: false,
         queueSize: 0,

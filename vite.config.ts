@@ -38,6 +38,9 @@ const appBuildId = env([
   'VERCEL_GIT_COMMIT_SHA',
   'CF_PAGES_COMMIT_SHA',
 ]) ?? gitSha() ?? appBuildDate.replace(/[-:TZ.]/g, '').slice(0, 12);
+const devServerPort = Number(env(['DEV_SERVER_PORT', 'VITE_DEV_SERVER_PORT']) ?? '5173');
+const devApiOrigin = env(['DEV_API_ORIGIN', 'VITE_DEV_API_ORIGIN']) ?? 'http://127.0.0.1:8787';
+const devWsOrigin = env(['DEV_WS_ORIGIN', 'VITE_DEV_WS_ORIGIN']) ?? devApiOrigin.replace(/^http/, 'ws');
 
 // Pretty-URL aliases for the standalone official-channels page (public/links.html).
 // Mirrors the production server's rewrite in server/main.ts (LINKS_ALIASES) so the
@@ -72,11 +75,11 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
+    port: devServerPort,
     proxy: {
-      '/api': { target: 'http://127.0.0.1:8787', changeOrigin: true },
-      '/admin/api': { target: 'http://127.0.0.1:8787', changeOrigin: true },
-      '/ws': { target: 'ws://127.0.0.1:8787', ws: true },
+      '/api': { target: devApiOrigin, changeOrigin: true },
+      '/admin/api': { target: devApiOrigin, changeOrigin: true },
+      '/ws': { target: devWsOrigin, ws: true },
       // MediaWiki community wiki runs as its own container on :8080. Proxy /wiki*
       // to it so the in-app "Browse the Wiki" link resolves in dev too — mirrors
       // the prod reverse-proxy route (nginx /wiki -> :8080). Needs the container
