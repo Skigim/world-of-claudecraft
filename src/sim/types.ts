@@ -948,6 +948,7 @@ export type SimEvent = { pid?: number } & (
   | { type: 'delveEntered'; delveId: string; tierId: string }
   | { type: 'delveComplete'; delveId: string; tierId: string }
   | { type: 'delveFailed'; delveId: string; tierId: string }
+  | { type: 'delveLoreUnlock'; loreId: string }
   | { type: 'companionBark'; barkId: string; pid?: number }
   // Lockpicking minigame ("Tumbler's Path"). All personal (pid-scoped). The sim
   // emits structured data only — the client builds every visible string. Cells
@@ -957,6 +958,7 @@ export type SimEvent = { pid?: number } & (
   | { type: 'lockpickSession'; sessionId: string; objectId: number; w: number; h: number; col: number; row: number; page: number; pageCount: number; tries: number; triesTotal: number; lootTier: LootTier; allowed: Exclude<PickAction, 'abort'>[]; visible: VisibleCell[] }
   | { type: 'lockpickStep'; sessionId: string; col: number; row: number; page: number; pageCount: number; tries: number; triesTotal: number; result: StepResult; visible: VisibleCell[] }
   | { type: 'lockpickEnd'; sessionId: string; outcome: 'success' | 'fail' | 'abandoned'; lootTier?: LootTier }
+  | { type: 'lockpickBonus'; tier: LootTier; marks: number; copper: number }
   | { type: 'delveChestLoot'; chestId: number; items: { itemId: string; count: number }[] }
 );
 

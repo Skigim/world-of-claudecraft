@@ -11913,7 +11913,10 @@ export const en = {
       moveCloserStairs: "Move closer to the stairs.",
     },
     lockpick: {
-      lockYields: "The lock yields! {tier} spoils{detail}.",
+      lockYields: "The lock yields! {tier} spoils.",
+      tierPremium: "Premium",
+      tierMedium: "Medium",
+      tierLow: "Modest",
       alreadyInProgress: "Someone is already working the lock.",
       cannotPickThat: "You cannot pick that.",
       chooseAnte: "Choose 1, 2, or 3 picks.",
@@ -11985,6 +11988,7 @@ export const en = {
       reliquary_finale: "The buried bell tolls once beneath your boots.",
     },
     companion: {
+      barkLine: "{name}: {line}",
       tessa: {
         combat_start: "Keep your footing, {playerName}. The dead are restless here.",
         low_hp: "Breathe. I still have prayers left for you.",
@@ -12016,7 +12020,7 @@ export const en = {
           object: "The cracked grave shudders with stolen breath.",
           interrupt_ok: "The grave rite falters.",
           interrupt_fail: "The dead answer Deacon Varric's call!",
-          lesson: "Interrupt the cracked grave within five seconds or bonewalkers rise.",
+          lesson: "Interrupt the cracked grave within five seconds or the dead rise to his call.",
         },
         pull: "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         intro: "No soul is lost. Only misplaced.",

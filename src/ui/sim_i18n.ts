@@ -2391,7 +2391,8 @@ const RULES: Rule[] = [
   { re: /^You need (.+) Delve Marks to upgrade (.+)\.$/, build: (m) => t('sim.delve.companionMarksRequired', { marks: m[1], name: m[2] }) },
   { re: /^You pass through the tombstone into (.+)\.$/, build: (m) => t('sim.delve.tombstoneInto', { name: m[1] }) },
   { re: /^(.+) reaches rank (.+)\.$/, build: (m) => t('sim.delve.companionRankUp', { name: m[1], rank: m[2] }) },
-  { re: /^The lock yields! (.+) spoils(.*)\.$/, build: (m) => t('sim.lockpick.lockYields', { tier: m[1], detail: m[2] }) },
+  // (The lockpick "spoils" line is now a structured `lockpickBonus` event built
+  // client-side, so no English crosses the sim boundary — no matcher needed.)
   { re: /^(.+) complete\.$/, build: (m) => t('sim.delve.complete', { name: m[1] }) },
   // Module-enter banner: "<module> — <objective>". Kept as a broad catch-all (matching
   // the source delve i18n) because the S3 drift guard substitutes both placeholders

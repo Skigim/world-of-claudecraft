@@ -1225,6 +1225,9 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
 
     if (offlineSim) {
       acc += frameDt;
+      // Supply the UTC day for the delve daily reset (the sim never reads the wall
+      // clock itself, to stay deterministic).
+      offlineSim.utcDay = new Date().toISOString().slice(0, 10);
       while (acc >= DT) {
         const { mi, facing } = resolveMove(mouselook, offlineSim.player.pos, offlineSim.player.facing);
         Object.assign(offlineSim.moveInput, mi);

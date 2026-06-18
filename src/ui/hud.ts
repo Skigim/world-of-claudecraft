@@ -3854,7 +3854,31 @@ export class Hud {
         }); break;
         case 'lockpickStep': this.updateLockpickBoard(ev.col, ev.row, ev.page, ev.pageCount, ev.tries, ev.triesTotal, ev.result, ev.visible); break;
         case 'lockpickEnd': this.endLockpick(ev.outcome, ev.lootTier); break;
+        case 'lockpickBonus': {
+          const tier = ev.tier === 'premium' ? t('sim.lockpick.tierPremium')
+            : ev.tier === 'medium' ? t('sim.lockpick.tierMedium')
+            : t('sim.lockpick.tierLow');
+          this.combatLog(t('sim.lockpick.lockYields', { tier }), '#ffdd88');
+          break;
+        }
         case 'delveChestLoot': this.openDelveLoot(ev.chestId, ev.items); break;
+        case 'delveComplete': this.showBanner(t('delveUi.summary.title')); break;
+        case 'companionBark': {
+          // Acolyte Tessa's voice line: overhead bubble over her (when on-screen),
+          // plus an attributed combat-log line so it is never missed off-screen.
+          const KNOWN_BARKS = ['combat_start', 'low_hp', 'trap_spotted', 'boss_pull', 'completion'];
+          if (!KNOWN_BARKS.includes(ev.barkId)) break;
+          const line = t(`delveUi.companion.tessa.${ev.barkId}` as TranslationKey, { playerName: this.sim.player.name });
+          const companion = this.sim.companionState;
+          if (companion) this.renderer.showChatBubble(companion.entityId, line, false);
+          this.combatLog(t('delveUi.companion.barkLine', { name: t('delveUi.board.companion.tessa'), line }), '#c9a6e0');
+          break;
+        }
+        case 'delveLoreUnlock': {
+          const title = t(`delveUi.lore.${ev.loreId}` as TranslationKey);
+          this.combatLog(t('delveUi.summary.loreUnlock', { title }), '#cba6f0');
+          break;
+        }
         case 'log': {
           const text = this.localizeSystemText(ev.text);
           this.log(text, ev.color ?? '#ccc');

@@ -33,6 +33,17 @@ export const DELVE_MOBS: Record<string, MobTemplate> = {
     loot: [{ copper: 10, chance: 1 }],
     scale: 1.0, color: 0x4a3828,
   },
+  // Weak undead add summoned by the `restless_graves` Heroic affix a few seconds
+  // after a piece of trash dies. Deliberately frail — it's bonus pressure, not a
+  // planned pull. (Do not reuse the lvl-18 dungeon `raised_bonewalker`.)
+  reliquary_bonewalker: {
+    id: 'reliquary_bonewalker', name: 'Raised Bonewalker', minLevel: 7, maxLevel: 8,
+    family: 'undead',
+    hpBase: 20, hpPerLevel: 7, dmgBase: 3, dmgPerLevel: 1.1, attackSpeed: 2.2,
+    armorPerLevel: 4, moveSpeed: 7, aggroRadius: 12,
+    loot: [{ copper: 3, chance: 1 }],
+    scale: 0.8, color: 0xb9b2a4,
+  },
   reliquary_saintless_effigy: {
     id: 'reliquary_saintless_effigy', name: 'Saintless Effigy', minLevel: 8, maxLevel: 8,
     family: 'undead',

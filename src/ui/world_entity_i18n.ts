@@ -32,7 +32,7 @@ const MOB_IDS = [
   'bound_guardian',
   // Delve mobs (Collapsed Reliquary + placeholder trial crypt).
   'reliquary_funeral_ringer', 'reliquary_gravecall_acolyte', 'reliquary_ledger_wraith',
-  'reliquary_saintless_effigy', 'deacon_varric', 'acolyte_tessa', 'placeholder_boss',
+  'reliquary_bonewalker', 'reliquary_saintless_effigy', 'deacon_varric', 'acolyte_tessa', 'placeholder_boss',
 ] as const;
 
 const NPC_IDS = [

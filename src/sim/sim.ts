@@ -33,7 +33,7 @@ import type { DelveCompanionInfo, DelveRunInfo, LeaderboardEntry, LockpickView }
 import {
   AbilityDef, AbilityEffect, Aura, AuraKind, CAST_PUSHBACK_SEC, CHANNEL_PUSHBACK_FRACTION, CONSUME_DURATION,
   DEFAULT_PARTY_LOOT_STRATEGIES,
-  CONSUME_TICKS, CrowdControlDrCategory, DT, DelveDef, DelveModuleDef, DelveObjectState, DelveRun, Entity, EquipSlot, FISHING_CAST_ID, FISHING_CAST_TIME, GCD,
+  CONSUME_TICKS, CrowdControlDrCategory, DT, DelveDef, DelveModuleDef, DelveObjectState, DelveRun, DelveTierDef, Entity, EquipSlot, FISHING_CAST_ID, FISHING_CAST_TIME, GCD,
   CurrencyLootStrategy, INTERACT_RANGE, InvSlot, ItemLootStrategy, LootEntry, LootSlot, LootStrategies, MELEE_RANGE, MAX_LEVEL, MobFamily, MobTemplate,
   MoveInput, OverheadEmoteId, PetMode, PlayerClass, QuestProgress, QuestState, RUN_SPEED, SimConfig, SimEvent, TURN_SPEED, Vec3,
   angleTo, armorReduction, dist2d, emptyMoveInput, isConsuming, meleeMissChance, mobXpValue, normAngle,
@@ -197,6 +197,20 @@ const DELVE_MODULE_NAMES: Record<string, string> = {
   reliquary_saintless_hall: 'The Saintless Hall',
   reliquary_finale: 'The Bell-Buried Chamber',
 };
+// Lore journal entries unlocked one-per-clear across repeat runs (PRD §6.4 / §7.6).
+// Ids match the `delveUi.lore.*` i18n keys.
+const DELVE_LORE_ORDER = [
+  'eastbrook_ledger',
+  'first_collapse',
+  'gravecaller_mark',
+  'bell_below',
+  'tessa_note',
+] as const;
+// Affixes that actually have a sim hook today; rollDelveAffixes only draws from
+// these so a Heroic run never rolls an inert affix (PRD §6.7 v1 subset). The
+// other registered crypt affixes (grave_tax / unstable_roof / cult_remnants)
+// keep their UI/i18n entries but are excluded from the roll until implemented.
+const DELVE_IMPLEMENTED_AFFIXES = new Set<string>(['restless_graves', 'bad_air', 'candleblind']);
 const MAX_CLIMB_SLOPE = PLAYER_MAX_CLIMB_SLOPE; // rise/run above which a ground move is blocked (cliffs, world rim)
 
 // How far a mob pulls same-family neighbours into a fight ("social aggro").
@@ -623,6 +637,12 @@ export class Sim {
   // delve instances (separate slot pool from dungeons)
   delveRuns: DelveRun[] = [];
   private delvePetStash = new Map<number, PetState>();
+  // Real-world UTC day ('YYYY-MM-DD') for the delve daily reset (FR-5.1). The sim
+  // core must stay deterministic, so it never reads the wall clock itself: the host
+  // (server/offline client) sets this each tick from `new Date()`. Empty string =
+  // "no calendar known" (headless/replay) — the daily window then never rolls over,
+  // keeping same-seed runs reproducible. Tests may set it to pin a date.
+  utcDay = '';
   // the World Market: one shared listing book, per-seller collections keyed by
   // character name, and the Merchant entity these are anchored to
   marketListings: MarketListing[] = [];
@@ -910,6 +930,12 @@ export class Sim {
   removePlayer(pid: number): void {
     const meta = this.players.get(pid);
     if (!meta) return;
+    // If the leaver owns a live lockpick session, abandon it (preserves
+    // attemptAvailable so a remaining party member can still pick the chest).
+    // Must run before party removal / dropEntity, since delveRunForPlayer
+    // resolves via the still-present entity position and party key.
+    const leavingRun = this.delveRunForPlayer(pid);
+    if (leavingRun?.lockpick && leavingRun.lockpick.ownerId === pid) this.abandonLockpick(leavingRun);
     // leave social systems cleanly
     this.removeFromParty(pid, 'has left the party');
     const trade = this.trades.get(pid);
@@ -9667,8 +9693,11 @@ export class Sim {
   }
 
   private refreshDelveDaily(meta: PlayerMeta): void {
-    const today = new Date().toISOString().slice(0, 10);
-    if (meta.delveDaily.date !== today) {
+    // `utcDay` is supplied by the host (never read from the wall clock here, so the
+    // sim stays deterministic). When unknown (''), the daily window does not roll
+    // over — same-seed replays stay reproducible.
+    const today = this.utcDay;
+    if (today && meta.delveDaily.date !== today) {
       meta.delveDaily = { date: today, firstClearXp: new Set(), markClears: 0 };
     }
   }
@@ -9762,6 +9791,8 @@ export class Sim {
     const run = this.delveRunForPlayer(r.meta.entityId);
     if (!run) return;
     const delve = DELVES[run.delveId];
+    // Tear down the leaver's live lockpick session, if any (preserves the attempt).
+    if (run.lockpick && run.lockpick.ownerId === r.meta.entityId) this.abandonLockpick(run);
     if (run?.companion) this.despawnDelveCompanion(run);
     this.restorePetFromDelveStash(r.meta.entityId);
     const p = r.e;
@@ -9988,6 +10019,53 @@ export class Sim {
     }
   }
 
+  // Base Marks payout for one clear. PRD §6.5 FR-5.3: full Marks for the first 3
+  // completions per UTC day, then a diminished payout (Heroic 1 guaranteed, Normal
+  // 50% chance of 1). §6.7 FR-7.1 Heroic "+30% Marks" rides the tier `rewardMult`.
+  // Reads `markClears` BEFORE the caller increments it. NOTE: at the base of 1 Mark
+  // the +30% rounds to no per-clear difference; the Heroic mark advantage comes from
+  // the post-3 guaranteed-vs-50% rule. Uses `this.rng` only (deterministic).
+  private delveMarkPayout(run: DelveRun, tier: DelveTierDef | undefined, meta: PlayerMeta): number {
+    const mult = tier?.rewardMult ?? 1;
+    if (meta.delveDaily.markClears < 3) return Math.max(1, Math.round(mult));
+    if (run.tierId === 'heroic') return 1;
+    return this.rng.chance(0.5) ? 1 : 0;
+  }
+
+  // Unlock the next un-owned lore journal entry (PRD §6.4 / §7.6 — five entries
+  // across repeat clears). Emits a stable lore id (no English crosses the sim
+  // boundary); the client localises it via the `delveUi.lore.*` keys.
+  private unlockNextDelveLore(meta: PlayerMeta, pid: number): void {
+    const idx = meta.delveLoreUnlocked.size;
+    if (idx >= DELVE_LORE_ORDER.length) return;
+    const loreId = DELVE_LORE_ORDER[idx];
+    meta.delveLoreUnlocked.add(loreId);
+    this.emit({ type: 'delveLoreUnlock', loreId, pid });
+  }
+
+  // Shared per-member clear economy used by BOTH completion paths so they cannot
+  // diverge: daily reset, first-vs-repeat XP, Marks (FR-5.3), clear tally, copper,
+  // next lore entry, pet restore, and the delveComplete event.
+  private grantDelveClearTo(run: DelveRun, delve: DelveDef, meta: PlayerMeta, pid: number): void {
+    this.refreshDelveDaily(meta);
+    const tier = delve.tiers.find((t) => t.id === run.tierId);
+    const clearKey = `${run.delveId}:${run.tierId}`;
+    const firstClear = !meta.delveDaily.firstClearXp.has(clearKey);
+    const xp = firstClear ? delve.baseRewards.firstClearXp : delve.baseRewards.repeatClearXp;
+    if (firstClear) meta.delveDaily.firstClearXp.add(clearKey);
+    const marks = this.delveMarkPayout(run, tier, meta);
+    meta.delveDaily.markClears += 1;
+    meta.delveMarks += marks;
+    meta.delveClears[clearKey] = (meta.delveClears[clearKey] ?? 0) + 1;
+    this.grantXp(xp, meta);
+    const copper = this.rng.int(delve.baseRewards.copperMin, delve.baseRewards.copperMax);
+    meta.copper += copper;
+    this.unlockNextDelveLore(meta, pid);
+    this.maybeCompanionBark(run, pid, 'completion');
+    this.restorePetFromDelveStash(pid);
+    this.emit({ type: 'delveComplete', delveId: run.delveId, tierId: run.tierId, pid });
+  }
+
   private grantDelveRewards(run: DelveRun): void {
     if (run.completed) return;
     run.completed = true;
@@ -9996,19 +10074,7 @@ export class Sim {
     for (const pid of members) {
       const meta = this.players.get(pid);
       if (!meta) continue;
-      this.refreshDelveDaily(meta);
-      const clearKey = `${run.delveId}:${run.tierId}`;
-      const firstClear = !meta.delveDaily.firstClearXp.has(clearKey);
-      const xp = firstClear ? delve.baseRewards.firstClearXp : delve.baseRewards.repeatClearXp;
-      if (firstClear) meta.delveDaily.firstClearXp.add(clearKey);
-      meta.delveDaily.markClears += 1;
-      meta.delveMarks += 1;
-      meta.delveClears[clearKey] = (meta.delveClears[clearKey] ?? 0) + 1;
-      this.grantXp(xp, meta);
-      const copper = this.rng.int(delve.baseRewards.copperMin, delve.baseRewards.copperMax);
-      meta.copper += copper;
-      this.restorePetFromDelveStash(pid);
-      this.emit({ type: 'delveComplete', delveId: run.delveId, tierId: run.tierId, pid });
+      this.grantDelveClearTo(run, delve, meta, pid);
     }
   }
 
@@ -10034,6 +10100,10 @@ export class Sim {
     }
   }
 
+  // Legacy single-step completion (grant + eject + free). The shipped finale flow
+  // instead spawns a locked chest -> grantDelveRewards on lockpick success ->
+  // leaveDelve at the surface exit, so this is currently unreferenced; kept (and
+  // sharing grantDelveClearTo) so a future direct-completion objective stays correct.
   private completeDelve(run: DelveRun): void {
     if (run.completed) return;
     run.completed = true;
@@ -10042,20 +10112,8 @@ export class Sim {
     for (const pid of members) {
       const meta = this.players.get(pid);
       if (!meta) continue;
-      this.refreshDelveDaily(meta);
-      const clearKey = `${run.delveId}:${run.tierId}`;
-      const firstClear = !meta.delveDaily.firstClearXp.has(clearKey);
-      const xp = firstClear ? delve.baseRewards.firstClearXp : delve.baseRewards.repeatClearXp;
-      if (firstClear) meta.delveDaily.firstClearXp.add(clearKey);
-      meta.delveDaily.markClears += 1;
-      meta.delveMarks += 1;
-      meta.delveClears[clearKey] = (meta.delveClears[clearKey] ?? 0) + 1;
-      this.grantXp(xp, meta);
-      const copper = this.rng.int(delve.baseRewards.copperMin, delve.baseRewards.copperMax);
-      meta.copper += copper;
-      this.restorePetFromDelveStash(pid);
+      this.grantDelveClearTo(run, delve, meta, pid);
       this.ejectToDelveDoor(pid, delve);
-      this.emit({ type: 'delveComplete', delveId: run.delveId, tierId: run.tierId, pid });
       this.emit({ type: 'log', text: `${delve.name} complete.`, color: '#8f8', pid });
     }
     this.freeDelveRun(run);
@@ -10279,7 +10337,11 @@ export class Sim {
       if (!plate || !run.partyKey) continue;
       for (const pid of this.partyMembersForKey(run.partyKey)) {
         const p = this.entities.get(pid);
-        if (!p || p.dead || dist2d(p.pos, plate.pos) > DELVE_PLATE_RADIUS) continue;
+        if (!p || p.dead) continue;
+        const d = dist2d(p.pos, plate.pos);
+        // Companion warns when a party member first nears an un-triggered plate.
+        if (d <= DELVE_PLATE_RADIUS + 4) this.maybeCompanionBark(run, pid, 'trap_spotted');
+        if (d > DELVE_PLATE_RADIUS) continue;
         state.triggered = true;
         // Switch the visual to the triggered (green) variant — renderer rebuilds the view.
         plate.templateId = 'delve_pressure_plate_triggered';
@@ -10359,7 +10421,9 @@ export class Sim {
   private rollDelveAffixes(delve: DelveDef, tierId: string, seed: number): string[] {
     const tier = delve.tiers.find((t) => t.id === tierId) ?? delve.tiers[0];
     if (tier.affixCount <= 0) return [];
-    const pool = Object.values(DELVE_AFFIXES).filter((a) => !a.blessing && a.themes.includes(delve.theme));
+    const pool = Object.values(DELVE_AFFIXES).filter(
+      (a) => !a.blessing && a.themes.includes(delve.theme) && DELVE_IMPLEMENTED_AFFIXES.has(a.id),
+    );
     if (!pool.length) return [];
     const rng = new Rng(seed ^ 0x5a11c0de);
     const shuffled = [...pool];
@@ -10648,7 +10712,9 @@ export class Sim {
     const pages = generateLockPages(baseSeed, tier, ANTE_TO_PAGES[ante]);
     const spec = pages[0];
     const session: LockSession = {
-      sessionId: `lp_${objectId}_${run.seed >>> 0}`,
+      // Unique per engage (tickCount is the deterministic sim clock) so the
+      // staleness guard rejects actions from a prior, re-engaged attempt.
+      sessionId: `lp_${objectId}_${this.tickCount}`,
       chestId: objectId,
       ownerId: r.meta.entityId,
       baseSeed,
@@ -10877,11 +10943,9 @@ export class Sim {
       if (!meta) continue;
       meta.delveMarks += reward.bonusMarks;
       meta.copper += bonusCopper;
-      const parts: string[] = [];
-      if (reward.bonusMarks > 0) parts.push(`${reward.bonusMarks} extra Delve Mark${reward.bonusMarks === 1 ? '' : 's'}`);
-      if (bonusCopper > 0) parts.push(`${bonusCopper}c`);
-      const detail = parts.length ? ` (+${parts.join(', ')})` : '';
-      this.emit({ type: 'log', text: `The lock yields! ${tier[0].toUpperCase() + tier.slice(1)} spoils${detail}.`, color: '#fd8', pid });
+      // Structured (no prose crosses the sim boundary): the client builds the
+      // localized "spoils" line from the tier token and formats the numbers.
+      this.emit({ type: 'lockpickBonus', tier, marks: reward.bonusMarks, copper: bonusCopper, pid });
     }
   }
 

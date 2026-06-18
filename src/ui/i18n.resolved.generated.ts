@@ -346,7 +346,10 @@ export const en: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -415,6 +418,7 @@ export const en: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -446,7 +450,7 @@ export const en: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -3082,6 +3086,9 @@ export const en: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -4612,7 +4619,10 @@ export const es: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -4681,6 +4691,7 @@ export const es: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -4712,7 +4723,7 @@ export const es: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -7348,6 +7359,9 @@ export const es: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -8878,7 +8892,10 @@ export const es_ES: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -8947,6 +8964,7 @@ export const es_ES: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -8978,7 +8996,7 @@ export const es_ES: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -11614,6 +11632,9 @@ export const es_ES: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -13144,7 +13165,10 @@ export const fr_FR: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -13213,6 +13237,7 @@ export const fr_FR: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -13244,7 +13269,7 @@ export const fr_FR: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -15880,6 +15905,9 @@ export const fr_FR: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -17410,7 +17438,10 @@ export const fr_CA: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -17479,6 +17510,7 @@ export const fr_CA: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -17510,7 +17542,7 @@ export const fr_CA: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -20146,6 +20178,9 @@ export const fr_CA: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -21676,7 +21711,10 @@ export const en_CA: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -21745,6 +21783,7 @@ export const en_CA: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -21776,7 +21815,7 @@ export const en_CA: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -24412,6 +24451,9 @@ export const en_CA: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -25942,7 +25984,10 @@ export const it_IT: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -26011,6 +26056,7 @@ export const it_IT: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -26042,7 +26088,7 @@ export const it_IT: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -28678,6 +28724,9 @@ export const it_IT: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -30208,7 +30257,10 @@ export const de_DE: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -30277,6 +30329,7 @@ export const de_DE: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -30308,7 +30361,7 @@ export const de_DE: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -32944,6 +32997,9 @@ export const de_DE: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -34474,7 +34530,10 @@ export const zh_CN: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -34543,6 +34602,7 @@ export const zh_CN: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -34574,7 +34634,7 @@ export const zh_CN: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -37210,6 +37270,9 @@ export const zh_CN: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -38740,7 +38803,10 @@ export const zh_TW: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -38809,6 +38875,7 @@ export const zh_TW: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -38840,7 +38907,7 @@ export const zh_TW: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -41476,6 +41543,9 @@ export const zh_TW: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -43006,7 +43076,10 @@ export const ko_KR: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -43075,6 +43148,7 @@ export const ko_KR: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -43106,7 +43180,7 @@ export const ko_KR: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -45742,6 +45816,9 @@ export const ko_KR: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -47272,7 +47349,10 @@ export const ja_JP: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -47341,6 +47421,7 @@ export const ja_JP: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -47372,7 +47453,7 @@ export const ja_JP: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -50008,6 +50089,9 @@ export const ja_JP: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -51538,7 +51622,10 @@ export const pt_BR: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -51607,6 +51694,7 @@ export const pt_BR: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -51638,7 +51726,7 @@ export const pt_BR: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -54274,6 +54362,9 @@ export const pt_BR: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -55804,7 +55895,10 @@ export const ru_RU: EnTranslations = {
       "moveCloserStairs": "Move closer to the stairs."
     },
     "lockpick": {
-      "lockYields": "The lock yields! {tier} spoils{detail}.",
+      "lockYields": "The lock yields! {tier} spoils.",
+      "tierPremium": "Premium",
+      "tierMedium": "Medium",
+      "tierLow": "Modest",
       "alreadyInProgress": "Someone is already working the lock.",
       "cannotPickThat": "You cannot pick that.",
       "chooseAnte": "Choose 1, 2, or 3 picks.",
@@ -55873,6 +55967,7 @@ export const ru_RU: EnTranslations = {
       "reliquary_finale": "The buried bell tolls once beneath your boots."
     },
     "companion": {
+      "barkLine": "{name}: {line}",
       "tessa": {
         "combat_start": "Keep your footing, {playerName}. The dead are restless here.",
         "low_hp": "Breathe. I still have prayers left for you.",
@@ -55904,7 +55999,7 @@ export const ru_RU: EnTranslations = {
           "object": "The cracked grave shudders with stolen breath.",
           "interrupt_ok": "The grave rite falters.",
           "interrupt_fail": "The dead answer Deacon Varric's call!",
-          "lesson": "Interrupt the cracked grave within five seconds or bonewalkers rise."
+          "lesson": "Interrupt the cracked grave within five seconds or the dead rise to his call."
         },
         "pull": "You step on hallowed dust with unclean purpose. Kneel, and be counted.",
         "intro": "No soul is lost. Only misplaced.",
@@ -58540,6 +58635,9 @@ export const ru_RU: EnTranslations = {
       "reliquary_ledger_wraith": {
         "name": "Ledger Wraith"
       },
+      "reliquary_bonewalker": {
+        "name": "Raised Bonewalker"
+      },
       "reliquary_saintless_effigy": {
         "name": "Saintless Effigy"
       },
@@ -59791,6 +59889,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -59835,6 +59934,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -59891,6 +59991,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ],
   "es_ES": [
@@ -59933,6 +60036,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -59977,6 +60081,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -60033,6 +60138,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ],
   "fr_FR": [
@@ -60075,6 +60183,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -60119,6 +60228,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -60175,6 +60285,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ],
   "fr_CA": [
@@ -60217,6 +60330,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -60261,6 +60375,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -60317,6 +60432,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ],
   "en_CA": [],
@@ -60360,6 +60478,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -60404,6 +60523,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -60460,6 +60580,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ],
   "de_DE": [
@@ -60502,6 +60625,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -60546,6 +60670,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -60602,6 +60727,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ],
   "zh_CN": [
@@ -60644,6 +60772,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -60688,6 +60817,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -60744,6 +60874,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ],
   "zh_TW": [
@@ -60786,6 +60919,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -60830,6 +60964,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -60886,6 +61021,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ],
   "ko_KR": [
@@ -60928,6 +61066,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -60972,6 +61111,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -61028,6 +61168,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ],
   "ja_JP": [
@@ -61070,6 +61213,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -61114,6 +61258,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -61170,6 +61315,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ],
   "pt_BR": [
@@ -61212,6 +61360,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -61256,6 +61405,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -61312,6 +61462,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ],
   "ru_RU": [
@@ -61354,6 +61507,7 @@ export const pending: Record<string, readonly string[]> = {
     "delveUi.boss.varric.raise.object",
     "delveUi.boss.varric.raise.warning",
     "delveUi.chest.flavor",
+    "delveUi.companion.barkLine",
     "delveUi.companion.tessa.boss_pull",
     "delveUi.companion.tessa.combat_start",
     "delveUi.companion.tessa.completion",
@@ -61398,6 +61552,7 @@ export const pending: Record<string, readonly string[]> = {
     "entities.mobs.acolyte_tessa.name",
     "entities.mobs.deacon_varric.name",
     "entities.mobs.placeholder_boss.name",
+    "entities.mobs.reliquary_bonewalker.name",
     "entities.mobs.reliquary_funeral_ringer.name",
     "entities.mobs.reliquary_gravecall_acolyte.name",
     "entities.mobs.reliquary_ledger_wraith.name",
@@ -61454,6 +61609,9 @@ export const pending: Record<string, readonly string[]> = {
     "sim.lockpick.lockYields",
     "sim.lockpick.noAttempt",
     "sim.lockpick.notYours",
+    "sim.lockpick.tierLow",
+    "sim.lockpick.tierMedium",
+    "sim.lockpick.tierPremium",
     "sim.lockpick.toolSlips"
   ]
 };
@@ -61795,7 +61953,10 @@ export const en_XA: EnTranslations = {
       "moveCloserStairs": "[Ɱóʋé çļóšéŕ ţó ţĥé šţáíŕš.]"
     },
     "lockpick": {
-      "lockYields": "[Ţĥé ļóçķ ýíéļðš! {tier} šþóíļš{detail}.]",
+      "lockYields": "[Ţĥé ļóçķ ýíéļðš! {tier} šþóíļš.]",
+      "tierPremium": "[Þŕéɱíúɱ]",
+      "tierMedium": "[Ɱéðíúɱ]",
+      "tierLow": "[Ɱóðéšţ]",
       "alreadyInProgress": "[Šóɱéóñé íš áļŕéáðý ŵóŕķíñĝ ţĥé ļóçķ.]",
       "cannotPickThat": "[Ýóú çáññóţ þíçķ ţĥáţ.]",
       "chooseAnte": "[Çĥóóšé 1, 2, óŕ 3 þíçķš.]",
@@ -61864,6 +62025,7 @@ export const en_XA: EnTranslations = {
       "reliquary_finale": "[Ţĥé ƀúŕíéð ƀéļļ ţóļļš óñçé ƀéñéáţĥ ýóúŕ ƀóóţš.]"
     },
     "companion": {
+      "barkLine": "[{name}: {line}]",
       "tessa": {
         "combat_start": "[Ķééþ ýóúŕ ƒóóţíñĝ, {playerName}. Ţĥé ðéáð áŕé ŕéšţļéšš ĥéŕé.]",
         "low_hp": "[Ɓŕéáţĥé. Í šţíļļ ĥáʋé þŕáýéŕš ļéƒţ ƒóŕ ýóú.]",
@@ -61895,7 +62057,7 @@ export const en_XA: EnTranslations = {
           "object": "[Ţĥé çŕáçķéð ĝŕáʋé šĥúððéŕš ŵíţĥ šţóļéñ ƀŕéáţĥ.]",
           "interrupt_ok": "[Ţĥé ĝŕáʋé ŕíţé ƒáļţéŕš.]",
           "interrupt_fail": "[Ţĥé ðéáð áñšŵéŕ Ðéáçóñ Ʋáŕŕíç'š çáļļ!]",
-          "lesson": "[Íñţéŕŕúþţ ţĥé çŕáçķéð ĝŕáʋé ŵíţĥíñ ƒíʋé šéçóñðš óŕ ƀóñéŵáļķéŕš ŕíšé.]"
+          "lesson": "[Íñţéŕŕúþţ ţĥé çŕáçķéð ĝŕáʋé ŵíţĥíñ ƒíʋé šéçóñðš óŕ ţĥé ðéáð ŕíšé ţó ĥíš çáļļ.]"
         },
         "pull": "[Ýóú šţéþ óñ ĥáļļóŵéð ðúšţ ŵíţĥ úñçļéáñ þúŕþóšé. Ķñééļ, áñð ƀé çóúñţéð.]",
         "intro": "[Ñó šóúļ íš ļóšţ. Óñļý ɱíšþļáçéð.]",
@@ -64530,6 +64692,9 @@ export const en_XA: EnTranslations = {
       },
       "reliquary_ledger_wraith": {
         "name": "[Ļéðĝéŕ Ŵŕáíţĥ]"
+      },
+      "reliquary_bonewalker": {
+        "name": "[Ŕáíšéð Ɓóñéŵáļķéŕ]"
       },
       "reliquary_saintless_effigy": {
         "name": "[Šáíñţļéšš Éƒƒíĝý]"

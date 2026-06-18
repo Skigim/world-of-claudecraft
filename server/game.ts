@@ -480,6 +480,9 @@ export class GameServer {
       last = now;
       if (dt > 0.5) dt = 0.5;
       acc += dt;
+      // Feed the authoritative UTC day to the sim so the delve daily reset (FR-5.1)
+      // works without the sim reading the wall clock itself (determinism invariant).
+      this.sim.utcDay = new Date().toISOString().slice(0, 10);
       while (acc >= DT) {
         this.clearStaleInputs();
         const events = this.sim.tick();
