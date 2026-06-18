@@ -1,5 +1,5 @@
 import type { ResolvedAbility } from '../sim/sim';
-import { OVERHEAD_EMOTES, isOverheadEmoteId, type ArenaFormat, type FriendInfo, type IWorld, type LeaderboardEntry, type MarketInfo, type OverheadEmoteId } from '../world_api';
+import { OVERHEAD_EMOTES, isOverheadEmoteId, type ArenaFormat, type DelveRunInfo, type FriendInfo, type IWorld, type LeaderboardEntry, type LockpickView, type MarketInfo, type OverheadEmoteId } from '../world_api';
 import { Renderer } from '../render/renderer';
 import { CharacterPreview } from '../render/characters';
 import { portraitChipHtml, hydratePortraits } from './portrait_chip';
@@ -7,10 +7,21 @@ import { playerPortraitDataUrl, onPortraitsReady } from '../render/characters/po
 import { skinCount } from '../render/characters/manifest';
 import { emoteIconUrl } from './emote_icons';
 import {
-  ABILITIES, CLASSES, DUNGEON_LIST, DUNGEON_X_THRESHOLD, ITEMS, MOBS, NPCS, PROPS, QUESTS,
-  WORLD_MAX_X, WORLD_MAX_Z, WORLD_MIN_X, WORLD_MIN_Z, ZONES, dungeonAt, questRewardItem, zoneAt,
+  ABILITIES, CLASSES, DELVE_AFFIXES, DELVES, DUNGEON_LIST, DUNGEON_X_THRESHOLD, ITEMS, MOBS, NPCS, PROPS, QUESTS,
+  WORLD_MAX_X, WORLD_MAX_Z, WORLD_MIN_X, WORLD_MIN_Z, ZONES, dungeonAt, isDelvePos, questRewardItem, zoneAt,
   zoneWelcomeText,
 } from '../sim/data';
+import { DELVE_MODULE_LAYOUTS, type DelveModuleId } from '../sim/delve_layout';
+import {
+  delveAreaLabel, delveSchematicPlayer, delveSchematicStatic,
+  playerDelveLocal, type SchematicPrimitive,
+} from './delve_map';
+import {
+  anteOptions, endSummary, pageDots, lockpickActionButtons, lockpickBoardModel,
+  stepFeedback, TIER_LABEL, TIER_TIMER_SECONDS,
+} from './lockpick_panel';
+import type { Ante, PickAction, StepResult } from '../sim/lockpick';
+import { PICK_ACTIONS } from '../sim/lockpick';
 import type { ZoneDef } from '../sim/data';
 import type { AbilityDef, EquipSlot, InvSlot, PetMode, PlayerClass, ResourceType, Stats } from '../sim/types';
 import {
@@ -41,7 +52,7 @@ import { isPhoneTouchDevice } from '../game/mobile_controls';
 import { chatPlayerContextActions } from './player_context_menu';
 import { TouchPeekGuard, TOOLTIP_PEEK_MS } from './touch_peek';
 import { maskProfanity } from './profanity';
-import { formatMoney as formatLocalizedMoney, formatNumber, moneyParts, t, type TranslationKey } from './i18n';
+import { formatMoney as formatLocalizedMoney, formatNumber, moneyParts, t, tOptional, type TranslationKey } from './i18n';
 import { tEntity } from './entity_i18n';
 import { localizeServerText, localizeZone } from './server_i18n';
 import { localizeSimText, localizeSimAuraName } from './sim_i18n';
@@ -224,6 +235,18 @@ const CHAT_TEMPLATE_KEYS = {
   say: 'hud.chat.templates.say',
 } satisfies Record<string, TranslationKey>;
 type HotbarForm = 'normal' | 'bear' | 'cat' | 'stealth';
+
+const DELVE_AFFIX_COLORS: Record<string, string> = {
+  restless_graves: '#8b7355',
+  bad_air: '#6a8a6a',
+  candleblind: '#c9a227',
+  old_mechanisms: '#7a8a9a',
+  flooded_paths: '#4a7a9a',
+  grave_tax: '#9a6a4a',
+  unstable_roof: '#8a6a5a',
+  cult_remnants: '#7a4a8a',
+  chapel_candle: '#ffd100',
+};
 type MobileHotbarDrag = {
   pointerId: number;
   sourceIndex: number;
@@ -322,8 +345,28 @@ export class Hud {
   private minimapZoom = MINIMAP_ZOOM_DEFAULT;
   private minimapZoomLabel: HTMLElement | null = null;
   private mapBg: HTMLCanvasElement | null = null;
+  // Delve schematic caches: static background (floor/pillars/tombs/dais/exit)
+  // keyed by module id, redrawn only when the module changes.
+  private delveSchematicBg: HTMLCanvasElement | null = null;
+  private delveSchematicBgModuleId: string = '';
+  private delveMapBg: HTMLCanvasElement | null = null;
+  private delveMapBgModuleId: string = '';
   private openLootMobId: number | null = null;
+  private openLootChestId: number | null = null;
   private openVendorNpcId: number | null = null;
+  private openDelveBoardNpcId: number | null = null;
+  private lastDelveTrackerSig = '';
+  private selectedDelveTier: 'normal' | 'heroic' = 'normal';
+  private delveBoardReturnFocus: HTMLElement | null = null;
+  // Lockpicking minigame ("Tumbler's Path"). Either an ante offer (chest id, no
+  // session yet) or a live board view; both share the #lockpick-panel element.
+  private lockpickOfferId: number | null = null;
+  private lockpickView: LockpickView | null = null;
+  private lockpickReturnFocus: HTMLElement | null = null;
+  private lockpickKeyHandler: ((e: KeyboardEvent) => void) | null = null;
+  private lockpickTimerEnd: number | null = null;
+  private lockpickTimerInterval: number | null = null;
+  private lockpickTimerTimeout: number | null = null;
   private openGossipNpcId: number | null = null;
   private openQuestDetailId: string | null = null;
   private selectedQuestLogId: string | null = null;
@@ -751,6 +794,7 @@ export class Hud {
       case 'vendor-window': this.closeVendor(); break;
       case 'loot-window': this.closeLoot(); break;
       case 'quest-dialog': this.closeQuestDialog(); break;
+      case 'delve-board': this.closeDelveBoard(); break;
       case 'bags':
         if (this.vendorOpen && document.body.classList.contains('mobile-touch')) this.closeVendor();
         else { el.style.display = 'none'; this.hideTooltip(); this.cancelPetFeed(); }
@@ -1241,6 +1285,7 @@ export class Hud {
 
   private refreshLocalizedDynamicUi(): void {
     this.updateQuestTracker();
+    this.updateDelveTracker();
     const log = $('#quest-log-window');
     if (log.style.display === 'block') this.renderQuestLog();
     if ($('#bags').style.display === 'block') this.renderBags();
@@ -2169,6 +2214,7 @@ export class Hud {
       }
 
       this.updateQuestTracker();
+      this.updateDelveTracker();
       this.updatePartyFrames();
       this.updateTradeWindow();
       this.updateArenaStatus();
@@ -2177,6 +2223,10 @@ export class Hud {
       if (this.openLootMobId !== null) {
         const mob = sim.entities.get(this.openLootMobId);
         if (!mob || !mob.lootable || dist2d(p.pos, mob.pos) > 7) this.closeLoot();
+      }
+      if (this.openLootChestId !== null) {
+        const chest = sim.entities.get(this.openLootChestId);
+        if (!chest || dist2d(p.pos, chest.pos) > 7) this.closeLoot();
       }
       if (this.openVendorNpcId !== null) {
         const npc = sim.entities.get(this.openVendorNpcId);
@@ -2278,6 +2328,385 @@ export class Hud {
       });
     }
     if (el.innerHTML !== html) el.innerHTML = html;
+  }
+
+  // -------------------------------------------------------------------------
+  // Delve board & tracker
+  // -------------------------------------------------------------------------
+
+  openDelveBoard(npcId: number): void {
+    const npc = this.sim.entities.get(npcId);
+    if (!npc || npc.kind !== 'npc') return;
+    const delve = Object.values(DELVES).find((d) => d.boardNpcId === npc.templateId);
+    if (!delve) return;
+    if ($('#delve-board').style.display !== 'block') this.delveBoardReturnFocus = this.currentFocusableElement();
+    this.openDelveBoardNpcId = npcId;
+    this.selectedDelveTier = 'normal';
+    this.closeOtherWindows('#delve-board');
+    $('#delve-board').style.display = 'block';
+    this.renderDelveBoard();
+  }
+
+  private renderDelveBoard(): void {
+    const el = $('#delve-board');
+    const npcId = this.openDelveBoardNpcId;
+    if (npcId === null) {
+      el.style.display = 'none';
+      return;
+    }
+    const npc = this.sim.entities.get(npcId);
+    if (!npc || npc.kind !== 'npc') {
+      this.closeDelveBoard();
+      return;
+    }
+    const delve = Object.values(DELVES).find((d) => d.boardNpcId === npc.templateId);
+    if (!delve) {
+      this.closeDelveBoard();
+      return;
+    }
+    const delveName = delveDisplayName(delve.id);
+    const canEnter = this.sim.player.level >= delve.minLevel;
+    const tierNormal = t('delveUi.board.tier.normal');
+    const tierHeroic = t('delveUi.board.tier.heroic');
+    const marks = formatNumber(this.sim.delveMarks, { maximumFractionDigits: 0 });
+    const tessaRank = this.sim.companionUpgrades.companion_tessa ?? 1;
+    const tessaRankLabel = t('delveUi.board.companion.rank', {
+      rank: formatNumber(tessaRank, { maximumFractionDigits: 0 }),
+    });
+    const tierRow = ['normal', 'heroic'].map((tierId) => {
+      const label = tierId === 'heroic' ? tierHeroic : tierNormal;
+      const selected = this.selectedDelveTier === tierId ? ' selected' : '';
+      return `<button type="button" class="delve-tier-btn${selected}" data-tier-pick="${esc(tierId)}" aria-pressed="${this.selectedDelveTier === tierId}">${esc(label)}</button>`;
+    }).join('');
+    el.innerHTML = `<div class="panel-title"><span>${esc(t('delveUi.board.title'))}</span><button type="button" class="x-btn" data-close aria-label="${esc(t('questUi.dialog.close'))}">${svgIcon('close')}</button></div>`
+      + `<div class="delve-board-name">${esc(delveName)}</div>`
+      + `<div class="delve-board-meta">${esc(t('delveUi.board.marks', { count: marks }))}</div>`
+      + `<div class="delve-board-req${canEnter ? '' : ' req-unmet'}">${esc(t('delveUi.board.minLevel', { level: formatNumber(delve.minLevel, { maximumFractionDigits: 0 }) }))}</div>`
+      + `<div class="delve-board-greeting">${esc(t('delveUi.npc.halven.greeting'))}</div>`
+      + `<div class="delve-tier-row">${tierRow}</div>`
+      + `<div class="delve-companion-row"><div class="delve-companion-label">${esc(t('delveUi.board.companion.pick'))}</div>`
+      + `<button type="button" class="delve-companion-btn" disabled aria-label="${esc(t('delveUi.board.companion.tessa'))}">${esc(t('delveUi.board.companion.tessa'))} <span class="quest-muted">(${esc(tessaRankLabel)})</span></button></div>`
+      + `<button type="button" class="btn delve-enter-btn" data-delve-enter aria-label="${esc(t('delveUi.board.enterAria', { delve: delveName, tier: this.selectedDelveTier === 'heroic' ? tierHeroic : tierNormal }))}"${canEnter ? '' : ' disabled'}>${esc(t('delveUi.board.enter'))}</button>`;
+    el.querySelectorAll('[data-tier-pick]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        this.selectedDelveTier = (btn as HTMLElement).dataset.tierPick as 'normal' | 'heroic';
+        this.renderDelveBoard();
+      });
+    });
+    el.querySelector('[data-delve-enter]')?.addEventListener('click', () => {
+      const tierId = this.selectedDelveTier;
+      this.sim.enterDelve('collapsed_reliquary', tierId);
+      // enterDelve queues delveEntered for the next sim tick; kick interior
+      // prebuild now so the first rendered frame is not a fog void.
+      this.renderer.handleEvent({ type: 'delveEntered', delveId: 'collapsed_reliquary', tierId });
+      this.closeDelveBoard();
+    });
+    el.querySelector('[data-close]')?.addEventListener('click', () => this.closeDelveBoard());
+    this.focusFirstInteractive(el, '.delve-enter-btn');
+  }
+
+  private closeDelveBoard(restoreFocus = true): void {
+    $('#delve-board').style.display = 'none';
+    this.openDelveBoardNpcId = null;
+    this.hideTooltip();
+    const target = this.delveBoardReturnFocus;
+    this.delveBoardReturnFocus = null;
+    if (restoreFocus) this.restoreFocus(target);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Lockpicking minigame ("Tumbler's Path"). The chest's first touch emits a
+  // lockpickOffer (ante selector); engaging opens a live, server-authoritative
+  // board driven entirely by lockpickSession/Step/End events. The HUD only ever
+  // sees the fogged LockpickView — never the full lock. English-only by design.
+  // ---------------------------------------------------------------------------
+
+  private openLockpickAnte(objectId: number): void {
+    const el = $('#lockpick-panel');
+    if (el.style.display !== 'block') this.lockpickReturnFocus = this.currentFocusableElement();
+    this.lockpickOfferId = objectId;
+    this.lockpickView = null;
+    el.style.display = 'block';
+    this.bindLockpickKeys();
+    this.renderLockpickAnte();
+  }
+
+  private renderLockpickAnte(): void {
+    const el = $('#lockpick-panel');
+    const objectId = this.lockpickOfferId;
+    if (objectId === null) { this.closeLockpick(); return; }
+    const buttons = anteOptions().map((o) => `<button type="button" class="lp-ante-btn" data-ante="${o.ante}">`
+      + `<span class="lp-ante-tier">${esc(o.tierLabel)} Cache</span>`
+      + `<span class="lp-ante-badges">`
+      + `<span class="lp-ante-pages">🔒 ${o.pages}</span>`
+      + `<span class="lp-ante-tries">${o.tries} ${o.tries > 1 ? 'tries' : 'try'}</span>`
+      + `</span>`
+      + `<span class="lp-ante-timer">${o.timerSeconds}s / lock</span>`
+      + `</button>`).join('');
+    el.innerHTML = `<div class="panel-title"><span>Pick the Lock</span>`
+      + `<button type="button" class="x-btn" data-close aria-label="Close">${svgIcon('close')}</button></div>`
+      + `<div class="lp-blurb">A richer cache is sealed behind more locks. Easier locks give you more tries and more time; a failed try resets the lock until your tries run out.</div>`
+      + `<div class="lp-ante-row">${buttons}</div>`;
+    el.querySelectorAll('[data-ante]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const ante = Number((btn as HTMLElement).dataset.ante) as Ante;
+        this.sim.lockpickEngage(objectId, ante);
+      });
+    });
+    el.querySelector('[data-close]')?.addEventListener('click', () => this.closeLockpick());
+    this.focusFirstInteractive(el, '.lp-ante-btn');
+  }
+
+  private openLockpickBoard(view: LockpickView): void {
+    const el = $('#lockpick-panel');
+    if (el.style.display !== 'block') this.lockpickReturnFocus = this.currentFocusableElement();
+    this.lockpickOfferId = null;
+    this.lockpickView = view;
+    el.style.display = 'block';
+    this.bindLockpickKeys();
+    this.startLockpickTimer(TIER_TIMER_SECONDS[view.lootTier]);
+    this.renderLockpickBoard();
+  }
+
+  private updateLockpickBoard(
+    col: number, row: number, page: number, pageCount: number,
+    tries: number, triesTotal: number,
+    result: StepResult,
+    visible: LockpickView['visible'],
+  ): void {
+    if (!this.lockpickView) return;
+    this.lockpickView = { ...this.lockpickView, col, row, page, pageCount, tries, triesTotal, visible };
+    // The timer is per-MOVE: every move that keeps the lock in play (an advance,
+    // a fresh page, or a fresh try) resets the clock to the full per-lock time.
+    // Only the terminal results (success/fail) leave it stopped.
+    if (result === 'advanced' || result === 'pageCleared' || result === 'retry') {
+      this.startLockpickTimer(TIER_TIMER_SECONDS[this.lockpickView.lootTier]);
+    }
+    const fb = stepFeedback(result);
+    this.renderLockpickBoard(fb.text, fb.tone);
+  }
+
+  private renderLockpickBoard(feedback = '', tone: 'good' | 'bad' | 'win' = 'good'): void {
+    const el = $('#lockpick-panel');
+    const view = this.lockpickView;
+    if (!view) { this.closeLockpick(); return; }
+    const m = lockpickBoardModel(view);
+    const rowH = (r: number): string => `${(r / Math.max(1, m.h - 1)) * 100}%`;
+    // Tumbler tracks: one brass column per lock column. Only lit wards (open /
+    // gate / seat / trap) show as notches; the rest of the face is solid metal.
+    // Fogged columns are a covered plate. The pick marker rides the active track.
+    let tracks = '';
+    for (const c of m.columns) {
+      let notches = '';
+      for (const n of c.notches) {
+        notches += `<span class="lp-notch lp-notch-${n.kind}" style="top:${rowH(n.row)}"></span>`;
+      }
+      const marker = c.markerRow !== null
+        ? `<span class="lp-pick" style="top:${rowH(c.markerRow)}"></span>` : '';
+      tracks += `<div class="lp-track lp-track-${c.state}${c.isGate ? ' lp-track-gate' : ''}">`
+        + `<div class="lp-track-face">${notches}${marker}</div></div>`;
+    }
+    const dots = pageDots(view.page, view.pageCount)
+      .map((d) => `<span class="lp-page-dot lp-page-${d}"></span>`).join('');
+    const actions = lockpickActionButtons(view.allowed).map((b) => `<button type="button" class="lp-action-btn"`
+      + ` data-action="${esc(b.action)}"${b.enabled ? '' : ' disabled'}>`
+      + `<span class="lp-action-key">${b.key}</span>`
+      + `<span class="lp-action-glyph">${b.glyph}</span>`
+      + `<span class="lp-action-label">${esc(b.label)}</span></button>`).join('');
+    const timerSecs = TIER_TIMER_SECONDS[view.lootTier];
+    el.innerHTML = `<div class="panel-title"><span>Tumbler's Path — ${esc(TIER_LABEL[view.lootTier])} cache</span>`
+      + `<button type="button" class="x-btn" data-close aria-label="Withdraw">${svgIcon('close')}</button></div>`
+      + `<div class="lp-status"><span class="lp-pages" aria-label="Lock ${view.page} of ${view.pageCount}">${dots}`
+      + `<span class="lp-pages-label">Lock ${view.page}/${view.pageCount}</span></span>`
+      + `<span class="lp-tries" aria-label="${view.tries} of ${view.triesTotal} tries left">Tries ${view.tries}/${view.triesTotal}</span>`
+      + `<span class="lp-col">Ward ${m.activeCol + 1} / ${m.w}</span></div>`
+      + `<div class="lp-timer" aria-label="Time remaining"><div class="lp-timer-track"><div class="lp-timer-bar" id="lp-timer-bar" style="width:100%"></div></div>`
+      + `<span class="lp-timer-value" id="lp-timer-value">${timerSecs}.0s</span></div>`
+      + `<div class="lp-board" style="grid-template-columns:repeat(${m.w},1fr)">${tracks}</div>`
+      + `<div class="lp-feedback lp-tone-${tone}" role="status" aria-live="polite">${esc(feedback)}</div>`
+      + `<div class="lp-actions">${actions}</div>`
+      + `<button type="button" class="btn lp-withdraw" data-withdraw>Withdraw (Esc)</button>`;
+    el.querySelectorAll('[data-action]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if ((btn as HTMLButtonElement).disabled) return;
+        this.sim.lockpickAction((btn as HTMLElement).dataset.action as PickAction);
+      });
+    });
+    el.querySelector('[data-withdraw]')?.addEventListener('click', () => this.sim.lockpickAbort());
+    el.querySelector('[data-close]')?.addEventListener('click', () => this.sim.lockpickAbort());
+  }
+
+  private endLockpick(outcome: 'success' | 'fail' | 'abandoned', tier?: 'premium' | 'medium' | 'low'): void {
+    const summary = endSummary(outcome, tier);
+    if (outcome === 'success') this.showBanner(summary);
+    this.log(summary, outcome === 'success' ? '#7fdc4f' : outcome === 'fail' ? '#ff7a6a' : '#ccc');
+    this.closeLockpick();
+  }
+
+  private openDelveLoot(chestId: number, items: { itemId: string; count: number }[]): void {
+    this.closeLockpick();
+    if (items.length === 0) return;
+    this.closeOtherWindows('#loot-window');
+    this.openLootMobId = null;
+    this.openLootChestId = chestId;
+    const chest = this.sim.entities.get(chestId);
+    const el = $('#loot-window');
+    let html = `<div class="panel-title"><span>${esc(chest ? entityDisplayName(chest) : 'Chest')}</span><button type="button" class="x-btn" data-close aria-label="${esc(t('itemUi.loot.close'))}">${svgIcon('close')}</button></div>`;
+    for (const s of items) {
+      const item = ITEMS[s.itemId];
+      html += `<div class="loot-item" data-item="${s.itemId}">${this.itemIcon(item)}<span style="font-size:12px">${esc(itemDisplayName(item))}${s.count > 1 ? ' x' + s.count : ''}</span></div>`;
+    }
+    el.innerHTML = html;
+    el.querySelectorAll('[data-item]').forEach((row) => {
+      const itemId = (row as HTMLElement).dataset.item!;
+      this.attachTooltip(row as HTMLElement, () => this.itemTooltip(ITEMS[itemId]));
+    });
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.textContent = t('itemUi.loot.takeAll');
+    btn.addEventListener('click', () => { this.sim.collectDelveChestLoot(chestId); this.closeLoot(); });
+    el.appendChild(btn);
+    el.querySelector('[data-close]')?.addEventListener('click', () => this.closeLoot());
+    el.style.left = `${Math.max(10, (window.innerWidth - 230) / 2)}px`;
+    el.style.top = `${Math.max(10, (window.innerHeight - 220) / 2)}px`;
+    el.style.transform = 'none';
+    el.style.display = 'block';
+  }
+
+  private bindLockpickKeys(): void {
+    if (this.lockpickKeyHandler) return;
+    const handler = (e: KeyboardEvent): void => {
+      if ($('#lockpick-panel').style.display !== 'block') return;
+      if (e.key === 'Escape') {
+        e.preventDefault(); e.stopImmediatePropagation();
+        if (this.lockpickView) this.sim.lockpickAbort(); else this.closeLockpick();
+        return;
+      }
+      if (!this.lockpickView) return;
+      const idx = '12345'.indexOf(e.key);
+      if (idx < 0) return;
+      const action = PICK_ACTIONS[idx];
+      if (!this.lockpickView.allowed.includes(action)) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      this.sim.lockpickAction(action);
+    };
+    this.lockpickKeyHandler = handler;
+    window.addEventListener('keydown', handler, true); // capture: beats game input
+  }
+
+  private clearLockpickTimer(): void {
+    if (this.lockpickTimerInterval !== null) { clearInterval(this.lockpickTimerInterval); this.lockpickTimerInterval = null; }
+    if (this.lockpickTimerTimeout !== null) { clearTimeout(this.lockpickTimerTimeout); this.lockpickTimerTimeout = null; }
+    this.lockpickTimerEnd = null;
+  }
+
+  private startLockpickTimer(seconds: number): void {
+    this.clearLockpickTimer();
+    const end = performance.now() + seconds * 1000;
+    this.lockpickTimerEnd = end;
+    this.lockpickTimerInterval = window.setInterval(() => {
+      const remaining = Math.max(0, (end - performance.now()) / 1000);
+      const bar = document.getElementById('lp-timer-bar') as HTMLElement | null;
+      const val = document.getElementById('lp-timer-value');
+      if (bar) bar.style.width = `${(remaining / seconds) * 100}%`;
+      if (val) val.textContent = `${remaining.toFixed(1)}s`;
+      const wrap = document.querySelector('.lp-timer') as HTMLElement | null;
+      if (wrap) wrap.classList.toggle('lp-timer-urgent', remaining < 3);
+    }, 100);
+    this.lockpickTimerTimeout = window.setTimeout(() => {
+      this.clearLockpickTimer();
+      // Running out of time burns a try (the server resets the board if any
+      // remain, or jams the chest if that was the last try).
+      if (this.lockpickView) this.sim.lockpickTimeout();
+    }, seconds * 1000);
+  }
+
+  private closeLockpick(restoreFocus = true): void {
+    $('#lockpick-panel').style.display = 'none';
+    this.lockpickOfferId = null;
+    this.lockpickView = null;
+    this.clearLockpickTimer();
+    this.hideTooltip();
+    if (this.lockpickKeyHandler) {
+      window.removeEventListener('keydown', this.lockpickKeyHandler, true);
+      this.lockpickKeyHandler = null;
+    }
+    const target = this.lockpickReturnFocus;
+    this.lockpickReturnFocus = null;
+    if (restoreFocus) this.restoreFocus(target);
+  }
+
+  private delveObjectiveLine(run: DelveRunInfo): string {
+    const isFinale = run.moduleIndex >= run.moduleCount - 1;
+    if (!isFinale) return 'Clear the room';
+    if (run.objective.kind === 'kill_boss') {
+      const bossId = DELVES[run.delveId]?.bosses[0] ?? 'deacon_varric';
+      return t('delveUi.objective.kill_boss', { boss: mobDisplayName(bossId) });
+    }
+    return t(`delveUi.objective.${run.objective.kind}` as TranslationKey);
+  }
+
+  private delveAffixLabel(affixId: string): string {
+    const affix = DELVE_AFFIXES[affixId];
+    if (!affix) return affixId;
+    if (affix.blessing) return t(`delveUi.blessing.${affixId}` as TranslationKey);
+    return t(`delveUi.affix.${affixId}` as TranslationKey);
+  }
+
+  private updateDelveTracker(): void {
+    const el = $('#delve-tracker');
+    const run = this.sim.delveRun;
+    if (!run) {
+      this.lastDelveTrackerSig = '';
+      if (el.innerHTML !== '') el.innerHTML = '';
+      el.style.display = 'none';
+      return;
+    }
+    const sig = JSON.stringify([run.delveId, run.tierId, run.moduleIndex, run.moduleCount, run.modules, run.objective, run.affixes, run.completed, run.exitPortalOpen, this.sim.delveMarks]);
+    if (sig === this.lastDelveTrackerSig) return;
+    this.lastDelveTrackerSig = sig;
+    el.style.display = 'block';
+    const delveName = delveDisplayName(run.delveId);
+    const tierLabel = run.tierId === 'heroic' ? t('delveUi.board.tier.heroic') : t('delveUi.board.tier.normal');
+    const modId = run.modules[run.moduleIndex];
+    const modName = modId ? t(`delveUi.module.${modId}` as TranslationKey) : '';
+    const moduleLine = t('delveUi.tracker.module', {
+      current: formatNumber(run.moduleIndex + 1, { maximumFractionDigits: 0 }),
+      total: formatNumber(run.moduleCount, { maximumFractionDigits: 0 }),
+    });
+    const objectiveLine = this.delveObjectiveLine(run);
+    const complete = run.objective.complete || run.completed
+      ? ` <span class="quest-complete">(${esc(t('delveUi.tracker.complete'))})</span>`
+      : '';
+    let affixHtml = '';
+    if (run.affixes.length > 0) {
+      affixHtml = `<div class="dt-affix-row"><span class="dt-affix-label">${esc(t('delveUi.tracker.affix'))}</span>`;
+      for (const affixId of run.affixes) {
+        const color = DELVE_AFFIX_COLORS[affixId] ?? '#888';
+        affixHtml += `<span class="dt-affix-icon" data-affix="${esc(affixId)}" style="background:${color}" aria-hidden="true"></span>`;
+      }
+      affixHtml += '</div>';
+    }
+    const marks = formatNumber(this.sim.delveMarks, { maximumFractionDigits: 0 });
+    let exitHint = '';
+    if (run.moduleIndex < run.moduleCount - 1) {
+      if (run.exitPortalOpen) {
+        exitHint = '<div class="dt-obj dt-hint">→ Walk into the tombstone passage (north)</div>';
+      } else {
+        exitHint = '<div class="dt-obj dt-hint">Clear trash mobs to open the passage north</div>';
+      }
+    }
+    el.innerHTML = `<div class="dt-header">${esc(t('delveUi.tracker.title'))}</div>`
+      + `<div class="dt-title">${esc(delveName)} <span class="dt-tier">${esc(tierLabel)}</span>${complete}</div>`
+      + `<div class="dt-obj">- ${esc(moduleLine)}${modName ? `: ${esc(modName)}` : ''}</div>`
+      + `<div class="dt-obj${run.objective.complete ? ' done' : ''}">- ${esc(t('delveUi.tracker.objective'))}: ${esc(objectiveLine)}</div>`
+      + exitHint
+      + `<div class="dt-obj">- ${esc(t('delveUi.tracker.marks', { count: marks }))}</div>`
+      + affixHtml;
+    el.querySelectorAll('.dt-affix-icon').forEach((icon) => {
+      const affixId = (icon as HTMLElement).dataset.affix!;
+      this.attachTooltip(icon as HTMLElement, () => `<div class="tt-title">${esc(this.delveAffixLabel(affixId))}</div>`);
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -2437,13 +2866,102 @@ export class Hud {
     const ctx = this.minimapCtx;
     const S = 162;
     const p = this.sim.player;
-    $('#zone-label').textContent = zoneDisplayName(zoneAt(p.pos.z).id);
+    const run = this.sim.delveRun;
+    const inDelve = isDelvePos(p.pos.x);
+
+    // Area label: delve module name or overworld zone name
+    if (inDelve && run) {
+      const modId = run.modules[run.moduleIndex];
+      const delveName = delveDisplayName(run.delveId);
+      $('#zone-label').textContent = delveAreaLabel(delveName, modId);
+    } else {
+      $('#zone-label').textContent = zoneDisplayName(zoneAt(p.pos.z).id);
+    }
+
     ctx.clearRect(0, 0, S, S);
     ctx.save();
     ctx.beginPath();
     ctx.arc(S / 2, S / 2, S / 2 - 2, 0, Math.PI * 2);
     ctx.clip();
     ctx.imageSmoothingEnabled = false;
+
+    if (inDelve && run) {
+      // Draw delve schematic instead of overworld terrain
+      const modId = run.modules[run.moduleIndex];
+      const layoutId = (modId ?? 'reliquary_sunken_ossuary') as DelveModuleId;
+      const layout = DELVE_MODULE_LAYOUTS[layoutId] ?? DELVE_MODULE_LAYOUTS['reliquary_sunken_ossuary'];
+      const pad = 8;
+
+      // Rebuild static background only when module changes
+      if (!this.delveSchematicBg || this.delveSchematicBgModuleId !== layoutId) {
+        const bgCanvas = document.createElement('canvas');
+        bgCanvas.width = S;
+        bgCanvas.height = S;
+        const bgCtx = bgCanvas.getContext('2d')!;
+        // Dark room fill behind everything
+        bgCtx.fillStyle = '#0e0c0a';
+        bgCtx.fillRect(0, 0, S, S);
+        drawSchematicPrimitives(bgCtx, delveSchematicStatic(layout, S, pad));
+        this.delveSchematicBg = bgCanvas;
+        this.delveSchematicBgModuleId = layoutId;
+      }
+      ctx.drawImage(this.delveSchematicBg, 0, 0);
+
+      // Entity overlay (mobs and party only — no NPCs/loot inside delves for simplicity)
+      const { localX: pLocalX, localZ: pLocalZ } = playerDelveLocal(p.pos.x, p.pos.z, run.origin);
+      for (const e of this.sim.entities.values()) {
+        if (e.id === p.id) continue;
+        if (e.kind !== 'mob' || e.dead) continue;
+        const elocalX = e.pos.x - run.origin.x;
+        const elocalZ = e.pos.z - run.origin.z;
+        // Map from module-local to the same toCanvas space (mirror X for map-left)
+        const ex = pad + ((23 - elocalX) / 46) * (S - pad * 2);
+        const ey = pad + ((elocalZ - layout.zMin) / (layout.zMax - layout.zMin)) * (S - pad * 2);
+        if (ex < 0 || ex > S || ey < 0 || ey > S) continue;
+        ctx.fillStyle = e.aggroTargetId === p.id ? '#ff8800' : '#e74c3c';
+        ctx.fillRect(ex - 1.5, ey - 1.5, 3, 3);
+      }
+
+      // Party members in the delve
+      const party = this.sim.partyInfo;
+      if (party) {
+        for (const m of party.members) {
+          if (m.pid === p.id) continue;
+          const mlx = m.x - run.origin.x;
+          const mlz = m.z - run.origin.z;
+          const mx = pad + ((23 - mlx) / 46) * (S - pad * 2);
+          const my = pad + ((mlz - layout.zMin) / (layout.zMax - layout.zMin)) * (S - pad * 2);
+          if (mx < 0 || mx > S || my < 0 || my > S) continue;
+          const color = m.dead ? '#9a9a9a' : classCss(m.cls);
+          ctx.fillStyle = color;
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(mx, my, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+
+      // Player arrow (schematic uses absolute canvas position from delveSchematicPlayer)
+      const arrow = delveSchematicPlayer(pLocalX, pLocalZ, p.facing, layout, S, pad);
+      ctx.save();
+      ctx.translate(arrow.cx, arrow.cy);
+      ctx.rotate(arrow.angle);
+      ctx.fillStyle = arrow.fill;
+      ctx.strokeStyle = arrow.stroke;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -arrow.size); ctx.lineTo(arrow.size * 0.6, arrow.size * 0.8); ctx.lineTo(-arrow.size * 0.6, arrow.size * 0.8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.restore();
+      return;
+    }
+
     // 1.7 is the historical base scale; the zoom multiplier shrinks the world
     // radius shown so markers spread out as you zoom in (default 1 = unchanged).
     const pxPerYard = 1.7 * this.minimapZoom;
@@ -2784,11 +3302,100 @@ export class Hud {
 
   // The map window shows the zone band the player is standing in (each band
   // is a square); POIs and dungeon portals come from the zone/dungeon data.
+  // When the player is inside a delve, shows the delve module schematic instead.
   private updateMapWindow(): void {
     const canvas = $('#map-canvas') as unknown as HTMLCanvasElement;
     const ctx = canvas.getContext('2d')!;
     const S = canvas.width;
     const p = this.sim.player;
+
+    // --- Delve branch: render the module schematic ---
+    const run = this.sim.delveRun;
+    if (isDelvePos(p.pos.x) && run) {
+      const modId = run.modules[run.moduleIndex];
+      const layoutId = (modId ?? 'reliquary_sunken_ossuary') as DelveModuleId;
+      const layout = DELVE_MODULE_LAYOUTS[layoutId] ?? DELVE_MODULE_LAYOUTS['reliquary_sunken_ossuary'];
+      const pad = Math.round(S * 0.06);
+
+      // Rebuild static background only when module changes
+      if (!this.delveMapBg || this.delveMapBgModuleId !== layoutId) {
+        const bgCanvas = document.createElement('canvas');
+        bgCanvas.width = S;
+        bgCanvas.height = S;
+        const bgCtx = bgCanvas.getContext('2d')!;
+        bgCtx.fillStyle = '#0e0c0a';
+        bgCtx.fillRect(0, 0, S, S);
+        drawSchematicPrimitives(bgCtx, delveSchematicStatic(layout, S, pad));
+        this.delveMapBg = bgCanvas;
+        this.delveMapBgModuleId = layoutId;
+      }
+
+      ctx.clearRect(0, 0, S, S);
+      ctx.drawImage(this.delveMapBg, 0, 0);
+
+      // Map-local coordinate helper (mirrors local-to-canvas from delve_map.ts)
+      const toDelveMap = (localX: number, localZ: number) => ({
+        mx: pad + ((23 - localX) / 46) * (S - pad * 2),
+        my: pad + ((localZ - layout.zMin) / (layout.zMax - layout.zMin)) * (S - pad * 2),
+      });
+
+      // Mob overlays
+      for (const e of this.sim.entities.values()) {
+        if (e.kind !== 'mob' || e.dead) continue;
+        const { mx, my } = toDelveMap(e.pos.x - run.origin.x, e.pos.z - run.origin.z);
+        if (mx < 0 || mx > S || my < 0 || my > S) continue;
+        ctx.fillStyle = e.aggroTargetId === p.id ? '#ff8800' : '#e74c3c';
+        ctx.fillRect(mx - 2, my - 2, 4, 4);
+      }
+
+      // Party members
+      const party = this.sim.partyInfo;
+      if (party) {
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        for (const m of party.members) {
+          if (m.pid === p.id) continue;
+          const { mx, my } = toDelveMap(m.x - run.origin.x, m.z - run.origin.z);
+          if (mx < 0 || mx > S || my < 0 || my > S) continue;
+          ctx.fillStyle = m.dead ? '#9a9a9a' : classCss(m.cls);
+          ctx.beginPath();
+          ctx.arc(mx, my, 5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+
+      // Player arrow
+      const { localX: pLocalX, localZ: pLocalZ } = playerDelveLocal(p.pos.x, p.pos.z, run.origin);
+      const arrow = delveSchematicPlayer(pLocalX, pLocalZ, p.facing, layout, S, pad);
+      ctx.save();
+      ctx.translate(arrow.cx, arrow.cy);
+      ctx.rotate(arrow.angle);
+      ctx.fillStyle = arrow.fill;
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, -arrow.size); ctx.lineTo(arrow.size * 0.6, arrow.size * 0.8); ctx.lineTo(-arrow.size * 0.6, arrow.size * 0.8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      // Module title at top
+      const delveName = delveDisplayName(run.delveId);
+      const areaLabel = delveAreaLabel(delveName, modId);
+      ctx.font = 'bold 14px Georgia';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 3;
+      ctx.fillStyle = '#ffe9a0';
+      ctx.strokeText(areaLabel, S / 2, 6);
+      ctx.fillText(areaLabel, S / 2, 6);
+      ctx.textBaseline = 'alphabetic';
+      return;
+    }
+
     // inside an instance, show the zone the dungeon's door is in (dungeonAt
     // owns the instance x-band layout); outdoors, follow the committed zone
     // so border-straddling can't thrash the 280px canvas regen below
@@ -3238,6 +3845,16 @@ export class Hud {
           }
           break;
         }
+        case 'lockpickOffer': this.openLockpickAnte(ev.objectId); break;
+        case 'lockpickSession': this.openLockpickBoard({
+          sessionId: ev.sessionId, objectId: ev.objectId, w: ev.w, h: ev.h,
+          col: ev.col, row: ev.row, page: ev.page, pageCount: ev.pageCount,
+          tries: ev.tries, triesTotal: ev.triesTotal, lootTier: ev.lootTier,
+          allowed: ev.allowed, visible: ev.visible,
+        }); break;
+        case 'lockpickStep': this.updateLockpickBoard(ev.col, ev.row, ev.page, ev.pageCount, ev.tries, ev.triesTotal, ev.result, ev.visible); break;
+        case 'lockpickEnd': this.endLockpick(ev.outcome, ev.lootTier); break;
+        case 'delveChestLoot': this.openDelveLoot(ev.chestId, ev.items); break;
         case 'log': {
           const text = this.localizeSystemText(ev.text);
           this.log(text, ev.color ?? '#ccc');
@@ -3728,6 +4345,9 @@ export class Hud {
     if (def?.market) {
       html += `<button type="button" class="qd-list-item" data-market="1" aria-label="${esc(t('questUi.dialog.worldMarketAria'))}"><span class="gold">${svgIcon('market')}</span> ${esc(t('questUi.dialog.worldMarket'))}</button>`;
     }
+    if (Object.values(DELVES).some((d) => d.boardNpcId === npc.templateId)) {
+      html += `<button type="button" class="qd-list-item" data-delve-board="1" aria-label="${esc(t('delveUi.board.openDelveAria', { name: npcName }))}"><span class="gold">${svgIcon('skull')}</span> ${esc(t('delveUi.board.openDelve'))}</button>`;
+    }
     el.innerHTML = html;
     el.querySelectorAll('[data-quest]').forEach((item) => {
       item.addEventListener('click', () => this.renderQuestDetail(npc, (item as HTMLElement).dataset.quest!));
@@ -3747,6 +4367,10 @@ export class Hud {
     el.querySelector('[data-market]')?.addEventListener('click', () => {
       this.closeQuestDialog(false);
       this.openMarket();
+    });
+    el.querySelector('[data-delve-board]')?.addEventListener('click', () => {
+      this.closeQuestDialog(false);
+      this.openDelveBoard(npc.id);
     });
     el.querySelector('[data-close]')?.addEventListener('click', () => this.closeQuestDialog());
     el.style.display = 'block';
@@ -3876,6 +4500,7 @@ export class Hud {
     if (mob.loot.copper <= 0 && visibleItems.length === 0) return;
     this.closeOtherWindows('#loot-window');
     this.openLootMobId = mobId;
+    this.openLootChestId = null;
     const el = $('#loot-window');
     let html = `<div class="panel-title"><span>${esc(entityDisplayName(mob))}</span><button type="button" class="x-btn" data-close aria-label="${esc(t('itemUi.loot.close'))}">${svgIcon('close')}</button></div>`;
     if (mob.loot.copper > 0) {
@@ -3905,6 +4530,7 @@ export class Hud {
   closeLoot(): void {
     $('#loot-window').style.display = 'none';
     this.openLootMobId = null;
+    this.openLootChestId = null;
     this.hideTooltip();
   }
 
@@ -6818,6 +7444,7 @@ export class Hud {
 
   // Closes the topmost UI. Returns true if something was closed.
   closeAll(): boolean {
+    if (this.openLootChestId !== null) { this.closeLoot(); return true; }
     const ctx = $('#ctx-menu');
     if (ctx.style.display !== 'none' && ctx.style.display !== '') { this.closeContextMenu(); return true; }
     if (this.emoteWheelOpen) { this.hideEmoteWheel(); return true; }
@@ -6826,6 +7453,10 @@ export class Hud {
     this.closeManagedWindow(top);
     return true;
   }
+}
+
+function delveDisplayName(delveId: string): string {
+  return tEntity({ kind: 'delve', id: delveId, field: 'name' });
 }
 
 function describeAbilitySummary(known: ResolvedAbility, resourceType: ResourceType | null): string {
@@ -6934,6 +7565,55 @@ function entityDisplayName(entity: Entity): string {
   if (entity.kind === 'mob') return entity.ownerId !== null ? entity.name : mobDisplayName(entity.templateId);
   if (entity.kind === 'npc') return npcDisplayName(entity.templateId);
   return entity.name;
+}
+
+/** Render SchematicPrimitive[] onto a canvas context (shared by minimap and world-map). */
+function drawSchematicPrimitives(ctx: CanvasRenderingContext2D, prims: SchematicPrimitive[]): void {
+  for (const prim of prims) {
+    ctx.save();
+    if (prim.kind === 'circle') {
+      ctx.beginPath();
+      ctx.arc(prim.cx, prim.cy, prim.r, 0, Math.PI * 2);
+      ctx.fillStyle = prim.fill;
+      ctx.fill();
+      if (prim.stroke) {
+        ctx.strokeStyle = prim.stroke;
+        ctx.lineWidth = prim.strokeWidth ?? 1;
+        ctx.stroke();
+      }
+    } else if (prim.kind === 'rect') {
+      ctx.fillStyle = prim.fill;
+      ctx.fillRect(prim.x, prim.y, prim.w, prim.h);
+      if (prim.stroke) {
+        ctx.strokeStyle = prim.stroke;
+        ctx.lineWidth = prim.strokeWidth ?? 1;
+        ctx.strokeRect(prim.x, prim.y, prim.w, prim.h);
+      }
+    } else if (prim.kind === 'text') {
+      ctx.font = prim.font;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = prim.fill;
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.strokeText(prim.text, prim.cx, prim.cy);
+      ctx.fillText(prim.text, prim.cx, prim.cy);
+    } else if (prim.kind === 'arrow') {
+      ctx.translate(prim.cx, prim.cy);
+      ctx.rotate(prim.angle);
+      ctx.fillStyle = prim.fill;
+      ctx.strokeStyle = prim.stroke;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -prim.size);
+      ctx.lineTo(prim.size * 0.6, prim.size * 0.8);
+      ctx.lineTo(-prim.size * 0.6, prim.size * 0.8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
 }
 
 function abilityDisplayNameFromSource(name: string): string {

@@ -18,6 +18,7 @@ export interface PickInteractionWorld {
 export interface PickInteractionHud {
   openLoot(mobId: number, screenX: number, screenY: number): void;
   openQuestDialog(npcId: number): void;
+  openDelveBoard(npcId: number): void;
   showError(text: string): void;
   closeContextMenu(): void;
 }
@@ -96,7 +97,8 @@ export function handlePickedEntity(
       else hud.showError('Too far away.');
     } else if (e.kind === 'npc') {
       if (d <= INTERACT_RANGE + 2) {
-        hud.openQuestDialog(id);
+        if (e.templateId === 'brother_halven') hud.openDelveBoard(id);
+        else hud.openQuestDialog(id);
       }
       else hud.showError('Too far away.');
     } else if ((e.kind === 'mob' && !e.dead && e.hostile) || isActivePvpOpponent(world, e)) {
@@ -118,7 +120,8 @@ export function handlePickedEntity(
       // out of range it just targets (no error spam while exploring)
       const d = dist2d(world.player.pos, e.pos);
       if (d <= INTERACT_RANGE + 2) {
-        hud.openQuestDialog(id);
+        if (e.templateId === 'brother_halven') hud.openDelveBoard(id);
+        else hud.openQuestDialog(id);
       }
     }
   }

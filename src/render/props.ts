@@ -726,6 +726,66 @@ export function buildProps(seed: number): PropsResult {
     registerHideable(g, obbFootprint(hx, hz, d.hutLocal.hw, d.hutLocal.hd, d.rot, ground(hx, hz) + 2.9));
   }
 
+  // ---- delve entrance markers: grimy carved-stone name slab ----------------
+  for (const dm of PROPS.delveMarkers ?? []) {
+    const gy = ground(dm.x, dm.z);
+    const slabY = gy + 1.55;
+
+    // stone backing box
+    const backMat = surfaceMat({ color: 0x3a3530 });
+    const backing = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.9, 0.18), backMat);
+    backing.position.set(dm.x, slabY, dm.z - 0.5);
+    backing.castShadow = true;
+    group.add(backing);
+
+    // grimy canvas inscription on the south-facing surface
+    const CW = 512, CH = 96;
+    const cv = document.createElement('canvas');
+    cv.width = CW; cv.height = CH;
+    const ctx = cv.getContext('2d')!;
+
+    ctx.fillStyle = '#2b2722';
+    ctx.fillRect(0, 0, CW, CH);
+    ctx.strokeStyle = '#16120e';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(6, 6, CW - 12, CH - 12);
+
+    // horizontal grime streaks (deterministic)
+    for (let i = 0; i < 10; i++) {
+      const gx = hash2(dm.x + i * 1.3, dm.z, 0x6d61726b) * CW;
+      const gy2 = hash2(dm.z + i * 1.7, dm.x, 0x6d61726b) * CH;
+      const gw = 20 + hash2(i * 3.1, dm.x + dm.z, 0x6d61726b) * 55;
+      ctx.fillStyle = `rgba(6,4,2,${0.22 + hash2(i * 5.9, dm.z, 0x6d61726b) * 0.32})`;
+      ctx.fillRect(gx - gw / 2, gy2 - 1.8, gw, 3.6);
+    }
+
+    // carved text — shadow pass then bright pass for depth illusion
+    ctx.font = 'bold 34px Georgia, "Times New Roman", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#120f0b';
+    ctx.fillText(dm.label.toUpperCase(), CW / 2 + 2, CH / 2 + 2);
+    ctx.fillStyle = '#7d6e59';
+    ctx.fillText(dm.label.toUpperCase(), CW / 2, CH / 2);
+
+    const tex = new THREE.CanvasTexture(cv);
+    const faceMat = new THREE.MeshBasicMaterial({ map: tex });
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 0.78), faceMat);
+    // sit flush on the south face of the backing
+    face.position.set(dm.x, slabY, dm.z - 0.5 - 0.1);
+    group.add(face);
+
+    // two short stone support posts
+    const postMat = surfaceMat({ color: 0x4a443c });
+    const postH = slabY - gy - 0.45;
+    for (const bx of [-1.85, 1.85]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.28, postH, 0.28), postMat);
+      post.position.set(dm.x + bx, gy + postH / 2 + 0.05, dm.z - 0.5);
+      post.castShadow = true;
+      group.add(post);
+    }
+  }
+
   // ---- flush instanced batches ---------------------------------------------
   const cullables: PropCullable[] = [];
   for (const batch of instanceBatches.values()) {
