@@ -8,8 +8,19 @@ and `PLAYTEST_OFFLINE.md` (all deleted). Companion docs that remain:
 - `docs/prd/DELVE_REBUILD_V0.8.md` — full plan to re-port delves onto upstream v0.8.0.
 - `docs/prd/DELVE_LOCKPICK_MINIGAME.md` — "Tumbler's Path" engineering plan.
 
-Branch: **`feature/delves`** (17 commits ahead, 108 behind `origin/main`/v0.8.0).
-Do **not** push unless the operator asks. **All work is uncommitted.**
+**Two-branch handoff (2026-06-18):** The work is split across two branches on
+`MasterZensei/world-of-claudecraft` (the operator's fork). Fernando should combine
+them onto `origin/release/v0.10.0`:
+
+| Branch | Base | What it contains |
+|---|---|---|
+| `fork/feature/delves` | v0.8.0-era | Full working delve feature: all Sim methods, HUD, interactions, online wiring — but has camera-churn bug commits (see §8) |
+| `fork/feature/delves-v2` | v0.9.0 (`63c7ca4d`) | Clean skeleton without camera churn: all new files (sim/content/delves/, lockpick, render, types, data, colliders, world_api, tests, docs) plus Sim class imports. **Missing:** Sim class body methods, HUD, interactions wiring, ClientWorld stubs — port these from `fork/feature/delves` (see §8) |
+
+**Fernando's recommended approach:** rebase `fork/feature/delves-v2` onto
+`origin/release/v0.10.0` (see §8.1 for the v0.10.0 delta that affects sim.ts,
+types.ts, world_api.ts), then port the remaining layers from `fork/feature/delves`
+skipping the camera-churn commits listed in §8.
 
 Last updated: **2026-06-18**.
 
@@ -363,3 +374,122 @@ Looted chest gear scales on **two axes**:
   **not** invent balance numbers (CLAUDE.md "real classic-era formulas"). Keep the
   endpoints fixed (Tier-1 entry ilvl → Tier-3 non-Bountiful ceiling → Tier-8
   Bountiful ceiling) and interpolate.
+
+---
+
+## 8. Combining the two branches — guide for Fernando
+
+> **TL;DR:** `fork/feature/delves-v2` is the clean base (no camera churn). It's
+> missing the Sim body + UI layers, which live in `fork/feature/delves`. Port
+> those layers across (skipping the listed camera-churn commits), then rebase the
+> whole thing onto `origin/release/v0.10.0`.
+
+### 8.1 — Rebase onto v0.10.0 first
+
+`fork/feature/delves-v2` is based on v0.9.0 (`63c7ca4d`). Before porting
+additional layers, rebase it onto `origin/release/v0.10.0`. The files our
+skeleton touched that also changed in v0.10.0 (108-commit content pack):
+
+| File | v0.10.0 delta that intersects us |
+|---|---|
+| `src/sim/sim.ts` | +1065 lines of new mob abilities, rested XP, rare-elite logic. Our Sim class additions go **after** the existing `updateInstances()` region — check for merge conflicts there. |
+| `src/sim/types.ts` | New `AuraKind` variants, new `MobTemplate` fields. Our `PlayerMeta` delve fields and `DelveRun`/`LockSession` types append cleanly; check for any new `Entity` fields that collide. |
+| `src/world_api.ts` | v0.10.0 adds `restedXp: number` to `IWorld`. Our delve members are already in the file; just keep `restedXp` and add stubs to both `Sim` and `ClientWorld`. |
+| `src/net/online.ts` | v0.10.0 adds `restedXp = 0` stub. Our `ClientWorld` delve stubs go in the same pass. |
+
+Files **not changed** in v0.10.0 (apply cleanly): `src/sim/colliders.ts`,
+`src/sim/dungeon_layout.ts`, `src/render/dungeon.ts`,
+`src/render/assets/loader.ts`.
+
+### 8.2 — Camera-churn commits to SKIP from `fork/feature/delves`
+
+Do **not** cherry-pick these commits when porting from `fork/feature/delves`:
+
+| Commit | Why to skip |
+|---|---|
+| `4d6b0471` | Camera clamp / chase-camera experiment |
+| `7ef19368` | Delve camera/walkable-bounds alignment (broken approach) |
+| `76499f2e` | Render: prebuild delve module interiors (camera-related side effect) |
+| `a532674c` | Docs: delve continue handoff for render fix (references camera churn) |
+| Camera-clamp parts of `5cdee1ca` | Only the `clampChaseCameraInModule` hunk; the rest of the commit is fine |
+| Camera-clamp parts of `2a126df2` | Same — skip only the camera-clamp hunk |
+
+In `src/render/renderer.ts`, **do not port** `clampChaseCameraInModule` or any
+call to it. The correct camera behavior is the standard chase camera used by
+dungeons — no per-module clamping needed.
+
+### 8.3 — Remaining files to port from `fork/feature/delves`
+
+These are present and working in `fork/feature/delves` but **absent** from
+`fork/feature/delves-v2`:
+
+**`src/sim/sim.ts` — Sim class body (the largest piece)**
+Lines ~7575–9007 in `fork/feature/delves`. Methods to port:
+- Constants block: `DELVE_PLATE_RADIUS`, `DELVE_INTERACT_RANGE`, `DELVE_BAD_AIR_INTERVAL`,
+  `DELVE_RAISE_DEAD_CHANNEL`, `DELVE_COMPANION_HEAL_RANGE`, `DELVE_COMPANION_HEAL_INTERVAL`,
+  `DELVE_COMPANION_FOLLOW`, `DELVE_EXIT_PORTAL_RADIUS`, `DELVE_MODULE_NAMES`
+- `PlayerMeta` additional fields: `delveMarks`, `delveClears`, `companionUpgrades`,
+  `delveLoreUnlocked`, `delveDaily`
+- `CharacterState` optional delve fields
+- `Sim` class: `delveRuns: DelveRun[] = []`, `private delvePetStash = new Map<number, PetState>()`
+- Constructor: `delveRuns` initialization loop
+- `addPlayer`: delve meta init and state restore from `charState`
+- `serializeCharacter`: persist delve fields
+- `tick()`: add `this.updateDelveRuns()` after `this.updateInstances()`
+- `updateMob`: add `if (this.isDelveCompanionMob(mob)) { this.updateDelveCompanion(mob); return; }` before `updatePet`
+- `releaseSpirit`: check delve run first, eject if in a run
+- Movement: pass `delveModules` (4th arg from `this.delveRunForPlayer(pid)?.modules`) to all 3 `resolveMovement` calls
+- All delve methods: `delveRunForPlayer`, `enterDelve`, `leaveDelve`, `claimDelveRun`,
+  `spawnDelveModule`, `freeDelveRun`, `updateDelveRuns`, `advanceDelveModule`,
+  `delveInteract`, `lockpickEngage`, `lockpickAction`, `lockpickTimeout`,
+  `lockpickAbort`, `collectDelveChestLoot`, `companionUpgrade`, `delveMarksFor`,
+  `isDelveCompanionMob`, `updateDelveCompanion`, IWorld method implementations for
+  `enterDelve`/`leaveDelve`/`delveInteract`/`companionUpgrade`/`lockpickEngage`/
+  `lockpickAction`/`lockpickAbort`/`lockpickTimeout`/`collectDelveChestLoot`,
+  and getters `lockpickState`, `delveRun`, `companionState`, `delveMarks`,
+  `companionUpgrades`, `delveDaily`
+
+**`src/net/online.ts` — ClientWorld delve member stubs**
+Add no-op / null stubs for all IWorld delve members (the client receives them via
+server snapshot, not by computing them locally).
+
+**`src/ui/hud.ts` — delve board, tier-select, run tracker, lockpick panel wiring**
+~+188 lines in `fork/feature/delves`. Port the delve-board window, tier-select
+modal, run-status tracker panel, and lockpick panel open/close hooks.
+
+**`src/game/interactions.ts` — delveInteract wiring**
+~+12 lines. The `interact()` handler needs to call `world.delveInteract(id)` for
+objects inside the delve band.
+
+**`index.html` + `src/main.ts` — entry wiring**
+~+27 lines in index.html, ~+14 in main.ts. Lockpick panel and delve board are
+registered as HUD windows here.
+
+**`src/render/renderer.ts` — build interiors on delveEntered event**
+Port the `onSimEvent('delveEntered', ...)` handler that calls
+`buildDelveInteriors(run)`. **Do NOT port** `clampChaseCameraInModule` (§8.2).
+
+**`src/render/props.ts` — delve marker grime using `hash2(x, y, seed)`**
+The grime-streak code uses `hash2(x, y, 0x6d61726b)` — the 3-arg form with a
+fixed seed. Already correct in `fork/feature/delves-v2`; just confirm it stayed
+clean after the rebase.
+
+**`server/game.ts` — server snapshot wire for `delveRun` / `companionState`**
+The server snapshot serializer needs to include `delveRun` and `companionState`
+in the per-player snapshot so `ClientWorld` can mirror them.
+
+### 8.4 — Verification after the merge
+
+```powershell
+npx tsc --noEmit
+npx vitest run tests/delves.test.ts tests/delve_colliders.test.ts \
+  tests/delve_companion.test.ts tests/lockpick_gen.test.ts \
+  tests/lockpick_step.test.ts tests/lockpick_command.test.ts \
+  tests/localization_fixes.test.ts
+npm test
+npm run build
+```
+
+Then offline playtest: `npm run dev` → Play Offline → `/dev level 7` →
+`/dev tp -5 -52` → interact Brother Halven → board → Enter. Confirm camera
+does **not** go black (no `clampChaseCameraInModule` in the path).
