@@ -285,6 +285,25 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     id: 'gravepath_treads', name: 'Gravepath Treads', kind: 'armor', slot: 'feet', quality: 'rare',
     stats: { armor: 42, sta: 2 }, sellValue: 600,
   },
+  // --- Captain Verlan (ruins rare) drops ---
+  // A shared uncommon trophy (any class) plus a mutually-exclusive rare chase
+  // group, one item per archetype, mirroring the other zone-1 rare elites.
+  oathbound_greaves: {
+    id: 'oathbound_greaves', name: 'Oathbound Greaves', kind: 'armor', slot: 'legs', quality: 'uncommon',
+    stats: { armor: 52, sta: 2, str: 1 }, sellValue: 200,
+  },
+  verlans_oathblade: {
+    id: 'verlans_oathblade', name: "Verlan's Oathblade", kind: 'weapon', slot: 'mainhand', quality: 'rare',
+    weapon: { min: 10, max: 16, speed: 2.5 }, stats: { str: 4, sta: 2 }, sellValue: 880, requiredClass: WAR,
+  },
+  hollow_vigil_staff: {
+    id: 'hollow_vigil_staff', name: 'Staff of the Hollow Vigil', kind: 'weapon', slot: 'mainhand', quality: 'rare',
+    weapon: { min: 11, max: 18, speed: 3.0 }, stats: { int: 5, spi: 2 }, sellValue: 880, requiredClass: MAG,
+  },
+  gravewardens_shiv: {
+    id: 'gravewardens_shiv', name: "Gravewarden's Shiv", kind: 'weapon', slot: 'mainhand', quality: 'rare',
+    weapon: { min: 7, max: 11, speed: 1.7, dagger: true }, stats: { agi: 4, sta: 2 }, sellValue: 880, requiredClass: ROG,
+  },
   // --- quest items ---
   boar_hide: { id: 'boar_hide', name: 'Bristly Boar Hide', kind: 'quest', sellValue: 0, questId: 'q_boars' },
   gravecaller_sigil: { id: 'gravecaller_sigil', name: "Gravecaller's Sigil", kind: 'quest', sellValue: 0, questId: 'q_whispers' },

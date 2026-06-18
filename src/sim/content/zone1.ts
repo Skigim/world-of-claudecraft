@@ -218,6 +218,28 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
     // A grave-cold wail saps the strength from the living it strikes.
     demoralize: { ap: 20, duration: 8, name: 'Withering Wail' },
   },
+  captain_verlan: {
+    // A rare named undead champion risen among the ruins' Restless Bones —
+    // the undead family's rare elite, filling the gap beside Old Greyjaw
+    // (beast), Elder Bristleback (beast), Sableweb Matriarch (spider) and
+    // Mogger (humanoid). A heavy, slow striker that erupts in a shadow nova
+    // and goes berserk when low; loot mirrors the other rare elites.
+    id: 'captain_verlan', name: 'Captain Verlan', minLevel: 7, maxLevel: 7, family: 'undead', rare: true,
+    elite: true, ccImmune: true, respawnMult: 432,
+    hpBase: 280, hpPerLevel: 56, dmgBase: 12, dmgPerLevel: 3.4, attackSpeed: 2.6,
+    armorPerLevel: 32, moveSpeed: 7.4, aggroRadius: 13,
+    aoePulse: { min: 13, max: 19, radius: 9, every: 9, name: 'Hollow Nova', school: 'shadow', fx: 'nova' },
+    enrage: { belowHpPct: 0.30, dmgMult: 1.5 },
+    loot: [
+      { copper: 160, chance: 1 },
+      { itemId: 'bone_fragments', chance: 1 },
+      { itemId: 'oathbound_greaves', chance: 0.3 },
+      { itemId: 'verlans_oathblade', chance: 0.25, rollGroup: 'verlan_chase' },
+      { itemId: 'hollow_vigil_staff', chance: 0.25, rollGroup: 'verlan_chase' },
+      { itemId: 'gravewardens_shiv', chance: 0.25, rollGroup: 'verlan_chase' },
+    ],
+    scale: 1.26, color: 0x3b4a5a,
+  },
   gorrak: {
     id: 'gorrak', name: 'Gorrak the Ruthless', minLevel: 6, maxLevel: 6, family: 'humanoid',
     hpBase: 160, hpPerLevel: 30, dmgBase: 8, dmgPerLevel: 2.4, attackSpeed: 2.4,
@@ -535,6 +557,7 @@ export const ZONE1_CAMPS: CampDef[] = [
   { mobId: 'gorrak', center: { x: 92, z: -92 }, radius: 2, count: 1 },
   // Undead: ruins northeast
   { mobId: 'restless_bones', center: { x: 80, z: 78 }, radius: 18, count: 8 },
+  { mobId: 'captain_verlan', center: { x: 92, z: 90 }, radius: 4, count: 1 },
 ];
 
 
