@@ -4980,6 +4980,18 @@ export class Sim {
         p.resource = Math.min(p.maxResource, p.resource + def.potionMana!);
       }
       this.emit({ type: 'log', text: `You quaff ${def.name}.`, color: '#c9f', pid: meta.entityId });
+    } else if (def.kind === 'elixir') {
+      // Battle elixir: grant a temporary stat-buff aura. Usable in combat (classic),
+      // no shared potion cooldown; re-quaffing refreshes the buff via applyAura.
+      const elx = def.elixir;
+      if (!elx) return;
+      this.removeItem(itemId, 1, meta.entityId);
+      this.applyAura(p, {
+        id: `elixir_${itemId}`, name: elx.aura, kind: elx.kind,
+        remaining: elx.duration, duration: elx.duration, value: elx.value,
+        sourceId: p.id, school: 'nature',
+      });
+      this.emit({ type: 'log', text: `You quaff ${def.name}.`, color: '#c9f', pid: meta.entityId });
     } else if (def.kind === 'weapon' || def.kind === 'armor') {
       this.equipItem(itemId, meta.entityId);
     }

@@ -79,6 +79,7 @@ const baseEnTable = {
   "loot.rollWin": "{winner} wins {item} ({roll})",
   "aura.tamed": "Tamed",
   "aura.causticSpores": "Caustic Spores",
+  "aura.elixirBear": "Might of the Bear",
 } as const;
 
 const petEnTable = {
@@ -190,6 +191,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner} wins {item} ({roll})",
     "aura.tamed": "Tamed",
     "aura.causticSpores": "Caustic Spores",
+    "aura.elixirBear": "Might of the Bear",
   },
   es: {
     "error.lineOfSight": "Sin línea de visión.",
@@ -255,6 +257,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner} gana {item} ({roll})",
     "aura.tamed": "Domado",
     "aura.causticSpores": "Esporas Cáusticas",
+    "aura.elixirBear": "Poder del Oso",
   },
   es_ES: {
     "error.lineOfSight": "Sin línea de visión.",
@@ -320,6 +323,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner} gana {item} ({roll})",
     "aura.tamed": "Domado",
     "aura.causticSpores": "Esporas Cáusticas",
+    "aura.elixirBear": "Poder del Oso",
   },
   fr_FR: {
     "error.lineOfSight": "Pas de ligne de vue.",
@@ -385,6 +389,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner} remporte {item} ({roll})",
     "aura.tamed": "Apprivoisé",
     "aura.causticSpores": "Spores Caustiques",
+    "aura.elixirBear": "Puissance de l'Ours",
   },
   fr_CA: {
     "error.lineOfSight": "Pas de ligne de vue.",
@@ -450,6 +455,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner} remporte {item} ({roll})",
     "aura.tamed": "Apprivoisé",
     "aura.causticSpores": "Spores Caustiques",
+    "aura.elixirBear": "Puissance de l'Ours",
   },
   en_CA: {
     "error.lineOfSight": "Line of sight.",
@@ -515,6 +521,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner} wins {item} ({roll})",
     "aura.tamed": "Tamed",
     "aura.causticSpores": "Caustic Spores",
+    "aura.elixirBear": "Might of the Bear",
   },
   it_IT: {
     "error.lineOfSight": "Nessuna linea di vista.",
@@ -580,6 +587,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner} vince {item} ({roll})",
     "aura.tamed": "Addomesticato",
     "aura.causticSpores": "Spore Caustiche",
+    "aura.elixirBear": "Potenza dell'Orso",
   },
   de_DE: {
     "error.lineOfSight": "Kein Sichtkontakt.",
@@ -645,6 +653,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner} gewinnt {item} ({roll})",
     "aura.tamed": "Gezähmt",
     "aura.causticSpores": "Ätzende Sporen",
+    "aura.elixirBear": "Macht des Bären",
   },
   zh_CN: {
     "error.lineOfSight": "目标不在视线内。",
@@ -710,6 +719,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner}赢得了{item}（{roll}）",
     "aura.tamed": "已驯服",
     "aura.causticSpores": "腐蚀孢子",
+    "aura.elixirBear": "巨熊之力",
   },
   zh_TW: {
     "error.lineOfSight": "目標不在視線內。",
@@ -775,6 +785,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner} 擲骰獲得 {item}（{roll}）",
     "aura.tamed": "馴服",
     "aura.causticSpores": "腐蝕孢子",
+    "aura.elixirBear": "巨熊之力",
   },
   ko_KR: {
     "error.lineOfSight": "시야가 막혀 있습니다.",
@@ -840,6 +851,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner}님이 {item}을(를) 획득했습니다 ({roll})",
     "aura.tamed": "길들여짐",
     "aura.causticSpores": "부식성 포자",
+    "aura.elixirBear": "곰의 힘",
   },
   ja_JP: {
     "error.lineOfSight": "視線が通っていません。",
@@ -905,6 +917,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner}が{item}を獲得しました（{roll}）",
     "aura.tamed": "テイム",
     "aura.causticSpores": "腐食胞子",
+    "aura.elixirBear": "熊の力",
   },
   pt_BR: {
     "error.lineOfSight": "Sem linha de visão.",
@@ -970,6 +983,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner} vence {item} ({roll})",
     "aura.tamed": "Domado",
     "aura.causticSpores": "Esporos Cáusticos",
+    "aura.elixirBear": "Força do Urso",
   },
   ru_RU: {
     "error.lineOfSight": "Нет прямой видимости.",
@@ -1035,6 +1049,7 @@ const BASE_DICT: Record<SupportedLanguage, Record<BaseSimMessageKey, string>> = 
     "loot.rollWin": "{winner} выигрывает {item} ({roll})",
     "aura.tamed": "Приручён",
     "aura.causticSpores": "Едкие споры",
+    "aura.elixirBear": "Мощь Медведя",
   },
 };
 
@@ -1500,6 +1515,7 @@ function locPetMode(mode: string): string {
 // Flavor aura names (not abilities, not talents) shown in the buff frame / combat log.
 const AURA_NAME_KEY: Record<string, SimMessageKey> = {
   Tamed: 'aura.tamed',
+  'Might of the Bear': 'aura.elixirBear',
   Summoned: 'aura.summoned',
   Fed: 'aura.fed',
   'Caustic Spores': 'aura.causticSpores',

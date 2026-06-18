@@ -191,6 +191,13 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     id: 'minor_mana_potion', name: 'Minor Mana Potion', kind: 'potion', quality: 'common',
     potionMana: 120, sellValue: 8, buyValue: 40,
   },
+  // --- battle elixir: a temporary stat buff on use (classic flask/elixir staple).
+  // Drops from the Mirefen brutes; +Stamina helps anyone push deeper into the marsh.
+  elixir_of_the_bear: {
+    id: 'elixir_of_the_bear', name: 'Elixir of the Bear', kind: 'elixir', quality: 'uncommon',
+    elixir: { aura: 'Might of the Bear', kind: 'buff_sta', value: 12, duration: 900 },
+    sellValue: 20, buyValue: 100,
+  },
   conjured_water: {
     id: 'conjured_water', name: 'Conjured Spring Water', kind: 'drink', quality: 'common',
     drinkMana: 76, sellValue: 0,

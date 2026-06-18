@@ -148,6 +148,7 @@ export const ZONE2_MOBS: Record<string, MobTemplate> = {
       { itemId: 'troll_fetish', chance: 0.6, questId: 'q_troll_fetishes' },
       { itemId: 'chipped_tusk', chance: 0.4 },
       { itemId: 'bogiron_nugget', chance: 0.3 },
+      { itemId: 'elixir_of_the_bear', chance: 0.07 },
     ],
     scale: 1.15, color: 0x229954,
   },

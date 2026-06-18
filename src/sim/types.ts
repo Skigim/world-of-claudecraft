@@ -105,7 +105,7 @@ export type ItemUse =
 export interface ItemDef {
   id: string;
   name: string;
-  kind: 'weapon' | 'armor' | 'quest' | 'junk' | 'food' | 'drink' | 'tool' | 'potion';
+  kind: 'weapon' | 'armor' | 'quest' | 'junk' | 'food' | 'drink' | 'tool' | 'potion' | 'elixir';
   slot?: EquipSlot;
   weapon?: WeaponInfo;
   stats?: Partial<Stats>;
@@ -123,6 +123,10 @@ export interface ItemDef {
   // potions: restored instantly, usable in combat, share a cooldown (#103)
   potionHp?: number;
   potionMana?: number;
+  // elixirs: a temporary stat-buff aura granted on use (classic battle elixirs).
+  // `aura` is a flavor name shown in the buff frame; `value` is the stat amount,
+  // `duration` the buff length in seconds. Folds through the normal aura/stat path.
+  elixir?: { aura: string; kind: AuraKind; value: number; duration: number };
   quality?: 'poor' | 'common' | 'uncommon' | 'rare' | 'epic'; // gray/white/green/blue/purple name colors
   requiredClass?: PlayerClass[];
 }
