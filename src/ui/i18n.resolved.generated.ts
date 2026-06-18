@@ -1244,6 +1244,10 @@ export const en: EnTranslations = {
         "name": "Battle Shout",
         "description": "Increases your attack power by 20 for 2 min."
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "Charge",
         "description": "Charges an enemy, generating 9 rage and stunning it for 1 sec. 8-25 yd range."
@@ -1312,6 +1316,10 @@ export const en: EnTranslations = {
         "name": "Conjure Water",
         "description": "Conjures 2 bottles of water, restoring mana when drunk. Higher ranks conjure purer water."
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "Fire Blast",
         "description": "Blasts the enemy for {damage} Fire damage. Instant."
@@ -1335,6 +1343,10 @@ export const en: EnTranslations = {
       "scorch": {
         "name": "Scorch",
         "description": "Scorches the enemy for {damage} Fire damage. Quick to cast."
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "Ice Barrier",
@@ -2154,6 +2166,15 @@ export const en: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "Cracked Wyrm Scale"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "Bristleback Maul"
@@ -4841,6 +4862,10 @@ export const es: EnTranslations = {
         "name": "Grito de batalla",
         "description": "Aumenta tu poder de ataque en 20 durante 2 min."
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "Cargar",
         "description": "Carga contra un enemigo, genera 9 de ira y lo aturde durante 1 s. Alcance de 8-25 m."
@@ -4909,6 +4934,10 @@ export const es: EnTranslations = {
         "name": "Crear agua",
         "description": "Crea 2 botellas de agua que restauran maná al beberlas. Los rangos superiores crean agua más pura."
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "Explosión de Fuego",
         "description": "Explota contra el enemigo y causa {damage} de daño de Fuego. Instantáneo."
@@ -4932,6 +4961,10 @@ export const es: EnTranslations = {
       "scorch": {
         "name": "Agostar",
         "description": "Agosta al enemigo por {damage} de daño de Fuego. Lanzamiento rápido."
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "Barrera de Hielo",
@@ -5751,6 +5784,15 @@ export const es: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "Escama de wyrm agrietada"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "Maza Bristleback"
@@ -8438,6 +8480,10 @@ export const es_ES: EnTranslations = {
         "name": "Grito de batalla",
         "description": "Aumenta tu poder de ataque en 20 durante 2 min."
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "Cargar",
         "description": "Carga contra un enemigo, genera 9 de ira y lo aturde durante 1 s. Alcance de 8-25 m."
@@ -8506,6 +8552,10 @@ export const es_ES: EnTranslations = {
         "name": "Crear agua",
         "description": "Crea 2 botellas de agua que restauran maná al beberlas. Los rangos superiores crean agua más pura."
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "Explosión de Fuego",
         "description": "Explota contra el enemigo y causa {damage} de daño de Fuego. Instantáneo."
@@ -8529,6 +8579,10 @@ export const es_ES: EnTranslations = {
       "scorch": {
         "name": "Agostar",
         "description": "Agosta al enemigo por {damage} de daño de Fuego. Lanzamiento rápido."
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "Barrera de Hielo",
@@ -9348,6 +9402,15 @@ export const es_ES: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "Escama de wyrm agrietada"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "Maza Bristleback"
@@ -12035,6 +12098,10 @@ export const fr_FR: EnTranslations = {
         "name": "Cri de guerre",
         "description": "Augmente votre puissance d'attaque de 20 pendant 2 min."
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "Charge",
         "description": "Charge un ennemi, génère 9 rage et l'étourdit pendant 1 s. Portée de 8-25 m."
@@ -12103,6 +12170,10 @@ export const fr_FR: EnTranslations = {
         "name": "Invocation d'eau",
         "description": "Invoque 2 bouteilles d'eau qui restaurent du mana une fois bues. Les rangs supérieurs invoquent une eau plus pure."
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "Trait de feu",
         "description": "Frappe l'ennemi pour {damage} points de dégâts de Feu. Instantané."
@@ -12126,6 +12197,10 @@ export const fr_FR: EnTranslations = {
       "scorch": {
         "name": "Brûlure",
         "description": "Brûle l'ennemi pour {damage} points de dégâts de Feu. Incantation rapide."
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "Barrière de glace",
@@ -12945,6 +13020,15 @@ export const fr_FR: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "Écaille de wyrm fendue"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "Maillet Bristleback"
@@ -15632,6 +15716,10 @@ export const fr_CA: EnTranslations = {
         "name": "Cri de guerre",
         "description": "Augmente votre puissance d'attaque de 20 pendant 2 min."
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "Charge",
         "description": "Charge un ennemi, génère 9 rage et l'étourdit pendant 1 s. Portée de 8-25 m."
@@ -15700,6 +15788,10 @@ export const fr_CA: EnTranslations = {
         "name": "Invocation d'eau",
         "description": "Invoque 2 bouteilles d'eau qui restaurent du mana une fois bues. Les rangs supérieurs invoquent une eau plus pure."
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "Trait de feu",
         "description": "Frappe l'ennemi pour {damage} points de dégâts de Feu. Instantané."
@@ -15723,6 +15815,10 @@ export const fr_CA: EnTranslations = {
       "scorch": {
         "name": "Brûlure",
         "description": "Brûle l'ennemi pour {damage} points de dégâts de Feu. Incantation rapide."
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "Barrière de glace",
@@ -16542,6 +16638,15 @@ export const fr_CA: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "Écaille de wyrm fendue"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "Maillet Bristleback"
@@ -19229,6 +19334,10 @@ export const en_CA: EnTranslations = {
         "name": "Battle Shout",
         "description": "Increases your attack power by 20 for 2 min."
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "Charge",
         "description": "Charges an enemy, generating 9 rage and stunning it for 1 sec. 8-25 yd range."
@@ -19297,6 +19406,10 @@ export const en_CA: EnTranslations = {
         "name": "Conjure Water",
         "description": "Conjures 2 bottles of water, restoring mana when drunk. Higher ranks conjure purer water."
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "Fire Blast",
         "description": "Blasts the enemy for {damage} Fire damage. Instant."
@@ -19320,6 +19433,10 @@ export const en_CA: EnTranslations = {
       "scorch": {
         "name": "Scorch",
         "description": "Scorches the enemy for {damage} Fire damage. Quick to cast."
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "Ice Barrier",
@@ -20139,6 +20256,15 @@ export const en_CA: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "Cracked Wyrm Scale"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "Bristleback Maul"
@@ -22826,6 +22952,10 @@ export const it_IT: EnTranslations = {
         "name": "Urlo di Battaglia",
         "description": "Aumenta la tua potenza d'attacco di 20 per 2 min."
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "Carica",
         "description": "Carica un nemico, genera 9 rabbia e lo stordisce per 1 s. Portata 8-25 m."
@@ -22894,6 +23024,10 @@ export const it_IT: EnTranslations = {
         "name": "Evoca Acqua",
         "description": "Evoca 2 bottiglie d'acqua che ripristinano mana quando bevute. I ranghi superiori evocano acqua più pura."
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "Esplosione di Fuoco",
         "description": "Investe il nemico per {damage} danni da Fuoco. Istantaneo."
@@ -22917,6 +23051,10 @@ export const it_IT: EnTranslations = {
       "scorch": {
         "name": "Bruciatura",
         "description": "Brucia il nemico per {damage} danni da Fuoco. Lancio rapido."
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "Barriera di Ghiaccio",
@@ -23736,6 +23874,15 @@ export const it_IT: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "Scaglia di wyrm incrinata"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "Maglio Bristleback"
@@ -26423,6 +26570,10 @@ export const de_DE: EnTranslations = {
         "name": "Schlachtruf",
         "description": "Erhöht eure Angriffskraft 2 Min. lang um 20."
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "Sturmangriff",
         "description": "Stürmt auf einen Gegner zu, erzeugt 9 Wut und betäubt ihn 1 Sek. lang. Reichweite 8-25 m."
@@ -26491,6 +26642,10 @@ export const de_DE: EnTranslations = {
         "name": "Wasser herbeizaubern",
         "description": "Beschwört 2 Flaschen Wasser, die beim Trinken Mana wiederherstellen. Höhere Ränge beschwören reineres Wasser."
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "Feuerschlag",
         "description": "Trifft den Gegner für {damage} Feuerschaden. Sofort."
@@ -26514,6 +26669,10 @@ export const de_DE: EnTranslations = {
       "scorch": {
         "name": "Versengen",
         "description": "Versengt den Gegner für {damage} Feuerschaden. Schnell zu wirken."
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "Eisbarriere",
@@ -27333,6 +27492,15 @@ export const de_DE: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "Gesprungene Wyrmschuppe"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "Bristleback-Schlägel"
@@ -30020,6 +30188,10 @@ export const zh_CN: EnTranslations = {
         "name": "战斗怒吼",
         "description": "使你的攻击强度提高 20，持续 2 分钟。"
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "冲锋",
         "description": "向一名敌人冲锋，产生 9 点怒气并使其昏迷 1 秒。8-25 码距离。"
@@ -30088,6 +30260,10 @@ export const zh_CN: EnTranslations = {
         "name": "造水术",
         "description": "制造 2 瓶水，饮用后恢复法力。更高等级可制造更纯净的水。"
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "火焰冲击",
         "description": "冲击敌人，造成 {damage} 点火焰伤害。瞬发。"
@@ -30111,6 +30287,10 @@ export const zh_CN: EnTranslations = {
       "scorch": {
         "name": "灼烧",
         "description": "灼烧敌人，造成 {damage} 点火焰伤害。施法迅速。"
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "寒冰护体",
@@ -30930,6 +31110,15 @@ export const zh_CN: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "裂开的龙鳞"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "硬鬃重槌"
@@ -33617,6 +33806,10 @@ export const zh_TW: EnTranslations = {
         "name": "戰鬥怒吼",
         "description": "使你的攻擊強度提高 20，持續 2 分鐘。"
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "衝鋒",
         "description": "向一名敵人衝鋒，產生 9 點怒氣並使其昏迷 1 秒。8-25 碼距離。"
@@ -33685,6 +33878,10 @@ export const zh_TW: EnTranslations = {
         "name": "造水術",
         "description": "製造 2 瓶水，飲用後恢復法力。更高等級可製造更純淨的水。"
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "火焰衝擊",
         "description": "衝擊敵人，造成 {damage} 點火焰傷害。瞬發。"
@@ -33708,6 +33905,10 @@ export const zh_TW: EnTranslations = {
       "scorch": {
         "name": "灼燒",
         "description": "灼燒敵人，造成 {damage} 點火焰傷害。施法迅速。"
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "寒冰護體",
@@ -34527,6 +34728,15 @@ export const zh_TW: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "裂開的龍鱗"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "硬鬃重槌"
@@ -37214,6 +37424,10 @@ export const ko_KR: EnTranslations = {
         "name": "전투의 외침",
         "description": "2분 동안 전투력이 20만큼 증가합니다."
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "돌진",
         "description": "적에게 돌진하여 분노 9를 생성하고 1초 동안 기절시킵니다. 사거리 8-25yd."
@@ -37282,6 +37496,10 @@ export const ko_KR: EnTranslations = {
         "name": "물 창조",
         "description": "마시면 마나를 회복하는 물병 2개를 창조합니다. 높은 등급은 더 순수한 물을 창조합니다."
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "화염 작열",
         "description": "적에게 {damage}의 화염 피해를 입힙니다. 즉시 시전됩니다."
@@ -37305,6 +37523,10 @@ export const ko_KR: EnTranslations = {
       "scorch": {
         "name": "불태우기",
         "description": "적을 불태워 {damage}의 화염 피해를 입힙니다. 빠르게 시전합니다."
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "얼음 보호막",
@@ -38124,6 +38346,15 @@ export const ko_KR: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "갈라진 고룡 비늘"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "뻣센등뼈 철퇴"
@@ -40811,6 +41042,10 @@ export const ja_JP: EnTranslations = {
         "name": "バトルシャウト",
         "description": "2分間、攻撃力が20増加します。"
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "チャージ",
         "description": "敵に突撃し、怒りを9生成して1秒間スタンさせます。射程8-25yd。"
@@ -40879,6 +41114,10 @@ export const ja_JP: EnTranslations = {
         "name": "水の召喚",
         "description": "飲むとマナを回復する水の瓶を2本召喚します。高ランクではより純粋な水を召喚します。"
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "ファイアブラスト",
         "description": "敵を爆炎で打ち、{damage} の火炎ダメージを与えます。即時発動。"
@@ -40902,6 +41141,10 @@ export const ja_JP: EnTranslations = {
       "scorch": {
         "name": "スコーチ",
         "description": "敵を焼き、{damage} の火炎ダメージを与えます。詠唱が速い呪文です。"
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "アイスバリア",
@@ -41721,6 +41964,15 @@ export const ja_JP: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "割れたワームの鱗"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "ブリストルバックの大槌"
@@ -44408,6 +44660,10 @@ export const pt_BR: EnTranslations = {
         "name": "Grito de Batalha",
         "description": "Aumenta seu poder de ataque em 20 por 2 min."
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "Investida",
         "description": "Investe contra um inimigo, gera 9 de raiva e o atordoa por 1 s. Alcance de 8-25 m."
@@ -44476,6 +44732,10 @@ export const pt_BR: EnTranslations = {
         "name": "Conjurar Água",
         "description": "Conjura 2 garrafas de água que restauram mana quando bebidas. Graus superiores conjuram água mais pura."
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "Impacto de Fogo",
         "description": "Explode contra o inimigo, causando {damage} de dano de Fogo. Instantâneo."
@@ -44499,6 +44759,10 @@ export const pt_BR: EnTranslations = {
       "scorch": {
         "name": "Chamuscar",
         "description": "Chamusca o inimigo com {damage} de dano de Fogo. Lançamento rápido."
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "Barreira de Gelo",
@@ -45318,6 +45582,15 @@ export const pt_BR: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "Escama de wyrm rachada"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "Malho Bristleback"
@@ -48005,6 +48278,10 @@ export const ru_RU: EnTranslations = {
         "name": "Боевой крик",
         "description": "Повышает вашу силу атаки на 20 на 2 мин."
       },
+      "commanding_shout": {
+        "name": "Commanding Shout",
+        "description": "Increases your Stamina by 6 for 2 min."
+      },
       "charge": {
         "name": "Рывок",
         "description": "Вы бросаетесь к врагу, накапливаете 9 ярости и оглушаете его на 1 сек. Дальность 8-25 м."
@@ -48073,6 +48350,10 @@ export const ru_RU: EnTranslations = {
         "name": "Сотворение воды",
         "description": "Создает 2 бутылки воды, восстанавливающей ману при питье. Более высокие ранги создают более чистую воду."
       },
+      "conjure_food": {
+        "name": "Conjure Food",
+        "description": "Conjures 2 servings of bread, restoring health when eaten. Higher ranks conjure heartier fare."
+      },
       "fire_blast": {
         "name": "Огненный взрыв",
         "description": "Поражает врага на {damage} ед. урона от огня. Мгновенно."
@@ -48096,6 +48377,10 @@ export const ru_RU: EnTranslations = {
       "scorch": {
         "name": "Ожог",
         "description": "Обжигает врага, нанося {damage} ед. урона от огня. Быстрое заклинание."
+      },
+      "pyroblast": {
+        "name": "Pyroblast",
+        "description": "Hurls an immense fiery boulder that causes {damage} Fire damage plus additional damage over time."
       },
       "ice_barrier": {
         "name": "Ледяная преграда",
@@ -48915,6 +49200,15 @@ export const ru_RU: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "Треснувшая чешуя вирма"
+      },
+      "conjured_bread": {
+        "name": "Conjured Bread"
+      },
+      "conjured_bread2": {
+        "name": "Conjured Pumpernickel"
+      },
+      "conjured_bread3": {
+        "name": "Conjured Sweet Roll"
       },
       "bristleback_maul": {
         "name": "Кувалда Щетиноспина"
@@ -50386,72 +50680,84 @@ export const translations = {
 
 export const pending: Record<string, readonly string[]> = {
   "es": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
     "itemUi.slots.waist"
   ],
   "es_ES": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
     "itemUi.slots.waist"
   ],
   "fr_FR": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
     "itemUi.slots.waist"
   ],
   "fr_CA": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
@@ -50459,144 +50765,168 @@ export const pending: Record<string, readonly string[]> = {
   ],
   "en_CA": [],
   "it_IT": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
     "itemUi.slots.waist"
   ],
   "de_DE": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
     "itemUi.slots.waist"
   ],
   "zh_CN": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
     "itemUi.slots.waist"
   ],
   "zh_TW": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
     "itemUi.slots.waist"
   ],
   "ko_KR": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
     "itemUi.slots.waist"
   ],
   "ja_JP": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
     "itemUi.slots.waist"
   ],
   "pt_BR": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
     "itemUi.slots.waist"
   ],
   "ru_RU": [
-<<<<<<< HEAD
-<<<<<<< HEAD
     "entities.abilities.aspect_of_the_monkey.description",
     "entities.abilities.aspect_of_the_monkey.name",
-=======
+    "entities.abilities.commanding_shout.description",
+    "entities.abilities.commanding_shout.name",
+    "entities.abilities.conjure_food.description",
+    "entities.abilities.conjure_food.name",
     "entities.abilities.flametongue_weapon.description",
     "entities.abilities.flametongue_weapon.name",
->>>>>>> origin/feature/shaman-flametongue
-=======
     "entities.abilities.frostbrand_weapon.description",
     "entities.abilities.frostbrand_weapon.name",
->>>>>>> origin/feature/shaman-frostbrand
+    "entities.abilities.pyroblast.description",
+    "entities.abilities.pyroblast.name",
+    "entities.items.conjured_bread.name",
+    "entities.items.conjured_bread2.name",
+    "entities.items.conjured_bread3.name",
     "itemUi.slots.gloves",
     "itemUi.slots.helmet",
     "itemUi.slots.shoulder",
@@ -51839,6 +52169,10 @@ export const en_XA: EnTranslations = {
         "name": "[Ɓáţţļé Šĥóúţ]",
         "description": "[Íñçŕéášéš ýóúŕ áţţáçķ þóŵéŕ ƀý 20 ƒóŕ 2 ɱíñ.]"
       },
+      "commanding_shout": {
+        "name": "[Çóɱɱáñðíñĝ Šĥóúţ]",
+        "description": "[Íñçŕéášéš ýóúŕ Šţáɱíñá ƀý 6 ƒóŕ 2 ɱíñ.]"
+      },
       "charge": {
         "name": "[Çĥáŕĝé]",
         "description": "[Çĥáŕĝéš áñ éñéɱý, ĝéñéŕáţíñĝ 9 ŕáĝé áñð šţúññíñĝ íţ ƒóŕ 1 šéç. 8-25 ýð ŕáñĝé.]"
@@ -51907,6 +52241,10 @@ export const en_XA: EnTranslations = {
         "name": "[Çóñĵúŕé Ŵáţéŕ]",
         "description": "[Çóñĵúŕéš 2 ƀóţţļéš óƒ ŵáţéŕ, ŕéšţóŕíñĝ ɱáñá ŵĥéñ ðŕúñķ. Ĥíĝĥéŕ ŕáñķš çóñĵúŕé þúŕéŕ ŵáţéŕ.]"
       },
+      "conjure_food": {
+        "name": "[Çóñĵúŕé Ƒóóð]",
+        "description": "[Çóñĵúŕéš 2 šéŕʋíñĝš óƒ ƀŕéáð, ŕéšţóŕíñĝ ĥéáļţĥ ŵĥéñ éáţéñ. Ĥíĝĥéŕ ŕáñķš çóñĵúŕé ĥéáŕţíéŕ ƒáŕé.]"
+      },
       "fire_blast": {
         "name": "[Ƒíŕé Ɓļášţ]",
         "description": "[Ɓļášţš ţĥé éñéɱý ƒóŕ {damage} Ƒíŕé ðáɱáĝé. Íñšţáñţ.]"
@@ -51930,6 +52268,10 @@ export const en_XA: EnTranslations = {
       "scorch": {
         "name": "[Šçóŕçĥ]",
         "description": "[Šçóŕçĥéš ţĥé éñéɱý ƒóŕ {damage} Ƒíŕé ðáɱáĝé. Ɋúíçķ ţó çášţ.]"
+      },
+      "pyroblast": {
+        "name": "[Þýŕóƀļášţ]",
+        "description": "[Ĥúŕļš áñ íɱɱéñšé ƒíéŕý ƀóúļðéŕ ţĥáţ çáúšéš {damage} Ƒíŕé ðáɱáĝé þļúš áððíţíóñáļ ðáɱáĝé óʋéŕ ţíɱé.]"
       },
       "ice_barrier": {
         "name": "[Íçé Ɓáŕŕíéŕ]",
@@ -52749,6 +53091,15 @@ export const en_XA: EnTranslations = {
       },
       "cracked_wyrm_scale": {
         "name": "[Çŕáçķéð Ŵýŕɱ Šçáļé]"
+      },
+      "conjured_bread": {
+        "name": "[Çóñĵúŕéð Ɓŕéáð]"
+      },
+      "conjured_bread2": {
+        "name": "[Çóñĵúŕéð Þúɱþéŕñíçķéļ]"
+      },
+      "conjured_bread3": {
+        "name": "[Çóñĵúŕéð Šŵééţ Ŕóļļ]"
       },
       "bristleback_maul": {
         "name": "[Ɓŕíšţļéƀáçķ Ɱáúļ]"
