@@ -2617,6 +2617,43 @@ export class Sim {
     });
   }
 
+  // On-hit knockback: hurl `target` up to `distance` yards straight away from
+  // `source`. Instantaneous displacement (no aura) walked in small steps so it can
+  // be terrain-clamped exactly like a warrior charge — the shove stops at the last
+  // safe footing before deep water or a cliff rather than stranding the victim off
+  // the world. Returns the yards actually moved (0 if blocked immediately).
+  private applyKnockback(source: Entity, target: Entity, distance: number): number {
+    let dx = target.pos.x - source.pos.x;
+    let dz = target.pos.z - source.pos.z;
+    let len = Math.hypot(dx, dz);
+    if (len < 1e-4) {
+      // exactly overlapping: shove along the mob's facing so the direction is stable
+      dx = Math.sin(source.facing); dz = Math.cos(source.facing); len = 1;
+    }
+    const ux = dx / len, uz = dz / len;
+    const STEP = 0.5;
+    let moved = 0;
+    let cx = target.pos.x, cz = target.pos.z;
+    while (moved < distance) {
+      const adv = Math.min(STEP, distance - moved);
+      const nx = cx + ux * adv, nz = cz + uz * adv;
+      const h0 = groundHeight(cx, cz, this.cfg.seed);
+      const h1 = groundHeight(nx, nz, this.cfg.seed);
+      if (h1 < WATER_LEVEL - SWIM_DEPTH) break;                // would land in deep water
+      if (h1 > h0 && (h1 - h0) / adv > MAX_CLIMB_SLOPE) break; // would slam into a cliff
+      cx = nx; cz = nz; moved += adv;
+    }
+    if (moved <= 0) return 0;
+    const resolved = resolvePosition(this.cfg.seed, cx, cz, BODY_RADIUS);
+    target.pos.x = resolved.x;
+    target.pos.z = resolved.z;
+    target.pos.y = groundHeight(resolved.x, resolved.z, this.cfg.seed);
+    target.vy = 0;
+    target.onGround = true;
+    target.fallStartY = target.pos.y;
+    return moved;
+  }
+
   private diminishedCrowdControlDuration(
     source: Entity,
     target: Entity,
@@ -4372,6 +4409,19 @@ export class Sim {
     const ensnare = MOBS[mob.templateId]?.ensnare;
     if (ensnare && mob.hostile && target.kind === 'player' && !target.dead && this.rng.chance(ensnare.chance)) {
       this.applyRootAura(mob, target, ensnare.name, `ensnare_${mob.templateId}`, ensnare.duration, ensnare.school ?? 'nature');
+    }
+    // Knockback: a landed hit can physically hurl the player victim straight back.
+    // Hostile mobs only (a friendly pet shares this swing path) and players only —
+    // shoving a fellow mob is meaningless. Pure positional displacement (no aura),
+    // terrain-clamped so it never strands the victim off the world; surfaced via a
+    // spellfx nova + the same "unleashes" log line War Stomp uses.
+    const knockback = MOBS[mob.templateId]?.knockback;
+    if (knockback && mob.hostile && target.kind === 'player' && !target.dead && this.rng.chance(knockback.chance)) {
+      if (this.applyKnockback(mob, target, knockback.distance) > 0) {
+        const school = (knockback.school ?? 'physical') as Aura['school'];
+        this.emit({ type: 'spellfx', sourceId: mob.id, targetId: target.id, school, fx: 'nova' });
+        this.emit({ type: 'log', text: `${mob.name} unleashes ${knockback.name}!`, color: '#ff9933', entityId: mob.id });
+      }
     }
     // slowStrike: a landed hit may mire the victim, slowing their attack speed.
     // Rides the existing `attackspeed` aura (swingIntervalMult: value > 1 = slower);

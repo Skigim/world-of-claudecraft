@@ -288,6 +288,13 @@ export interface MobTemplate {
   // interval) for `duration`s. Rides the existing swingIntervalMult hook — no new
   // combat math. Distinct from a movement snare (`slow`) or an AP cut (`debuff_ap`).
   slowStrike?: { chance: number; mult: number; duration: number; name: string; school?: Aura['school'] };
+  // On-hit knockback: a landed melee swing has `chance` to physically hurl the
+  // struck player `distance` yards straight away from the mob — an instantaneous
+  // positional shove, not an aura. The displacement is terrain-clamped (it stops
+  // before deep water and cliffs, reusing the charge-movement safety checks), so a
+  // knockback can never strand the victim off the world. Players only; shoving a
+  // fellow mob is meaningless and a friendly pet shares this swing path.
+  knockback?: { chance: number; distance: number; name: string; school?: Aura['school'] };
   // On-hit mechanic ("Mana Burn"): a landed melee swing has `chance` to drain a
   // flat `amount` of mana from a mana-using victim (casters). Rage/energy users
   // are unaffected. Drains only what mana the victim still has; no overkill.
