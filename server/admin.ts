@@ -237,7 +237,14 @@ export async function handleAdminApi(
     if (path === '/admin/api/perf/raw') {
       const hours = Number(url.searchParams.get('hours') ?? '24');
       const limit = Number(url.searchParams.get('limit') ?? '100');
-      return ok(res, { rows: await clientPerfRaw(hours, limit) });
+      const beforeIdParam = url.searchParams.get('beforeId');
+      const beforeId = beforeIdParam === null ? undefined : Number(beforeIdParam);
+      const rows = await clientPerfRaw(hours, limit, beforeId);
+      return ok(res, {
+        rows,
+        nextBeforeId: rows.length > 0 ? rows[rows.length - 1].id : null,
+        hasMore: rows.length >= Math.min(1000, Math.max(1, Math.floor(Number.isFinite(limit) ? limit : 100))),
+      });
     }
     if (path === '/admin/api/accounts') {
       const { page, limit } = parsePageParams(url.searchParams);

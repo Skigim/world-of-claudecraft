@@ -168,7 +168,13 @@ function cleanHours(hours: number): number {
 }
 
 function cleanPerfLimit(limit: number): number {
-  return Number.isFinite(limit) ? Math.min(500, Math.max(1, Math.floor(limit))) : 100;
+  return Number.isFinite(limit) ? Math.min(1000, Math.max(1, Math.floor(limit))) : 100;
+}
+
+function cleanBeforeId(id: number | undefined): number | null {
+  if (id === undefined || !Number.isFinite(id)) return null;
+  const n = Math.floor(id);
+  return n > 0 ? n : null;
 }
 
 function perfAggregateFromRow(r: Record<string, unknown>): PerfAggregate {
@@ -246,9 +252,10 @@ export async function clientPerfSummary(hoursInput = 24): Promise<PerfSummary> {
   };
 }
 
-export async function clientPerfRaw(hoursInput = 24, limitInput = 100): Promise<PerfRawRow[]> {
+export async function clientPerfRaw(hoursInput = 24, limitInput = 100, beforeIdInput?: number): Promise<PerfRawRow[]> {
   const hours = cleanHours(hoursInput);
   const limit = cleanPerfLimit(limitInput);
+  const beforeId = cleanBeforeId(beforeIdInput);
   const res = await pool.query(
     `SELECT
        id, created_at, release_version, build_id, session_id, account_id, character_id, realm,
@@ -260,9 +267,10 @@ export async function clientPerfRaw(hoursInput = 24, limitInput = 100): Promise<
        browser_family, os_family, gl_vendor, gl_renderer_bucket, zone_or_scenario, source, raw_summary
      FROM client_perf_reports
      WHERE created_at > now() - ($1 || ' hours')::interval
-     ORDER BY created_at DESC
+       AND ($3::bigint IS NULL OR id < $3)
+     ORDER BY id DESC
      LIMIT $2`,
-    [String(hours), limit],
+    [String(hours), limit, beforeId],
   );
   return res.rows.map((r) => ({
     id: r.id,

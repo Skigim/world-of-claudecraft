@@ -13,7 +13,19 @@ const RAW_SUMMARY_DEV_TRACE_MAX_BYTES = 512 * 1024;
 const PERF_REPORT_MAX_BODY_BYTES = 64 * 1024;
 const PERF_REPORT_DEV_TRACE_MAX_BODY_BYTES = 768 * 1024;
 
+function envNumber(name: string, fallback: number): number {
+  const n = Number(process.env[name] ?? fallback);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+const PERF_REPORT_MIN_INSERT_INTERVAL_MS = Math.max(
+  10_000,
+  Math.min(10 * 60_000, envNumber('PERF_REPORT_MIN_INSERT_INTERVAL_MS', 45_000)),
+);
+const PERF_REPORT_MAX_TRACKED_SESSIONS = 20_000;
+
 const perfReportAttempts = new Map<string, number[]>();
+const perfReportLastInsertBySession = new Map<string, number>();
 
 function rateLimitedPerfReport(req: http.IncomingMessage): boolean {
   const ip = requestIp(req);
@@ -31,6 +43,26 @@ function rateLimitedPerfReport(req: http.IncomingMessage): boolean {
   }
 
   return updated.length > PERF_REPORT_MAX_PER_MINUTE;
+}
+
+function throttleKey(req: http.IncomingMessage, sessionId: string): string {
+  const session = sessionId || 'anonymous';
+  return `${requestIp(req)}:${session}`;
+}
+
+function shouldStorePerfReport(req: http.IncomingMessage, sessionId: string, now = Date.now()): boolean {
+  const key = throttleKey(req, sessionId);
+  const previous = perfReportLastInsertBySession.get(key);
+  perfReportLastInsertBySession.delete(key);
+  perfReportLastInsertBySession.set(key, now);
+
+  while (perfReportLastInsertBySession.size > PERF_REPORT_MAX_TRACKED_SESSIONS) {
+    const oldest = perfReportLastInsertBySession.keys().next().value as string | undefined;
+    if (!oldest) break;
+    perfReportLastInsertBySession.delete(oldest);
+  }
+
+  return previous === undefined || now - previous >= PERF_REPORT_MIN_INSERT_INTERVAL_MS;
 }
 
 function numberIn(value: unknown, min: number, max: number, fallback: number): number {
@@ -227,6 +259,9 @@ export async function handlePerfReport(req: http.IncomingMessage, res: http.Serv
 
   const devTraceAllowed = allowDevTrace(req);
   const body = await readBody(req, devTraceAllowed ? PERF_REPORT_DEV_TRACE_MAX_BODY_BYTES : PERF_REPORT_MAX_BODY_BYTES) as Record<string, unknown>;
+  const sessionId = textIn(body.sessionId, 64);
+  if (!shouldStorePerfReport(req, sessionId)) return json(res, 200, { ok: true });
+
   const accountId = await authenticatedAccountId(req);
   const userAgent = String(req.headers['user-agent'] ?? '');
   const glRenderer = textIn(body.glRenderer, 160);
@@ -238,7 +273,7 @@ export async function handlePerfReport(req: http.IncomingMessage, res: http.Serv
     schemaVersion: intIn(body.schemaVersion, 1, PERF_REPORT_SCHEMA_VERSION, PERF_REPORT_SCHEMA_VERSION),
     releaseVersion,
     buildId,
-    sessionId: textIn(body.sessionId, 64),
+    sessionId,
     accountId,
     characterId: await authenticatedCharacterId(accountId, body.characterId),
     realm: REALM,
@@ -286,4 +321,5 @@ export const perfReportInternalsForTest = {
   viewportBucket,
   allowDevTrace,
   rawSummary,
+  shouldStorePerfReport,
 };

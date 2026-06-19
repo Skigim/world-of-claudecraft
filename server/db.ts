@@ -207,6 +207,7 @@ CREATE TABLE IF NOT EXISTS client_perf_reports (
 CREATE INDEX IF NOT EXISTS client_perf_reports_created ON client_perf_reports(created_at DESC);
 CREATE INDEX IF NOT EXISTS client_perf_reports_release_created ON client_perf_reports(release_version, created_at DESC);
 CREATE INDEX IF NOT EXISTS client_perf_reports_gpu_created ON client_perf_reports(gl_renderer_bucket, created_at DESC);
+CREATE INDEX IF NOT EXISTS client_perf_reports_session_created ON client_perf_reports(session_id, created_at DESC);
 `;
 
 export async function ensureSchema(): Promise<void> {
@@ -684,6 +685,19 @@ export async function insertClientPerfReport(row: ClientPerfReportInsert): Promi
       JSON.stringify(row.rawSummary),
     ],
   );
+}
+
+// Keeps production telemetry bounded. PERF_REPORT_RETENTION_DAYS=0 disables
+// pruning for a short manual capture window.
+export async function pruneClientPerfReports(retentionDays: number): Promise<number> {
+  if (!Number.isFinite(retentionDays) || retentionDays <= 0) return 0;
+  const days = Math.max(1, Math.floor(retentionDays));
+  const res = await pool.query(
+    `DELETE FROM client_perf_reports
+      WHERE created_at < now() - ($1 || ' days')::interval`,
+    [String(days)],
+  );
+  return res.rowCount ?? 0;
 }
 
 // ---------------------------------------------------------------------------

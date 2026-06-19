@@ -230,7 +230,7 @@ describe('admin api auth', () => {
       byScenario: [],
       worstGpuBuckets: [],
     });
-    vi.mocked(clientPerfRaw).mockResolvedValue([]);
+    vi.mocked(clientPerfRaw).mockResolvedValue([{ id: 123 } as any, { id: 100 } as any]);
 
     const summaryRes = fakeRes();
     await handleAdminApi(fakeReq({ token: VALID_TOKEN, url: '/admin/api/perf/summary?hours=24' }), summaryRes, fakeGame);
@@ -239,10 +239,12 @@ describe('admin api auth', () => {
     expect(summaryRes.body.data.totals.sampleCount).toBe(1);
 
     const rawRes = fakeRes();
-    await handleAdminApi(fakeReq({ token: VALID_TOKEN, url: '/admin/api/perf/raw?hours=24&limit=10' }), rawRes, fakeGame);
+    await handleAdminApi(fakeReq({ token: VALID_TOKEN, url: '/admin/api/perf/raw?hours=24&limit=10&beforeId=500' }), rawRes, fakeGame);
     expect(rawRes.statusCode).toBe(200);
-    expect(clientPerfRaw).toHaveBeenCalledWith(24, 10);
-    expect(rawRes.body.data.rows).toEqual([]);
+    expect(clientPerfRaw).toHaveBeenCalledWith(24, 10, 500);
+    expect(rawRes.body.data.rows).toHaveLength(2);
+    expect(rawRes.body.data.nextBeforeId).toBe(100);
+    expect(rawRes.body.data.hasMore).toBe(false);
   });
 
   it('loads moderation account detail with open reports', async () => {

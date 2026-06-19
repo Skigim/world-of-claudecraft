@@ -109,6 +109,20 @@ describe('perf report ingestion', () => {
     expect(perfReportInternalsForTest.bucketGpu('ANGLE (AMD Radeon Pro)')).toBe('amd');
   });
 
+  it('drops duplicate inserts from the same session inside the server throttle window', async () => {
+    const first = fakeRes();
+    const second = fakeRes();
+    const remoteAddress = '203.0.113.210';
+    const sessionId = 'dupe-throttle';
+
+    await handlePerfReport(fakeReq({ sessionId, rawSummary: { seconds: 30 } }, { remoteAddress }), first);
+    await handlePerfReport(fakeReq({ sessionId, rawSummary: { seconds: 35 } }, { remoteAddress }), second);
+
+    expect(first.statusCode).toBe(200);
+    expect(second.statusCode).toBe(200);
+    expect(insertClientPerfReport).toHaveBeenCalledTimes(1);
+  });
+
   it('strips development trace data from public reports', async () => {
     const res = fakeRes();
 

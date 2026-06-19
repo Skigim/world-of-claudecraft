@@ -5,7 +5,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import {
   ensureSchema, pool, createAccount, findAccount, getAccountsCount, touchLogin, saveToken, accountForToken,
   listCharacters, getCharacter, createCharacterCapped, deleteCharacter, closeOrphanSessions,
-  pruneChatLogs, searchCharacters, characterCountsByRealm, moderationStatusForAccount, renameCharacter,
+  pruneChatLogs, pruneClientPerfReports, searchCharacters, characterCountsByRealm, moderationStatusForAccount, renameCharacter,
   findCharacterReportTargetByName, topArenaRatings, topLifetimeXp, chatMuteStatusForAccount,
 } from './db';
 import { virtualLevel } from '../src/sim/types';
@@ -38,6 +38,9 @@ const LINKS_ALIASES = new Set([
 ]);
 // How long chat logs are kept (0 = forever); pruned at boot and daily.
 const CHAT_LOG_RETENTION_DAYS = Number(process.env.CHAT_LOG_RETENTION_DAYS ?? 90);
+// Client performance reports are operational telemetry, not permanent records.
+// Keep enough history for tuning runs while bounding table growth.
+const PERF_REPORT_RETENTION_DAYS = Number(process.env.PERF_REPORT_RETENTION_DAYS ?? 14);
 // Cloudflare Turnstile secret. When unset (local dev / tests) registration and
 // login skip human verification entirely — see requireTurnstile below.
 const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET ?? '';
@@ -556,10 +559,13 @@ async function main(): Promise<void> {
   if (orphans > 0) console.log(`closed ${orphans} orphaned play session(s) from a previous run`);
   const pruned = await pruneChatLogs(CHAT_LOG_RETENTION_DAYS);
   if (pruned > 0) console.log(`pruned ${pruned} chat log row(s) older than ${CHAT_LOG_RETENTION_DAYS} days`);
+  const prunedPerfReports = await pruneClientPerfReports(PERF_REPORT_RETENTION_DAYS);
+  if (prunedPerfReports > 0) console.log(`pruned ${prunedPerfReports} client perf report row(s) older than ${PERF_REPORT_RETENTION_DAYS} days`);
   await game.loadMarket();
   await game.loadChatFilter();
   setInterval(() => {
     void pruneChatLogs(CHAT_LOG_RETENTION_DAYS).catch((err) => console.error('chat log prune failed:', err));
+    void pruneClientPerfReports(PERF_REPORT_RETENTION_DAYS).catch((err) => console.error('perf report prune failed:', err));
   }, 24 * 3600 * 1000).unref();
   // keep both leaderboard caches warm so the first viewer never waits on the
   // query and it never recomputes per request (PR-3)
