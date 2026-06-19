@@ -174,7 +174,7 @@ describe('delta snapshots', () => {
   });
 
   it('echoes the last input sequence applied by a sim tick in self snapshots', () => {
-    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 7, mi: { f: 1 } }));
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 1, mi: { f: 1 } }));
     broadcast(server);
     const snap = lastSnap(fc.sent);
     expect(snap.self.ack).toBe(0);
@@ -183,14 +183,14 @@ describe('delta snapshots', () => {
     server.sim.tick();
     fc.sent.length = 0;
     broadcast(server);
-    expect(lastSnap(fc.sent).self.ack).toBe(7);
+    expect(lastSnap(fc.sent).self.ack).toBe(1);
 
-    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 6, mi: { f: 0 } }));
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 1, mi: { f: 0 } }));
     (server as any).markInputSeqsApplied();
     server.sim.tick();
     fc.sent.length = 0;
     broadcast(server);
-    expect(lastSnap(fc.sent).self.ack).toBe(7);
+    expect(lastSnap(fc.sent).self.ack).toBe(1);
   });
 
   it('acks queued movement inputs only as server ticks consume them', () => {
@@ -218,6 +218,52 @@ describe('delta snapshots', () => {
     fc.sent.length = 0;
     broadcast(server);
     expect(lastSnap(fc.sent).self.ack).toBe(3);
+  });
+
+  it('compresses repeated held input without acking unsimulated sequence numbers', () => {
+    for (let seq = 1; seq <= 100; seq++) {
+      server.handleMessage(session, JSON.stringify({ t: 'input', seq, mi: { f: 1 } }));
+    }
+
+    expect(session.lastInputSeq).toBe(100);
+    expect(session.pendingMoveInputs).toHaveLength(1);
+
+    (server as any).markInputSeqsApplied();
+    server.sim.tick();
+    fc.sent.length = 0;
+    broadcast(server);
+    expect(lastSnap(fc.sent).self.ack).toBe(1);
+    expect(session.pendingMoveInputs).toHaveLength(1);
+
+    for (let i = 0; i < 9; i++) {
+      (server as any).markInputSeqsApplied();
+      server.sim.tick();
+    }
+    fc.sent.length = 0;
+    broadcast(server);
+    expect(lastSnap(fc.sent).self.ack).toBe(10);
+    expect(session.pendingMoveInputs).toHaveLength(1);
+  });
+
+  it('rejects sequence gaps without wedging later contiguous input', () => {
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 1, mi: { f: 1 } }));
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 1_000_000, mi: { b: 1 } }));
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 2, mi: { f: 0, b: 1 } }));
+
+    expect(session.lastInputSeq).toBe(2);
+    expect(session.pendingMoveInputs).toHaveLength(2);
+
+    (server as any).markInputSeqsApplied();
+    server.sim.tick();
+    fc.sent.length = 0;
+    broadcast(server);
+    expect(lastSnap(fc.sent).self.ack).toBe(1);
+
+    (server as any).markInputSeqsApplied();
+    server.sim.tick();
+    fc.sent.length = 0;
+    broadcast(server);
+    expect(lastSnap(fc.sent).self.ack).toBe(2);
   });
 
   it('turns echoed input acks into client latency samples', () => {
@@ -783,6 +829,35 @@ describe('online movement input lifetime', () => {
     for (let i = 0; i < Math.ceil(0.35 / DT); i++) server.sim.tick();
     (server as any).clearStaleInputs();
     expect(meta.moveInput.turnLeft).toBe(false);
+  });
+
+  it('expires queued movement when the websocket input stream goes quiet', () => {
+    const server = new GameServer();
+    const fc = fakeWs();
+    const session = joinServer(server, fc, 1, 'Backlog');
+
+    server.handleMessage(session, JSON.stringify({
+      t: 'input',
+      seq: 1,
+      mi: { f: 1, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 },
+    }));
+    server.handleMessage(session, JSON.stringify({
+      t: 'input',
+      seq: 2,
+      mi: { f: 1, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 },
+    }));
+    const meta = server.sim.meta(session.pid)!;
+    (server as any).markInputSeqsApplied();
+    expect(meta.moveInput.forward).toBe(true);
+    expect(session.appliedInputSeq).toBe(1);
+    expect(session.pendingMoveInputs).toHaveLength(1);
+
+    for (let i = 0; i < Math.ceil(0.8 / DT); i++) server.sim.tick();
+    (server as any).clearStaleInputs();
+
+    expect(meta.moveInput.forward).toBe(false);
+    expect(session.pendingMoveInputs).toHaveLength(0);
+    expect(session.appliedInputSeq).toBe(2);
   });
 });
 

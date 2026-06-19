@@ -49,10 +49,10 @@ export const BOOL_SETTINGS = {
   // local display choice; the server sends raw text and each client decides.
   // (Slurs are blocked server-side regardless and never reach here.)
   filterProfanity: { def: true },
-  // off by default: MOBA-style "attack move". When on, the WASD movement keys are
-  // disabled and a single rebindable Attack Move key (default A) walks the player
-  // toward the cursor, auto-attacking the enemy under it or the nearest one met
-  // along the way. Opt-in because it replaces the classic keyboard control scheme.
+  // off by default: MOBA-style "attack move". When on, one rebindable Attack
+  // Move key (default A) walks the player toward the cursor, auto-attacking the
+  // enemy under it or the nearest one met along the way. Other movement keys
+  // keep working; only the attack-move key itself is reserved while active.
   attackMove: { def: false },
 } as const;
 

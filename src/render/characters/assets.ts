@@ -143,6 +143,7 @@ function flattenWeaponScene(src: THREE.Object3D): THREE.Object3D {
 
 function attachProp(root: THREE.Object3D, bone: THREE.Object3D, att: AttachDef): void {
   const payload = flattenWeaponScene(cloneSkinned(resolvedGltf(att.url).scene));
+  payload.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.userData.weaponMesh = true; });
   if (att.position || att.rotationY !== undefined) {
     if (att.position) payload.position.set(...att.position);
     if (att.rotationY !== undefined) payload.rotation.y = att.rotationY;
@@ -172,21 +173,19 @@ for (const url of preloadUrls) {
 }
 
 // Skin textures: player alternate body atlases, loaded sRGB + flipY=false so
-// they line up with the glTF-embedded UVs. Standard tier only — low tier aliases
-// character models and keeps the default look.
+// they line up with the glTF-embedded UVs. Low may alias a few character GLBs,
+// but player-selected skins still need to load and apply on every tier.
 const skinTexByUrl = new Map<string, THREE.Texture>();
-if (GFX.standardMaterials) {
-  for (const url of [...new Set(Object.values(SKINS).flat().filter((u): u is string => !!u))]) {
-    registerPreload(loadTexture(url, { srgb: true }).then((t) => {
-      t.flipY = false;
-      t.needsUpdate = true;
-      skinTexByUrl.set(url, t);
-    }));
-  }
+for (const url of [...new Set(Object.values(SKINS).flat().filter((u): u is string => !!u))]) {
+  registerPreload(loadTexture(url, { srgb: true }).then((t) => {
+    t.flipY = false;
+    t.needsUpdate = true;
+    skinTexByUrl.set(url, t);
+  }));
 }
 
 /** Resolved skin texture for a visual key + skin index, or null for the model's
- *  embedded default (index 0, unknown key, or low tier). */
+ *  embedded default (index 0 or unknown key). */
 export function skinTexture(key: string, skinIndex: number): THREE.Texture | null {
   const url = SKINS[key]?.[skinIndex] ?? null;
   return url ? skinTexByUrl.get(url) ?? null : null;
@@ -311,9 +310,38 @@ export function assembleModel(def: VisualDef): THREE.Object3D {
 
 const matCache = new Map<string, THREE.Material>();
 const tintScratch = new THREE.Color();
+const lowReadabilityWhite = new THREE.Color(0xffffff);
+const weaponHighlight = new THREE.Color(0xfff0c2);
+type MaterialRole = 'body' | 'weapon';
 
-export function tintedMaterial(src: THREE.Material, tint: number | null, strength: number, skinTex: THREE.Texture | null = null): THREE.Material {
-  const key = `${src.uuid}|${tint ?? 'n'}|${tint === null ? 0 : strength}|${GFX.standardMaterials ? 's' : 'l'}|${skinTex ? skinTex.uuid : 'n'}`;
+function applyLowReadabilityLift(mat: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial | THREE.MeshBasicMaterial, role: MaterialRole): void {
+  const lift = role === 'weapon' ? 0.14 : 0.075;
+  const emissive = role === 'weapon' ? 0.075 : 0.045;
+  mat.color.lerp(role === 'weapon' ? weaponHighlight : lowReadabilityWhite, lift);
+  if ((mat as THREE.MeshLambertMaterial).isMeshLambertMaterial) {
+    const lambert = mat as THREE.MeshLambertMaterial;
+    lambert.emissive = mat.color.clone().multiplyScalar(emissive);
+  }
+}
+
+function applyWeaponMaterialPolish(mat: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial | THREE.MeshBasicMaterial): void {
+  mat.color.lerp(weaponHighlight, 0.08);
+  const std = mat as THREE.MeshStandardMaterial;
+  if (std.isMeshStandardMaterial) {
+    std.roughness = Math.min(std.roughness, 0.55);
+    std.metalness = Math.max(std.metalness, 0.12);
+    std.emissive.copy(mat.color).multiplyScalar(0.025);
+  }
+}
+
+export function tintedMaterial(
+  src: THREE.Material,
+  tint: number | null,
+  strength: number,
+  skinTex: THREE.Texture | null = null,
+  role: MaterialRole = 'body',
+): THREE.Material {
+  const key = `${src.uuid}|${tint ?? 'n'}|${tint === null ? 0 : strength}|${GFX.standardMaterials ? 's' : 'l'}|${skinTex ? skinTex.uuid : 'n'}|${role}`;
   const cached = matCache.get(key);
   if (cached) return cached;
 
@@ -342,6 +370,8 @@ export function tintedMaterial(src: THREE.Material, tint: number | null, strengt
     mat.color.lerp(tintScratch.set(tint), strength);
   }
   if (skinTex) mat.map = skinTex; // alternate body atlas, same UVs as the default
+  if (role === 'weapon') applyWeaponMaterialPolish(mat);
+  if (!GFX.standardMaterials) applyLowReadabilityLift(mat, role);
   matCache.set(key, mat);
   return mat;
 }
@@ -359,12 +389,14 @@ export function applyMaterials(root: THREE.Object3D, def: VisualDef, entityColor
   root.traverse((o) => {
     const mesh = o as THREE.Mesh;
     if (!mesh.isMesh) return;
+    const role: MaterialRole = mesh.userData.weaponMesh ? 'weapon' : 'body';
+    const materialTint = role === 'weapon' ? null : tint;
     // skin override only touches the character's own atlas meshes, not weapons
     const sk = skinTex && mesh.userData.bodyMesh ? skinTex : null;
     if (Array.isArray(mesh.material)) {
-      mesh.material = mesh.material.map((m) => tintedMaterial(m, tint, strength, sk));
+      mesh.material = mesh.material.map((m) => tintedMaterial(m, materialTint, strength, sk, role));
     } else {
-      mesh.material = tintedMaterial(mesh.material, tint, strength, sk);
+      mesh.material = tintedMaterial(mesh.material, materialTint, strength, sk, role);
     }
   });
 }

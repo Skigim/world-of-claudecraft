@@ -69,6 +69,7 @@ const ANTIBOT_ENFORCE = process.env.ANTIBOT_ENFORCE === '1';
 // the last packet held a key down, stop applying it instead of turning/running
 // forever. 750ms leaves room for normal jitter and short browser stalls.
 const STALE_INPUT_SECONDS = 0.75;
+const MAX_PENDING_MOVE_INPUT_RUNS = 80;
 // Exponential moving average weight for the per-tick duration stat.
 const TICK_EMA_ALPHA = 0.05;
 
@@ -101,10 +102,10 @@ export interface ClientSession {
   lastWhisperFrom: string | null;
   // last explicit channel this player sent to; plain text follows it.
   rememberedChat: RememberedChat;
-  // last client input sequence received by the socket
+  // last contiguous client input sequence accepted by the socket
   lastInputSeq: number;
-  // last input sequence reflected by a completed sim tick; echoed in snapshots
-  // for prediction reconciliation and latency telemetry
+  // last input sequence reflected by completed server authority; echoed in
+  // snapshots for prediction reconciliation and latency telemetry
   appliedInputSeq: number;
   pendingMoveInputs: QueuedMoveInput[];
   // sim time of the last movement input frame, used to clear stale held input
@@ -126,7 +127,8 @@ export interface ClientSession {
 }
 
 interface QueuedMoveInput {
-  seq: number;
+  fromSeq: number;
+  toSeq: number;
   moveInput: MoveInput;
   facing: number | null;
 }
@@ -296,6 +298,16 @@ interface EntityWireCache {
 
 function round2(v: number): number {
   return Math.round(v * 100) / 100;
+}
+
+function sameMoveInput(a: MoveInput, b: MoveInput): boolean {
+  return a.forward === b.forward
+    && a.back === b.back
+    && a.turnLeft === b.turnLeft
+    && a.turnRight === b.turnRight
+    && a.strafeLeft === b.strafeLeft
+    && a.strafeRight === b.strafeRight
+    && a.jump === b.jump;
 }
 
 function logSocialErr(err: unknown): void {
@@ -536,8 +548,13 @@ export class GameServer {
 
   private clearStaleInputs(): void {
     for (const session of this.clients.values()) {
-      if (session.pendingMoveInputs.length > 0) continue;
       if (this.sim.time - session.lastInputAt <= STALE_INPUT_SECONDS) continue;
+      if (session.pendingMoveInputs.length > 0) {
+        // Timed-out commands are authoritatively expired, not simulated. Ack them
+        // so the client drops matching predictions and reanchors to the stopped pose.
+        session.pendingMoveInputs.length = 0;
+        session.appliedInputSeq = Math.max(session.appliedInputSeq, session.lastInputSeq);
+      }
       const meta = this.sim.meta(session.pid);
       if (!meta) continue;
       const mi = meta.moveInput;
@@ -548,15 +565,32 @@ export class GameServer {
 
   private markInputSeqsApplied(): void {
     for (const session of this.clients.values()) {
-      const next = session.pendingMoveInputs.shift();
+      const next = session.pendingMoveInputs[0];
       if (!next) continue;
       const meta = this.sim.meta(session.pid);
       const e = this.sim.entities.get(session.pid);
       if (!meta || !e) continue;
       Object.assign(meta.moveInput, next.moveInput);
       if (next.facing !== null && !e.dead) e.facing = next.facing;
-      session.appliedInputSeq = next.seq;
+      session.appliedInputSeq = next.fromSeq;
+      if (next.fromSeq >= next.toSeq) {
+        session.pendingMoveInputs.shift();
+      } else {
+        next.fromSeq++;
+      }
     }
+  }
+
+  private enqueueMoveInput(session: ClientSession, seq: number, moveInput: MoveInput, facing: number | null): boolean {
+    const pending = session.pendingMoveInputs;
+    const last = pending[pending.length - 1];
+    if (last && last.toSeq + 1 === seq && last.facing === facing && sameMoveInput(last.moveInput, moveInput)) {
+      last.toSeq = seq;
+      return true;
+    }
+    if (pending.length >= MAX_PENDING_MOVE_INPUT_RUNS) return false;
+    pending.push({ fromSeq: seq, toSeq: seq, moveInput, facing });
+    return true;
   }
 
   // -------------------------------------------------------------------------
@@ -940,15 +974,16 @@ export class GameServer {
       const e = sim.entities.get(pid);
       if (!meta || !e) return;
       const { moveInput, facing } = parseMoveInputFrame(msg);
-      session.lastInputAt = sim.time;
       if (typeof msg.seq === 'number' && Number.isFinite(msg.seq) && msg.seq > 0) {
         const seq = Math.floor(msg.seq);
-        if (seq > session.lastInputSeq) {
-          session.lastInputSeq = seq;
-          session.pendingMoveInputs.push({ seq, moveInput, facing });
-          if (session.pendingMoveInputs.length > 80) {
-            session.pendingMoveInputs.splice(0, session.pendingMoveInputs.length - 80);
+        if (seq === session.lastInputSeq + 1) {
+          if (!this.enqueueMoveInput(session, seq, moveInput, facing)) {
+            try { session.ws.close(); } catch { /* already closing */ }
+            void this.leave(session, 'movement input queue overflow');
+            return;
           }
+          session.lastInputSeq = seq;
+          session.lastInputAt = sim.time;
         }
       }
       return;
