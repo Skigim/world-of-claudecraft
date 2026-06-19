@@ -345,6 +345,27 @@ export const VISUALS: Record<string, VisualDef> = {
     url: `${CREATURES}/wild_boar.glb`, height: 1.45,
     clips: WILD_BOAR, tint: 'entity', tintStrength: 0.4,
   },
+  // Quaternius animal rig (shares clip names with wolf) — fox/deer/critters that
+  // would otherwise fall back to mob_wolf via FAMILY_KEYS['beast'].
+  mob_fox: {
+    url: `${CREATURES}/fox.glb`, height: 1.0,
+    clips: animal(['Attack']), tint: 'entity', tintStrength: 0.35,
+  },
+  // smaller silhouette of the same rig for ground critters (hares, badgers);
+  // no dedicated rabbit/mustelid asset ships, so this is the closest small beast.
+  mob_critter: {
+    url: `${CREATURES}/fox.glb`, height: 0.7,
+    clips: animal(['Attack']), tint: 'entity', tintStrength: 0.35,
+  },
+  mob_stag: {
+    url: `${CREATURES}/stag.glb`, height: 1.9,
+    clips: animal(['Attack_Headbutt', 'Attack']), tint: 'entity', tintStrength: 0.35,
+  },
+  // brown-tinted yeti rig, same recipe as the druid Bear form.
+  mob_bear: {
+    url: `${CREATURES}/yetialt.glb`, height: 2.2,
+    clips: BIPED14, tint: 0x5a4030, tintStrength: 0.5,
+  },
   mob_spider: {
     url: `${CREATURES}/spider.glb`, height: 1.4,
     clips: SPIDER, tint: 'entity', tintStrength: 0.35,
@@ -521,6 +542,18 @@ const MOB_KEYS: Record<string, string> = {
   warlock_voidwalker: 'mob_demonalt',
   wild_boar: 'mob_boar',
   elder_bristleback: 'mob_boar',
+  grovetusk_boar: 'mob_boar',
+  // beasts that would otherwise fall back to the wolf model (FAMILY_KEYS.beast)
+  glade_fox: 'mob_fox',
+  brightwood_hare: 'mob_critter',
+  thornpelt_badger: 'mob_critter',
+  spotted_fawn: 'mob_stag',
+  dawnmane_doe: 'mob_stag',
+  brightwood_stag: 'mob_stag',
+  brightwood_monarch: 'mob_stag',
+  sunhide_bear: 'mob_bear',
+  old_cragmaw: 'mob_bear',
+  bog_bloat: 'mob_murloc',
   // gravecaller cult + necromancers: dark-robed casters
   gravecaller_cultist: 'mob_dark_caster',
   gravecaller_summoner: 'mob_dark_caster',
