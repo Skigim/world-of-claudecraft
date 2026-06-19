@@ -78,6 +78,7 @@ function bareClient(pid: number): ClientWorld {
   c.eventQueue = [];
   c.mouselookFacing = null;
   c.lastInputSentAt = 0;
+  c.lastIdleStopSentAt = 0;
   c.lastInputSig = '';
   c.inputSeq = 0;
   c.pendingInputSeqSentAt = new Map();
@@ -85,6 +86,8 @@ function bareClient(pid: number): ClientWorld {
   c.inputEchoSamples = [];
   c.pendingPredictions = [];
   c.predictionAccumulator = 0;
+  c.predictionMovementMode = 'normal';
+  c.optimisticCommandSeq = 0;
   c.localPredictionTick = 0;
   c.lastSnapshotTick = -1;
   c.queuedSnapshot = null;
@@ -266,6 +269,66 @@ describe('delta snapshots', () => {
     expect(lastSnap(fc.sent).self.ack).toBe(2);
   });
 
+  it('buffers small out-of-order movement inputs instead of wedging the sequence stream', () => {
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 1, mi: { f: 1 } }));
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 3, mi: { sr: 1 } }));
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 2, mi: { b: 1 } }));
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 4, mi: { sl: 1 } }));
+
+    expect(session.lastInputSeq).toBe(4);
+    expect([...session.bufferedMoveInputs.keys()]).toEqual([]);
+
+    for (let i = 0; i < 4; i++) {
+      (server as any).markInputSeqsApplied();
+      server.sim.tick();
+    }
+    fc.sent.length = 0;
+    broadcast(server);
+    expect(lastSnap(fc.sent).self.ack).toBe(4);
+  });
+
+  it('reports held-input coverage and accounts later identical queued input against it', () => {
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 1, mi: { f: 1 } }));
+    (server as any).markInputSeqsApplied();
+    server.sim.tick();
+
+    for (let i = 0; i < 3; i++) {
+      (server as any).markInputSeqsApplied();
+      server.sim.tick();
+    }
+    fc.sent.length = 0;
+    broadcast(server);
+    const heldSnap = lastSnap(fc.sent);
+    expect(heldSnap.self.ack).toBe(1);
+    expect(heldSnap.self.ackh).toBe(3);
+    expect(heldSnap.self.ackmi).toEqual({ f: 1, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 });
+
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 2, mi: { f: 1 } }));
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 3, mi: { f: 1 } }));
+    server.handleMessage(session, JSON.stringify({ t: 'input', seq: 4, mi: { f: 1 } }));
+    (server as any).markInputSeqsApplied();
+    server.sim.tick();
+    fc.sent.length = 0;
+    broadcast(server);
+    const caughtUpSnap = lastSnap(fc.sent);
+    expect(caughtUpSnap.self.ack).toBe(4);
+    expect(caughtUpSnap.self.ackh).toBe(1);
+  });
+
+  it('marks server-driven movement modes in self snapshots', () => {
+    const p = server.sim.entities.get(session.pid)!;
+    p.chargeTargetId = 999;
+    fc.sent.length = 0;
+    broadcast(server);
+    expect(lastSnap(fc.sent).self.pmv).toBe('charge');
+
+    p.chargeTargetId = null;
+    p.followTargetId = 999;
+    fc.sent.length = 0;
+    broadcast(server);
+    expect(lastSnap(fc.sent).self.pmv).toBe('follow');
+  });
+
   it('turns echoed input acks into client latency samples', () => {
     const client = bareClient(1);
     const first = { id: 1, k: 'player', tid: 'player', nm: 'Testa', lv: 1, x: 0, y: 0, z: 0, f: 0, hp: 100, mhp: 100 };
@@ -322,6 +385,173 @@ describe('delta snapshots', () => {
       (client as any).applySnapshot({ t: 'snap', tick: 3, time: DT * 2, ents: [], self: self(predictedZ, 1) });
       expect(client.player.pos.z).toBeCloseTo(predictedZ, 5);
       expect((client as any).pendingPredictions).toHaveLength(0);
+    } finally {
+      (globalThis as any).WebSocket = oldWebSocket;
+    }
+  });
+
+  it('uses held-input coverage to avoid replaying movement already represented in the server pose', () => {
+    const client = bareClient(1);
+    const sent: any[] = [];
+    (client as any).ws = { readyState: 1, send: (payload: string) => sent.push(JSON.parse(payload)) };
+    const oldWebSocket = (globalThis as any).WebSocket;
+    (globalThis as any).WebSocket = { OPEN: 1 };
+    const x = 12;
+    const z0 = 20;
+    const y = groundHeight(x, z0, client.cfg.seed);
+    const self = (z: number, extra: Record<string, unknown> = {}) => ({
+      id: 1, k: 'player', tid: 'warrior', nm: 'Testa', lv: 1,
+      x, y, z, f: 0, hp: 100, mhp: 100,
+      res: 0, mres: 100, rtype: 'rage', xp: 0, copper: 0, gcd: 0,
+      target: null, auto: false, queued: null,
+      vx: 0, vz: 0, vy: 0, og: 1, fy: y, ack: 0,
+      inv: [], equip: {}, qlog: [], qdone: [], cds: {},
+      stats: { str: 1, agi: 1, sta: 1, int: 1, spi: 1, armor: 0 },
+      weapon: { min: 1, max: 2, speed: 2 },
+      ...extra,
+    });
+
+    try {
+      (client as any).applySnapshot({ t: 'snap', tick: 1, time: 0, ents: [], self: self(z0) });
+      Object.assign(client.moveInput, {
+        forward: true, back: false, turnLeft: false, turnRight: false,
+        strafeLeft: false, strafeRight: false, jump: false,
+      });
+      for (let i = 0; i < 5; i++) expect((client as any).stepPrediction(DT, 100 + i * 50)).toBe(true);
+      expect(client.player.pos.z).toBeCloseTo(z0 + RUN_SPEED * DT * 5, 5);
+      expect((client as any).pendingPredictions).toHaveLength(5);
+
+      (client as any).applySnapshot({
+        t: 'snap',
+        tick: 4,
+        time: DT * 3,
+        ents: [],
+        self: self(z0 + RUN_SPEED * DT * 3, {
+          ack: 0,
+          ackh: 3,
+          ackmi: { f: 1, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 },
+        }),
+      });
+
+      expect((client as any).ackedInputSeq).toBe(3);
+      expect((client as any).pendingPredictions.map((cmd: any) => cmd.seq)).toEqual([4, 5]);
+      expect(client.player.pos.z).toBeCloseTo(z0 + RUN_SPEED * DT * 5, 5);
+
+      (client as any).applySnapshot({
+        t: 'snap',
+        tick: 5,
+        time: DT * 5,
+        ents: [],
+        self: self(z0 + RUN_SPEED * DT * 5, {
+          ack: 0,
+          ackh: 5,
+          ackmi: { f: 1, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 },
+        }),
+      });
+
+      expect((client as any).ackedInputSeq).toBe(5);
+      expect((client as any).pendingPredictions).toHaveLength(0);
+      expect(client.player.pos.z).toBeCloseTo(z0 + RUN_SPEED * DT * 5, 5);
+    } finally {
+      (globalThis as any).WebSocket = oldWebSocket;
+    }
+  });
+
+  it('does not apply held-input coverage across a local input change', () => {
+    const client = bareClient(1);
+    const sent: any[] = [];
+    (client as any).ws = { readyState: 1, send: (payload: string) => sent.push(JSON.parse(payload)) };
+    const oldWebSocket = (globalThis as any).WebSocket;
+    (globalThis as any).WebSocket = { OPEN: 1 };
+    const x = 12;
+    const z0 = 20;
+    const y = groundHeight(x, z0, client.cfg.seed);
+    const self = (z: number, extra: Record<string, unknown> = {}) => ({
+      id: 1, k: 'player', tid: 'warrior', nm: 'Testa', lv: 1,
+      x, y, z, f: 0, hp: 100, mhp: 100,
+      res: 0, mres: 100, rtype: 'rage', xp: 0, copper: 0, gcd: 0,
+      target: null, auto: false, queued: null,
+      vx: 0, vz: 0, vy: 0, og: 1, fy: y, ack: 0,
+      inv: [], equip: {}, qlog: [], qdone: [], cds: {},
+      stats: { str: 1, agi: 1, sta: 1, int: 1, spi: 1, armor: 0 },
+      weapon: { min: 1, max: 2, speed: 2 },
+      ...extra,
+    });
+
+    try {
+      (client as any).applySnapshot({ t: 'snap', tick: 1, time: 0, ents: [], self: self(z0) });
+      Object.assign(client.moveInput, {
+        forward: true, back: false, turnLeft: false, turnRight: false,
+        strafeLeft: false, strafeRight: false, jump: false,
+      });
+      expect((client as any).stepPrediction(DT, 100)).toBe(true);
+      Object.assign(client.moveInput, { forward: false, back: true });
+      expect((client as any).stepPrediction(DT, 150)).toBe(true);
+
+      (client as any).applySnapshot({
+        t: 'snap',
+        tick: 3,
+        time: DT * 2,
+        ents: [],
+        self: self(z0 + RUN_SPEED * DT * 2, {
+          ack: 0,
+          ackh: 2,
+          ackmi: { f: 1, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 },
+        }),
+      });
+
+      expect((client as any).ackedInputSeq).toBe(1);
+      expect((client as any).pendingPredictions.map((cmd: any) => cmd.seq)).toEqual([2]);
+    } finally {
+      (globalThis as any).WebSocket = oldWebSocket;
+    }
+  });
+
+  it('does not replay normal predicted movement over server-driven movement snapshots', () => {
+    const client = bareClient(1);
+    const sent: any[] = [];
+    (client as any).ws = { readyState: 1, send: (payload: string) => sent.push(JSON.parse(payload)) };
+    const oldWebSocket = (globalThis as any).WebSocket;
+    (globalThis as any).WebSocket = { OPEN: 1 };
+    const x = 12;
+    const z0 = 20;
+    const y = groundHeight(x, z0, client.cfg.seed);
+    const self = (z: number, extra: Record<string, unknown> = {}) => ({
+      id: 1, k: 'player', tid: 'warrior', nm: 'Testa', lv: 1,
+      x, y, z, f: 0, hp: 100, mhp: 100,
+      res: 0, mres: 100, rtype: 'rage', xp: 0, copper: 0, gcd: 0,
+      target: null, auto: false, queued: null,
+      vx: 0, vz: 0, vy: 0, og: 1, fy: y, ack: 0,
+      inv: [], equip: {}, qlog: [], qdone: [], cds: {},
+      stats: { str: 1, agi: 1, sta: 1, int: 1, spi: 1, armor: 0 },
+      weapon: { min: 1, max: 2, speed: 2 },
+      ...extra,
+    });
+
+    try {
+      (client as any).applySnapshot({ t: 'snap', tick: 1, time: 0, ents: [], self: self(z0) });
+      Object.assign(client.moveInput, {
+        forward: true, back: false, turnLeft: false, turnRight: false,
+        strafeLeft: false, strafeRight: false, jump: false,
+      });
+      expect((client as any).stepPrediction(DT, 100)).toBe(true);
+      expect((client as any).pendingPredictions).toHaveLength(1);
+
+      (client as any).applySnapshot({
+        t: 'snap',
+        tick: 2,
+        time: DT,
+        ents: [],
+        self: self(z0 + RUN_SPEED * DT * 3, { ack: 0, pmv: 'charge' }),
+      });
+
+      expect((client as any).pendingPredictions).toHaveLength(0);
+      expect(client.player.pos.z).toBeCloseTo(z0 + RUN_SPEED * DT * 3, 5);
+      expect(client.renderPoseFor(client.playerId, 0.5, performance.now())!.pos.z).toBeCloseTo(z0 + RUN_SPEED * DT * 3, 5);
+      expect((client as any).stepPrediction(DT, 150)).toBe(true);
+      expect((client as any).pendingPredictions).toHaveLength(0);
+      expect(sent.at(-1)).toEqual({ t: 'input', seq: 2, mi: { f: 1, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 } });
+      expect(client.player.pos.z).toBeCloseTo(z0 + RUN_SPEED * DT * 3, 5);
     } finally {
       (globalThis as any).WebSocket = oldWebSocket;
     }
@@ -465,7 +695,7 @@ describe('delta snapshots', () => {
     }
   });
 
-  it('predicts local movement at sim tick rate instead of per input packet', () => {
+  it('flushes changed local movement through the prediction ring', () => {
     const client = bareClient(1);
     const sent: any[] = [];
     (client as any).ws = { readyState: 1, send: (payload: string) => sent.push(JSON.parse(payload)) };
@@ -493,15 +723,15 @@ describe('delta snapshots', () => {
       });
 
       expect(client.flushInput(100)).toBe(true);
-      expect(client.player.pos.z).toBeCloseTo(z0, 5);
-      expect((client as any).pendingPredictions).toHaveLength(0);
-
-      expect((client as any).stepPrediction(DT / 2, 125)).toBe(false);
-      expect(client.player.pos.z).toBeCloseTo(z0, 5);
-
-      expect((client as any).stepPrediction(DT / 2, 150)).toBe(true);
       expect(client.player.pos.z).toBeCloseTo(z0 + RUN_SPEED * DT, 5);
       expect((client as any).pendingPredictions).toHaveLength(1);
+
+      expect((client as any).stepPrediction(DT / 2, 125)).toBe(false);
+      expect(client.player.pos.z).toBeCloseTo(z0 + RUN_SPEED * DT, 5);
+
+      expect((client as any).stepPrediction(DT / 2, 150)).toBe(true);
+      expect(client.player.pos.z).toBeCloseTo(z0 + RUN_SPEED * DT * 2, 5);
+      expect((client as any).pendingPredictions).toHaveLength(2);
       expect(sent.map((msg) => msg.seq)).toEqual([1, 2]);
     } finally {
       (globalThis as any).WebSocket = oldWebSocket;
@@ -858,6 +1088,7 @@ describe('online movement input lifetime', () => {
     expect(meta.moveInput.forward).toBe(false);
     expect(session.pendingMoveInputs).toHaveLength(0);
     expect(session.appliedInputSeq).toBe(2);
+    expect(session.heldInputTicks).toBe(0);
   });
 });
 
@@ -1116,10 +1347,25 @@ describe('client-side delta merge', () => {
     (client as any).ws = { readyState: 1, send: (payload: string) => sent.push(JSON.parse(payload)) };
     const oldWebSocket = (globalThis as any).WebSocket;
     (globalThis as any).WebSocket = { OPEN: 1 };
+    const x = 12;
+    const z0 = 20;
+    const y = groundHeight(x, z0, client.cfg.seed);
+    const self = {
+      id: 1, k: 'player', tid: 'warrior', nm: 'Testa', lv: 1,
+      x, y, z: z0, f: 0, hp: 100, mhp: 100,
+      res: 0, mres: 100, rtype: 'rage', xp: 0, copper: 0, gcd: 0,
+      target: null, auto: false, queued: null,
+      vx: 0, vz: 0, vy: 0, og: 1, fy: y, ack: 0,
+      inv: [], equip: {}, qlog: [], qdone: [], cds: {},
+      stats: { str: 1, agi: 1, sta: 1, int: 1, spi: 1, armor: 0 },
+      weapon: { min: 1, max: 2, speed: 2 },
+    };
     try {
+      (client as any).applySnapshot({ t: 'snap', tick: 1, time: 0, ents: [], self });
       Object.assign(client.moveInput, { forward: true, back: false, turnLeft: false, turnRight: false, strafeLeft: false, strafeRight: false, jump: false });
       expect(client.flushInput(100)).toBe(true);
       expect(sent).toEqual([{ t: 'input', seq: 1, mi: { f: 1, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 } }]);
+      expect((client as any).pendingPredictions.map((cmd: any) => cmd.seq)).toEqual([1]);
 
       expect(client.flushInput(105)).toBe(false);
       expect(sent).toHaveLength(1);
@@ -1130,7 +1376,152 @@ describe('client-side delta merge', () => {
 
       expect(client.flushInput(120)).toBe(true);
       expect(sent.at(-1)).toEqual({ t: 'input', seq: 2, mi: { f: 0, b: 0, tl: 0, tr: 0, sl: 0, sr: 1, j: 0 } });
+      expect((client as any).pendingPredictions.map((cmd: any) => cmd.seq)).toEqual([1, 2]);
     } finally {
+      (globalThis as any).WebSocket = oldWebSocket;
+    }
+  });
+
+  it('caps local movement prediction lead while continuing to stream inputs', () => {
+    const client = bareClient(1);
+    const sent: any[] = [];
+    (client as any).ws = { readyState: 1, send: (payload: string) => sent.push(JSON.parse(payload)) };
+    const oldWebSocket = (globalThis as any).WebSocket;
+    (globalThis as any).WebSocket = { OPEN: 1 };
+    const x = 12;
+    const z0 = 20;
+    const y = groundHeight(x, z0, client.cfg.seed);
+    const self = {
+      id: 1, k: 'player', tid: 'warrior', nm: 'Testa', lv: 1,
+      x, y, z: z0, f: 0, hp: 100, mhp: 100,
+      res: 0, mres: 100, rtype: 'rage', xp: 0, copper: 0, gcd: 0,
+      target: null, auto: false, queued: null,
+      vx: 0, vz: 0, vy: 0, og: 1, fy: y, ack: 0,
+      inv: [], equip: {}, qlog: [], qdone: [], cds: {},
+      stats: { str: 1, agi: 1, sta: 1, int: 1, spi: 1, armor: 0 },
+      weapon: { min: 1, max: 2, speed: 2 },
+    };
+    try {
+      (client as any).applySnapshot({ t: 'snap', tick: 1, time: 0, ents: [], self });
+      Object.assign(client.moveInput, { forward: true, back: false, turnLeft: false, turnRight: false, strafeLeft: false, strafeRight: false, jump: false });
+      for (let i = 0; i < 12; i++) {
+        expect((client as any).predictLocalTick(100 + i * 50)).toBe(true);
+      }
+
+      expect(sent.map((msg) => msg.seq)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+      expect((client as any).pendingPredictions.map((cmd: any) => cmd.seq)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+      const p = client.player;
+      const localLeadDist = Math.hypot(p.pos.x - x, p.pos.z - z0);
+      expect(localLeadDist).toBeLessThanOrEqual(RUN_SPEED * DT * 8 + 0.001);
+
+      (client as any).applySnapshot({ t: 'snap', tick: 2, time: DT, ents: [], self: { ...self, ack: 2 } });
+      expect((client as any).pendingPredictions.map((cmd: any) => cmd.seq)).toEqual([3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+      const replayLeadDist = Math.hypot(client.player.pos.x - x, client.player.pos.z - z0);
+      expect(replayLeadDist).toBeLessThanOrEqual(RUN_SPEED * DT * 8 + 0.001);
+    } finally {
+      (globalThis as any).WebSocket = oldWebSocket;
+    }
+  });
+
+  it('resends idle stop frames while pending input remains, but rate limits them', () => {
+    const client = bareClient(1);
+    const sent: any[] = [];
+    (client as any).ws = { readyState: 1, send: (payload: string) => sent.push(JSON.parse(payload)) };
+    const oldWebSocket = (globalThis as any).WebSocket;
+    (globalThis as any).WebSocket = { OPEN: 1 };
+    const x = 12;
+    const z0 = 20;
+    const y = groundHeight(x, z0, client.cfg.seed);
+    const self = {
+      id: 1, k: 'player', tid: 'warrior', nm: 'Testa', lv: 1,
+      x, y, z: z0, f: 0, hp: 100, mhp: 100,
+      res: 0, mres: 100, rtype: 'rage', xp: 0, copper: 0, gcd: 0,
+      target: null, auto: false, queued: null,
+      vx: 0, vz: 0, vy: 0, og: 1, fy: y, ack: 0,
+      inv: [], equip: {}, qlog: [], qdone: [], cds: {},
+      stats: { str: 1, agi: 1, sta: 1, int: 1, spi: 1, armor: 0 },
+      weapon: { min: 1, max: 2, speed: 2 },
+    };
+    try {
+      (client as any).applySnapshot({ t: 'snap', tick: 1, time: 0, ents: [], self });
+      Object.assign(client.moveInput, { forward: true, back: false, turnLeft: false, turnRight: false, strafeLeft: false, strafeRight: false, jump: false });
+      expect((client as any).predictLocalTick(100)).toBe(true);
+
+      Object.assign(client.moveInput, { forward: false, back: false, turnLeft: false, turnRight: false, strafeLeft: false, strafeRight: false, jump: false });
+      expect((client as any).predictLocalTick(150)).toBe(true);
+      expect(sent.at(-1)).toEqual({ t: 'input', seq: 2, mi: { f: 0, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 } });
+
+      expect((client as any).predictLocalTick(200)).toBe(false);
+      expect(sent).toHaveLength(2);
+
+      expect((client as any).predictLocalTick(245)).toBe(true);
+      expect(sent.at(-1)).toEqual({ t: 'input', seq: 3, mi: { f: 0, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 } });
+    } finally {
+      (globalThis as any).WebSocket = oldWebSocket;
+    }
+  });
+
+  it('applies only local presentation optimism for combat intent', () => {
+    const client = bareClient(1);
+    const sent: any[] = [];
+    (client as any).ws = { readyState: 1, send: (payload: string) => sent.push(JSON.parse(payload)) };
+    const oldWebSocket = (globalThis as any).WebSocket;
+    (globalThis as any).WebSocket = { OPEN: 1 };
+    const y = groundHeight(12, 20, client.cfg.seed);
+    const self = {
+      id: 1, k: 'player', tid: 'warrior', nm: 'Testa', lv: 1,
+      x: 12, y, z: 20, f: 0, hp: 100, mhp: 100,
+      res: 0, mres: 100, rtype: 'rage', xp: 0, copper: 0, gcd: 0,
+      target: 2, auto: false, queued: null,
+      vx: 0, vz: 0, vy: 0, og: 1, fy: y, ack: 0,
+      inv: [], equip: {}, qlog: [], qdone: [], cds: {},
+      stats: { str: 1, agi: 1, sta: 1, int: 1, spi: 1, armor: 0 },
+      weapon: { min: 1, max: 2, speed: 2 },
+    };
+    const mob = {
+      id: 2, k: 'mob', tid: 'wolf', nm: 'Wolf', lv: 1,
+      x: 13, y, z: 20, f: 0, hp: 30, mhp: 30,
+    };
+    try {
+      (client as any).applySnapshot({ t: 'snap', tick: 1, time: 0, ents: [mob], self });
+      client.startAutoAttack();
+      expect(client.player.autoAttack).toBe(true);
+      expect(sent.at(-1)).toEqual({ t: 'cmd', cmd: 'attack' });
+
+      client.stopAutoAttack();
+      expect(client.player.autoAttack).toBe(false);
+      expect(client.player.queuedOnSwing).toBeNull();
+
+      (client as any).known = [{ def: { id: 'heroic_strike', onNextSwing: true } }];
+      client.castAbility('heroic_strike');
+      expect(client.player.queuedOnSwing).toBe('heroic_strike');
+      expect(sent.at(-1)).toEqual({ t: 'cmd', cmd: 'cast', ability: 'heroic_strike' });
+    } finally {
+      (globalThis as any).WebSocket = oldWebSocket;
+    }
+  });
+
+  it('keeps overdue lagged socket sends in FIFO order', () => {
+    vi.useFakeTimers();
+    const client = bareClient(1);
+    const sent: any[] = [];
+    const oldWebSocket = (globalThis as any).WebSocket;
+    (globalThis as any).WebSocket = { OPEN: 1 };
+    (client as any).ws = { readyState: 1, send: (payload: string) => sent.push(JSON.parse(payload)) };
+    (client as any).netLag = { upstreamMs: 0, downstreamMs: 0, jitterMs: 0 };
+    (client as any).upstreamQueue.push({ payload: JSON.stringify({ t: 'input', seq: 1 }), deliveryAt: 0 });
+
+    try {
+      (client as any).sendSocketPayload(JSON.stringify({ t: 'input', seq: 2 }));
+
+      expect(sent).toEqual([]);
+      expect((client as any).upstreamQueue.map((frame: any) => JSON.parse(frame.payload).seq)).toEqual([1, 2]);
+
+      (client as any).deliverLagQueue('up');
+      expect(sent.map((msg) => msg.seq)).toEqual([1, 2]);
+    } finally {
+      vi.clearAllTimers();
+      vi.useRealTimers();
       (globalThis as any).WebSocket = oldWebSocket;
     }
   });

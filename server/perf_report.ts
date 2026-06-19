@@ -22,6 +22,10 @@ const PERF_REPORT_MIN_INSERT_INTERVAL_MS = Math.max(
   10_000,
   Math.min(10 * 60_000, envNumber('PERF_REPORT_MIN_INSERT_INTERVAL_MS', 45_000)),
 );
+const PERF_REPORT_DEV_TRACE_MIN_INSERT_INTERVAL_MS = Math.max(
+  2_000,
+  Math.min(PERF_REPORT_MIN_INSERT_INTERVAL_MS, envNumber('PERF_REPORT_DEV_TRACE_MIN_INSERT_INTERVAL_MS', 10_000)),
+);
 const PERF_REPORT_MAX_TRACKED_SESSIONS = 20_000;
 
 const perfReportAttempts = new Map<string, number[]>();
@@ -50,7 +54,12 @@ function throttleKey(req: http.IncomingMessage, sessionId: string): string {
   return `${requestIp(req)}:${session}`;
 }
 
-function shouldStorePerfReport(req: http.IncomingMessage, sessionId: string, now = Date.now()): boolean {
+function shouldStorePerfReport(
+  req: http.IncomingMessage,
+  sessionId: string,
+  now = Date.now(),
+  minInsertIntervalMs = PERF_REPORT_MIN_INSERT_INTERVAL_MS,
+): boolean {
   const key = throttleKey(req, sessionId);
   const previous = perfReportLastInsertBySession.get(key);
   perfReportLastInsertBySession.delete(key);
@@ -62,7 +71,7 @@ function shouldStorePerfReport(req: http.IncomingMessage, sessionId: string, now
     perfReportLastInsertBySession.delete(oldest);
   }
 
-  return previous === undefined || now - previous >= PERF_REPORT_MIN_INSERT_INTERVAL_MS;
+  return previous === undefined || now - previous >= minInsertIntervalMs;
 }
 
 function numberIn(value: unknown, min: number, max: number, fallback: number): number {
@@ -211,6 +220,7 @@ function compactRawSummary(value: Record<string, unknown>): Record<string, unkno
     'rendererBudget',
     'rendererQualityBuckets',
     'network',
+    'predictionTrace',
     'input',
     'hud',
   ]) {
@@ -260,7 +270,10 @@ export async function handlePerfReport(req: http.IncomingMessage, res: http.Serv
   const devTraceAllowed = allowDevTrace(req);
   const body = await readBody(req, devTraceAllowed ? PERF_REPORT_DEV_TRACE_MAX_BODY_BYTES : PERF_REPORT_MAX_BODY_BYTES) as Record<string, unknown>;
   const sessionId = textIn(body.sessionId, 64);
-  if (!shouldStorePerfReport(req, sessionId)) return json(res, 200, { ok: true });
+  const minInsertIntervalMs = devTraceAllowed
+    ? PERF_REPORT_DEV_TRACE_MIN_INSERT_INTERVAL_MS
+    : PERF_REPORT_MIN_INSERT_INTERVAL_MS;
+  if (!shouldStorePerfReport(req, sessionId, Date.now(), minInsertIntervalMs)) return json(res, 200, { ok: true });
 
   const accountId = await authenticatedAccountId(req);
   const userAgent = String(req.headers['user-agent'] ?? '');

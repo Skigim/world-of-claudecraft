@@ -3020,11 +3020,12 @@ export class Renderer {
       const urgent = id === p.targetId || d2 < 14 * 14 || e.castingAbility !== null;
       const isSelf = id === p.id;
       const hasOverheadEmote = !!(e.kind === 'player' && e.overheadEmoteId && !e.dead);
+      const deadForNameplate = isVisuallyDead(e);
       const isDoor = e.templateId === 'dungeon_door' || e.templateId === 'dungeon_exit';
       const hidden = (isSelf && !hasOverheadEmote) || d2 > NAMEPLATE_RANGE_SQ
-        || (e.dead && !e.lootable && e.kind === 'mob')
+        || (deadForNameplate && !e.lootable && e.kind === 'mob')
         || (e.kind === 'object' && !isDoor)
-        || (!this.showNameplates && e.kind === 'mob' && !e.dead);
+        || (!this.showNameplates && e.kind === 'mob' && !deadForNameplate);
       if (hidden) {
         if (v.nameplateDisplay !== 'none') {
           v.nameplate.style.display = 'none';
@@ -3119,11 +3120,11 @@ export class Renderer {
         const diff = e.level - p.level;
         const template = MOBS[e.templateId];
         const elite = !!template?.elite;
-        const color = e.dead ? '#999' : diff >= 3 ? '#ff4444' : diff >= 1 ? '#ffaa33' : diff >= -2 ? '#ffe97a' : diff >= -5 ? '#7fdc4f' : '#9d9d9d';
+        const color = deadForNameplate ? '#999' : diff >= 3 ? '#ff4444' : diff >= 1 ? '#ffaa33' : diff >= -2 ? '#ffe97a' : diff >= -5 ? '#7fdc4f' : '#9d9d9d';
         const mobName = e.ownerId !== null ? e.name : mobDisplayName(e.templateId);
-        const name = e.dead ? t('worldContent.corpseName', { name: mobName }) : `[${e.level}${elite ? '+' : ''}] ${mobName}`;
-        const hpDisplay = e.dead ? 'none' : '';
-        const marker = e.lootable ? '$' : elite && !e.dead ? '◆' : '';
+        const name = deadForNameplate ? t('worldContent.corpseName', { name: mobName }) : `[${e.level}${elite ? '+' : ''}] ${mobName}`;
+        const hpDisplay = deadForNameplate ? 'none' : '';
+        const marker = e.lootable ? '$' : elite && !deadForNameplate ? '◆' : '';
         this.setNameplateStatic(v, `mob|${name}|${color}|${hpDisplay}|${marker}`, name, color, hpDisplay, marker, 'np-marker loot', '1');
         this.setNameplateHp(v, e);
       }

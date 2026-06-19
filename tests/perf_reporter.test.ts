@@ -318,7 +318,16 @@ beforeEach(() => installBrowserGlobals());
 describe('perf reporter payload', () => {
   it('summarizes renderer performance without copying the full user agent', () => {
     const settings = new Settings();
-    const body = perfReporterInternalsForTest.payloadFromSnapshot(snapshot(), settings, 'sess1', 42)!;
+    const predictionTrace = {
+      enabled: true as const,
+      seconds: 12,
+      events: 50,
+      params: { netRtt: '200', netJitter: '150', predictTrace: '1' },
+      eventCounts: { 'input-predict': 10, 'snapshot-reconcile': 9 },
+      summary: { ackLag: { count: 9, avg: 2, p95: 4, max: 5 } },
+      largestDisplaySteps: [{ at: 1200, displayStep: 0.8, lastAckLag: 4 }],
+    };
+    const body = perfReporterInternalsForTest.payloadFromSnapshot(snapshot(), settings, 'sess1', 42, predictionTrace)!;
 
     expect(body.releaseVersion).toBe('0.9.0');
     expect(body.buildId).toBe('testbuild');
@@ -340,6 +349,8 @@ describe('perf reporter payload', () => {
     expect((body.rawSummary as { rendererPrewarmSummary?: { entries?: unknown[] } }).rendererPrewarmSummary?.entries).toHaveLength(2);
     expect((body.rawSummary as { rendererPrewarm?: { manifestEntries?: unknown[] } }).rendererPrewarm?.manifestEntries).toHaveLength(2);
     expect((body.rawSummary as { rendererFoliage?: { modelVisibleTrianglesByLod?: { core?: number } } }).rendererFoliage?.modelVisibleTrianglesByLod?.core).toBe(420_000);
+    expect((body.rawSummary as { predictionTrace?: { params?: { netRtt?: string }; events?: number } }).predictionTrace?.params?.netRtt).toBe('200');
+    expect((body.rawSummary as { predictionTrace?: { events?: number } }).predictionTrace?.events).toBe(50);
   });
 
   it('keeps local dev trace frames and long-task correlation in raw summary', () => {

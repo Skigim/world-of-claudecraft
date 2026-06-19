@@ -1244,6 +1244,7 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
     const tracePhases = traceRenderer?.phaseMs;
     const traceLongTasks = tracePerf?.browser.longTasks;
     const traceMemory = tracePerf?.browser.memory;
+    const tracePredictionState = predictionTrace.enabled ? net.predictionTraceState() : null;
     perf.trace('camera.follow', () => updateCamera(Math.min(frameDt, 1 / 30), interpFacing), {
       mode: 'online',
       alpha,
@@ -1283,6 +1284,11 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
       moveBack: resolved.mi.back ? 1 : 0,
       strafeLeft: resolved.mi.strafeLeft ? 1 : 0,
       strafeRight: resolved.mi.strafeRight ? 1 : 0,
+      inputSeq: tracePredictionState?.inputSeq,
+      ackedInputSeq: tracePredictionState?.ackedInputSeq,
+      ackLag: tracePredictionState?.ackLag,
+      pendingInputs: tracePredictionState?.pendingInputs,
+      predictionMode: tracePredictionState?.predictionMode,
       mainRendererP95: tracePerf?.mainMs.renderer.p95,
       mainHudP95: tracePerf?.mainMs.hud.p95,
       mainEventsP95: tracePerf?.mainMs.events.p95,

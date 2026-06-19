@@ -2,7 +2,9 @@ import { applyPlayerInputMovement } from '../sim/player_movement';
 import { DT, type Entity, type MoveInput } from '../sim/types';
 import type { RenderPose } from '../world_api';
 
-const CORRECTION_SMOOTH_SECONDS = 0.16;
+const CORRECTION_MOVING_SMOOTH_SECONDS = 0.16;
+const CORRECTION_HIGH_LEAD_SMOOTH_SECONDS = 0.08;
+const CORRECTION_IDLE_SMOOTH_SECONDS = 0.055;
 const CORRECTION_MAX_DECAY_DT_SECONDS = 1 / 30;
 const PREDICTION_SEGMENT_MS = DT * 1000;
 const MAX_PREDICTION_SEGMENT_MS = 250;
@@ -27,13 +29,28 @@ export interface PredictionStepResult {
 export interface PredictionReplayResult {
   pendingBefore: number;
   dropped: number;
+  heldCovered: number;
   replayed: number;
   pendingAfter: number;
+  effectiveAck: number;
+  capped: number;
 }
 
 export interface PresentationCorrectionResult {
   renderCorrectionDist: number;
   anchorMode: 'dead' | 'none' | 'snap' | 'blend';
+  correctionSmoothMs: number;
+}
+
+export interface PresentationCorrectionOptions {
+  inputMode?: 'moving' | 'idle';
+  leadTicks?: number;
+}
+
+export interface PredictionAckCoverage {
+  heldTicks: number;
+  heldInput: MoveInput;
+  heldFacing: number | null;
 }
 
 interface PresentationSegment {
@@ -98,6 +115,21 @@ function poseDist(a: RenderPose | null, b: RenderPose): number {
   return Math.hypot(a.pos.x - b.pos.x, a.pos.y - b.pos.y, a.pos.z - b.pos.z);
 }
 
+function sameMoveInput(a: MoveInput, b: MoveInput): boolean {
+  return a.forward === b.forward
+    && a.back === b.back
+    && a.turnLeft === b.turnLeft
+    && a.turnRight === b.turnRight
+    && a.strafeLeft === b.strafeLeft
+    && a.strafeRight === b.strafeRight
+    && a.jump === b.jump;
+}
+
+function sameMoveFacing(a: number | null, b: number | null): boolean {
+  if (a === null || b === null) return a === b;
+  return Math.abs(a - b) <= 1e-6;
+}
+
 export class LocalPredictionController {
   private offsetX = 0;
   private offsetY = 0;
@@ -106,6 +138,7 @@ export class LocalPredictionController {
   private lastPresentationAt = 0;
   private presentationInitialized = false;
   private predictionSegment: PresentationSegment | null = null;
+  private correctionSmoothSeconds = CORRECTION_MOVING_SMOOTH_SECONDS;
 
   constructor(private readonly seed: number, private readonly pendingCommands: MoveCommand[] = []) {}
 
@@ -150,7 +183,12 @@ export class LocalPredictionController {
     };
   }
 
-  replayFromAck(e: Entity, ack: number): PredictionReplayResult {
+  replayFromAck(
+    e: Entity,
+    ack: number,
+    coverage?: PredictionAckCoverage,
+    maxReplayCommands = Number.POSITIVE_INFINITY,
+  ): PredictionReplayResult {
     const pendingBefore = this.pendingCommands.length;
     let write = 0;
     for (let read = 0; read < this.pendingCommands.length; read++) {
@@ -158,17 +196,31 @@ export class LocalPredictionController {
       if (command.seq > ack) this.pendingCommands[write++] = command;
     }
     this.pendingCommands.length = write;
+    let effectiveAck = ack;
+    let heldCovered = 0;
+    if (coverage && coverage.heldTicks > 0) {
+      while (heldCovered < coverage.heldTicks && heldCovered < this.pendingCommands.length) {
+        const command = this.pendingCommands[heldCovered];
+        if (command.seq !== effectiveAck + 1) break;
+        if (!sameMoveInput(command.moveInput, coverage.heldInput)) break;
+        if (!sameMoveFacing(command.facing, coverage.heldFacing)) break;
+        effectiveAck = command.seq;
+        heldCovered++;
+      }
+      if (heldCovered > 0) this.pendingCommands.splice(0, heldCovered);
+    }
     const pendingAfter = this.pendingCommands.length;
     const dropped = pendingBefore - pendingAfter;
 
     if (e.dead) {
       this.pendingCommands.length = 0;
       this.snapPresentationTo(e);
-      return { pendingBefore, dropped, replayed: 0, pendingAfter: 0 };
+      return { pendingBefore, dropped, heldCovered, replayed: 0, pendingAfter: 0, effectiveAck, capped: 0 };
     }
 
-    for (const command of this.pendingCommands) this.applyCommand(e, command);
-    return { pendingBefore, dropped, replayed: pendingAfter, pendingAfter };
+    const replayed = Math.min(pendingAfter, Math.max(0, Math.floor(maxReplayCommands)));
+    for (let i = 0; i < replayed; i++) this.applyCommand(e, this.pendingCommands[i]);
+    return { pendingBefore, dropped, heldCovered, replayed, pendingAfter, effectiveAck, capped: pendingAfter - replayed };
   }
 
   renderPose(e: Entity, now: number): RenderPose {
@@ -193,10 +245,23 @@ export class LocalPredictionController {
     };
   }
 
-  reconcilePresentation(e: Entity, displayedBefore: RenderPose | null, now: number): PresentationCorrectionResult {
+  reconcilePresentation(
+    e: Entity,
+    displayedBefore: RenderPose | null,
+    now: number,
+    options: PresentationCorrectionOptions = {},
+  ): PresentationCorrectionResult {
+    const correctionSmoothSeconds = options.inputMode === 'idle'
+      ? CORRECTION_IDLE_SMOOTH_SECONDS
+      : (options.leadTicks ?? 0) >= 6
+        ? CORRECTION_HIGH_LEAD_SMOOTH_SECONDS
+        : CORRECTION_MOVING_SMOOTH_SECONDS;
+    this.correctionSmoothSeconds = correctionSmoothSeconds;
+    const correctionSmoothMs = Math.round(correctionSmoothSeconds * 1000);
+
     if (e.dead) {
       this.snapPresentationTo(e, now);
-      return { renderCorrectionDist: 0, anchorMode: 'dead' };
+      return { renderCorrectionDist: 0, anchorMode: 'dead', correctionSmoothMs };
     }
 
     const predicted = poseOf(e);
@@ -204,7 +269,7 @@ export class LocalPredictionController {
     const renderCorrectionDist = poseDist(displayedBefore, predicted);
     if (!displayedBefore) {
       this.snapPresentationTo(e, now);
-      return { renderCorrectionDist, anchorMode: 'snap' };
+      return { renderCorrectionDist, anchorMode: 'snap', correctionSmoothMs };
     }
 
     const dx = displayedBefore.pos.x - predicted.pos.x;
@@ -213,11 +278,11 @@ export class LocalPredictionController {
     const distSq = dx * dx + dy * dy + dz * dz;
     if (distSq <= PRESENTATION_IGNORE_DIST_SQ) {
       this.snapPresentationTo(e, now);
-      return { renderCorrectionDist, anchorMode: 'none' };
+      return { renderCorrectionDist, anchorMode: 'none', correctionSmoothMs };
     }
     if (distSq >= PRESENTATION_TELEPORT_DIST_SQ) {
       this.snapPresentationTo(e, now);
-      return { renderCorrectionDist, anchorMode: 'snap' };
+      return { renderCorrectionDist, anchorMode: 'snap', correctionSmoothMs };
     }
 
     this.presentationInitialized = true;
@@ -226,7 +291,7 @@ export class LocalPredictionController {
     this.offsetY = dy;
     this.offsetZ = dz;
     this.offsetFacing = wrapAngle(displayedBefore.facing - predicted.facing);
-    return { renderCorrectionDist, anchorMode: 'blend' };
+    return { renderCorrectionDist, anchorMode: 'blend', correctionSmoothMs };
   }
 
   snapPresentationTo(e: Entity, now = this.lastPresentationAt): void {
@@ -274,7 +339,7 @@ export class LocalPredictionController {
     this.lastPresentationAt = now;
     if (dt <= 0) return;
     const decayDt = Math.min(dt, CORRECTION_MAX_DECAY_DT_SECONDS);
-    const keep = Math.exp(-decayDt / CORRECTION_SMOOTH_SECONDS);
+    const keep = Math.exp(-decayDt / this.correctionSmoothSeconds);
     this.offsetX *= keep;
     this.offsetY *= keep;
     this.offsetZ *= keep;

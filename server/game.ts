@@ -70,6 +70,8 @@ const ANTIBOT_ENFORCE = process.env.ANTIBOT_ENFORCE === '1';
 // forever. 750ms leaves room for normal jitter and short browser stalls.
 const STALE_INPUT_SECONDS = 0.75;
 const MAX_PENDING_MOVE_INPUT_RUNS = 80;
+const MAX_HELD_INPUT_COVERAGE_TICKS = Math.ceil(STALE_INPUT_SECONDS / DT) + 1;
+const MAX_REORDERED_MOVE_INPUTS = 64;
 // Exponential moving average weight for the per-tick duration stat.
 const TICK_EMA_ALPHA = 0.05;
 
@@ -104,10 +106,16 @@ export interface ClientSession {
   rememberedChat: RememberedChat;
   // last contiguous client input sequence accepted by the socket
   lastInputSeq: number;
-  // last input sequence reflected by completed server authority; echoed in
-  // snapshots for prediction reconciliation and latency telemetry
+  // last input sequence directly consumed or otherwise covered by completed
+  // server authority; echoed in snapshots for prediction reconciliation and latency telemetry.
   appliedInputSeq: number;
   pendingMoveInputs: QueuedMoveInput[];
+  bufferedMoveInputs: Map<number, BufferedMoveInput>;
+  // When no fresh input arrives, the server keeps simulating the last held input
+  // for a short stale window. These ticks are movement coverage after `ack` for
+  // matching future client commands, so the client must not replay them twice.
+  heldInputTicks: number;
+  activeMoveFacing: number | null;
   // sim time of the last movement input frame, used to clear stale held input
   lastInputAt: number;
   // serialized form of each delta self field as last sent to this client;
@@ -133,9 +141,21 @@ interface QueuedMoveInput {
   facing: number | null;
 }
 
+interface BufferedMoveInput {
+  moveInput: MoveInput;
+  facing: number | null;
+}
+
+interface AppliedMoveInput {
+  seq: number;
+  moveInput: MoveInput;
+  facing: number | null;
+}
+
 interface SentEntityVersions {
   idVer: number;
   dynVer: number;
+  urgentVer: number;
   // sim tick of the last full/lite record, so distance-tiered rates hold
   // even when one broadcast covers several catch-up sim ticks
   sentAtTick: number;
@@ -253,6 +273,39 @@ function dynamicFields(e: Entity): Record<string, unknown> {
   return out;
 }
 
+function urgentDynamicFields(e: Entity): Record<string, unknown> {
+  const out: Record<string, unknown> = {
+    hp: e.hp,
+    mhp: e.maxHp,
+  };
+  if (e.dead) out.dead = 1;
+  if (e.lootable) out.loot = 1;
+  if (e.hostile) out.h = 1;
+  if (e.castingAbility) {
+    out.cast = e.castingAbility;
+    out.castRem = round2(e.castRemaining);
+    out.castTot = round2(e.castTotal);
+    if (e.channeling) out.chan = 1;
+  }
+  if (e.sitting || e.eating || e.drinking) out.sit = 1;
+  if (e.aggroTargetId !== null) out.aggro = e.aggroTargetId;
+  if (e.tappedById !== null) out.tap = e.tappedById;
+  if (e.ownerId !== null) {
+    out.own = e.ownerId;
+    out.pm = e.petMode;
+    out.pt = round2(e.petTauntTimer);
+  }
+  if (e.auras.length > 0) {
+    out.auras = e.auras.map((a): WireAura => ({
+      id: a.id, name: a.name, kind: a.kind, rem: round2(a.remaining), dur: a.duration, v: round2(a.value),
+    }));
+  }
+  if (e.kind === 'mob' && e.lootable && e.loot) {
+    out.lootList = { copper: e.loot.copper, items: e.loot.items };
+  }
+  return out;
+}
+
 export function wireEntity(e: Entity): Record<string, unknown> {
   return { id: e.id, ...identityFields(e), ...dynamicFields(e) };
 }
@@ -290,8 +343,10 @@ interface EntityWireCache {
   tick: number;
   idJson: string;
   dynJson: string;
+  urgentJson: string;
   idVer: number;
   dynVer: number;
+  urgentVer: number;
   fullJson: string;
   liteJson: string;
 }
@@ -308,6 +363,30 @@ function sameMoveInput(a: MoveInput, b: MoveInput): boolean {
     && a.strafeLeft === b.strafeLeft
     && a.strafeRight === b.strafeRight
     && a.jump === b.jump;
+}
+
+function sameMoveFacing(a: number | null, b: number | null): boolean {
+  if (a === null || b === null) return a === b;
+  return Math.abs(a - b) <= 1e-6;
+}
+
+function moveInputWire(mi: MoveInput): Record<string, 0 | 1> {
+  return {
+    f: mi.forward ? 1 : 0,
+    b: mi.back ? 1 : 0,
+    tl: mi.turnLeft ? 1 : 0,
+    tr: mi.turnRight ? 1 : 0,
+    sl: mi.strafeLeft ? 1 : 0,
+    sr: mi.strafeRight ? 1 : 0,
+    j: mi.jump ? 1 : 0,
+  };
+}
+
+function predictionMovementMode(p: Entity): 'charge' | 'follow' | 'fear' | undefined {
+  if (p.chargeTargetId !== null) return 'charge';
+  if (p.followTargetId !== null) return 'follow';
+  if (p.auras.some((a) => a.id === 'fear_incap' && a.kind === 'incapacitate')) return 'fear';
+  return undefined;
 }
 
 function logSocialErr(err: unknown): void {
@@ -555,6 +634,8 @@ export class GameServer {
         session.pendingMoveInputs.length = 0;
         session.appliedInputSeq = Math.max(session.appliedInputSeq, session.lastInputSeq);
       }
+      session.heldInputTicks = 0;
+      session.activeMoveFacing = null;
       const meta = this.sim.meta(session.pid);
       if (!meta) continue;
       const mi = meta.moveInput;
@@ -565,32 +646,79 @@ export class GameServer {
 
   private markInputSeqsApplied(): void {
     for (const session of this.clients.values()) {
-      const next = session.pendingMoveInputs[0];
-      if (!next) continue;
       const meta = this.sim.meta(session.pid);
       const e = this.sim.entities.get(session.pid);
       if (!meta || !e) continue;
-      Object.assign(meta.moveInput, next.moveInput);
-      if (next.facing !== null && !e.dead) e.facing = next.facing;
-      session.appliedInputSeq = next.fromSeq;
-      if (next.fromSeq >= next.toSeq) {
-        session.pendingMoveInputs.shift();
-      } else {
-        next.fromSeq++;
+
+      this.drainHeldCoveredInputs(session, meta.moveInput);
+      const next = this.consumeMoveInput(session);
+      if (next) {
+        Object.assign(meta.moveInput, next.moveInput);
+        session.activeMoveFacing = next.facing;
+        if (next.facing !== null && !e.dead) e.facing = next.facing;
+        session.appliedInputSeq = next.seq;
+        session.heldInputTicks = 0;
+        continue;
+      }
+
+      if (this.sim.time - session.lastInputAt <= STALE_INPUT_SECONDS) {
+        session.heldInputTicks = Math.min(MAX_HELD_INPUT_COVERAGE_TICKS, session.heldInputTicks + 1);
       }
     }
+  }
+
+  private drainHeldCoveredInputs(session: ClientSession, heldInput: MoveInput): void {
+    while (session.heldInputTicks > 0) {
+      const next = session.pendingMoveInputs[0];
+      if (!next) return;
+      if (!sameMoveInput(next.moveInput, heldInput) || !sameMoveFacing(next.facing, session.activeMoveFacing)) return;
+      const covered = this.consumeMoveInput(session);
+      if (!covered) return;
+      session.appliedInputSeq = covered.seq;
+      session.heldInputTicks--;
+    }
+  }
+
+  private consumeMoveInput(session: ClientSession): AppliedMoveInput | null {
+    const next = session.pendingMoveInputs[0];
+    if (!next) return null;
+    const seq = next.fromSeq;
+    const out = { seq, moveInput: next.moveInput, facing: next.facing };
+    if (next.fromSeq >= next.toSeq) {
+      session.pendingMoveInputs.shift();
+    } else {
+      next.fromSeq++;
+    }
+    return out;
   }
 
   private enqueueMoveInput(session: ClientSession, seq: number, moveInput: MoveInput, facing: number | null): boolean {
     const pending = session.pendingMoveInputs;
     const last = pending[pending.length - 1];
-    if (last && last.toSeq + 1 === seq && last.facing === facing && sameMoveInput(last.moveInput, moveInput)) {
+    if (last && last.toSeq + 1 === seq && sameMoveInput(last.moveInput, moveInput) && sameMoveFacing(last.facing, facing)) {
       last.toSeq = seq;
       return true;
     }
     if (pending.length >= MAX_PENDING_MOVE_INPUT_RUNS) return false;
     pending.push({ fromSeq: seq, toSeq: seq, moveInput, facing });
     return true;
+  }
+
+  private appendMoveInput(session: ClientSession, seq: number, moveInput: MoveInput, facing: number | null): boolean {
+    if (!this.enqueueMoveInput(session, seq, moveInput, facing)) return false;
+    session.lastInputSeq = seq;
+    session.lastInputAt = this.sim.time;
+    return true;
+  }
+
+  private drainBufferedMoveInputs(session: ClientSession): boolean {
+    while (true) {
+      const seq = session.lastInputSeq + 1;
+      const buffered = session.bufferedMoveInputs.get(seq);
+      if (!buffered) return true;
+      session.bufferedMoveInputs.delete(seq);
+      if (!this.appendMoveInput(session, seq, buffered.moveInput, buffered.facing)) return false;
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -642,6 +770,9 @@ export class GameServer {
       lastInputSeq: 0,
       appliedInputSeq: 0,
       pendingMoveInputs: [],
+      bufferedMoveInputs: new Map(),
+      heldInputTicks: 0,
+      activeMoveFacing: null,
       lastInputAt: this.sim.time,
       lastSent: {},
       sentEnts: new Map(),
@@ -977,13 +1108,15 @@ export class GameServer {
       if (typeof msg.seq === 'number' && Number.isFinite(msg.seq) && msg.seq > 0) {
         const seq = Math.floor(msg.seq);
         if (seq === session.lastInputSeq + 1) {
-          if (!this.enqueueMoveInput(session, seq, moveInput, facing)) {
+          if (!this.appendMoveInput(session, seq, moveInput, facing) || !this.drainBufferedMoveInputs(session)) {
             try { session.ws.close(); } catch { /* already closing */ }
             void this.leave(session, 'movement input queue overflow');
             return;
           }
-          session.lastInputSeq = seq;
-          session.lastInputAt = sim.time;
+        } else if (seq > session.lastInputSeq + 1
+          && seq <= session.lastInputSeq + MAX_REORDERED_MOVE_INPUTS
+          && session.bufferedMoveInputs.size < MAX_REORDERED_MOVE_INPUTS) {
+          session.bufferedMoveInputs.set(seq, { moveInput, facing });
         }
       }
       return;
@@ -1252,18 +1385,26 @@ export class GameServer {
           // first sight carries the at-rest state exactly, so no settle
           // record is owed until it moves again
           ents.push(cache.fullJson);
-          session.sentEnts.set(e.id, { idVer: cache.idVer, dynVer: cache.dynVer, sentAtTick: tick, settled: true });
+          session.sentEnts.set(e.id, {
+            idVer: cache.idVer,
+            dynVer: cache.dynVer,
+            urgentVer: cache.urgentVer,
+            sentAtTick: tick,
+            settled: true,
+          });
           return;
         }
         if (known.idVer !== cache.idVer) {
           ents.push(cache.fullJson);
           known.idVer = cache.idVer;
           known.dynVer = cache.dynVer;
+          known.urgentVer = cache.urgentVer;
           known.sentAtTick = tick;
           known.settled = false;
           return;
         }
-        if (!isUpdateDue(tick, e, d2, p, known.sentAtTick) || (known.dynVer === cache.dynVer && known.settled)) {
+        const urgentChanged = known.urgentVer !== cache.urgentVer;
+        if (!urgentChanged && (!isUpdateDue(tick, e, d2, p, known.sentAtTick) || (known.dynVer === cache.dynVer && known.settled))) {
           // not due at this distance tier yet, or unchanged and already
           // settled: a bare id keeps it alive on the client
           keep.push(e.id);
@@ -1272,6 +1413,7 @@ export class GameServer {
         // due, and either changed or owing its one settle record
         known.settled = known.dynVer === cache.dynVer;
         known.dynVer = cache.dynVer;
+        known.urgentVer = cache.urgentVer;
         known.sentAtTick = tick;
         ents.push(cache.liteJson);
       });
@@ -1306,13 +1448,14 @@ export class GameServer {
   private wireCacheFor(e: Entity): EntityWireCache {
     let cache = this.wireCache.get(e.id);
     if (!cache) {
-      cache = { tick: -1, idJson: '', dynJson: '', idVer: 0, dynVer: 0, fullJson: '', liteJson: '' };
+      cache = { tick: -1, idJson: '', dynJson: '', urgentJson: '', idVer: 0, dynVer: 0, urgentVer: 0, fullJson: '', liteJson: '' };
       this.wireCache.set(e.id, cache);
     }
     if (cache.tick === this.sim.tickCount) return cache;
     cache.tick = this.sim.tickCount;
     const idJson = JSON.stringify(identityFields(e));
     const dynJson = JSON.stringify(dynamicFields(e));
+    const urgentJson = JSON.stringify(urgentDynamicFields(e));
     let changed = false;
     if (idJson !== cache.idJson) {
       cache.idJson = idJson;
@@ -1323,6 +1466,10 @@ export class GameServer {
       cache.dynJson = dynJson;
       cache.dynVer++;
       changed = true;
+    }
+    if (urgentJson !== cache.urgentJson) {
+      cache.urgentJson = urgentJson;
+      cache.urgentVer++;
     }
     if (changed) {
       cache.fullJson = `{"id":${e.id},${idJson.slice(1, -1)},${dynJson.slice(1, -1)}}`;
@@ -1365,6 +1512,10 @@ export class GameServer {
       og: p.onGround ? 1 : 0,
       fy: round2(p.fallStartY),
       ack: session.appliedInputSeq,
+      pmv: predictionMovementMode(p),
+      ackh: session.heldInputTicks > 0 ? session.heldInputTicks : undefined,
+      ackmi: session.heldInputTicks > 0 ? moveInputWire(meta.moveInput) : undefined,
+      ackf: session.heldInputTicks > 0 ? session.activeMoveFacing : undefined,
     });
     const json = JSON.stringify(self);
     // heavy, rarely-changing fields ride along only when their serialized

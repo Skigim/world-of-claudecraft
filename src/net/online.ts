@@ -11,7 +11,7 @@ import {
   emptyMoveInput,
 } from '../sim/types';
 import { normalizeMoveFacing, sanitizeMoveInput } from '../sim/move_input';
-import { LocalPredictionController, type MoveCommand } from './prediction';
+import { LocalPredictionController, type MoveCommand, type PredictionAckCoverage } from './prediction';
 import { predictionTrace } from '../game/prediction_trace';
 import { isOverheadEmoteId, type ArenaInfo, type CharacterSearchResult, type DuelInfo, type FriendInfo, type IWorld, type LeaderboardEntry, type MarketInfo, type OverheadEmoteId, type PartyInfo, type PresenceStatus, type RenderPose, type SocialInfo, type TradeInfo } from '../world_api';
 
@@ -265,6 +265,16 @@ function traceWirePose(w: any): Record<string, unknown> | null {
   };
 }
 
+function traceRenderPose(p: RenderPose | null): Record<string, unknown> | null {
+  if (!p) return null;
+  return {
+    x: traceRound(p.pos.x),
+    y: traceRound(p.pos.y),
+    z: traceRound(p.pos.z),
+    f: traceRound(p.facing),
+  };
+}
+
 function tracePoseDist(a: Record<string, unknown> | null, b: Record<string, unknown> | null): number {
   if (!a || !b) return 0;
   const ax = Number(a.x), ay = Number(a.y), az = Number(a.z);
@@ -295,6 +305,13 @@ function tracePayload(payload: string): Record<string, unknown> {
       seq: typeof msg.seq === 'number' ? msg.seq : null,
       tick: typeof msg.tick === 'number' ? Math.floor(msg.tick) : null,
       ack: typeof msg.self?.ack === 'number' ? Math.floor(msg.self.ack) : null,
+      ackh: typeof msg.self?.ackh === 'number' ? Math.floor(msg.self.ackh) : null,
+      pmv: typeof msg.self?.pmv === 'string' ? msg.self.pmv : null,
+      selfX: typeof msg.self?.x === 'number' ? traceRound(msg.self.x) : null,
+      selfY: typeof msg.self?.y === 'number' ? traceRound(msg.self.y) : null,
+      selfZ: typeof msg.self?.z === 'number' ? traceRound(msg.self.z) : null,
+      ents: Array.isArray(msg.ents) ? msg.ents.length : null,
+      keep: Array.isArray(msg.keep) ? msg.keep.length : null,
     };
   } catch {
     return {};
@@ -325,16 +342,58 @@ function withPreviousWireIdentity(previousFull: Record<string, unknown>, current
 interface PredictionReplayResult {
   pendingBefore: number;
   dropped: number;
+  heldCovered: number;
   replayed: number;
   pendingAfter: number;
+  effectiveAck: number;
+  capped: number;
   renderCorrectionDist: number;
   replayDeltaDist: number;
   anchorMode: 'dead' | 'none' | 'snap' | 'blend';
+  correctionSmoothMs: number;
+  inputMode: PredictionInputMode;
+  leadTicks: number;
+}
+
+type PredictionMovementMode = 'normal' | 'server';
+type PredictionInputMode = 'moving' | 'idle';
+type TransportLane = 'movement' | 'action' | 'social' | 'system';
+
+const MAX_LOCAL_PREDICTION_LEAD_TICKS = 8;
+const IDLE_STOP_RESEND_MS = 90;
+
+const ACTION_COMMANDS = new Set([
+  'cast', 'castSlot', 'target', 'tab', 'targetNearestFriendly', 'tabFriendly',
+  'attack', 'stopattack', 'interact', 'loot', 'pickup', 'release',
+  'pet_attack', 'pet_taunt', 'pet_revive', 'pet_abandon', 'pet_rename',
+]);
+
+const SOCIAL_COMMANDS = new Set([
+  'chat', 'emote', 'party_invite', 'party_accept', 'party_leave', 'guild_invite',
+  'guild_accept', 'guild_leave', 'trade_request', 'trade_accept', 'trade_cancel',
+  'duel_request', 'duel_accept', 'duel_forfeit',
+]);
+
+function predictionAckCoverageFromWire(s: any): PredictionAckCoverage | undefined {
+  if (typeof s?.ackh !== 'number' || !Number.isFinite(s.ackh) || s.ackh <= 0) return undefined;
+  const heldTicks = Math.floor(s.ackh);
+  if (heldTicks <= 0) return undefined;
+  const heldFacing = typeof s.ackf === 'number' && Number.isFinite(s.ackf) ? s.ackf : null;
+  return {
+    heldTicks,
+    heldInput: sanitizeMoveInput(s.ackmi),
+    heldFacing,
+  };
+}
+
+function predictionMovementModeFromWire(raw: unknown): PredictionMovementMode {
+  return raw === 'charge' || raw === 'follow' || raw === 'fear' ? 'server' : 'normal';
 }
 
 interface LaggedSocketFrame {
   payload: string;
   deliveryAt: number;
+  lane?: TransportLane;
 }
 
 interface NetLagConfig {
@@ -373,6 +432,23 @@ function lagDelayMs(baseMs: number, jitterMs: number): number {
 
 function nowMs(): number {
   return typeof performance !== 'undefined' ? performance.now() : Date.now();
+}
+
+function isIdleMoveInput(input: MoveInput): boolean {
+  return !input.forward
+    && !input.back
+    && !input.turnLeft
+    && !input.turnRight
+    && !input.strafeLeft
+    && !input.strafeRight
+    && !input.jump;
+}
+
+function transportLaneForCommand(payload: Record<string, unknown>): TransportLane {
+  const cmd = typeof payload.cmd === 'string' ? payload.cmd : '';
+  if (ACTION_COMMANDS.has(cmd)) return 'action';
+  if (SOCIAL_COMMANDS.has(cmd)) return 'social';
+  return 'system';
 }
 
 function orderedLagDelayMs(baseMs: number, jitterMs: number, nextDeliveryAt: number): { delayMs: number; deliveryAt: number } {
@@ -471,6 +547,7 @@ export class ClientWorld implements IWorld {
   private mouselookFacing: number | null = null;
   private sendTimer: number | undefined;
   private lastInputSentAt = 0;
+  private lastIdleStopSentAt = 0;
   private lastInputSig = '';
   private inputSeq = 0;
   private pendingInputSeqSentAt = new Map<number, number>();
@@ -480,7 +557,9 @@ export class ClientWorld implements IWorld {
   private pendingPredictions: MoveCommand[] = [];
   private predictionController: LocalPredictionController | null = null;
   private predictionAccumulator = 0;
+  private predictionMovementMode: PredictionMovementMode = 'normal';
   private localPredictionTick = 0;
+  private optimisticCommandSeq = 0;
   private lastSnapshotTick = -1;
   private queuedSnapshot: any | null = null;
   private netLag: NetLagConfig = NO_NET_LAG;
@@ -518,7 +597,7 @@ export class ClientWorld implements IWorld {
     // The normal 20Hz movement stream is sent by stepPrediction().
     this.sendTimer = window.setInterval(() => {
       const now = performance.now();
-      if (now - this.lastInputSentAt > 250) this.sendInput(now);
+      if (now - this.lastInputSentAt > 250) this.predictLocalTick(now);
     }, 250);
   }
 
@@ -564,7 +643,10 @@ export class ClientWorld implements IWorld {
   }
 
   flushInput(now = performance.now()): boolean {
-    return this.sendInput(now, true);
+    const sig = this.inputSignature();
+    if (sig === this.lastInputSig) return false;
+    if (now - this.lastInputSentAt < 16) return false;
+    return this.predictLocalTick(now);
   }
 
   consumeInputEchoSamples(): number[] {
@@ -586,22 +668,23 @@ export class ClientWorld implements IWorld {
     this.downstreamQueue = [];
   }
 
-  private sendSocketPayload(payload: string): void {
+  private sendSocketPayload(payload: string, lane: TransportLane = 'system'): void {
     const lag = this.netLag ?? NO_NET_LAG;
     const { delayMs, deliveryAt } = orderedLagDelayMs(lag.upstreamMs, lag.jitterMs, this.nextUpstreamDeliveryAt ?? 0);
     this.nextUpstreamDeliveryAt = deliveryAt;
     predictionTrace.record('socket-send-scheduled', {
       ...tracePayload(payload),
+      lane,
       delayMs: traceRound(delayMs),
       upstreamMs: lag.upstreamMs,
       jitterMs: lag.jitterMs,
     });
-    if (delayMs <= 0) {
-      predictionTrace.record('socket-send-delivered', tracePayload(payload));
+    if (delayMs <= 0 && this.upstreamQueue.length === 0) {
+      predictionTrace.record('socket-send-delivered', { ...tracePayload(payload), lane });
       this.ws.send(payload);
       return;
     }
-    this.upstreamQueue.push({ payload, deliveryAt });
+    this.upstreamQueue.push({ payload, deliveryAt, lane });
     this.scheduleLagDelivery('up');
   }
 
@@ -615,7 +698,7 @@ export class ClientWorld implements IWorld {
       downstreamMs: lag.downstreamMs,
       jitterMs: lag.jitterMs,
     });
-    if (delayMs <= 0) {
+    if (delayMs <= 0 && this.downstreamQueue.length === 0) {
       predictionTrace.record('socket-receive-delivered', tracePayload(raw));
       this.onMessage(raw);
       return;
@@ -647,7 +730,7 @@ export class ClientWorld implements IWorld {
       const frame = queue.shift()!;
       if (direction === 'up') {
         if (this.ws.readyState === WebSocket.OPEN) {
-          predictionTrace.record('socket-send-delivered', tracePayload(frame.payload));
+          predictionTrace.record('socket-send-delivered', { ...tracePayload(frame.payload), lane: frame.lane ?? 'system' });
           this.ws.send(frame.payload);
         }
       } else {
@@ -669,45 +752,6 @@ export class ClientWorld implements IWorld {
     ].join(',');
   }
 
-  private sendInput(now = performance.now(), changedOnly = false): boolean {
-    if (!this.connected || this.ws.readyState !== WebSocket.OPEN) return false;
-    const sig = this.inputSignature();
-    if (changedOnly) {
-      if (sig === this.lastInputSig) return false;
-      if (now - this.lastInputSentAt < 16) return false;
-    }
-    const mi = this.moveInput;
-    const seq = ++this.inputSeq;
-    const facing = this.mouselookFacing;
-    const msg: Record<string, unknown> = {
-      t: 'input',
-      seq,
-      mi: {
-        f: mi.forward ? 1 : 0, b: mi.back ? 1 : 0,
-        tl: mi.turnLeft ? 1 : 0, tr: mi.turnRight ? 1 : 0,
-        sl: mi.strafeLeft ? 1 : 0, sr: mi.strafeRight ? 1 : 0,
-        j: mi.jump ? 1 : 0,
-      },
-    };
-    if (facing !== null) msg.facing = facing;
-    predictionTrace.record('input-send', {
-      seq,
-      input: traceInput(mi),
-      facing: facing === null ? null : traceRound(facing),
-    });
-    this.sendSocketPayload(JSON.stringify(msg));
-    this.lastInputSentAt = now;
-    this.lastInputSig = sig;
-    this.pendingInputSeqSentAt.set(seq, now);
-    if (this.pendingInputSeqSentAt.size > 120) {
-      const stale = seq - 120;
-      for (const seq of this.pendingInputSeqSentAt.keys()) {
-        if (seq <= stale) this.pendingInputSeqSentAt.delete(seq);
-      }
-    }
-    return true;
-  }
-
   private sendMoveCommand(command: MoveCommand, sig = this.inputSignature()): void {
     const mi = command.moveInput;
     const msg: Record<string, unknown> = {
@@ -726,7 +770,7 @@ export class ClientWorld implements IWorld {
       input: traceInput(mi),
       facing: command.facing === null ? null : traceRound(command.facing),
     });
-    this.sendSocketPayload(JSON.stringify(msg));
+    this.sendSocketPayload(JSON.stringify(msg), 'movement');
     this.lastInputSentAt = command.sentAt;
     this.lastInputSig = sig;
     this.pendingInputSeqSentAt.set(command.seq, command.sentAt);
@@ -772,12 +816,66 @@ export class ClientWorld implements IWorld {
 
   private cmd(payload: Record<string, unknown>): void {
     if (!this.canSendCommand()) return;
-    this.sendSocketPayload(JSON.stringify({ t: 'cmd', ...payload }));
+    const lane = transportLaneForCommand(payload);
+    this.applyOptimisticCommand(payload, lane);
+    this.sendSocketPayload(JSON.stringify({ t: 'cmd', ...payload }), lane);
   }
 
   /** Raw WS command — used by dev scripts and browser console when online. */
   devCmd(payload: Record<string, unknown>): void {
     this.cmd(payload);
+  }
+
+  predictionTraceState(): Record<string, unknown> {
+    const ackLag = Math.max(0, (this.inputSeq ?? 0) - (this.ackedInputSeq ?? 0));
+    return {
+      inputSeq: this.inputSeq ?? 0,
+      ackedInputSeq: this.ackedInputSeq ?? 0,
+      ackLag,
+      pendingInputs: (this.pendingPredictions ?? []).length,
+      predictionMode: this.predictionMovementMode,
+    };
+  }
+
+  private currentPredictionInputMode(): PredictionInputMode {
+    return isIdleMoveInput(this.moveInput) && this.mouselookFacing === null ? 'idle' : 'moving';
+  }
+
+  private applyOptimisticCommand(payload: Record<string, unknown>, lane: TransportLane): void {
+    if (lane !== 'action') return;
+    const command = typeof payload.cmd === 'string' ? payload.cmd : '';
+    const optimisticId = ++this.optimisticCommandSeq;
+    const player = this.entities.get(this.playerId);
+    let applied: string | null = null;
+
+    if (player && command === 'attack') {
+      const target = player.targetId === null ? null : this.entities.get(player.targetId);
+      if (target && !target.dead) {
+        player.autoAttack = true;
+        applied = 'autoAttack';
+      }
+    } else if (player && command === 'stopattack') {
+      player.autoAttack = false;
+      player.queuedOnSwing = null;
+      applied = 'stopAutoAttack';
+    } else if (player && command === 'cast' && typeof payload.ability === 'string') {
+      const ability = this.known.find((known) => known.def.id === payload.ability);
+      if (ability?.def.onNextSwing) {
+        player.queuedOnSwing = player.queuedOnSwing === payload.ability ? null : payload.ability;
+        const target = player.targetId === null ? null : this.entities.get(player.targetId);
+        if (target && !target.dead) player.autoAttack = true;
+        applied = 'queuedOnSwing';
+      }
+    }
+
+    predictionTrace.record('optimistic-command', {
+      id: optimisticId,
+      lane,
+      command,
+      applied,
+      ability: typeof payload.ability === 'string' ? payload.ability : null,
+      targetId: player?.targetId ?? null,
+    });
   }
 
   private markTrace(name: string, startMs: number, detail?: Record<string, unknown>): void {
@@ -811,26 +909,107 @@ export class ClientWorld implements IWorld {
     return this.prediction().applyCommand(e, frame, now).predictedDist;
   }
 
-  private predictLocalTick(now: number): boolean {
+  private recordInputSkip(reason: string, now: number, detail: Record<string, unknown> = {}): void {
     const e = this.entities.get(this.playerId);
-    if (!e || e.dead) return false;
+    predictionTrace.record('input-skip', {
+      reason,
+      predictionMode: this.predictionMovementMode,
+      connected: this.connected,
+      readyState: this.ws?.readyState ?? null,
+      inputSeq: this.inputSeq ?? 0,
+      ackedInputSeq: this.ackedInputSeq ?? 0,
+      pending: (this.pendingPredictions ?? []).length,
+      lastInputAgeMs: traceRound(now - (this.lastInputSentAt ?? now)),
+      input: traceInput(this.moveInput),
+      facing: this.mouselookFacing === null ? null : traceRound(this.mouselookFacing),
+      player: tracePose(e),
+      ...detail,
+    });
+  }
+
+  private predictLocalTick(now: number): boolean {
+    if (!this.connected || this.ws.readyState !== WebSocket.OPEN) {
+      this.recordInputSkip('socket-not-open', now);
+      return false;
+    }
+    const e = this.entities.get(this.playerId);
+    if (!e) {
+      this.recordInputSkip('missing-player', now);
+      return false;
+    }
+    if (e.dead) {
+      this.recordInputSkip('dead-player', now);
+      return false;
+    }
     const mi = this.moveInput;
     const facing = this.mouselookFacing;
     const sig = this.inputSignature();
     const inputChanged = sig !== this.lastInputSig;
-    if (!this.hasPredictableMovement(mi, e) && facing === null && !inputChanged) return false;
+    const hasPredictableMovement = this.hasPredictableMovement(mi, e);
+    const inputMode = this.currentPredictionInputMode();
+    const leadTicks = Math.max(0, (this.inputSeq ?? 0) - (this.ackedInputSeq ?? 0));
+    if (!hasPredictableMovement && facing === null && !inputChanged) {
+      if ((this.pendingPredictions ?? []).length > 0) {
+        if (now - (this.lastIdleStopSentAt ?? 0) >= IDLE_STOP_RESEND_MS) {
+          const frame = this.prediction().makeCommand(++this.inputSeq, ++this.localPredictionTick, mi, facing, now);
+          this.lastIdleStopSentAt = now;
+          this.sendMoveCommand(frame, sig);
+          predictionTrace.record('input-predict', {
+            seq: frame.seq,
+            localTick: frame.localTick,
+            predictionMode: 'idle-stop',
+            inputMode,
+            leadTicks,
+            leadCapped: leadTicks >= MAX_LOCAL_PREDICTION_LEAD_TICKS,
+            input: traceInput(mi),
+            facing: null,
+            inputChanged,
+            hasPredictableMovement,
+            ackedInputSeq: this.ackedInputSeq ?? 0,
+            pendingBefore: (this.pendingPredictions ?? []).length,
+            pending: (this.pendingPredictions ?? []).length,
+            predictedDist: 0,
+            accumulator: traceRound(this.predictionAccumulator),
+            before: tracePose(e),
+            after: tracePose(e),
+            now: traceRound(now),
+          });
+          return true;
+        }
+        this.recordInputSkip('idle-with-pending', now, { inputChanged, hasPredictableMovement, inputMode, leadTicks });
+      }
+      return false;
+    }
     const prediction = this.prediction();
     const frame = prediction.makeCommand(++this.inputSeq, ++this.localPredictionTick, mi, facing, now);
     const beforePrediction = tracePose(e);
-    prediction.push(frame);
-    const predictedDist = this.predictTick(frame, now);
+    const serverDrivenMovement = this.predictionMovementMode === 'server';
+    const leadAfterSend = Math.max(0, frame.seq - (this.ackedInputSeq ?? 0));
+    const leadCapped = !serverDrivenMovement && leadTicks >= MAX_LOCAL_PREDICTION_LEAD_TICKS;
+    const pendingBefore = (this.pendingPredictions ?? []).length;
+    let predictedDist = 0;
+    if (!serverDrivenMovement) {
+      prediction.push(frame);
+    }
+    if (!serverDrivenMovement && !leadCapped) {
+      predictedDist = this.predictTick(frame, now);
+    }
     this.sendMoveCommand(frame, sig);
+    if (inputMode === 'idle') this.lastIdleStopSentAt = now;
     const afterPrediction = tracePose(e);
     predictionTrace.record('input-predict', {
       seq: frame.seq,
       localTick: frame.localTick,
+      predictionMode: serverDrivenMovement ? 'server' : (leadCapped ? 'lead-capped' : 'client'),
+      inputMode,
+      leadTicks: leadAfterSend,
+      leadCapped,
       input: traceInput(mi),
       facing: facing === null ? null : traceRound(facing),
+      inputChanged,
+      hasPredictableMovement,
+      ackedInputSeq: this.ackedInputSeq ?? 0,
+      pendingBefore,
       pending: (this.pendingPredictions ?? []).length,
       predictedDist: traceRound(predictedDist),
       accumulator: traceRound(this.predictionAccumulator),
@@ -841,18 +1020,62 @@ export class ClientWorld implements IWorld {
     return true;
   }
 
-  private replayPendingInputs(e: Entity, ack: number, renderedBefore: RenderPose | null, preReplayPose: Record<string, unknown> | null, now: number): PredictionReplayResult {
-    const replay = this.prediction().replayFromAck(e, ack);
+  private replayPendingInputs(
+    e: Entity,
+    ack: number,
+    coverage: PredictionAckCoverage | undefined,
+    renderedBefore: RenderPose | null,
+    preReplayPose: Record<string, unknown> | null,
+    now: number,
+  ): PredictionReplayResult {
+    const replay = this.prediction().replayFromAck(e, ack, coverage, MAX_LOCAL_PREDICTION_LEAD_TICKS);
     const afterReplayPose = tracePose(e);
-    const correction = this.prediction().reconcilePresentation(e, renderedBefore, now);
+    const inputMode = this.currentPredictionInputMode();
+    const leadTicks = Math.max(0, (this.inputSeq ?? 0) - replay.effectiveAck);
+    const correction = this.prediction().reconcilePresentation(e, renderedBefore, now, { inputMode, leadTicks });
     return {
       pendingBefore: replay.pendingBefore,
       dropped: replay.dropped,
+      heldCovered: replay.heldCovered,
       replayed: replay.replayed,
       pendingAfter: replay.pendingAfter,
+      effectiveAck: replay.effectiveAck,
+      capped: replay.capped,
       renderCorrectionDist: traceRound(correction.renderCorrectionDist),
       replayDeltaDist: tracePoseDist(preReplayPose, afterReplayPose),
       anchorMode: correction.anchorMode,
+      correctionSmoothMs: correction.correctionSmoothMs,
+      inputMode,
+      leadTicks,
+    };
+  }
+
+  private acceptServerDrivenMovement(
+    e: Entity,
+    ack: number,
+    renderedBefore: RenderPose | null,
+    preReplayPose: Record<string, unknown> | null,
+    now: number,
+  ): PredictionReplayResult {
+    const pendingBefore = this.pendingPredictions.length;
+    this.pendingPredictions.length = 0;
+    const afterReplayPose = tracePose(e);
+    const renderCorrectionDist = tracePoseDist(traceRenderPose(renderedBefore), afterReplayPose);
+    this.prediction().snapPresentationTo(e, now);
+    return {
+      pendingBefore,
+      dropped: pendingBefore,
+      heldCovered: 0,
+      replayed: 0,
+      pendingAfter: 0,
+      effectiveAck: ack,
+      capped: 0,
+      renderCorrectionDist,
+      replayDeltaDist: tracePoseDist(preReplayPose, afterReplayPose),
+      anchorMode: renderedBefore ? 'snap' : 'none',
+      correctionSmoothMs: 0,
+      inputMode: 'moving',
+      leadTicks: Math.max(0, (this.inputSeq ?? 0) - ack),
     };
   }
 
@@ -1119,6 +1342,8 @@ export class ClientWorld implements IWorld {
       // it appears exactly where the server placed it.
       const teleDx = w.x - e.pos.x, teleDz = w.z - e.pos.z;
       const wasDead = e.dead;
+      const wasLootable = e.lootable;
+      const previousHp = e.hp;
       const nowDead = !!w.dead;
       if ((wasDead && !nowDead) || teleDx * teleDx + teleDz * teleDz > TELEPORT_SNAP_DIST_SQ) {
         e.prevPos = { x: w.x, y: w.y, z: w.z };
@@ -1158,6 +1383,23 @@ export class ClientWorld implements IWorld {
         value: typeof a.v === 'number' ? a.v : 0, sourceId: 0, school: 'physical' as const,
       }));
       e.loot = w.lootList ?? null;
+      if (wasDead !== e.dead || wasLootable !== e.lootable || (previousHp > 0 && e.hp <= 0)) {
+        predictionTrace.record('entity-state', {
+          id: e.id,
+          kind: e.kind,
+          templateId: e.templateId,
+          wasDead,
+          dead: e.dead,
+          previousHp,
+          hp: e.hp,
+          maxHp: e.maxHp,
+          wasLootable,
+          lootable: e.lootable,
+          x: traceRound(e.pos.x),
+          y: traceRound(e.pos.y),
+          z: traceRound(e.pos.z),
+        });
+      }
       return e;
     };
 
@@ -1188,22 +1430,24 @@ export class ClientWorld implements IWorld {
     const e = s ? applyWire(s) : null;
     if (s && e) {
       seen.add(s.id);
-      let ackForReplay = this.ackedInputSeq ?? 0;
       const previousAck = this.ackedInputSeq ?? 0;
+      let ackForReplay = previousAck;
       const snapshotAck = typeof s.ack === 'number' && Number.isFinite(s.ack) ? Math.floor(s.ack) : null;
-      if (typeof s.ack === 'number' && s.ack > previousAck) {
-        const sentAtBySeq = (this.pendingInputSeqSentAt ??= new Map());
-        const echoSamples = (this.inputEchoSamples ??= []);
-        for (let seq = previousAck + 1; seq <= s.ack; seq++) {
-          const sentAt = sentAtBySeq.get(seq);
-          if (sentAt !== undefined) {
-            echoSamples.push(now - sentAt);
-            sentAtBySeq.delete(seq);
+      const rawAckCoverage = snapshotAck !== null ? predictionAckCoverageFromWire(s) : undefined;
+      let ackCoverage: PredictionAckCoverage | undefined;
+      if (snapshotAck !== null) {
+        const coveredThrough = snapshotAck + (rawAckCoverage?.heldTicks ?? 0);
+        if (coveredThrough >= previousAck) {
+          ackForReplay = Math.max(snapshotAck, previousAck);
+          if (rawAckCoverage && coveredThrough > ackForReplay) {
+            ackCoverage = {
+              ...rawAckCoverage,
+              heldTicks: coveredThrough - ackForReplay,
+            };
           }
         }
-        this.ackedInputSeq = s.ack;
-        ackForReplay = s.ack;
       }
+      this.predictionMovementMode = predictionMovementModeFromWire(s.pmv);
       e.resource = s.res;
       e.maxResource = s.mres;
       e.resourceType = s.rtype;
@@ -1262,24 +1506,48 @@ export class ClientWorld implements IWorld {
       if (s.duel !== undefined) this.duelInfo = s.duel;
       if (s.arena !== undefined) this.arenaInfo = s.arena;
       if (s.market !== undefined) this.marketInfo = s.market;
-      const replay = this.replayPendingInputs(e, ackForReplay, renderedSelfBefore, preReplayPose, now);
+      const replay = this.predictionMovementMode === 'server'
+        ? this.acceptServerDrivenMovement(e, ackForReplay, renderedSelfBefore, preReplayPose, now)
+        : this.replayPendingInputs(e, ackForReplay, ackCoverage, renderedSelfBefore, preReplayPose, now);
+      if (replay.effectiveAck > previousAck) {
+        const sentAtBySeq = (this.pendingInputSeqSentAt ??= new Map());
+        const echoSamples = (this.inputEchoSamples ??= []);
+        for (let seq = previousAck + 1; seq <= replay.effectiveAck; seq++) {
+          const sentAt = sentAtBySeq.get(seq);
+          if (sentAt !== undefined) {
+            echoSamples.push(now - sentAt);
+            sentAtBySeq.delete(seq);
+          }
+        }
+        this.ackedInputSeq = replay.effectiveAck;
+      }
       const afterReplayPose = tracePose(e);
       predictionTrace.record('snapshot-reconcile', {
         tick: typeof snap.tick === 'number' ? Math.floor(snap.tick) : null,
         time: typeof snap.time === 'number' ? traceRound(snap.time) : null,
         ack: snapshotAck,
         ackForReplay,
+        effectiveAck: replay.effectiveAck,
+        ackHeldTicks: rawAckCoverage?.heldTicks ?? 0,
+        residualHeldTicks: ackCoverage?.heldTicks ?? 0,
+        heldCovered: replay.heldCovered,
+        predictionMode: this.predictionMovementMode,
         previousAck,
-        ackAdvanced: ackForReplay - previousAck,
-        ackLag: Math.max(0, (this.inputSeq ?? 0) - ackForReplay),
+        ackAdvanced: replay.effectiveAck - previousAck,
+        ackLag: Math.max(0, (this.inputSeq ?? 0) - replay.effectiveAck),
         inputSeq: this.inputSeq ?? 0,
         snapInterval: traceRound(this.snapInterval),
         contAlpha: traceRound(contAlpha),
         pendingBefore: replay.pendingBefore,
         dropped: replay.dropped,
         replayed: replay.replayed,
+        capped: replay.capped,
         pendingAfter: replay.pendingAfter,
         anchorMode: replay.anchorMode,
+        inputMode: replay.inputMode,
+        leadTicks: replay.leadTicks,
+        leadCapped: replay.leadTicks >= MAX_LOCAL_PREDICTION_LEAD_TICKS,
+        correctionSmoothMs: replay.correctionSmoothMs,
         renderCorrectionDist: replay.renderCorrectionDist,
         serverDeltaDist: tracePoseDist(selfBeforeSnapshot, serverPose),
         replayDeltaDist: replay.replayDeltaDist,
@@ -1309,8 +1577,20 @@ export class ClientWorld implements IWorld {
     // prune entities that left our interest area
     phaseStart = performance.now();
     let removedEntities = 0;
-    for (const [id] of this.entities) {
+    for (const [id, entity] of this.entities) {
       if (!seen.has(id)) {
+        predictionTrace.record('entity-remove', {
+          id,
+          kind: entity.kind,
+          templateId: entity.templateId,
+          dead: entity.dead,
+          lootable: entity.lootable,
+          hp: entity.hp,
+          maxHp: entity.maxHp,
+          x: traceRound(entity.pos.x),
+          y: traceRound(entity.pos.y),
+          z: traceRound(entity.pos.z),
+        });
         this.entities.delete(id);
         removedEntities++;
       }

@@ -20,6 +20,17 @@ interface FrameState {
   camYaw: number;
 }
 
+export interface PredictionTraceTelemetry {
+  enabled: true;
+  seconds: number;
+  events: number;
+  params: Record<string, string>;
+  eventCounts: Record<string, number>;
+  summary: TraceData;
+  largestDisplaySteps: Array<Record<string, unknown>>;
+  recentEvents?: PredictionTraceEvent[];
+}
+
 const MAX_EVENTS = 20_000;
 const OVERLAY_INTERVAL_MS = 500;
 
@@ -59,6 +70,70 @@ function numericEvents(events: PredictionTraceEvent[], type: string, key: string
   return out;
 }
 
+function eventCounts(events: PredictionTraceEvent[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const event of events) counts[event.type] = (counts[event.type] ?? 0) + 1;
+  return counts;
+}
+
+function valueCounts(events: PredictionTraceEvent[], type: string, key: string): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const event of events) {
+    if (event.type !== type) continue;
+    const value = event.data[key];
+    if (typeof value !== 'string' || value === '') continue;
+    counts[value] = (counts[value] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function finiteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function numericValue(data: TraceData, key: string): number {
+  const value = data[key];
+  return finiteNumber(value) ? value : 0;
+}
+
+function classifyFrameStall(data: TraceData): string | null {
+  const frameDtMs = numericValue(data, 'frameDtMs');
+  if (frameDtMs < 33) return null;
+  const longTaskMax = numericValue(data, 'longTaskMax');
+  const renderMain = Math.max(
+    numericValue(data, 'mainRendererP95'),
+    numericValue(data, 'rphTotalP95'),
+    numericValue(data, 'rphSubmitP95'),
+  );
+  const ackLag = numericValue(data, 'ackLag');
+  const pendingInputs = numericValue(data, 'pendingInputs');
+  const lastSnapAge = numericValue(data, 'lastSnapAge');
+  if (longTaskMax >= 50 || longTaskMax >= frameDtMs * 0.65) return 'browser-long-task';
+  if (renderMain >= 18 || renderMain >= frameDtMs * 0.5) return 'render-main';
+  if (ackLag >= 8 || pendingInputs >= 8) return 'prediction-backlog';
+  if (lastSnapAge >= 180) return 'snapshot-gap';
+  return 'frame-budget';
+}
+
+function nearestBefore(events: PredictionTraceEvent[], type: string, at: number): PredictionTraceEvent | null {
+  for (let i = events.length - 1; i >= 0; i--) {
+    const event = events[i];
+    if (event.at <= at && event.type === type) return event;
+  }
+  return null;
+}
+
+function importantEvent(event: PredictionTraceEvent): boolean {
+  if (event.type !== 'frame') return true;
+  const frameMs = event.data.frameDtMs;
+  const step = event.data.displayStep;
+  const camStep = event.data.camYawStep;
+  return (typeof event.data.stallKind === 'string')
+    || (finiteNumber(frameMs) && frameMs >= 33)
+    || (finiteNumber(step) && step >= 0.35)
+    || (finiteNumber(camStep) && camStep >= 0.35);
+}
+
 function angleDelta(a: number, b: number): number {
   let d = a - b;
   while (d > Math.PI) d -= Math.PI * 2;
@@ -77,6 +152,29 @@ function localStorageGet(key: string): string | null {
   } catch {
     return null;
   }
+}
+
+function compactTraceData(data: TraceData): TraceData {
+  const out: TraceData = {};
+  let count = 0;
+  for (const [key, value] of Object.entries(data)) {
+    if (count >= 48) break;
+    if (typeof value === 'number') out[key] = Number.isFinite(value) ? round(value) : null;
+    else if (typeof value === 'string') out[key] = value.slice(0, 120);
+    else if (typeof value === 'boolean' || value === null) out[key] = value;
+    else if (Array.isArray(value)) out[key] = value.slice(0, 12);
+    else if (value && typeof value === 'object') out[key] = value;
+    count++;
+  }
+  return out;
+}
+
+function compactEvent(event: PredictionTraceEvent): PredictionTraceEvent {
+  return {
+    at: event.at,
+    type: event.type,
+    data: compactTraceData(event.data),
+  };
 }
 
 function traceEnabled(): boolean {
@@ -126,7 +224,10 @@ export class PredictionTrace {
       : 0;
     const camYawStep = this.lastFrame ? Math.abs(angleDelta(frame.camYaw, this.lastFrame.camYaw)) : 0;
     this.lastFrame = frame;
-    this.push({ at: round(browserNow() - this.startedAt), type: 'frame', data: { ...data, displayStep: round(displayStep), camYawStep: round(camYawStep) } });
+    const frameData: TraceData = { ...data, displayStep: round(displayStep), camYawStep: round(camYawStep) };
+    const stallKind = classifyFrameStall(frameData);
+    if (stallKind) frameData.stallKind = stallKind;
+    this.push({ at: round(browserNow() - this.startedAt), type: 'frame', data: frameData });
   }
 
   summary(): TraceData {
@@ -161,6 +262,7 @@ export class PredictionTrace {
       displayStep: summarize(numericEvents(this.events, 'frame', 'displayStep')),
       camYawStep: summarize(numericEvents(this.events, 'frame', 'camYawStep')),
       alpha: summarize(numericEvents(this.events, 'frame', 'alpha')),
+      frameStalls: valueCounts(this.events, 'frame', 'stallKind'),
       worstCorrections,
     };
   }
@@ -172,6 +274,55 @@ export class PredictionTrace {
       summary: this.summary(),
       events: [...this.events],
     };
+  }
+
+  telemetry(includeRecentEvents = false): PredictionTraceTelemetry | null {
+    if (!this.enabled || this.events.length === 0) return null;
+    const frames = this.events.filter((event) => event.type === 'frame');
+    const largestDisplaySteps = [...frames]
+      .filter((event) => finiteNumber(event.data.displayStep))
+      .sort((a, b) => Number(b.data.displayStep) - Number(a.data.displayStep))
+      .slice(0, 12)
+      .map((event) => {
+        const rec = nearestBefore(this.events, 'snapshot-reconcile', event.at);
+        return {
+          at: event.at,
+          frameDtMs: event.data.frameDtMs,
+          stallKind: event.data.stallKind ?? null,
+          displayStep: event.data.displayStep,
+          camYawStep: event.data.camYawStep,
+          alpha: event.data.alpha,
+          lastSnapAge: event.data.lastSnapAge,
+          input: {
+            f: event.data.moveForward ?? 0,
+            b: event.data.moveBack ?? 0,
+            sl: event.data.strafeLeft ?? 0,
+            sr: event.data.strafeRight ?? 0,
+          },
+          display: { x: event.data.displayX, y: event.data.displayY, z: event.data.displayZ },
+          entity: { x: event.data.entityX, y: event.data.entityY, z: event.data.entityZ },
+          msSinceReconcile: rec ? round(event.at - rec.at) : null,
+          lastCorrection: rec?.data.renderCorrectionDist ?? null,
+          lastAckLag: rec?.data.ackLag ?? null,
+          lastPredictionMode: rec?.data.predictionMode ?? null,
+        };
+      });
+    const telemetry: PredictionTraceTelemetry = {
+      enabled: true,
+      seconds: round((browserNow() - this.startedAt) / 1000),
+      events: this.events.length,
+      params: queryParams(),
+      eventCounts: eventCounts(this.events),
+      summary: this.summary(),
+      largestDisplaySteps,
+    };
+    if (includeRecentEvents) {
+      telemetry.recentEvents = this.events
+        .filter(importantEvent)
+        .slice(-240)
+        .map(compactEvent);
+    }
+    return telemetry;
   }
 
   copy(): void {

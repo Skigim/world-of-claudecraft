@@ -1,5 +1,6 @@
 import { graphicsPresetLabel } from '../render/gfx';
 import { localDevPerfTraceEnabled, type PerfMonitor, type PerfSnapshot } from './perf';
+import { predictionTrace, type PredictionTraceTelemetry } from './prediction_trace';
 import type { Settings } from './settings';
 
 declare const __APP_VERSION__: string;
@@ -209,6 +210,7 @@ function payloadFromSnapshot(
   settings: Settings,
   sessionId: string,
   characterId: number | null,
+  predictionTelemetry: PredictionTraceTelemetry | null = null,
 ): Record<string, unknown> | null {
   const renderer = snapshot.renderer;
   if (!renderer) return null;
@@ -276,6 +278,7 @@ function payloadFromSnapshot(
         byType: snapshot.assets.byType,
       },
       network: snapshot.network,
+      ...(predictionTelemetry ? { predictionTrace: predictionTelemetry } : {}),
       input: snapshot.input,
       hud: snapshot.hud,
       ...(snapshot.devTrace ? { devTrace: snapshot.devTrace } : {}),
@@ -328,7 +331,13 @@ export function startPerfReporter(options: PerfReporterOptions): () => void {
       skip('not-ready', sendOptions.final ? null : 15_000);
       return;
     }
-    const body = payloadFromSnapshot(snapshot, options.settings, sessionId, options.characterIdProvider());
+    const body = payloadFromSnapshot(
+      snapshot,
+      options.settings,
+      sessionId,
+      options.characterIdProvider(),
+      predictionTrace.telemetry(devTrace),
+    );
     if (!body) {
       skip('no-renderer', sendOptions.final ? null : REPEAT_REPORT_MS);
       return;

@@ -241,6 +241,26 @@ describe('crowd interest management', () => {
     expect(lite).toBe(2);
   });
 
+  it('sends urgent death state immediately even when far updates are throttled', () => {
+    placeSubjectAt(85);
+    broadcast(server);
+
+    const e = server.sim.entities.get(subject.pid)!;
+    e.hp = 0;
+    e.dead = true;
+
+    viewerFc.sent.length = 0;
+    server.sim.tickCount++;
+    broadcast(server);
+
+    const snap = lastSnap(viewerFc.sent);
+    const rec = entRecord(snap, subject.pid);
+    expect(rec).not.toBeNull();
+    expect(rec.hp).toBe(0);
+    expect(rec.dead).toBe(1);
+    expect(inKeep(snap, subject.pid)).toBe(false);
+  });
+
   it("always updates the viewer's target at full rate", () => {
     placeSubjectAt(70);
     broadcast(server);

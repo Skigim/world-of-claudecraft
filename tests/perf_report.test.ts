@@ -165,6 +165,14 @@ describe('perf report ingestion', () => {
             },
           ],
         },
+        predictionTrace: {
+          enabled: true,
+          seconds: 12,
+          events: 50,
+          eventCounts: { 'input-predict': 10, 'snapshot-reconcile': 9 },
+          summary: { ackLag: { p95: 4, max: 5 } },
+          largestDisplaySteps: [{ at: 1200, displayStep: 0.8 }],
+        },
         oversized: 'x'.repeat(40_000),
       },
     }), res);
@@ -184,6 +192,10 @@ describe('perf report ingestion', () => {
               textureDelta: 12,
             }),
           ],
+        }),
+        predictionTrace: expect.objectContaining({
+          events: 50,
+          eventCounts: { 'input-predict': 10, 'snapshot-reconcile': 9 },
         }),
       }),
     }));
