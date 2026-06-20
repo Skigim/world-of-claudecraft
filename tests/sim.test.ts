@@ -262,6 +262,47 @@ describe('movement directions', () => {
     expect(sim.player.pos.z).toBeGreaterThan(zAtLaunch);
     expect(Math.abs(sim.player.pos.x - xAtLaunch)).toBeLessThan(0.05);
   });
+
+  it('walks down a walkable slope without going airborne', () => {
+    const seed = 42;
+    // One run-tick covers ~0.35 yd horizontally (RUN_SPEED 7 * DT 1/20). Find a
+    // dry spot whose forward terrain drops more than the old fixed 0.4 ledge
+    // threshold yet stays within the walkable MAX_CLIMB_SLOPE (1.5) — exactly the
+    // case that used to fling the player off a "ledge" mid-hill.
+    const STEP = 0.35;
+    // A dry forward step that drops more than the old 0.4 ledge threshold yet
+    // stays within the walkable MAX_CLIMB_SLOPE (1.5, so <= 0.525 over one step).
+    let found: { x: number; z: number; facing: number } | null = null;
+    outer:
+    for (let x = -250; x <= 250 && !found; x += 2) {
+      for (let z = -250; z <= 250; z += 2) {
+        if (terrainHeight(x, z, seed) < WATER_LEVEL) continue;
+        for (let f = 0; f < Math.PI * 2; f += Math.PI / 12) {
+          const h0 = terrainHeight(x, z, seed);
+          const h1 = terrainHeight(x + Math.sin(f) * STEP, z + Math.cos(f) * STEP, seed);
+          const drop = h0 - h1;
+          if (drop > 0.42 && drop <= STEP * 1.5 && h1 > WATER_LEVEL) {
+            found = { x, z, facing: f };
+            break outer;
+          }
+        }
+      }
+    }
+    expect(found).not.toBeNull();
+    const sim = makeSim('warrior', seed);
+    teleportTo(sim, found!.x, found!.z);
+    sim.player.facing = found!.facing;
+    const y0 = sim.player.pos.y;
+    sim.moveInput.forward = true;
+    sim.tick();
+    // Descended past the old 0.4 ledge threshold but stayed glued to the ground
+    // instead of being flung into a fall (the bug forced a jump to get down).
+    expect(sim.player.onGround).toBe(true);
+    expect(sim.player.vy).toBe(0);
+    expect(y0 - sim.player.pos.y).toBeGreaterThan(0.4);
+    expect(sim.player.pos.y).toBeCloseTo(
+      terrainHeight(sim.player.pos.x, sim.player.pos.z, seed), 5);
+  });
 });
 
 describe('combat', () => {
