@@ -255,6 +255,24 @@ describe('client HTML shell', () => {
     expect(html).not.toContain('id="mobile-meters"');
   });
 
+  it('keeps the World Market to one scroll container with browse filters below the tabs', () => {
+    expect(html).toContain('#market-window { width: 470px; height: min(640px, calc(85vh - 24px)); display: none; flex-direction: column; overflow: hidden;');
+    expect(html).toContain('#market-body { overflow-y: auto; flex: 1; min-height: 0;');
+    expect(html).toContain('.mkt-page { display: flex; align-items: center; justify-content: space-between;');
+    expect(html).toContain('body.mobile-touch #market-window {\n    max-height: calc(58vh - 20px);\n    overflow: hidden;');
+    expect(hudTs).toContain('MARKET_PAGE_SIZE');
+    expect(hudTs).toContain('this.marketBrowsePage');
+    expect(hudTs).toContain('data-market-page="prev"');
+    expect(hudTs).toContain('data-market-page="next"');
+    expect(hudTs).toContain('itemUi.market.pageRange');
+    expect(hudTs).toContain('class="mkt-filters${hasSubtype ? \' has-subtype\' : \'\'}"');
+    expect(hudTs).toContain('data-market-filter-menu="${menu}"');
+    expect(hudTs).toContain("this.renderMarketFilterMenu('itemType'");
+    expect(hudTs).toContain("this.renderMarketFilterMenu('subtype'");
+    expect(hudTs).toContain("this.renderMarketFilterMenu('rarity'");
+    expect(hudTs).not.toContain('<select data-market-filter=');
+  });
+
   it('keeps the mobile More and Autorun buttons in the combat row', () => {
     const combatControls = html.slice(html.indexOf('<div id="mobile-combat-controls">'), html.indexOf('<div id="mobile-extra-controls"'));
     const primaryButtons = [...combatControls.matchAll(/<button class="mobile-btn"/g)];
