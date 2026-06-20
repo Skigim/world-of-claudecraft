@@ -530,6 +530,22 @@ describe('GET /p/<slug>', () => {
     });
   });
 
+  it('uses the trusted dev host in production mode instead of the production fallback', async () => {
+    await withReloadedCardRoutes({ NODE_ENV: 'production' }, async (routes) => {
+      cardRows = [{ character_id: 5, account_id: 1, png: validCardPng, title: 't', description: 'd' }];
+      const res = makeRes();
+      await routes(makeGetReq('/p/sir-test', {
+        headers: { host: 'dev.worldofclaudecraft.com', 'x-forwarded-proto': 'https' },
+      }), res);
+      const html = String(res.body);
+      expect(res.statusCode).toBe(200);
+      expect(html).toContain('<link rel="canonical" href="https://dev.worldofclaudecraft.com/p/sir-test">');
+      expect(html).toContain('property="og:url" content="https://dev.worldofclaudecraft.com/p/sir-test"');
+      expect(html).toContain('property="og:image" content="https://dev.worldofclaudecraft.com/p/sir-test/card.png"');
+      expect(html).toContain('href="https://dev.worldofclaudecraft.com/?ref=sir-test"');
+    });
+  });
+
   it('uses the matching REALMS origin for canonical URLs instead of hostile headers', async () => {
     await withReloadedCardRoutes({
       REALM_NAME: 'Ironforge',
@@ -586,6 +602,7 @@ describe('GET /p/<slug>', () => {
     const res = makeRes();
     await handleCardRoutes(makeGetReq('/p/nope'), res);
     expect(res.statusCode).toBe(404);
+    expect(res.headers['Cache-Control']).toBe('no-store, max-age=0');
   });
 
   it('404s card.png for an unknown slug without serving image bytes', async () => {
@@ -594,6 +611,7 @@ describe('GET /p/<slug>', () => {
     await handleCardRoutes(makeGetReq('/p/ghost/card.png'), res);
     expect(res.statusCode).toBe(404);
     expect(String(res.headers['Content-Type'])).toContain('text/plain');
+    expect(res.headers['Cache-Control']).toBe('no-store, max-age=0');
     expect(res.body).toBe('not found');
     expect(res.headers['Content-Type']).not.toBe('image/png');
     // a card-lookup query DID run (the slug was valid), but nothing was served
@@ -619,6 +637,7 @@ describe('GET /p/<slug>', () => {
       expect(res.statusCode).toBe(404);
       expect(res.statusCode).not.toBe(500);
       expect(String(res.headers['Content-Type'])).toContain('text/plain');
+      expect(res.headers['Cache-Control']).toBe('no-store, max-age=0');
       expect(res.body).toBe('not found');
       expect(dbMock.query).not.toHaveBeenCalled();
     }
