@@ -73,7 +73,7 @@ export const ZONE3_MOBS: Record<string, MobTemplate> = {
     loot: [
       { copper: 220, chance: 1 },
       { itemId: 'ridge_stalker_pelt', chance: 1 },
-      { itemId: 'cragmaw_prowlboots', chance: 0.3 },
+      { itemId: 'cragmaw_prowlboots', chance: 0.005 },
     ],
     scale: 1.3, color: 0x6e6453,
   },

@@ -243,18 +243,24 @@ describe('the World Market — the Merchant', () => {
     expect(sim.marketListings.some((l) => l.sellerKey === 'Seller')).toBe(false);
   });
 
-  it('will not broker items flagged as unsafe for the market', () => {
+  it('brokers mech suit plates while keeping them protected from vendor/discard flows', () => {
     const sim = makeWorld();
     const seller = sim.addPlayer('warrior', 'Seller');
     standAtMerchant(sim, seller);
     sim.addItem('alien_armor_plate', 1, seller);
+    sim.addItem('amber_crimson_armor_plate', 1, seller);
     sim.events.length = 0;
 
     sim.marketList('alien_armor_plate', 1, 100, seller);
+    sim.marketList('amber_crimson_armor_plate', 1, 200, seller);
 
-    expect(errorsSince(sim).join(' ')).toMatch(/cannot be listed on the World Market/i);
-    expect(sim.countItem('alien_armor_plate', seller)).toBe(1);
-    expect(sim.marketListings.some((l) => l.sellerKey === 'Seller')).toBe(false);
+    expect(errorsSince(sim)).toEqual([]);
+    expect(sim.countItem('alien_armor_plate', seller)).toBe(0);
+    expect(sim.countItem('amber_crimson_armor_plate', seller)).toBe(0);
+    expect(sim.marketListings.filter((l) => l.sellerKey === 'Seller')).toEqual([
+      expect.objectContaining({ itemId: 'alien_armor_plate', count: 1, price: 100 }),
+      expect.objectContaining({ itemId: 'amber_crimson_armor_plate', count: 1, price: 200 }),
+    ]);
   });
 
   it('caps how many listings one seller may keep', () => {

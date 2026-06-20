@@ -33,6 +33,12 @@ function faceTarget(actor: Entity, target: Entity) {
   actor.facing = Math.atan2(target.pos.x - actor.pos.x, target.pos.z - actor.pos.z);
 }
 
+function lootChance(mobId: keyof typeof MOBS, itemId: string): number {
+  const entry = MOBS[mobId].loot.find((l) => l.itemId === itemId);
+  if (!entry) throw new Error(`${String(mobId)} missing ${itemId}`);
+  return entry.chance;
+}
+
 describe('quest lifecycle', () => {
   it('stops showing the Redbrook starter hint after the first quest is accepted', () => {
     const sim = makeSim();
@@ -311,6 +317,44 @@ describe('rare spawn rules', () => {
       (sim as any).handleDeath(mob, null);
       expect(mob.respawnTimer, id).toBe(180);
     }
+  });
+
+  it('quest-related named rares use low gear drop rates for their fast respawn timer', () => {
+    const uncommonDrops = [
+      ['elder_bristleback', 'bristleback_maul'],
+      ['elder_bristleback', 'bristlehide_spaulders'],
+      ['elder_bristleback', 'crossroads_saber'],
+      ['captain_verlan', 'oathbound_greaves'],
+    ] as const;
+    const rareDrops = [
+      ['elder_bristleback', 'moggers_copper_cudgel'],
+      ['elder_bristleback', 'hollowbone_hauberk'],
+      ['elder_bristleback', 'hollowbound_legguards'],
+      ['captain_verlan', 'verlans_oathblade'],
+      ['captain_verlan', 'hollow_vigil_staff'],
+      ['captain_verlan', 'gravewardens_shiv'],
+      ['brightwood_monarch', 'monarch_crown_helm'],
+      ['old_cragmaw', 'cragmaw_prowlboots'],
+    ] as const;
+
+    for (const [mobId, itemId] of uncommonDrops) {
+      expect(lootChance(mobId, itemId), `${mobId}.${itemId}`).toBe(0.01);
+    }
+    for (const [mobId, itemId] of rareDrops) {
+      expect(lootChance(mobId, itemId), `${mobId}.${itemId}`).toBe(0.005);
+    }
+
+    expect(lootChance('elder_bristleback', 'tough_jerky')).toBe(1);
+    expect(lootChance('captain_verlan', 'bone_fragments')).toBe(1);
+    expect(lootChance('brightwood_monarch', 'monarch_heart')).toBe(1);
+    expect(lootChance('brightwood_monarch', 'stag_antler')).toBe(1);
+    expect(lootChance('old_cragmaw', 'ridge_stalker_pelt')).toBe(1);
+  });
+
+  it('long-respawn rare loot remains at its existing rates', () => {
+    expect(lootChance('sableweb_matriarch', 'sableweb_slippers')).toBe(0.25);
+    expect(lootChance('wraithbinder_maldrec', 'maldrecs_soulbinder')).toBe(0.25);
+    expect(lootChance('ironvein_foreman', 'ironvein_pickblade')).toBe(0.25);
   });
 
   it('Mogger respawns on a quest-boss timer instead of a long rare-spawn timer', () => {

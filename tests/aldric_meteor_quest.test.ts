@@ -44,10 +44,13 @@ describe('Brother Aldric fallen star quest', () => {
     expect(ITEMS[REWARD_ITEM_ID]?.use).toEqual({ type: 'skinSelect', catalog: 'mech' });
     expect(ITEMS[REWARD_ITEM_ID]?.noVendorSell).toBe(true);
     expect(ITEMS[REWARD_ITEM_ID]?.noDiscard).toBe(true);
-    expect(ITEMS[REWARD_ITEM_ID]?.noMarketList).toBe(true);
+    expect(ITEMS[REWARD_ITEM_ID]?.noMarketList).toBeUndefined();
     expect(ITEMS[RETURNED_CHROMA_ITEM_ID]?.name).toBe('Amber Crimson');
     expect(ITEMS[RETURNED_CHROMA_ITEM_ID]?.quality).toBe('uncommon');
     expect(ITEMS[RETURNED_CHROMA_ITEM_ID]?.use).toEqual({ type: 'mechChroma', chromaId: 'amber_crimson' });
+    expect(ITEMS[RETURNED_CHROMA_ITEM_ID]?.noVendorSell).toBe(true);
+    expect(ITEMS[RETURNED_CHROMA_ITEM_ID]?.noDiscard).toBe(true);
+    expect(ITEMS[RETURNED_CHROMA_ITEM_ID]?.noMarketList).toBeUndefined();
     expect(questRewardItemId(quest, 'warrior')).toBe(REWARD_ITEM_ID);
 
     const meteorObjectDef = GROUND_OBJECTS.find((obj) => obj.itemId === METEOR_ITEM_ID);
@@ -123,7 +126,7 @@ describe('Brother Aldric fallen star quest', () => {
     expect(sim.countItem(REWARD_ITEM_ID)).toBe(1);
   });
 
-  it('keeps the cosmetic item out of vendor sell, destroy, and market flows while allowing trade', () => {
+  it('keeps the cosmetic item out of vendor sell and destroy flows while allowing market and trade', () => {
     const sim = new Sim({ seed: 20061, playerClass: 'warrior', playerName: 'Seller' });
     sim.addItem(REWARD_ITEM_ID, 1);
 
@@ -136,8 +139,11 @@ describe('Brother Aldric fallen star quest', () => {
     expect(sim.countItem(REWARD_ITEM_ID)).toBe(1);
 
     sim.marketList(REWARD_ITEM_ID, 1, 100);
+    expect(sim.countItem(REWARD_ITEM_ID)).toBe(0);
+    const listing = sim.marketListings.find((l) => l.itemId === REWARD_ITEM_ID && l.sellerKey === 'Seller');
+    expect(listing).toMatchObject({ itemId: REWARD_ITEM_ID, count: 1, price: 100 });
+    sim.marketCancel(listing!.id);
     expect(sim.countItem(REWARD_ITEM_ID)).toBe(1);
-    expect(sim.marketListings.find((l) => l.itemId === REWARD_ITEM_ID && l.sellerKey === 'Seller')).toBeUndefined();
 
     const buyer = sim.addPlayer('mage', 'Buyer');
     teleportTo(sim, sim.player.pos.x + 1, sim.player.pos.z);
