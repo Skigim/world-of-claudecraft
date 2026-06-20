@@ -28,6 +28,7 @@ import { skinCount } from './render/characters/manifest';
 import { DT, INTERACT_RANGE, MELEE_RANGE, PlayerClass, RUN_SPEED, dist2d } from './sim/types';
 import { togglePasswordVisibility, syncInputAriaState, validateForm, handleKeyboardActivation, validateCharacterName } from './ui/auth_utils';
 import { CLASSES, ABILITIES } from './sim/content/classes';
+import { CLASS_DETAILS, SIGNATURE_ABILITIES } from './ui/class_details_data';
 import { iconDataUrl } from './ui/icons';
 import { ensureLocaleLoaded, formatDateTime, formatNumber, getLanguage, isLocaleResident, isSupportedLanguage, languageTag, setLanguage, t, tPlural, type SupportedLanguage, type TranslationKey } from './ui/i18n';
 import { tServer } from './ui/server_i18n';
@@ -2148,91 +2149,8 @@ async function enterWorld(c: CharacterSummary, button?: HTMLButtonElement): Prom
   };
 }
 
-interface ClassDetails {
-  roleKey: TranslationKey;
-  roleType: 'tank' | 'dps' | 'ranged' | 'healer' | 'hybrid';
-  armorKey: TranslationKey;
-  weaponsKey: TranslationKey;
-  loreKey: TranslationKey;
-}
-
-const CLASS_DETAILS: Record<PlayerClass, ClassDetails> = {
-  warrior: {
-    roleKey: 'classDetails.roles.warrior',
-    roleType: 'hybrid',
-    armorKey: 'classDetails.armor.chainLeatherCloth',
-    weaponsKey: 'classDetails.weapons.swordsMacesAxes',
-    loreKey: 'classDetails.lore.warrior',
-  },
-  paladin: {
-    roleKey: 'classDetails.roles.paladin',
-    roleType: 'hybrid',
-    armorKey: 'classDetails.armor.chainLeatherCloth',
-    weaponsKey: 'classDetails.weapons.swordsMaces',
-    loreKey: 'classDetails.lore.paladin',
-  },
-  hunter: {
-    roleKey: 'classDetails.roles.hunter',
-    roleType: 'ranged',
-    armorKey: 'classDetails.armor.leatherCloth',
-    weaponsKey: 'classDetails.weapons.axesSwords',
-    loreKey: 'classDetails.lore.hunter',
-  },
-  rogue: {
-    roleKey: 'classDetails.roles.rogue',
-    roleType: 'dps',
-    armorKey: 'classDetails.armor.leatherCloth',
-    weaponsKey: 'classDetails.weapons.daggersSwords',
-    loreKey: 'classDetails.lore.rogue',
-  },
-  priest: {
-    roleKey: 'classDetails.roles.priest',
-    roleType: 'healer',
-    armorKey: 'classDetails.armor.cloth',
-    weaponsKey: 'classDetails.weapons.staves',
-    loreKey: 'classDetails.lore.priest',
-  },
-  shaman: {
-    roleKey: 'classDetails.roles.shaman',
-    roleType: 'hybrid',
-    armorKey: 'classDetails.armor.chainLeatherCloth',
-    weaponsKey: 'classDetails.weapons.macesAxes',
-    loreKey: 'classDetails.lore.shaman',
-  },
-  mage: {
-    roleKey: 'classDetails.roles.mage',
-    roleType: 'ranged',
-    armorKey: 'classDetails.armor.cloth',
-    weaponsKey: 'classDetails.weapons.staves',
-    loreKey: 'classDetails.lore.mage',
-  },
-  warlock: {
-    roleKey: 'classDetails.roles.warlock',
-    roleType: 'ranged',
-    armorKey: 'classDetails.armor.cloth',
-    weaponsKey: 'classDetails.weapons.staves',
-    loreKey: 'classDetails.lore.warlock',
-  },
-  druid: {
-    roleKey: 'classDetails.roles.druid',
-    roleType: 'hybrid',
-    armorKey: 'classDetails.armor.leatherCloth',
-    weaponsKey: 'classDetails.weapons.staves',
-    loreKey: 'classDetails.lore.druid',
-  }
-};
-
-const SIGNATURE_ABILITIES: Record<PlayerClass, string[]> = {
-  warrior: ['charge', 'heroic_strike', 'rend'],
-  paladin: ['holy_light', 'judgement', 'seal_of_righteousness'],
-  hunter: ['serpent_sting', 'aimed_shot', 'aspect_of_the_hawk'],
-  rogue: ['sinister_strike', 'eviscerate', 'evasion'],
-  priest: ['smite', 'power_word_shield', 'shadow_word_pain'],
-  shaman: ['lightning_bolt', 'rockbiter_weapon', 'ghost_wolf'],
-  mage: ['fireball', 'frostbolt', 'polymorph'],
-  warlock: ['shadow_bolt', 'corruption', 'life_tap'],
-  druid: ['wrath', 'bear_form', 'rejuvenation']
-};
+// CLASS_DETAILS / SIGNATURE_ABILITIES live in a pure module so a Vitest guard
+// can verify they never drift from the sim's class/ability definitions.
 
 const activeClassDetailsTimeouts: Record<string, number | null> = {};
 
