@@ -35,6 +35,19 @@ const MAX_CARD_DECODED_BYTES = (2400 * 4 + 1) * 1260;
 const MAX_SLUG_LENGTH = 64;
 const MAX_SLUG_ATTEMPTS = 25;
 const DEFAULT_PRODUCTION_PUBLIC_ORIGIN = 'https://worldofclaudecraft.com';
+const TRUSTED_PUBLIC_HOST_ORIGINS = new Map([
+  ['worldofclaudecraft.com', DEFAULT_PRODUCTION_PUBLIC_ORIGIN],
+  ['www.worldofclaudecraft.com', DEFAULT_PRODUCTION_PUBLIC_ORIGIN],
+  ['dev.worldofclaudecraft.com', 'https://dev.worldofclaudecraft.com'],
+]);
+const CARD_NOT_FOUND_HEADERS = {
+  'Content-Type': 'text/plain',
+  'Cache-Control': 'no-store, max-age=0',
+} as const;
+const CARD_PAGE_NOT_FOUND_HEADERS = {
+  'Content-Type': 'text/html; charset=utf-8',
+  'Cache-Control': 'no-store, max-age=0',
+} as const;
 
 export const PUBLIC_CARD_LOCALES = [
   'en', 'es', 'es_ES', 'fr_FR', 'fr_CA', 'en_CA', 'it_IT', 'de_DE',
@@ -378,9 +391,15 @@ function firstHeaderValue(value: string | string[] | undefined): string {
   return (Array.isArray(value) ? value[0] ?? '' : value ?? '').split(',')[0].trim();
 }
 
+function trustedPublicOriginFromHost(req: http.IncomingMessage): string {
+  const raw = firstHeaderValue(req.headers.host).toLowerCase();
+  const host = raw.includes(':') ? raw.split(':')[0] : raw;
+  return TRUSTED_PUBLIC_HOST_ORIGINS.get(host) ?? '';
+}
+
 function requestOrigin(req: http.IncomingMessage): string {
   if (REALM_PUBLIC_ORIGIN) return REALM_PUBLIC_ORIGIN;
-  if (process.env.NODE_ENV === 'production') return DEFAULT_PRODUCTION_PUBLIC_ORIGIN;
+  if (process.env.NODE_ENV === 'production') return trustedPublicOriginFromHost(req) || DEFAULT_PRODUCTION_PUBLIC_ORIGIN;
   const fwd = firstHeaderValue(req.headers['x-forwarded-proto']).toLowerCase();
   const proto = fwd === 'http' || fwd === 'https'
     ? fwd
@@ -472,7 +491,7 @@ export async function handleCardRoutes(req: http.IncomingMessage, res: http.Serv
     let slug = '';
     try { slug = m ? decodeURIComponent(m[1]).toLowerCase() : ''; } catch { slug = ''; }
     if (!m || !isValidSlug(slug)) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.writeHead(404, CARD_NOT_FOUND_HEADERS);
       res.end('not found');
       return;
     }
@@ -488,7 +507,7 @@ export async function handleCardRoutes(req: http.IncomingMessage, res: http.Serv
 async function serveCardImage(res: http.ServerResponse, slug: string): Promise<void> {
   const card = await getPlayerCardBySlug(slug);
   if (!card) {
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.writeHead(404, CARD_NOT_FOUND_HEADERS);
     res.end('not found');
     return;
   }
@@ -507,7 +526,7 @@ async function serveCardPage(req: http.IncomingMessage, res: http.ServerResponse
   const card = await getPlayerCardMetaBySlug(slug);
   const origin = requestOrigin(req);
   if (!card) {
-    res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.writeHead(404, CARD_PAGE_NOT_FOUND_HEADERS);
     res.end(missingCardHtml(origin, requestLocale(req)));
     return;
   }
@@ -517,9 +536,11 @@ async function serveCardPage(req: http.IncomingMessage, res: http.ServerResponse
 
 function cardPageHtml(opts: { slug: string; title: string; description: string; locale: PublicCardLocale; origin: string }): string {
   const { slug, title, description, locale, origin } = opts;
-  const pageUrl = `${origin}/p/${slug}`;
-  const imageUrl = `${pageUrl}/card.png`;
-  const playUrl = `${origin}/?ref=${encodeURIComponent(slug)}`;
+  const pagePath = `/p/${encodeURIComponent(slug)}`;
+  const imagePath = `${pagePath}/card.png`;
+  const playPath = `/?ref=${encodeURIComponent(slug)}`;
+  const pageUrl = `${origin}${pagePath}`;
+  const imageUrl = `${origin}${imagePath}`;
   const copy = publicCardCopy(locale);
   const t = escapeHtml(title);
   const d = escapeHtml(description);
@@ -567,9 +588,9 @@ function cardPageHtml(opts: { slug: string; title: string; description: string; 
 </head>
 <body>
   <h1>${t}</h1>
-  <img class="card" src="${escapeHtml(imageUrl)}" alt="${t}" width="1200" height="630">
+  <img class="card" src="${escapeHtml(imagePath)}" alt="${t}" width="1200" height="630">
   <p>${d}</p>
-  <a class="cta" href="${escapeHtml(playUrl)}">${cta}</a>
+  <a class="cta" href="${escapeHtml(playPath)}">${cta}</a>
   <footer>${gameName}</footer>
 </body>
 </html>`;
@@ -595,7 +616,7 @@ function missingCardHtml(origin: string, locale: PublicCardLocale): string {
 </style></head>
 <body><h1>${heading}</h1>
 <p>${description}</p>
-<p><a href="${escapeHtml(origin)}/">${cta}</a></p>
+<p><a href="/">${cta}</a></p>
 </body></html>`;
 }
 

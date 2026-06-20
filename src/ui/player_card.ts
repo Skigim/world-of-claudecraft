@@ -416,12 +416,33 @@ function hexWithAlpha(hex: string, alpha: number): string {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
-/** Export a composited card canvas to a PNG blob. */
-export function cardCanvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+function canvasToPngBlob(canvas: HTMLCanvasElement, context: string): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
-      else reject(new Error('player-card: canvas.toBlob returned null'));
+      else reject(new Error(`player-card: ${context} canvas.toBlob returned null`));
     }, 'image/png');
   });
+}
+
+/** Export a composited card canvas to a PNG blob. */
+export function cardCanvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return canvasToPngBlob(canvas, 'export');
+}
+
+/** Export the public hosted card at Open Graph size instead of the 2x preview size. */
+export function cardCanvasToUploadBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  if (canvas.width === CARD_W && canvas.height === CARD_H) {
+    return cardCanvasToBlob(canvas);
+  }
+
+  const uploadCanvas = document.createElement('canvas');
+  uploadCanvas.width = CARD_W;
+  uploadCanvas.height = CARD_H;
+  const ctx = uploadCanvas.getContext('2d');
+  if (!ctx) throw new Error('player-card: could not create upload canvas');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(canvas, 0, 0, CARD_W, CARD_H);
+  return canvasToPngBlob(uploadCanvas, 'upload');
 }

@@ -47,12 +47,20 @@ class Sfx {
   private lastPlay = new Map<string, number>();
   private loops = new Map<string, LoopSlot>();
   private ready = false;
+  private footstepsOn = false; // off by default; driven by the footstepSfx setting
   private lx = 0; private ly = 0; private lz = 0; // cached listener position
 
   /** Set SFX volume (0..1). Shares the `sfxVolume` slider with `audio`. */
   setVolume(v: number): void {
     this.vol = Math.min(1, Math.max(0, v));
     if (this.master) this.master.gain.value = SAMPLE_GAIN * this.vol;
+  }
+
+  /** Enable/disable per-footfall step clips. Off by default (the `footstepSfx`
+   *  setting): while off, `footstep()` is a silent no-op for self and other
+   *  entities alike. Jump/land/splash/swim and combat SFX are unaffected. */
+  setFootstepsEnabled(on: boolean): void {
+    this.footstepsOn = on;
   }
 
   /** Create the context + listener and decode every clip. Gated on a user gesture
@@ -255,6 +263,7 @@ class Sfx {
    *  each footfall into a transient that decays before the next, and alternating
    *  the pitch per step reads as two distinct feet rather than one looping sample. */
   footstep(x: number, y: number, z: number, surface: string, running: boolean, _self: boolean): void {
+    if (!this.footstepsOn) return; // silenced by default (footstepSfx setting)
     this.footTick = (this.footTick + 1) & 1;
     const foot = this.footTick === 0 ? 0.97 : 1.04; // left/right
     this.playAt(`foot_${surface}`, x, y, z, {

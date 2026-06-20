@@ -233,7 +233,13 @@ export const en_CA: EnTranslations = {
       "browserEffectsFull": "Full",
       "browserEffectsReduced": "Reduced",
       "browserEffectsMinimal": "Minimal",
-      "browserEffectsNote": "Auto tones down heavy CSS effects (blur, glow, background motion) based on your browser and device. Lower it manually if the interface feels sluggish."
+      "browserEffectsNote": "Auto tones down heavy CSS effects (blur, glow, background motion) based on your browser and device. Lower it manually if the interface feels sluggish.",
+      "footstepSounds": "Footstep Sounds",
+      "showWalletOnCharacterScreen": "Show Wallet on Character Screen",
+      "showWalletOnPlayerCard": "Show Wallet on Player Card"
+    },
+    "playerCard": {
+      "showWalletBadge": "Show wallet badge"
     },
     "talents": {
       "defaultBuildName": "Build {n}"
@@ -434,6 +440,10 @@ export const en_CA: EnTranslations = {
     "signOut": "Disconnect",
     "signOutTitle": "Disconnect the wallet app on this browser",
     "signOutAria": "Disconnect the wallet app on this browser",
+    "hide": "Hide",
+    "hideTitle": "Hide wallet row on this screen",
+    "hideAria": "Hide wallet row on this screen",
+    "hiddenNotice": "Wallet row hidden. Re-enable it in-game from Options > Interface.",
     "linkedTitle": "Wallet verified for your account. Click to manage the wallet app.",
     "linkedDisconnectedTitle": "Wallet remains verified for your account. Reconnect to manage the wallet app.",
     "linkedDisconnectedAria": "Wallet remains verified for your account. Reconnect to manage the wallet app.",
@@ -1261,8 +1271,10 @@ export const en_CA: EnTranslations = {
       "targetMustDodge": "Your target must dodge first.",
       "requiresCombo": "That ability requires combo points.",
       "requiresForm": "You must be in {form} Form.",
+      "cantInForm": "You can't do that in {form} Form.",
       "bear": "Bear",
       "cat": "Wolf",
+      "travel": "Travel",
       "shapeshifted": "You cannot do that while shapeshifted.",
       "stealthed": "You must be stealthed.",
       "inCombat": "You cannot do that while in combat.",
@@ -2302,7 +2314,7 @@ export const en_CA: EnTranslations = {
       },
       "travel_form": {
         "name": "Travel Form",
-        "description": "Take on a swift travel form, increasing movement speed by 40%. Cannot be used in combat."
+        "description": "Instantly shift into a swift travel form, increasing movement speed by 40%. You cannot use other abilities while shifted, but can shift in or out of combat — ideal for escaping."
       },
       "enrage": {
         "name": "Enrage",

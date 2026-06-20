@@ -233,7 +233,13 @@ export const it_IT: EnTranslations = {
       "browserEffectsFull": "Full",
       "browserEffectsReduced": "Reduced",
       "browserEffectsMinimal": "Minimal",
-      "browserEffectsNote": "Auto tones down heavy CSS effects (blur, glow, background motion) based on your browser and device. Lower it manually if the interface feels sluggish."
+      "browserEffectsNote": "Auto tones down heavy CSS effects (blur, glow, background motion) based on your browser and device. Lower it manually if the interface feels sluggish.",
+      "footstepSounds": "Suoni dei passi",
+      "showWalletOnCharacterScreen": "Mostra portafoglio nella schermata personaggi",
+      "showWalletOnPlayerCard": "Mostra portafoglio nella scheda giocatore"
+    },
+    "playerCard": {
+      "showWalletBadge": "Mostra distintivo portafoglio"
     },
     "talents": {
       "defaultBuildName": "Build {n}"
@@ -434,6 +440,10 @@ export const it_IT: EnTranslations = {
     "signOut": "Disconnetti",
     "signOutTitle": "Disconnetti l'app del portafoglio su questo browser",
     "signOutAria": "Disconnetti l'app del portafoglio su questo browser",
+    "hide": "Nascondi",
+    "hideTitle": "Nascondi la riga del portafoglio in questa schermata",
+    "hideAria": "Nascondi la riga del portafoglio in questa schermata",
+    "hiddenNotice": "Riga del portafoglio nascosta. Riattivala in gioco da Opzioni > Interfaccia.",
     "linkedTitle": "Portafoglio verificato per il tuo account. Fai clic per gestire l'app del portafoglio.",
     "linkedDisconnectedTitle": "Il portafoglio resta verificato per il tuo account. Riconnettiti per gestire l'app del portafoglio.",
     "linkedDisconnectedAria": "Il portafoglio resta verificato per il tuo account. Riconnettiti per gestire l'app del portafoglio.",
@@ -1261,8 +1271,10 @@ export const it_IT: EnTranslations = {
       "targetMustDodge": "Il bersaglio deve prima schivare.",
       "requiresCombo": "Quell'abilità richiede punti combo.",
       "requiresForm": "Devi essere in Forma di {form}.",
+      "cantInForm": "Non puoi farlo in Forma di {form}.",
       "bear": "Orso",
       "cat": "Lupo",
+      "travel": "Viaggio",
       "shapeshifted": "Non puoi farlo mentre sei trasformato.",
       "stealthed": "Devi essere furtivo.",
       "inCombat": "Non puoi farlo in combattimento.",

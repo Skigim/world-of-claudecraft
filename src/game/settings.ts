@@ -123,12 +123,24 @@ export const BOOL_SETTINGS = {
   // off by default: show a small frames-per-second readout in the corner for
   // players tuning their graphics settings.
   showFps: { def: false },
+  // on by default: show the linked/connected wallet row on the character
+  // selection screen. This is only a local display preference; verification and
+  // holder perks remain active when the row is hidden.
+  showWalletOnCharacterScreen: { def: true },
+  // on by default: include verified wallet holder/balance details in newly
+  // rendered player cards. The player-card modal can toggle this per device.
+  showWalletOnPlayerCard: { def: true },
   // off by default: invert the vertical axis of mouselook (push mouse forward
   // to look down), the classic flight-sim preference.
   invertLookY: { def: false },
   // on by default: play an NPC's voiced line when its dialogue / quest detail
   // opens. Off mutes voice-over entirely (independent of the SFX/music toggles).
   voiceEnabled: { def: true },
+  // off by default: the per-footfall step clips (self + other entities) tend to
+  // read as repetitive over a long session, so they're silenced out of the box;
+  // players who want them back can re-enable. Independent of the SFX volume
+  // slider — jump/land/splash/swim and combat one-shots are unaffected.
+  footstepSfx: { def: false },
 } as const;
 
 export type NumericSettingKey = keyof typeof SETTING_RANGES;

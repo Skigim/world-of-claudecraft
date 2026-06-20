@@ -233,7 +233,13 @@ export const zh_CN: EnTranslations = {
       "browserEffectsFull": "完整",
       "browserEffectsReduced": "精简",
       "browserEffectsMinimal": "最低",
-      "browserEffectsNote": "自动模式会根据你的浏览器和设备调低高开销的 CSS 特效（模糊、光晕、背景动画）。如果界面感觉卡顿，可手动降低。"
+      "browserEffectsNote": "自动模式会根据你的浏览器和设备调低高开销的 CSS 特效（模糊、光晕、背景动画）。如果界面感觉卡顿，可手动降低。",
+      "footstepSounds": "脚步声",
+      "showWalletOnCharacterScreen": "在角色界面显示钱包",
+      "showWalletOnPlayerCard": "在玩家卡片显示钱包"
+    },
+    "playerCard": {
+      "showWalletBadge": "显示钱包徽章"
     },
     "talents": {
       "defaultBuildName": "配置 {n}"
@@ -434,6 +440,10 @@ export const zh_CN: EnTranslations = {
     "signOut": "断开连接",
     "signOutTitle": "在此浏览器中断开钱包应用",
     "signOutAria": "在此浏览器中断开钱包应用",
+    "hide": "隐藏",
+    "hideTitle": "在此界面隐藏钱包行",
+    "hideAria": "在此界面隐藏钱包行",
+    "hiddenNotice": "钱包行已隐藏。可在游戏内的“选项 > 界面”中重新启用。",
     "linkedTitle": "钱包已为你的账号验证。点击管理钱包应用。",
     "linkedDisconnectedTitle": "钱包仍为你的账号保持验证。重新连接以管理钱包应用。",
     "linkedDisconnectedAria": "钱包仍为你的账号保持验证。重新连接以管理钱包应用。",
@@ -1261,8 +1271,10 @@ export const zh_CN: EnTranslations = {
       "targetMustDodge": "你的目标必须先闪避。",
       "requiresCombo": "该技能需要连击点。",
       "requiresForm": "你必须处于{form}形态。",
+      "cantInForm": "{form}形态下无法这样做。",
       "bear": "熊",
       "cat": "狼",
+      "travel": "旅行",
       "shapeshifted": "变形状态下不能这样做。",
       "stealthed": "你必须处于潜行状态。",
       "inCombat": "战斗中不能这样做。",

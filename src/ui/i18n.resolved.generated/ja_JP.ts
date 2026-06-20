@@ -233,7 +233,13 @@ export const ja_JP: EnTranslations = {
       "browserEffectsFull": "フル",
       "browserEffectsReduced": "軽減",
       "browserEffectsMinimal": "最小",
-      "browserEffectsNote": "自動はブラウザとデバイスに応じて、負荷の高い CSS エフェクト（ぼかし・グロー・背景アニメーション）を抑えます。動作が重い場合は手動で下げてください。"
+      "browserEffectsNote": "自動はブラウザとデバイスに応じて、負荷の高い CSS エフェクト（ぼかし・グロー・背景アニメーション）を抑えます。動作が重い場合は手動で下げてください。",
+      "footstepSounds": "足音",
+      "showWalletOnCharacterScreen": "キャラクター画面にウォレットを表示",
+      "showWalletOnPlayerCard": "プレイヤーカードにウォレットを表示"
+    },
+    "playerCard": {
+      "showWalletBadge": "ウォレットバッジを表示"
     },
     "talents": {
       "defaultBuildName": "ビルド {n}"
@@ -434,6 +440,10 @@ export const ja_JP: EnTranslations = {
     "signOut": "接続解除",
     "signOutTitle": "このブラウザでウォレットアプリの接続を解除",
     "signOutAria": "このブラウザでウォレットアプリの接続を解除",
+    "hide": "非表示",
+    "hideTitle": "この画面でウォレット行を非表示にする",
+    "hideAria": "この画面でウォレット行を非表示にする",
+    "hiddenNotice": "ウォレット行を非表示にしました。ゲーム内のオプション > インターフェイスから再度有効にできます。",
     "linkedTitle": "ウォレットはアカウントで認証済みです。クリックしてウォレットアプリを管理します。",
     "linkedDisconnectedTitle": "ウォレットはアカウントで認証されたままです。ウォレットアプリを管理するには再接続してください。",
     "linkedDisconnectedAria": "ウォレットはアカウントで認証されたままです。ウォレットアプリを管理するには再接続してください。",
@@ -1261,8 +1271,10 @@ export const ja_JP: EnTranslations = {
       "targetMustDodge": "対象が先に回避する必要があります。",
       "requiresCombo": "その能力にはコンボポイントが必要です。",
       "requiresForm": "{form}フォームである必要があります。",
+      "cantInForm": "{form}フォーム中は実行できません。",
       "bear": "熊",
       "cat": "狼",
+      "travel": "トラベル",
       "shapeshifted": "変身中は実行できません。",
       "stealthed": "ステルス状態である必要があります。",
       "inCombat": "戦闘中は実行できません。",

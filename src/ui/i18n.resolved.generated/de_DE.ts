@@ -233,7 +233,13 @@ export const de_DE: EnTranslations = {
       "browserEffectsFull": "Full",
       "browserEffectsReduced": "Reduced",
       "browserEffectsMinimal": "Minimal",
-      "browserEffectsNote": "Auto tones down heavy CSS effects (blur, glow, background motion) based on your browser and device. Lower it manually if the interface feels sluggish."
+      "browserEffectsNote": "Auto tones down heavy CSS effects (blur, glow, background motion) based on your browser and device. Lower it manually if the interface feels sluggish.",
+      "footstepSounds": "Schrittgeräusche",
+      "showWalletOnCharacterScreen": "Wallet auf dem Charakterbildschirm anzeigen",
+      "showWalletOnPlayerCard": "Wallet auf der Spielerkarte anzeigen"
+    },
+    "playerCard": {
+      "showWalletBadge": "Wallet-Abzeichen anzeigen"
     },
     "talents": {
       "defaultBuildName": "Build {n}"
@@ -434,6 +440,10 @@ export const de_DE: EnTranslations = {
     "signOut": "Abmelden",
     "signOutTitle": "Wallet-App in diesem Browser trennen",
     "signOutAria": "Wallet-App in diesem Browser trennen",
+    "hide": "Ausblenden",
+    "hideTitle": "Wallet-Zeile auf diesem Bildschirm ausblenden",
+    "hideAria": "Wallet-Zeile auf diesem Bildschirm ausblenden",
+    "hiddenNotice": "Wallet-Zeile ausgeblendet. Aktiviere sie im Spiel unter Optionen > Oberfläche wieder.",
     "linkedTitle": "Wallet für Euer Konto verifiziert. Klicken, um die Wallet-App zu verwalten.",
     "linkedDisconnectedTitle": "Das Wallet bleibt für Euer Konto verifiziert. Verbindet Euch erneut, um die Wallet-App zu verwalten.",
     "linkedDisconnectedAria": "Das Wallet bleibt für Euer Konto verifiziert. Verbindet Euch erneut, um die Wallet-App zu verwalten.",
@@ -1261,8 +1271,10 @@ export const de_DE: EnTranslations = {
       "targetMustDodge": "Euer Ziel muss zuerst ausweichen.",
       "requiresCombo": "Diese Fähigkeit benötigt Combopunkte.",
       "requiresForm": "Ihr müsst in {form}form sein.",
+      "cantInForm": "Das könnt Ihr in {form}form nicht tun.",
       "bear": "Bären",
       "cat": "Wolfs",
+      "travel": "Reise",
       "shapeshifted": "Das könnt Ihr in Gestaltwandlung nicht tun.",
       "stealthed": "Ihr müsst verstohlen sein.",
       "inCombat": "Das könnt Ihr im Kampf nicht tun.",

@@ -233,7 +233,13 @@ export const fr_FR: EnTranslations = {
       "browserEffectsFull": "Full",
       "browserEffectsReduced": "Reduced",
       "browserEffectsMinimal": "Minimal",
-      "browserEffectsNote": "Auto tones down heavy CSS effects (blur, glow, background motion) based on your browser and device. Lower it manually if the interface feels sluggish."
+      "browserEffectsNote": "Auto tones down heavy CSS effects (blur, glow, background motion) based on your browser and device. Lower it manually if the interface feels sluggish.",
+      "footstepSounds": "Sons de pas",
+      "showWalletOnCharacterScreen": "Afficher le portefeuille sur l’écran des personnages",
+      "showWalletOnPlayerCard": "Afficher le portefeuille sur la carte de joueur"
+    },
+    "playerCard": {
+      "showWalletBadge": "Afficher l’insigne de portefeuille"
     },
     "talents": {
       "defaultBuildName": "Configuration {n}"
@@ -434,6 +440,10 @@ export const fr_FR: EnTranslations = {
     "signOut": "Déconnecter",
     "signOutTitle": "Déconnecter l'appli de portefeuille sur ce navigateur",
     "signOutAria": "Déconnecter l'appli de portefeuille sur ce navigateur",
+    "hide": "Masquer",
+    "hideTitle": "Masquer la ligne de portefeuille sur cet écran",
+    "hideAria": "Masquer la ligne de portefeuille sur cet écran",
+    "hiddenNotice": "Ligne de portefeuille masquée. Réactivez-la en jeu depuis Options > Interface.",
     "linkedTitle": "Portefeuille vérifié pour votre compte. Cliquez pour gérer l'appli de portefeuille.",
     "linkedDisconnectedTitle": "Le portefeuille reste vérifié pour votre compte. Reconnectez-vous pour gérer l'appli de portefeuille.",
     "linkedDisconnectedAria": "Le portefeuille reste vérifié pour votre compte. Reconnectez-vous pour gérer l'appli de portefeuille.",
@@ -1261,8 +1271,10 @@ export const fr_FR: EnTranslations = {
       "targetMustDodge": "Votre cible doit d'abord esquiver.",
       "requiresCombo": "Cette technique requiert des points de combo.",
       "requiresForm": "Vous devez être en forme de {form}.",
+      "cantInForm": "Vous ne pouvez pas faire cela en forme de {form}.",
       "bear": "ours",
       "cat": "loup",
+      "travel": "voyage",
       "shapeshifted": "Vous ne pouvez pas faire cela en forme changeante.",
       "stealthed": "Vous devez être camouflé.",
       "inCombat": "Vous ne pouvez pas faire cela en combat.",

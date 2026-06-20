@@ -233,7 +233,13 @@ export const es: EnTranslations = {
       "browserEffectsFull": "Full",
       "browserEffectsReduced": "Reduced",
       "browserEffectsMinimal": "Minimal",
-      "browserEffectsNote": "Auto tones down heavy CSS effects (blur, glow, background motion) based on your browser and device. Lower it manually if the interface feels sluggish."
+      "browserEffectsNote": "Auto tones down heavy CSS effects (blur, glow, background motion) based on your browser and device. Lower it manually if the interface feels sluggish.",
+      "footstepSounds": "Sonidos de pasos",
+      "showWalletOnCharacterScreen": "Mostrar cartera en la pantalla de personajes",
+      "showWalletOnPlayerCard": "Mostrar cartera en la tarjeta de jugador"
+    },
+    "playerCard": {
+      "showWalletBadge": "Mostrar insignia de cartera"
     },
     "talents": {
       "defaultBuildName": "Configuración {n}"
@@ -434,6 +440,10 @@ export const es: EnTranslations = {
     "signOut": "Desconectar",
     "signOutTitle": "Desconectar la app de cartera en este navegador",
     "signOutAria": "Desconectar la app de cartera en este navegador",
+    "hide": "Ocultar",
+    "hideTitle": "Ocultar la fila de cartera en esta pantalla",
+    "hideAria": "Ocultar la fila de cartera en esta pantalla",
+    "hiddenNotice": "Fila de cartera oculta. Vuelve a activarla dentro del juego desde Opciones > Interfaz.",
     "linkedTitle": "Cartera verificada para tu cuenta. Haz clic para gestionar la app de cartera.",
     "linkedDisconnectedTitle": "La cartera sigue verificada para tu cuenta. Vuelve a conectar para gestionar la app de cartera.",
     "linkedDisconnectedAria": "La cartera sigue verificada para tu cuenta. Vuelve a conectar para gestionar la app de cartera.",
@@ -1261,8 +1271,10 @@ export const es: EnTranslations = {
       "targetMustDodge": "Tu objetivo debe esquivar primero.",
       "requiresCombo": "Esa habilidad requiere puntos de combo.",
       "requiresForm": "Debes estar en forma de {form}.",
+      "cantInForm": "No puedes hacer eso en forma de {form}.",
       "bear": "oso",
       "cat": "lobo",
+      "travel": "viaje",
       "shapeshifted": "No puedes hacer eso transformado.",
       "stealthed": "Debes estar en sigilo.",
       "inCombat": "No puedes hacer eso en combate.",

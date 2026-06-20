@@ -56,6 +56,9 @@ beforeEach(() => {
   // Neutralize the ±jitter so alternation is the only pitch variable under test.
   Math.random = () => 0.5;
   sfx.init();
+  // Footsteps are off by default (the footstepSfx setting); enable them so the
+  // play-path behaviours below are exercised. The gate itself is tested separately.
+  sfx.setFootstepsEnabled(true);
   // Inject decoded buffers directly (skip async fetch/decode in preload).
   const buffers = (sfx as unknown as { buffers: Map<string, { duration: number }> }).buffers;
   buffers.set('foot_grass', { duration: 0.48 });
@@ -79,5 +82,29 @@ describe('footstep audio', () => {
     sfx.footstep(0, 0, 0, 'grass', false, true);
     const b = sources.at(-1)!.playbackRate.value;
     expect(Math.abs(a - b)).toBeGreaterThan(0.05);
+  });
+});
+
+// Footstep sounds ship OFF by default and are toggleable via the footstepSfx
+// setting. While disabled, footstep() must be a no-op (no source created) for
+// self and other entities alike; re-enabling resumes playback.
+describe('footstep toggle', () => {
+  it('is a no-op when footsteps are disabled', () => {
+    sfx.setFootstepsEnabled(false);
+    const before = sources.length;
+    sfx.footstep(0, 0, 0, 'grass', true, true);  // self
+    sfx.footstep(5, 0, 5, 'grass', false, false); // another entity
+    expect(sources.length).toBe(before);
+  });
+
+  it('resumes playback once re-enabled', () => {
+    sfx.setFootstepsEnabled(false);
+    sfx.footstep(0, 0, 0, 'grass', true, true);
+    const muted = sources.length;
+    sfx.setFootstepsEnabled(true);
+    nowT += 0.5; // clear the per-key cooldown
+    sfx.footstep(0, 0, 0, 'grass', true, true);
+    expect(sources.length).toBe(muted + 1);
+    expect(sources.at(-1)!.started).toBe(true);
   });
 });

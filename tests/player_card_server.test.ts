@@ -406,7 +406,8 @@ describe('GET /p/<slug>', () => {
     expect(html).toContain('<link rel="canonical" href="http://realm.example/p/sir-test">');
     expect(html).toContain('property="og:image" content="http://realm.example/p/sir-test/card.png"');
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
-    expect(html).toContain('href="http://realm.example/?ref=sir-test"');
+    expect(html).toContain('src="/p/sir-test/card.png"');
+    expect(html).toContain('href="/?ref=sir-test"');
     // title/description are HTML-escaped
     expect(html).toContain('A &quot;Quote&quot; &lt;b&gt;');
     expect(html).toContain('desc &amp; more');
@@ -484,7 +485,8 @@ describe('GET /p/<slug>', () => {
     await handleCardRoutes(makeGetReq('/p/sir-test', { headers: { 'x-forwarded-proto': 'https' } }), res);
     const html = String(res.body);
     expect(html).toContain('property="og:image" content="https://realm.example/p/sir-test/card.png"');
-    expect(html).toContain('href="https://realm.example/?ref=sir-test"');
+    expect(html).toContain('src="/p/sir-test/card.png"');
+    expect(html).toContain('href="/?ref=sir-test"');
   });
 
   it('builds an https origin from an encrypted socket', async () => {
@@ -506,7 +508,8 @@ describe('GET /p/<slug>', () => {
       expect(html).toContain('<link rel="canonical" href="https://cards.example.com/p/sir-test">');
       expect(html).toContain('property="og:url" content="https://cards.example.com/p/sir-test"');
       expect(html).toContain('property="og:image" content="https://cards.example.com/p/sir-test/card.png"');
-      expect(html).toContain('href="https://cards.example.com/?ref=sir-test"');
+      expect(html).toContain('src="/p/sir-test/card.png"');
+      expect(html).toContain('href="/?ref=sir-test"');
       expect(html).not.toContain('evil.example');
       expect(html).not.toContain('javascript://');
     });
@@ -524,9 +527,27 @@ describe('GET /p/<slug>', () => {
       expect(html).toContain('<link rel="canonical" href="https://worldofclaudecraft.com/p/sir-test">');
       expect(html).toContain('property="og:url" content="https://worldofclaudecraft.com/p/sir-test"');
       expect(html).toContain('property="og:image" content="https://worldofclaudecraft.com/p/sir-test/card.png"');
-      expect(html).toContain('href="https://worldofclaudecraft.com/?ref=sir-test"');
+      expect(html).toContain('src="/p/sir-test/card.png"');
+      expect(html).toContain('href="/?ref=sir-test"');
       expect(html).not.toContain('evil.example');
       expect(html).not.toContain('javascript://');
+    });
+  });
+
+  it('uses the trusted dev host in production mode instead of the production fallback', async () => {
+    await withReloadedCardRoutes({ NODE_ENV: 'production' }, async (routes) => {
+      cardRows = [{ character_id: 5, account_id: 1, png: validCardPng, title: 't', description: 'd' }];
+      const res = makeRes();
+      await routes(makeGetReq('/p/sir-test', {
+        headers: { host: 'dev.worldofclaudecraft.com', 'x-forwarded-proto': 'https' },
+      }), res);
+      const html = String(res.body);
+      expect(res.statusCode).toBe(200);
+      expect(html).toContain('<link rel="canonical" href="https://dev.worldofclaudecraft.com/p/sir-test">');
+      expect(html).toContain('property="og:url" content="https://dev.worldofclaudecraft.com/p/sir-test"');
+      expect(html).toContain('property="og:image" content="https://dev.worldofclaudecraft.com/p/sir-test/card.png"');
+      expect(html).toContain('src="/p/sir-test/card.png"');
+      expect(html).toContain('href="/?ref=sir-test"');
     });
   });
 
@@ -545,7 +566,8 @@ describe('GET /p/<slug>', () => {
       expect(html).toContain('<link rel="canonical" href="https://ironforge.example.com/p/sir-test">');
       expect(html).toContain('property="og:url" content="https://ironforge.example.com/p/sir-test"');
       expect(html).toContain('property="og:image" content="https://ironforge.example.com/p/sir-test/card.png"');
-      expect(html).toContain('href="https://ironforge.example.com/?ref=sir-test"');
+      expect(html).toContain('src="/p/sir-test/card.png"');
+      expect(html).toContain('href="/?ref=sir-test"');
       expect(html).not.toContain('evil.example');
     });
   });
@@ -586,6 +608,7 @@ describe('GET /p/<slug>', () => {
     const res = makeRes();
     await handleCardRoutes(makeGetReq('/p/nope'), res);
     expect(res.statusCode).toBe(404);
+    expect(res.headers['Cache-Control']).toBe('no-store, max-age=0');
   });
 
   it('404s card.png for an unknown slug without serving image bytes', async () => {
@@ -594,6 +617,7 @@ describe('GET /p/<slug>', () => {
     await handleCardRoutes(makeGetReq('/p/ghost/card.png'), res);
     expect(res.statusCode).toBe(404);
     expect(String(res.headers['Content-Type'])).toContain('text/plain');
+    expect(res.headers['Cache-Control']).toBe('no-store, max-age=0');
     expect(res.body).toBe('not found');
     expect(res.headers['Content-Type']).not.toBe('image/png');
     // a card-lookup query DID run (the slug was valid), but nothing was served
@@ -619,6 +643,7 @@ describe('GET /p/<slug>', () => {
       expect(res.statusCode).toBe(404);
       expect(res.statusCode).not.toBe(500);
       expect(String(res.headers['Content-Type'])).toContain('text/plain');
+      expect(res.headers['Cache-Control']).toBe('no-store, max-age=0');
       expect(res.body).toBe('not found');
       expect(dbMock.query).not.toHaveBeenCalled();
     }
