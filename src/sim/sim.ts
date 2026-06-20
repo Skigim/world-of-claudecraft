@@ -767,7 +767,7 @@ export class Sim {
       autoEquip: cfg.autoEquip ?? false,
       playerName: cfg.playerName ?? 'Adventurer',
       devCommands: this.devCommands,
-      lockoutNowMs: cfg.lockoutNowMs,
+      lockoutNowMs: cfg.lockoutNowMs ?? (() => Math.floor(this.time * 1000)),
     };
     this.rng = new Rng(cfg.seed);
 

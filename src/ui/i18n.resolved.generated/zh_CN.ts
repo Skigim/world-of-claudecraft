@@ -1172,6 +1172,7 @@ export const zh_CN: EnTranslations = {
         "unignoreChat": "取消屏蔽聊天",
         "report": "举报玩家",
         "removeParty": "移出队伍",
+        "convertToRaid": "转换为团队",
         "cancel": "取消"
       }
     },
@@ -1390,6 +1391,12 @@ export const zh_CN: EnTranslations = {
       "guildTab": "公会",
       "ignoreTab": "忽略",
       "leaveParty": "离开队伍",
+      "raidTab": "团队",
+      "raidEmpty": "将小队转换为团队后，可在这里管理团队分组。",
+      "raidGroupEmpty": "此小组没有玩家。",
+      "raidGroupTitle": "小组 {position} ({count}/5)",
+      "raidMoveToGroup": "移动到小组 {position}",
+      "raidLeader": "团队领袖",
       "offlineEmpty": "好友、公会和忽略列表仅在在线游戏中可用。",
       "friendsEmpty": "还没有好友。请在下方按名称搜索。",
       "ignoreEmpty": "你的忽略列表为空。",
@@ -1625,7 +1632,8 @@ export const zh_CN: EnTranslations = {
       "common": "普通",
       "uncommon": "优秀",
       "rare": "精良",
-      "epic": "史诗"
+      "epic": "史诗",
+      "legendary": "传说"
     },
     "kind": {
       "weapon": "武器",
@@ -3322,6 +3330,36 @@ export const zh_CN: EnTranslations = {
       "event_skin_token": {
         "name": "神秘外观宝箱"
       },
+      "deathless_heartwood": {
+        "name": "不朽王冠之心木"
+      },
+      "kingsbane_last_oath": {
+        "name": "弑王者，Thornpeak 最后的誓言"
+      },
+      "crownforged_dreadhelm": {
+        "name": "铸冠恐惧头盔"
+      },
+      "crownforged_warspaulders": {
+        "name": "铸冠战肩甲"
+      },
+      "nighttalon_crown": {
+        "name": "夜爪之冠"
+      },
+      "nighttalon_shoulderguards": {
+        "name": "夜爪护肩"
+      },
+      "soulflame_cowl": {
+        "name": "魂焰兜帽"
+      },
+      "soulflame_mantle": {
+        "name": "魂焰披肩"
+      },
+      "stormcallers_crown": {
+        "name": "唤雷者之冠"
+      },
+      "stormcallers_spaulders": {
+        "name": "唤雷者肩甲"
+      },
       "unknown_alien_weaponry": {
         "name": "未知异星武器"
       },
@@ -3536,6 +3574,15 @@ export const zh_CN: EnTranslations = {
       },
       "bound_guardian": {
         "name": "受缚守卫者"
+      },
+      "nythraxis_skeleton_warrior": {
+        "name": "复苏王室卫兵"
+      },
+      "brother_aldric_raid": {
+        "name": "奥德里克修士"
+      },
+      "nythraxis_scourge_of_thornpeak": {
+        "name": "尼瑟拉克斯，荆峰之灾"
       },
       "brightwood_hare": {
         "name": "明木野兔"
@@ -4862,6 +4909,11 @@ export const zh_CN: EnTranslations = {
         "name": "废弃墓穴",
         "enterText": "你走下荆峰被遗忘废墟之下的废弃墓穴。",
         "leaveText": "你爬出废弃墓穴，回到荆峰的山风之中。"
+      },
+      "nythraxis_boss_arena": {
+        "name": "尼瑟拉克斯团队竞技场",
+        "enterText": "你穿过封印的王室之门。",
+        "leaveText": "你回到荆峰的寒冷空气中。"
       },
       "drowned_temple": {
         "name": "溺亡神殿",

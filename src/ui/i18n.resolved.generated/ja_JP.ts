@@ -1172,6 +1172,7 @@ export const ja_JP: EnTranslations = {
         "unignoreChat": "チャット無視解除",
         "report": "プレイヤーを通報",
         "removeParty": "パーティから外す",
+        "convertToRaid": "レイドに変換",
         "cancel": "キャンセル"
       }
     },
@@ -1390,6 +1391,12 @@ export const ja_JP: EnTranslations = {
       "guildTab": "ギルド",
       "ignoreTab": "無視",
       "leaveParty": "パーティを抜ける",
+      "raidTab": "レイド",
+      "raidEmpty": "パーティをレイドに変換すると、ここでレイドグループを管理できます。",
+      "raidGroupEmpty": "このグループにプレイヤーはいません。",
+      "raidGroupTitle": "グループ {position} ({count}/5)",
+      "raidMoveToGroup": "グループ {position} に移動",
+      "raidLeader": "レイドリーダー",
       "offlineEmpty": "フレンド、ギルド、無視リストはオンラインプレイで利用できます。",
       "friendsEmpty": "フレンドはまだいません。下で名前を検索してください。",
       "ignoreEmpty": "無視リストは空です。",
@@ -1625,7 +1632,8 @@ export const ja_JP: EnTranslations = {
       "common": "一般",
       "uncommon": "良質",
       "rare": "レア",
-      "epic": "エピック"
+      "epic": "エピック",
+      "legendary": "伝説"
     },
     "kind": {
       "weapon": "武器",
@@ -3322,6 +3330,36 @@ export const ja_JP: EnTranslations = {
       "event_skin_token": {
         "name": "謎めいた装いの宝箱"
       },
+      "deathless_heartwood": {
+        "name": "不死王冠の心材"
+      },
+      "kingsbane_last_oath": {
+        "name": "キングスベイン、ソーンピーク最後の誓い"
+      },
+      "crownforged_dreadhelm": {
+        "name": "冠鍛えの恐怖兜"
+      },
+      "crownforged_warspaulders": {
+        "name": "冠鍛えの戦肩当て"
+      },
+      "nighttalon_crown": {
+        "name": "夜爪の冠"
+      },
+      "nighttalon_shoulderguards": {
+        "name": "夜爪の肩守り"
+      },
+      "soulflame_cowl": {
+        "name": "魂炎の頭巾"
+      },
+      "soulflame_mantle": {
+        "name": "魂炎のマント"
+      },
+      "stormcallers_crown": {
+        "name": "嵐呼びの冠"
+      },
+      "stormcallers_spaulders": {
+        "name": "嵐呼びの肩当て"
+      },
       "unknown_alien_weaponry": {
         "name": "未知の異星武装"
       },
@@ -3536,6 +3574,15 @@ export const ja_JP: EnTranslations = {
       },
       "bound_guardian": {
         "name": "縛られし守護者"
+      },
+      "nythraxis_skeleton_warrior": {
+        "name": "蘇った王家の衛兵"
+      },
+      "brother_aldric_raid": {
+        "name": "アルドリック修士"
+      },
+      "nythraxis_scourge_of_thornpeak": {
+        "name": "ナイスラクシス、ソーンピークの災厄"
       },
       "brightwood_hare": {
         "name": "ブライトウッドの野ウサギ"
@@ -4515,7 +4562,7 @@ export const ja_JP: EnTranslations = {
       "q_nythraxis_bound_guardian": {
         "title": "縛られし守護者",
         "text": "ヴォスは、生存者たちが偶然や野心でニスラクシスの墓に辿り着く者を防ぐため、王の印章指輪を古代の守護者の奥に封じたと記しています。墓所の要石を、廃棄された墓所の東、西の墓の南東にある平地の儀式陣へ持っていってください。そこで使い、守護者を破り、指輪を持ち帰ってください。",
-        "completion": "三つの遺物は同じ物語を語っています。オルドレンは王を守るために戦い、マルリックは死の境界を破り、ヴォスはその後に起きたことを止めようとしました。封印は弱まり、この指輪こそニスラクシスの墓への鍵です。あなたは今、ニスラクシスの墓所へ入るための調律を終えました。",
+        "completion": "三つの遺物は同じ物語を語っています。アルドレンは王を守るために戦い、マルリックは死の境界を破り、ヴォスはその後に起きたことを止めようとしました。封印は弱まり、この指輪こそニスラクシスの墓への鍵です。あなたは今、ニスラクシスの墓所へ入るための調律を終えました。廃れた墓所へ戻り、王家の扉を開き、古き王の怒りがソーンピークの外へ溢れる前にニスラクシスと対峙してください。",
         "objectives": {
           "0": {
             "label": "儀式の円で地下墓所の要石を使用"
@@ -4861,6 +4908,11 @@ export const ja_JP: EnTranslations = {
       "nythraxis_crypt": {
         "name": "放棄された地下墓所",
         "enterText": "放棄された地下墓所の敷居を越えます。",
+        "leaveText": "ソーンピークの冷たい空気へ戻ります。"
+      },
+      "nythraxis_boss_arena": {
+        "name": "ナイスラクシスのレイドアリーナ",
+        "enterText": "封印された王家の扉を通り抜けます。",
         "leaveText": "ソーンピークの冷たい空気へ戻ります。"
       },
       "drowned_temple": {

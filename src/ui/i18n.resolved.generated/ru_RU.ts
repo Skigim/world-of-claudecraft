@@ -1172,6 +1172,7 @@ export const ru_RU: EnTranslations = {
         "unignoreChat": "Убрать игнор чата",
         "report": "Пожаловаться на игрока",
         "removeParty": "Удалить из группы",
+        "convertToRaid": "Преобразовать в рейд",
         "cancel": "Отмена"
       }
     },
@@ -1390,6 +1391,12 @@ export const ru_RU: EnTranslations = {
       "guildTab": "Гильдия",
       "ignoreTab": "Игнор",
       "leaveParty": "Покинуть группу",
+      "raidTab": "Рейд",
+      "raidEmpty": "Преобразуйте группу в рейд, чтобы управлять рейдовыми группами здесь.",
+      "raidGroupEmpty": "В этой группе нет игроков.",
+      "raidGroupTitle": "Группа {position} ({count}/5)",
+      "raidMoveToGroup": "Переместить в группу {position}",
+      "raidLeader": "Лидер рейда",
       "offlineEmpty": "Друзья, гильдии и списки игнорирования доступны в онлайн-игре.",
       "friendsEmpty": "Друзей пока нет. Найдите игрока по имени ниже.",
       "ignoreEmpty": "Ваш список игнорирования пуст.",
@@ -1625,7 +1632,8 @@ export const ru_RU: EnTranslations = {
       "common": "Обычное",
       "uncommon": "Необычное",
       "rare": "Редкое",
-      "epic": "Эпическое"
+      "epic": "Эпическое",
+      "legendary": "Легендарное"
     },
     "kind": {
       "weapon": "Оружие",
@@ -3322,6 +3330,36 @@ export const ru_RU: EnTranslations = {
       "event_skin_token": {
         "name": "Загадочный косметический тайник"
       },
+      "deathless_heartwood": {
+        "name": "Сердцевина бессмертной короны"
+      },
+      "kingsbane_last_oath": {
+        "name": "Цареубийца, последняя клятва Торнпика"
+      },
+      "crownforged_dreadhelm": {
+        "name": "Короннокованый шлем ужаса"
+      },
+      "crownforged_warspaulders": {
+        "name": "Короннокованые боевые наплечники"
+      },
+      "nighttalon_crown": {
+        "name": "Корона Ночного Когтя"
+      },
+      "nighttalon_shoulderguards": {
+        "name": "Наплечные стражи Ночного Когтя"
+      },
+      "soulflame_cowl": {
+        "name": "Клобук Пламени души"
+      },
+      "soulflame_mantle": {
+        "name": "Оплечье Пламени души"
+      },
+      "stormcallers_crown": {
+        "name": "Корона призывателя бурь"
+      },
+      "stormcallers_spaulders": {
+        "name": "Наплечники призывателя бурь"
+      },
       "unknown_alien_weaponry": {
         "name": "Неизвестное инопланетное вооружение"
       },
@@ -3536,6 +3574,15 @@ export const ru_RU: EnTranslations = {
       },
       "bound_guardian": {
         "name": "Связанный страж"
+      },
+      "nythraxis_skeleton_warrior": {
+        "name": "Восставший королевский страж"
+      },
+      "brother_aldric_raid": {
+        "name": "Брат Олдрик"
+      },
+      "nythraxis_scourge_of_thornpeak": {
+        "name": "Нитраксис, Бич Торнпика"
       },
       "brightwood_hare": {
         "name": "Заяц Брайтвуда"
@@ -4861,6 +4908,11 @@ export const ru_RU: EnTranslations = {
       "nythraxis_crypt": {
         "name": "Заброшенный склеп",
         "enterText": "Вы переступаете порог заброшенного склепа.",
+        "leaveText": "Вы возвращаетесь в холодный воздух Терновых высот."
+      },
+      "nythraxis_boss_arena": {
+        "name": "Рейдовая арена Нитраксиса",
+        "enterText": "Вы проходите через запечатанную королевскую дверь.",
         "leaveText": "Вы возвращаетесь в холодный воздух Терновых высот."
       },
       "drowned_temple": {
