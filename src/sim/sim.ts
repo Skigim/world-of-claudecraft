@@ -9517,11 +9517,21 @@ export class Sim {
           return name.includes(filter) || l.itemId.toLowerCase().includes(filter);
         })
       : this.marketListings;
-    const sorted = [...matched].sort((a, b) => {
+    const byName = (a: MarketListing, b: MarketListing) => {
       const na = ITEMS[a.itemId]?.name ?? a.itemId;
       const nb = ITEMS[b.itemId]?.name ?? b.itemId;
       return na.localeCompare(nb) || a.price - b.price;
-    });
+    };
+    // The seller's OWN goods must always ride the wire: otherwise, on a market
+    // past MARKET_WIRE_LIMIT, a fresh listing could sort out of the top slice and
+    // vanish from the seller's view — bags emptied into escrow, nothing on the
+    // market, "poof into the void". Own listings are bounded (MARKET_MAX_LISTINGS),
+    // so reserve room for them and fill the rest with everyone else's, then sort
+    // the combined view for a stable alphabetical display.
+    const mineMatched = matched.filter((l) => !l.house && l.sellerKey === meta.name);
+    const otherMatched = matched.filter((l) => l.house || l.sellerKey !== meta.name);
+    const otherBudget = Math.max(0, MARKET_WIRE_LIMIT - mineMatched.length);
+    const sorted = [...mineMatched, ...[...otherMatched].sort(byName).slice(0, otherBudget)].sort(byName);
     const listings = sorted.slice(0, MARKET_WIRE_LIMIT).map((l) => ({
       id: l.id, sellerName: l.sellerName, itemId: l.itemId, count: l.count,
       price: l.price, mine: !l.house && l.sellerKey === meta.name, house: l.house,

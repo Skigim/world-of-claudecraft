@@ -95,6 +95,36 @@ describe('the World Market — the Merchant', () => {
     expect(Number.isFinite(mine[0].expiresAt)).toBe(true);
   });
 
+  it('a seller always sees their own listing, even on a market past the wire cap', () => {
+    // Regression: on a busy global market (house stock + many sellers) a fresh
+    // listing could sort past MARKET_WIRE_LIMIT and never ride the snapshot, so
+    // the seller saw "Listed ..." in chat with the goods gone from their bags
+    // yet absent from the market — "poof into the void".
+    const sim = makeWorld();
+    // Flood the market well past the wire cap with goods that sort before a
+    // "Worn Shortsword" so a naive top-N slice would drop the seller's listing.
+    for (let i = 0; i < 150; i++) {
+      sim.marketListings.push({
+        id: (sim as unknown as { nextListingId: number }).nextListingId++,
+        sellerKey: `Flooder${i}`, sellerName: `Flooder${i}`,
+        itemId: 'roasted_boar', count: 1, price: 100, expiresAt: sim.time + 10_000, house: false,
+      });
+    }
+    const seller = sim.addPlayer('warrior', 'Seller');
+    standAtMerchant(sim, seller);
+    sim.addItem('worn_sword', 2, seller);
+    sim.marketList('worn_sword', 2, 1000, seller);
+
+    const info = sim.marketInfoFor(seller)!;
+    const mine = info.listings.filter((l) => l.mine);
+    expect(mine.length).toBe(1);
+    expect(mine[0]).toMatchObject({ itemId: 'worn_sword', count: 2 });
+    // the wire payload still stays bounded (MARKET_WIRE_LIMIT = 120), and the
+    // full match count is still reported so the UI shows "X of Y".
+    expect(info.listings.length).toBeLessThanOrEqual(120);
+    expect(info.totalCount).toBeGreaterThan(info.listings.length);
+  });
+
   it('completes a sale: coin and goods move, seller keeps proceeds less the cut', () => {
     const sim = makeWorld();
     const seller = sim.addPlayer('warrior', 'Seller');
