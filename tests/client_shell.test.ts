@@ -52,6 +52,16 @@ describe('client HTML shell', () => {
     expect(sitemapXml).toContain('<loc>https://worldofclaudecraft.com/links</loc>');
   });
 
+  it('loads Meta Pixel outside local development and tracks level 5', () => {
+    expect(html).toContain('https://connect.facebook.net/en_US/fbevents.js');
+    expect(html).toContain("fbq('init', '1692101265042180');");
+    expect(html).toContain("fbq('track', 'PageView');");
+    expect(html).toContain('https://www.facebook.com/tr?id=1692101265042180&ev=PageView&noscript=1');
+    expect(html).toContain("if (!['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {");
+    expect(hudTs).toContain("fbq('trackCustom', eventName, data ?? {});");
+    expect(hudTs).toContain("if (ev.level === 5) trackMetaPixel('ReachedLevel5', { level: ev.level });");
+  });
+
   it('offers the quest log in the mobile controls drawer', () => {
     expect(html).toContain('id="mobile-extra-controls"');
     expect(html).toContain('id="mobile-quest"');
