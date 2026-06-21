@@ -1523,7 +1523,7 @@ export const en: EnTranslations = {
       "skip": "Skip Tutorial",
       "dismiss": "Dismiss",
       "doneTitle": "Ready for Adventure",
-      "doneBody": "You have the basics, {name}. The Vale is yours to explore — press {questKey} anytime to review your quests. Good hunting.",
+      "doneBody": "You have the basics, {name}. The Vale is yours to explore. Press {questKey} anytime to review your quests. Good hunting.",
       "moveTitle": "Find Your Footing",
       "moveBody": "Use {moveKeys} to move and the mouse to look around. Take a few steps to begin.",
       "seekTitle": "Seek the Marshal",

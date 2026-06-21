@@ -14,6 +14,23 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const fr_FR: Partial<Record<TranslationKey, string>> = {
+  "hud.tutorial.title": "Nouvel aventurier",
+  "hud.tutorial.stepLabel": "Étape {current} sur {total}",
+  "hud.tutorial.skip": "Passer le tutoriel",
+  "hud.tutorial.dismiss": "Fermer",
+  "hud.tutorial.doneTitle": "Prêt pour l'aventure",
+  "hud.tutorial.doneBody": "Tu maîtrises les bases, {name}. Le Val est à toi : appuie sur {questKey} à tout moment pour consulter tes quêtes. Bonne chasse !",
+  "hud.tutorial.moveTitle": "Trouve tes marques",
+  "hud.tutorial.moveBody": "Utilise {moveKeys} pour te déplacer et la souris pour regarder autour de toi. Fais quelques pas pour commencer.",
+  "hud.tutorial.seekTitle": "Trouve le maréchal",
+  "hud.tutorial.seekBody": "Le maréchal Redbrook attend en ville et a du travail pour une nouvelle lame. Suis le repère pour le rejoindre.",
+  "hud.tutorial.talkTitle": "Accepte la mission",
+  "hud.tutorial.talkBody": "Tiens-toi près du maréchal Redbrook et appuie sur {interactKey} pour lui parler, puis accepte sa mission.",
+  "hud.tutorial.slayTitle": "Des loups à la porte",
+  "hud.tutorial.slayBody": "Traque les loups des bois sur la route du nord. Cible-en un et attaque pour réduire la meute.",
+  "hud.tutorial.slayProgress": "Loups des bois tués : {current} / {needed}",
+  "hud.tutorial.returnTitle": "Réclame ta récompense",
+  "hud.tutorial.returnBody": "Ta mission est accomplie. Retourne voir le maréchal Redbrook et appuie sur {interactKey} pour la rendre.",
   // Character-sheet stat tooltips (hudChrome.statInfo.*).
   "hudChrome.statInfo.fromYour": "Grâce à vos {value} en {stat} :",
   "hudChrome.statInfo.desc.str": "Augmente votre puissance d'attaque, vos coups d'arme frappent donc plus fort.",

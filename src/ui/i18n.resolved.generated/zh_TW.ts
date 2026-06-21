@@ -1523,18 +1523,18 @@ export const zh_TW: EnTranslations = {
       "skip": "跳過教學",
       "dismiss": "關閉",
       "doneTitle": "準備好冒險了",
-      "doneBody": "你已掌握基礎，{name}。山谷任你探索——隨時按 {questKey} 查看任務。祝你狩獵順利！",
+      "doneBody": "你已掌握基礎，{name}。東溪谷任你探索。隨時按 {questKey} 查看任務。祝你狩獵順利。",
       "moveTitle": "邁出第一步",
       "moveBody": "使用 {moveKeys} 移動，用滑鼠環顧四周。先走幾步開始吧。",
-      "seekTitle": "尋找鎮長",
-      "seekBody": "雷德布魯克鎮長在鎮上等候，他有任務交給新人。跟隨指引前往找他。",
+      "seekTitle": "尋找元帥",
+      "seekBody": "雷德布魯克元帥在鎮上等候，他有任務交給新人。跟隨指引前往找他。",
       "talkTitle": "接受任務",
-      "talkBody": "靠近雷德布魯克鎮長並按 {interactKey} 與他交談，然後接受他的任務。",
+      "talkBody": "靠近雷德布魯克元帥並按 {interactKey} 與他交談，然後接受他的任務。",
       "slayTitle": "狼群來襲",
-      "slayBody": "前往北路獵殺森林狼。選中一隻並發動攻擊，削減狼群。",
+      "slayBody": "前往北路獵殺森林狼。選定一隻並發動攻擊，削減狼群數量。",
       "slayProgress": "已擊殺森林狼：{current} / {needed}",
       "returnTitle": "領取獎勵",
-      "returnBody": "任務已完成。返回雷德布魯克鎮長處並按 {interactKey} 繳交任務。"
+      "returnBody": "任務已完成。返回雷德布魯克元帥處並按 {interactKey} 繳交任務。"
     },
     "markers": {
       "names": {

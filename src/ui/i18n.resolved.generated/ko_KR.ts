@@ -1523,18 +1523,18 @@ export const ko_KR: EnTranslations = {
       "skip": "튜토리얼 건너뛰기",
       "dismiss": "닫기",
       "doneTitle": "모험 준비 완료",
-      "doneBody": "기본기를 익혔습니다, {name}. 이제 계곡을 자유롭게 누비세요. 언제든 {questKey} 키로 퀘스트를 확인할 수 있습니다. 좋은 사냥 되세요!",
+      "doneBody": "기본기를 익혔습니다, {name}. 이제 골짜기를 자유롭게 누비세요. 언제든 {questKey} 키로 퀘스트를 확인할 수 있습니다. 좋은 사냥 되세요.",
       "moveTitle": "첫걸음 떼기",
       "moveBody": "{moveKeys} 키로 이동하고 마우스로 주위를 둘러보세요. 몇 걸음 움직여 시작하세요.",
-      "seekTitle": "보안관을 찾으세요",
-      "seekBody": "레드브룩 보안관이 마을에서 기다리며 새내기에게 맡길 일이 있습니다. 표식을 따라 그에게 가세요.",
+      "seekTitle": "원수를 찾으세요",
+      "seekBody": "레드브룩 원수가 마을에서 기다리며 새내기에게 맡길 일이 있습니다. 표식을 따라 그에게 가세요.",
       "talkTitle": "임무 수락",
-      "talkBody": "레드브룩 보안관에게 다가가 {interactKey} 키를 눌러 대화한 뒤 임무를 수락하세요.",
+      "talkBody": "레드브룩 원수에게 다가가 {interactKey} 키를 눌러 대화한 뒤 임무를 수락하세요.",
       "slayTitle": "문 앞의 늑대들",
-      "slayBody": "북쪽 길의 숲 늑대를 사냥하세요. 하나를 지정해 공격하여 무리를 줄이세요.",
-      "slayProgress": "처치한 숲 늑대: {current} / {needed}",
+      "slayBody": "북쪽 길의 숲늑대를 사냥하세요. 한 마리를 대상으로 지정해 공격하여 무리를 줄이세요.",
+      "slayProgress": "처치한 숲늑대: {current} / {needed}",
       "returnTitle": "보상 받기",
-      "returnBody": "임무를 마쳤습니다. 레드브룩 보안관에게 돌아가 {interactKey} 키를 눌러 완료하세요."
+      "returnBody": "임무를 마쳤습니다. 레드브룩 원수에게 돌아가 {interactKey} 키를 눌러 완료하세요."
     },
     "markers": {
       "names": {

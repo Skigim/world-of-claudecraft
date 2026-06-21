@@ -14,6 +14,23 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const it_IT: Partial<Record<TranslationKey, string>> = {
+  "hud.tutorial.title": "Nuovo avventuriero",
+  "hud.tutorial.stepLabel": "Passo {current} di {total}",
+  "hud.tutorial.skip": "Salta il tutorial",
+  "hud.tutorial.dismiss": "Chiudi",
+  "hud.tutorial.doneTitle": "Pronto all'avventura",
+  "hud.tutorial.doneBody": "Hai imparato le basi, {name}. La Valle è tutta da esplorare: premi {questKey} in qualsiasi momento per rivedere le tue missioni. Buona caccia!",
+  "hud.tutorial.moveTitle": "Trova l'equilibrio",
+  "hud.tutorial.moveBody": "Usa {moveKeys} per muoverti e il mouse per guardarti intorno. Fai qualche passo per iniziare.",
+  "hud.tutorial.seekTitle": "Cerca il Maresciallo",
+  "hud.tutorial.seekBody": "Il maresciallo Redbrook attende in città e ha del lavoro per una nuova lama. Segui il segnale per raggiungerlo.",
+  "hud.tutorial.talkTitle": "Accetta l'incarico",
+  "hud.tutorial.talkBody": "Avvicinati al maresciallo Redbrook e premi {interactKey} per parlargli, poi accetta il suo incarico.",
+  "hud.tutorial.slayTitle": "Lupi alle porte",
+  "hud.tutorial.slayBody": "Dai la caccia ai lupi della foresta sulla strada a nord. Seleziona un bersaglio e attacca per ridurre il branco.",
+  "hud.tutorial.slayProgress": "Lupi della foresta uccisi: {current} / {needed}",
+  "hud.tutorial.returnTitle": "Reclama la ricompensa",
+  "hud.tutorial.returnBody": "Il tuo incarico è compiuto. Torna dal maresciallo Redbrook e premi {interactKey} per consegnarlo.",
   // Character-sheet stat tooltips (hudChrome.statInfo.*).
   "hudChrome.statInfo.fromYour": "Dai tuoi {value} punti {stat}:",
   "hudChrome.statInfo.desc.str": "Aumenta la tua potenza d'attacco, così i colpi della tua arma sono più potenti.",

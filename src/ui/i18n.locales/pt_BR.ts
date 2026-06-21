@@ -14,6 +14,23 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const pt_BR: Partial<Record<TranslationKey, string>> = {
+  "hud.tutorial.title": "Novo Aventureiro",
+  "hud.tutorial.stepLabel": "Passo {current} de {total}",
+  "hud.tutorial.skip": "Pular tutorial",
+  "hud.tutorial.dismiss": "Dispensar",
+  "hud.tutorial.doneTitle": "Pronto para a aventura",
+  "hud.tutorial.doneBody": "Você já domina o básico, {name}. O Vale é seu para explorar. Pressione {questKey} a qualquer momento para ver suas missões. Boa caçada!",
+  "hud.tutorial.moveTitle": "Dê os primeiros passos",
+  "hud.tutorial.moveBody": "Use {moveKeys} para se mover e o mouse para olhar ao redor. Dê alguns passos para começar.",
+  "hud.tutorial.seekTitle": "Procure o Marechal",
+  "hud.tutorial.seekBody": "O marechal Redbrook espera na cidade e tem trabalho para uma nova lâmina. Siga o marcador para chegar até ele.",
+  "hud.tutorial.talkTitle": "Aceite a tarefa",
+  "hud.tutorial.talkBody": "Aproxime-se do marechal Redbrook e pressione {interactKey} para falar, então aceite a tarefa dele.",
+  "hud.tutorial.slayTitle": "Lobos à porta",
+  "hud.tutorial.slayBody": "Cace os lobos da floresta na estrada do norte. Selecione um e ataque para reduzir a matilha.",
+  "hud.tutorial.slayProgress": "Lobos da floresta abatidos: {current} / {needed}",
+  "hud.tutorial.returnTitle": "Reivindique sua recompensa",
+  "hud.tutorial.returnBody": "Sua tarefa está concluída. Volte ao marechal Redbrook e pressione {interactKey} para entregá-la.",
   // Character-sheet stat tooltips (hudChrome.statInfo.*).
   "hudChrome.statInfo.fromYour": "Do seu {value} de {stat}:",
   "hudChrome.statInfo.desc.str": "Aumenta seu poder de ataque, de modo que seus golpes com armas atinjam com mais força.",

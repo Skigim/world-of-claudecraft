@@ -14,6 +14,23 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const de_DE: Partial<Record<TranslationKey, string>> = {
+  "hud.tutorial.title": "Neuer Abenteurer",
+  "hud.tutorial.stepLabel": "Schritt {current} von {total}",
+  "hud.tutorial.skip": "Tutorial überspringen",
+  "hud.tutorial.dismiss": "Schließen",
+  "hud.tutorial.doneTitle": "Bereit für das Abenteuer",
+  "hud.tutorial.doneBody": "Du beherrschst die Grundlagen, {name}. Das Eastbrook-Tal liegt bereit, von dir erkundet zu werden. Drücke jederzeit {questKey}, um deine Quests einzusehen. Gute Jagd.",
+  "hud.tutorial.moveTitle": "Erste Schritte",
+  "hud.tutorial.moveBody": "Nutze {moveKeys} zum Bewegen und die Maus zum Umsehen. Mach ein paar Schritte, um zu beginnen.",
+  "hud.tutorial.seekTitle": "Suche den Marschall",
+  "hud.tutorial.seekBody": "Marschall Redbrook wartet in der Stadt und hat Arbeit für einen frischen Recken. Folge der Markierung zu ihm.",
+  "hud.tutorial.talkTitle": "Nimm die Aufgabe an",
+  "hud.tutorial.talkBody": "Stell dich nah an Marschall Redbrook und drücke {interactKey}, um mit ihm zu sprechen, und nimm dann seine Aufgabe an.",
+  "hud.tutorial.slayTitle": "Wölfe vor der Tür",
+  "hud.tutorial.slayBody": "Jage die Waldwölfe an der Nordstraße. Visiere einen an und greife ihn an, um das Rudel zu lichten.",
+  "hud.tutorial.slayProgress": "Erlegte Waldwölfe: {current} / {needed}",
+  "hud.tutorial.returnTitle": "Hol dir deine Belohnung",
+  "hud.tutorial.returnBody": "Deine Aufgabe ist erledigt. Kehre zu Marschall Redbrook zurück und drücke {interactKey}, um sie abzugeben.",
   // Character-sheet stat tooltips (hudChrome.statInfo.*).
   "hudChrome.statInfo.fromYour": "Von deinen {value} Punkten {stat}:",
   "hudChrome.statInfo.desc.str": "Erhöht deine Angriffskraft, sodass deine Waffenschläge härter treffen.",

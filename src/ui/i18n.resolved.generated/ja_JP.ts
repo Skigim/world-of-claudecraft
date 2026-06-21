@@ -1523,18 +1523,18 @@ export const ja_JP: EnTranslations = {
       "skip": "チュートリアルをスキップ",
       "dismiss": "閉じる",
       "doneTitle": "冒険の準備完了",
-      "doneBody": "基本は覚えましたね、{name}。谷はあなたのもの、自由に探索しましょう。いつでも {questKey} キーでクエストを確認できます。よい狩りを！",
+      "doneBody": "基本は覚えましたね、{name}。イーストブルック渓谷はあなたのもの、自由に探索しましょう。いつでも {questKey} キーでクエストを確認できます。よい狩りを！",
       "moveTitle": "まず一歩を",
       "moveBody": "{moveKeys} で移動し、マウスで周囲を見回します。数歩進んで始めましょう。",
-      "seekTitle": "保安官を探す",
-      "seekBody": "レッドブルック保安官が町で待っており、新人に頼みごとがあります。目印をたどって彼のもとへ向かいましょう。",
+      "seekTitle": "元帥を探す",
+      "seekBody": "レッドブルック元帥が町で待っており、新人に頼みごとがあります。目印をたどって彼のもとへ向かいましょう。",
       "talkTitle": "依頼を受ける",
-      "talkBody": "レッドブルック保安官に近づき、{interactKey} を押して話しかけ、依頼を受けましょう。",
+      "talkBody": "レッドブルック元帥に近づき、{interactKey} を押して話しかけ、依頼を受けましょう。",
       "slayTitle": "戸口の狼",
-      "slayBody": "北の道でフォレストウルフを狩りましょう。一体を選んで攻撃し、群れを減らします。",
-      "slayProgress": "倒したフォレストウルフ：{current} / {needed}",
+      "slayBody": "北の道で森の狼を狩りましょう。一体をターゲットして攻撃し、群れを減らします。",
+      "slayProgress": "倒した森の狼：{current} / {needed}",
       "returnTitle": "報酬を受け取る",
-      "returnBody": "依頼は完了しました。レッドブルック保安官のもとへ戻り、{interactKey} を押して納品しましょう。"
+      "returnBody": "依頼は完了しました。レッドブルック元帥のもとへ戻り、{interactKey} を押して納品しましょう。"
     },
     "markers": {
       "names": {

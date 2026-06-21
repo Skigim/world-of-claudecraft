@@ -14,6 +14,23 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const es: Partial<Record<TranslationKey, string>> = {
+  "hud.tutorial.title": "Nuevo Aventurero",
+  "hud.tutorial.stepLabel": "Paso {current} de {total}",
+  "hud.tutorial.skip": "Saltar tutorial",
+  "hud.tutorial.dismiss": "Descartar",
+  "hud.tutorial.doneTitle": "Listo para la aventura",
+  "hud.tutorial.doneBody": "Ya dominas lo básico, {name}. El Valle es tuyo para explorar: pulsa {questKey} en cualquier momento para revisar tus misiones. ¡Buena caza!",
+  "hud.tutorial.moveTitle": "Da tus primeros pasos",
+  "hud.tutorial.moveBody": "Usa {moveKeys} para moverte y el ratón para mirar alrededor. Da unos pasos para empezar.",
+  "hud.tutorial.seekTitle": "Busca al Mariscal",
+  "hud.tutorial.seekBody": "El mariscal Redbrook espera en el pueblo y tiene trabajo para una nueva espada. Sigue la marca para llegar a él.",
+  "hud.tutorial.talkTitle": "Acepta la tarea",
+  "hud.tutorial.talkBody": "Acércate al mariscal Redbrook y pulsa {interactKey} para hablar; luego acepta su tarea.",
+  "hud.tutorial.slayTitle": "Lobos a las puertas",
+  "hud.tutorial.slayBody": "Caza a los lobos del bosque en el camino del norte. Selecciona uno y atácalo para diezmar la manada.",
+  "hud.tutorial.slayProgress": "Lobos del bosque abatidos: {current} / {needed}",
+  "hud.tutorial.returnTitle": "Reclama tu recompensa",
+  "hud.tutorial.returnBody": "Tu tarea está hecha. Vuelve con el mariscal Redbrook y pulsa {interactKey} para entregarla.",
   // Character-sheet stat tooltips (hudChrome.statInfo.*).
   "hudChrome.statInfo.fromYour": "De tu {value} de {stat}:",
   "hudChrome.statInfo.desc.str": "Aumenta tu poder de ataque, así que tus golpes con el arma impactan con más fuerza.",
