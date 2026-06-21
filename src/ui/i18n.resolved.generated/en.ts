@@ -174,6 +174,9 @@ export const en: EnTranslations = {
       "title": "Emotes",
       "done": "Done"
     },
+    "questTracker": {
+      "count": "({count})"
+    },
     "chatTimestamps": {
       "show": "Show Chat Timestamps",
       "format": "Timestamp Format",

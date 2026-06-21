@@ -20,6 +20,7 @@ import {
   dist2d, xpForLevel, MAX_LEVEL, MELEE_RANGE, MILESTONES, virtualLevel, canPrestige, xpUntilNextPrestige,
 } from '../sim/types';
 import { xpBarView, formatXp } from './xp_bar';
+import { questTrackerView, type QuestTrackerView, type TrackedQuest } from './quest_tracker';
 import { lowHealthVignette } from './low_health';
 import { absorbBarView } from './absorb_bar';
 import { itemStatDeltas } from './item_compare';
@@ -642,6 +643,12 @@ export class Hud {
     $('#mm-spell').addEventListener('click', () => this.toggleSpellbook());
     $('#mm-talents')?.addEventListener('click', () => this.toggleTalents());
     $('#mm-quest').addEventListener('click', () => this.toggleQuestLog());
+    // Collapse/expand the on-screen quest tracker by clicking its header. The
+    // overlay is click-through (pointer-events:none) except the header button, so
+    // delegate on the stable container (the header is rebuilt on each render).
+    $('#quest-tracker').addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.qt-header')) this.toggleQuestTrackerCollapsed();
+    });
     $('#mm-map').addEventListener('click', () => this.toggleMap());
     $('#map-close').addEventListener('click', () => { $('#map-window').style.display = 'none'; });
     const mapCanvas = $('#map-canvas') as unknown as HTMLCanvasElement;
@@ -2584,16 +2591,59 @@ export class Hud {
 
   private updateQuestTracker(): void {
     const el = $('#quest-tracker');
-    let html = this.sim.questLog.size > 0 ? `<div class="qt-header">${esc(t('questUi.tracker.title'))}</div>` : '';
+    const collapsed = (this.optionsHooks?.settings.get('questTrackerCollapsed') ?? false) === true;
+    const quests: TrackedQuest[] = [];
     for (const qp of this.sim.questLog.values()) {
       const quest = QUESTS[qp.questId];
-      html += `<div class="qt-title">${esc(questTitle(qp.questId))}${qp.state === 'ready' ? ` <span class="quest-complete">(${esc(t('questUi.tracker.complete'))})</span>` : ''}</div>`;
-      quest.objectives.forEach((obj, i) => {
-        const done = qp.counts[i] >= obj.count;
-        html += `<div class="qt-obj${done ? ' done' : ''}">- ${esc(this.questProgressText(questObjectiveLabel(qp.questId, i), qp.counts[i], obj.count))}</div>`;
+      quests.push({
+        id: qp.questId,
+        title: questTitle(qp.questId),
+        complete: qp.state === 'ready',
+        objectives: quest.objectives.map((obj, i) => ({
+          label: questObjectiveLabel(qp.questId, i),
+          current: qp.counts[i],
+          total: obj.count,
+        })),
       });
     }
+    const html = this.questTrackerHtml(questTrackerView(quests, collapsed));
     if (el.innerHTML !== html) el.innerHTML = html;
+  }
+
+  // Render the pure tracker view to the floating overlay's HTML. The header is a
+  // <button> (pointer-events re-enabled in CSS over the otherwise click-through
+  // overlay) that toggles the collapse; a delegated listener on #quest-tracker
+  // (see the event-binding constructor) handles activation so it survives these
+  // innerHTML rebuilds.
+  private questTrackerHtml(view: QuestTrackerView): string {
+    if (!view.visible) return '';
+    const chevron = view.collapsed ? '▸' : '▾'; // U+25B8 right / U+25BE down triangle
+    const count = view.collapsed
+      ? `<span class="qt-count">${esc(t('hudChrome.questTracker.count', { count: this.questNumber(view.count) }))}</span>`
+      : '';
+    let html = `<button type="button" class="qt-header" aria-expanded="${!view.collapsed}">`
+      + `<span class="qt-chevron" aria-hidden="true">${chevron}</span>`
+      + `<span class="qt-h-label">${esc(t('questUi.tracker.title'))}</span>${count}</button>`;
+    for (const q of view.quests) {
+      html += `<div class="qt-title">${esc(q.title)}${q.complete ? ` <span class="quest-complete">(${esc(t('questUi.tracker.complete'))})</span>` : ''}</div>`;
+      for (const o of q.objectives) {
+        html += `<div class="qt-obj${o.done ? ' done' : ''}">- ${esc(this.questProgressText(o.label, o.current, o.total))}</div>`;
+      }
+    }
+    return html;
+  }
+
+  /** Flip the persisted tracker-collapsed preference (the header click/keyboard
+   *  activation), preserving keyboard focus across the innerHTML rebuild. */
+  private toggleQuestTrackerCollapsed(): void {
+    const settings = this.optionsHooks?.settings;
+    if (!settings) return;
+    const refocus = document.activeElement instanceof HTMLElement
+      && document.activeElement.classList.contains('qt-header');
+    settings.set('questTrackerCollapsed', !settings.get('questTrackerCollapsed'));
+    audio.click();
+    this.updateQuestTracker();
+    if (refocus) ($('#quest-tracker').querySelector('.qt-header') as HTMLElement | null)?.focus();
   }
 
   // -------------------------------------------------------------------------

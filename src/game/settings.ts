@@ -134,6 +134,10 @@ export const BOOL_SETTINGS = {
   // players who want them back can re-enable. Independent of the SFX volume
   // slider — jump/land/splash/swim and combat one-shots are unaffected.
   footstepSfx: { def: false },
+  // off by default (expanded): when on, the on-screen quest tracker is collapsed
+  // to just its "Quests (N)" header. Toggled by clicking the tracker header; kept
+  // here so the choice persists across sessions like the other HUD preferences.
+  questTrackerCollapsed: { def: false },
 } as const;
 
 export type NumericSettingKey = keyof typeof SETTING_RANGES;

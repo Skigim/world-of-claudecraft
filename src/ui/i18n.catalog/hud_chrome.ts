@@ -33,6 +33,11 @@ export const hudChromeStrings = {
     title: "Emotes",
     done: "Done",
   },
+  // On-screen quest tracker. The "(N)" count shown beside the header while the
+  // tracker is collapsed; the number is spliced in via formatNumber.
+  questTracker: {
+    count: "({count})",
+  },
   chatTimestamps: {
     show: "Show Chat Timestamps",
     format: "Timestamp Format",

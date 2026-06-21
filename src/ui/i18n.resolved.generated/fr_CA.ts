@@ -174,6 +174,9 @@ export const fr_CA: EnTranslations = {
       "title": "Emotes",
       "done": "Terminé"
     },
+    "questTracker": {
+      "count": "({count})"
+    },
     "chatTimestamps": {
       "show": "Afficher l'horodatage de la discussion",
       "format": "Format de l'horodatage",
