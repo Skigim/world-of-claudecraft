@@ -1,8 +1,15 @@
 // Generates src/guide/content.generated.ts from the sim source of truth (CLASSES +
-// TALENTS), so the Guide's class data never drifts from the game. Mirrors the
-// esbuild-bundle pattern in scripts/export_loot_spreadsheet.mjs (never import raw .ts).
-// Run via `npm run wiki:content`; the build runs it and the committed output is
+// TALENTS + ZONES + DUNGEONS + the overworld bestiary), so the Guide's data never
+// drifts from the game. Mirrors the esbuild-bundle pattern in
+// scripts/export_loot_spreadsheet.mjs (never import raw .ts). Run via
+// `npm run wiki:content`; the build runs it and the committed output is
 // freshness-checked in tests/guide.test.ts. Deterministic: reads data, writes a file.
+//
+// SPOILER POLICY: this file carries only high-level, spoiler-safe facts (names, roles,
+// level bands, signature kits, point-of-interest labels). It NEVER emits balance
+// numbers, mechanic names, loot, the raid boss name, or per-encounter scripts. The
+// rich localized prose (spec/mastery text) is resolved live at render time through
+// src/ui/talent_i18n.ts, not baked here.
 import * as esbuild from 'esbuild';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -14,7 +21,8 @@ const entrySource = `
   export { CLASSES, ABILITIES } from './src/sim/content/classes.ts';
   export { TALENTS } from './src/sim/content/talents.ts';
   export { ALL_CLASSES } from './src/sim/types.ts';
-  export { ZONES } from './src/sim/data.ts';
+  export { ZONES, DUNGEONS, MOBS } from './src/sim/data.ts';
+  export { WARLOCK_PET_MOBS } from './src/sim/content/warlock_pets.ts';
   export { ZONE1_MOBS } from './src/sim/content/zone1.ts';
   export { ZONE2_MOBS } from './src/sim/content/zone2.ts';
   export { ZONE3_MOBS } from './src/sim/content/zone3.ts';
@@ -29,25 +37,40 @@ const built = await esbuild.build({
   logLevel: 'silent',
 });
 const dataUrl = `data:text/javascript;base64,${Buffer.from(built.outputFiles[0].text).toString('base64')}`;
-const { CLASSES, ABILITIES, TALENTS, ALL_CLASSES, ZONES, ZONE1_MOBS, ZONE2_MOBS, ZONE3_MOBS } = await import(dataUrl);
+const {
+  CLASSES, ABILITIES, TALENTS, ALL_CLASSES, ZONES, DUNGEONS, MOBS, WARLOCK_PET_MOBS,
+  ZONE1_MOBS, ZONE2_MOBS, ZONE3_MOBS,
+} = await import(dataUrl);
 
 const ROLE_ORDER = ['tank', 'healer', 'dps'];
 const hex = (n) => `#${(n >>> 0).toString(16).padStart(6, '0').slice(-6)}`;
+const abilityRef = (aid) => ({ id: aid, name: ABILITIES[aid]?.name ?? aid });
 
-// How many early, spoiler-safe abilities to surface as the "signature kit".
+// How many early, spoiler-safe abilities lead the "signature kit". The full kit
+// (allAbilities) follows so every class icon is showcased.
 const SIGNATURE_COUNT = 6;
 
 const classes = ALL_CLASSES.map((id) => {
   const def = CLASSES[id];
-  const specs = (TALENTS[id]?.specs ?? []).map((s) => ({ name: s.name, role: s.role }));
+  const specDefs = TALENTS[id]?.specs ?? [];
+  // specs carry id + signature ability id so the page can resolve localized spec and
+  // mastery prose live via talent_i18n; name/role stay for structure and tests.
+  const specs = specDefs.map((s) => ({ id: s.id, name: s.name, role: s.role, signature: s.signature }));
   const roles = ROLE_ORDER.filter((r) => specs.some((s) => s.role === r));
-  const signatureAbilities = (def.abilities ?? [])
-    .slice(0, SIGNATURE_COUNT)
-    .map((aid) => ({ id: aid, name: ABILITIES[aid]?.name ?? aid }));
-  return { id, color: hex(def.color), resource: def.resourceType, roles, specs, signatureAbilities };
+  const kit = def.abilities ?? [];
+  return {
+    id,
+    color: hex(def.color),
+    resource: def.resourceType,
+    roles,
+    specs,
+    signatureAbilities: kit.slice(0, SIGNATURE_COUNT).map(abilityRef),
+    abilities: kit.map(abilityRef),
+  };
 });
 
-// Zones, in world order (south to north).
+// Zones, in world order (south to north). POI labels and the welcome line are
+// spoiler-safe (no coordinates).
 const zones = ZONES.map((z) => ({
   id: z.id,
   name: z.name,
@@ -55,7 +78,43 @@ const zones = ZONES.map((z) => ({
   max: z.levelRange[1],
   biome: z.biome,
   hub: z.hub?.name ?? '',
+  pois: (z.pois ?? []).map((p) => p.label),
+  welcome: z.welcome ?? '',
 }));
+
+// Dungeons + the raid. Only group content (suggestedPlayers >= 5) so the solo raid
+// lead-in crypt is excluded. The level band is derived from each instance's own
+// spawns, so it can never drift from the game. The raid's sim name contains the
+// final boss name, so it is withheld here and the page renders its own unnamed copy.
+const dungeonBand = (def) => {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const s of def.spawns ?? []) {
+    const m = MOBS[s.mobId];
+    if (!m) continue;
+    if (m.minLevel < min) min = m.minLevel;
+    if (m.maxLevel > max) max = m.maxLevel;
+  }
+  return min === Infinity ? { min: null, max: null } : { min, max };
+};
+const dungeons = Object.values(DUNGEONS)
+  .filter((d) => (d.suggestedPlayers ?? 0) >= 5)
+  .map((d) => {
+    const isRaid = (d.suggestedPlayers ?? 0) >= 10;
+    const band = dungeonBand(d);
+    return {
+      id: isRaid ? 'raid' : d.id,
+      isRaid,
+      suggestedPlayers: d.suggestedPlayers,
+      min: band.min,
+      max: band.max,
+      ...(isRaid ? {} : { name: d.name }),
+    };
+  })
+  .sort((a, b) => (a.min ?? 99) - (b.min ?? 99) || a.suggestedPlayers - b.suggestedPlayers);
+
+// Warlock demons, in summon order. Names only; role flavor is authored guide copy.
+const warlockPets = Object.values(WARLOCK_PET_MOBS).map((p) => ({ id: p.id, name: p.name }));
 
 // Bestiary: OVERWORLD creatures only, grouped by family. Excludes elite/boss (dungeon
 // and raid encounters) and warlock pet summons, so nothing here spoils instanced content.
@@ -77,13 +136,14 @@ const families = FAMILY_ORDER
 const header = `// GENERATED by scripts/wiki/build_content.mjs from src/sim/content. Do not edit by hand.
 // Regenerate with \`npm run wiki:content\`; tests/guide.test.ts checks it stays fresh.
 // Spec names and ability names are the English sim source (proper nouns); all other
-// Guide copy is localized via guide.* t() keys.
+// Guide copy is localized via guide.* t() keys, and rich spec/mastery prose resolves
+// live through src/ui/talent_i18n.ts. No balance numbers or instanced spoilers here.
 
 export type GuideRole = 'tank' | 'healer' | 'dps';
 export type GuideResource = 'rage' | 'mana' | 'energy';
 
-export interface GuideClassSpec { name: string; role: GuideRole; }
-export interface GuideSignatureAbility { id: string; name: string; }
+export interface GuideAbilityRef { id: string; name: string; }
+export interface GuideClassSpec { id: string; name: string; role: GuideRole; signature: string; }
 
 export interface GuideClassInfo {
   id: string;
@@ -91,7 +151,8 @@ export interface GuideClassInfo {
   resource: GuideResource;
   roles: GuideRole[];
   specs: GuideClassSpec[];
-  signatureAbilities: GuideSignatureAbility[];
+  signatureAbilities: GuideAbilityRef[];
+  abilities: GuideAbilityRef[];
 }
 
 export interface GuideZoneInfo {
@@ -101,7 +162,20 @@ export interface GuideZoneInfo {
   max: number;
   biome: string;
   hub: string;
+  pois: string[];
+  welcome: string;
 }
+
+export interface GuideDungeon {
+  id: string;
+  isRaid: boolean;
+  suggestedPlayers: number;
+  min: number | null;
+  max: number | null;
+  name?: string;
+}
+
+export interface GuideWarlockPet { id: string; name: string; }
 
 export interface GuideCreature { name: string; min: number; max: number; rare: boolean; }
 export interface GuideFamily { family: string; creatures: GuideCreature[]; }
@@ -111,7 +185,9 @@ writeFileSync(outFile, [
   header,
   `\nexport const GUIDE_CLASSES: GuideClassInfo[] = ${JSON.stringify(classes, null, 2)};\n`,
   `\nexport const GUIDE_ZONES: GuideZoneInfo[] = ${JSON.stringify(zones, null, 2)};\n`,
+  `\nexport const GUIDE_DUNGEONS: GuideDungeon[] = ${JSON.stringify(dungeons, null, 2)};\n`,
+  `\nexport const GUIDE_WARLOCK_PETS: GuideWarlockPet[] = ${JSON.stringify(warlockPets, null, 2)};\n`,
   `\nexport const GUIDE_FAMILIES: GuideFamily[] = ${JSON.stringify(families, null, 2)};\n`,
 ].join(''));
 // eslint-disable-next-line no-console
-console.log(`generated src/guide/content.generated.ts (${classes.length} classes, ${zones.length} zones, ${families.length} families)`);
+console.log(`generated src/guide/content.generated.ts (${classes.length} classes, ${zones.length} zones, ${dungeons.length} dungeons, ${warlockPets.length} warlock pets, ${families.length} families)`);
