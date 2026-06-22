@@ -129,17 +129,22 @@ export class CharacterPreview {
     this.container = container;
     this.container.appendChild(this.canvas);
 
-    // Initial resize sync
+    this.syncSize();
+
+    // Re-observe the new container
+    this.setupResizeObserver();
+  }
+
+  /** Force the renderer to match the current visible container size. */
+  syncSize(): void {
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
     if (width > 0 && height > 0) {
       this.renderer.setSize(width, height, false);
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
+      this.renderer.render(this.scene, this.camera);
     }
-
-    // Re-observe the new container
-    this.setupResizeObserver();
   }
 
   private setupDragControls(): void {
@@ -189,13 +194,7 @@ export class CharacterPreview {
 
   private setupResizeObserver(): void {
     this.resizeObserver = new ResizeObserver(() => {
-      const width = this.container.clientWidth;
-      const height = this.container.clientHeight;
-      if (width > 0 && height > 0) {
-        this.renderer.setSize(width, height, false);
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
-      }
+      this.syncSize();
     });
     this.resizeObserver.observe(this.container);
   }

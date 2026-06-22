@@ -22,6 +22,7 @@ import {
   isQuestTurnInNpc,
 } from '../sim/types';
 import { xpBarView, formatXp } from './xp_bar';
+import { questTrackerView, type QuestTrackerView, type TrackedQuest } from './quest_tracker';
 import { lowHealthVignette } from './low_health';
 import { absorbBarView } from './absorb_bar';
 import { itemStatDeltas } from './item_compare';
@@ -139,6 +140,23 @@ export interface GamepadBindingsHooks {
 export interface ReportHooks {
   submit(targetPid: number, reason: string, details: string): Promise<void>;
   submitByName?(targetName: string, reason: string, details: string): Promise<void>;
+}
+
+export interface BugReportPayload {
+  description: string;
+  screenshot: string | null;
+  meta: unknown;
+}
+
+export interface BugReportHooks {
+  // Submit a captured bug report to the server. Resolves on success (screenshotStored
+  // is false when the server dropped the screenshot), rejects with a server error
+  // message the hud maps via localizeBugReportError.
+  submit(payload: BugReportPayload): Promise<{ screenshotStored: boolean }>;
+  // Grab a JPEG data URL of the current frame, or null if capture failed/unavailable.
+  capture(): string | null;
+  // Auto-collected context (build, userAgent, viewport, zone, level/class, camera).
+  collectMeta(): unknown;
 }
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T => document.querySelector(sel) as T;
@@ -411,10 +429,11 @@ export class Hud {
   private suppressNextActionClick = false;
   private optionsHooks: OptionsHooks | null = null;
   private reportHooks: ReportHooks | null = null;
+  private bugReportHooks: BugReportHooks | null = null;
   // Soft swear terms from the server (online only), masked in chat when the
   // player's "Filter Profanity" setting is on. Fed by main.ts from ClientWorld.
   private profanityWords: string[] = [];
-  private optionsView: 'main' | 'keybinds' | 'graphics' | 'audio' | 'interface' | 'performance' | 'controller' = 'main';
+  private optionsView: 'main' | 'keybinds' | 'graphics' | 'audio' | 'interface' | 'performance' | 'controller' | 'bugreport' = 'main';
   // The Options > Performance panel, lazily built and reused (it caches the live
   // position-slider handles so a drag-to-move can update them in place).
   private perfSettings: PerfOverlaySettingsPanel | null = null;
@@ -734,6 +753,26 @@ export class Hud {
     $('#mm-spell').addEventListener('click', () => this.toggleSpellbook());
     $('#mm-talents')?.addEventListener('click', () => this.toggleTalents());
     $('#mm-quest').addEventListener('click', () => this.toggleQuestLog());
+    // Collapse/expand the on-screen quest tracker by clicking its header. The
+    // overlay is click-through (pointer-events:none) except the header button, so
+    // delegate on the stable container (the header is rebuilt on each render).
+    $('#quest-tracker').addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.qt-header')) this.toggleQuestTrackerCollapsed();
+    });
+    // Keyboard activation: handle Enter/Space here and stop the event before it
+    // bubbles to the window-level game keybinds (Enter is bound to Open Chat,
+    // Space is preventDefault'd for jump), which would otherwise hijack the
+    // focused header button's native activation. The tracker is a non-modal
+    // overlay, so canUseGameKeys() stays true and those binds fire while it has
+    // focus; stopping propagation here keeps the toggle reachable by keyboard.
+    $('#quest-tracker').addEventListener('keydown', (e) => {
+      if (!(e.target as HTMLElement).closest('.qt-header')) return;
+      if (e.key === 'Enter' || e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.toggleQuestTrackerCollapsed();
+      }
+    });
     $('#mm-map').addEventListener('click', () => this.toggleMap());
     $('#map-close').addEventListener('click', () => { $('#map-window').style.display = 'none'; });
     const mapCanvas = $('#map-canvas') as unknown as HTMLCanvasElement;
@@ -2883,16 +2922,76 @@ export class Hud {
 
   private updateQuestTracker(): void {
     const el = $('#quest-tracker');
-    let html = this.sim.questLog.size > 0 ? `<div class="qt-header">${esc(t('questUi.tracker.title'))}</div>` : '';
+    const settings = this.optionsHooks?.settings;
+    let collapsed = (settings?.get('questTrackerCollapsed') ?? false) === true;
+    const quests: TrackedQuest[] = [];
     for (const qp of this.sim.questLog.values()) {
       const quest = QUESTS[qp.questId];
-      html += `<div class="qt-title">${esc(questTitle(qp.questId))}${qp.state === 'ready' ? ` <span class="quest-complete">(${esc(t('questUi.tracker.complete'))})</span>` : ''}</div>`;
-      quest.objectives.forEach((obj, i) => {
-        const done = qp.counts[i] >= obj.count;
-        html += `<div class="qt-obj${done ? ' done' : ''}">- ${esc(this.questProgressText(questObjectiveLabel(qp.questId, i), qp.counts[i], obj.count))}</div>`;
+      quests.push({
+        id: qp.questId,
+        title: questTitle(qp.questId),
+        complete: qp.state === 'ready',
+        objectives: quest.objectives.map((obj, i) => ({
+          label: questObjectiveLabel(qp.questId, i),
+          current: qp.counts[i],
+          total: obj.count,
+        })),
       });
     }
+    // Only persist the collapse choice while at least one quest is tracked: when
+    // the tracker empties (all quests turned in or abandoned) drop the flag, so a
+    // freshly accepted quest reappears expanded with its objectives visible
+    // rather than hidden behind a collapsed header. Self-limiting to a single
+    // write: once cleared, later empty frames read false and skip.
+    if (collapsed && quests.length === 0 && settings) {
+      settings.set('questTrackerCollapsed', false);
+      collapsed = false;
+    }
+    const html = this.questTrackerHtml(questTrackerView(quests, collapsed));
     if (el.innerHTML !== html) el.innerHTML = html;
+  }
+
+  // Render the pure tracker view to the floating overlay's HTML. The header is a
+  // <button> (pointer-events re-enabled in CSS over the otherwise click-through
+  // overlay) that toggles the collapse; a delegated listener on #quest-tracker
+  // (see the event-binding constructor) handles activation so it survives these
+  // innerHTML rebuilds.
+  private questTrackerHtml(view: QuestTrackerView): string {
+    if (!view.visible) return '';
+    const chevron = view.collapsed ? '▸' : '▾'; // U+25B8 right / U+25BE down triangle
+    // The leading space keeps a separator in the button's accessible name
+    // ("Quests (5)", not "Quests(5)"); the visual gap is the flex `gap`.
+    const count = view.collapsed
+      ? ` <span class="qt-count">${esc(t('hudChrome.questTracker.count', { count: this.questNumber(view.count) }))}</span>`
+      : '';
+    // State-aware hover hint: clicking collapses while expanded, expands while collapsed.
+    const hint = esc(t(view.collapsed ? 'hudChrome.questTracker.expandHint' : 'hudChrome.questTracker.collapseHint'));
+    // aria-controls points at the row list (kept in the DOM, empty when collapsed)
+    // so assistive tech ties the toggle to the region it shows/hides.
+    let html = `<button type="button" class="qt-header" aria-expanded="${!view.collapsed}" aria-controls="qt-list" title="${hint}">`
+      + `<span class="qt-chevron" aria-hidden="true">${chevron}</span>`
+      + `<span class="qt-h-label">${esc(t('questUi.tracker.title'))}</span>${count}</button>`;
+    let rows = '';
+    for (const q of view.quests) {
+      rows += `<div class="qt-title">${esc(q.title)}${q.complete ? ` <span class="quest-complete">(${esc(t('questUi.tracker.complete'))})</span>` : ''}</div>`;
+      for (const o of q.objectives) {
+        rows += `<div class="qt-obj${o.done ? ' done' : ''}">- ${esc(this.questProgressText(o.label, o.current, o.total))}</div>`;
+      }
+    }
+    return `${html}<div id="qt-list">${rows}</div>`;
+  }
+
+  /** Flip the persisted tracker-collapsed preference (the header click/keyboard
+   *  activation), preserving keyboard focus across the innerHTML rebuild. */
+  private toggleQuestTrackerCollapsed(): void {
+    const settings = this.optionsHooks?.settings;
+    if (!settings) return;
+    const refocus = document.activeElement instanceof HTMLElement
+      && document.activeElement.classList.contains('qt-header');
+    settings.set('questTrackerCollapsed', !settings.get('questTrackerCollapsed'));
+    audio.click();
+    this.updateQuestTracker();
+    if (refocus) ($('#quest-tracker').querySelector('.qt-header') as HTMLElement | null)?.focus();
   }
 
   // -------------------------------------------------------------------------
@@ -8758,6 +8857,12 @@ export class Hud {
     this.reportHooks = hooks;
   }
 
+  // Only wired online (main.ts), so its presence is what gates the "Report a Bug"
+  // option (the offline browser world has no server to receive reports).
+  attachBugReporting(hooks: BugReportHooks): void {
+    this.bugReportHooks = hooks;
+  }
+
   get optionsOpen(): boolean {
     return $('#options-menu').style.display === 'block';
   }
@@ -8807,6 +8912,7 @@ export class Hud {
     if (this.optionsView === 'interface') { this.renderInterface(); return; }
     if (this.optionsView === 'controller') { this.renderController(); return; }
     if (this.optionsView === 'performance') { this.renderPerformance(); return; }
+    if (this.optionsView === 'bugreport') { this.renderBugReport(); return; }
     const el = $('#options-menu');
     el.innerHTML = `<div class="panel-title"><span>${esc(t('hud.options.gameMenu'))}</span><button type="button" class="x-btn" data-close aria-label="${esc(t('hud.options.returnToGame'))}">${svgIcon('close')}</button></div>`;
     const list = document.createElement('div');
@@ -8818,13 +8924,15 @@ export class Hud {
       b.addEventListener('click', () => { audio.click(); onClick(); });
       list.appendChild(b);
     };
-    const goto = (view: 'keybinds' | 'graphics' | 'audio' | 'interface' | 'performance' | 'controller') => { this.optionsView = view; this.keybindNote = ''; this.renderOptions(); };
+    const goto = (view: 'keybinds' | 'graphics' | 'audio' | 'interface' | 'performance' | 'controller' | 'bugreport') => { this.optionsView = view; this.keybindNote = ''; this.renderOptions(); };
     add(t('hud.options.keyBindings'), () => goto('keybinds'));
     add(t('hudChrome.controller.title'), () => goto('controller'));
     add(t('hud.options.graphics'), () => goto('graphics'));
     add(t('hud.options.interface'), () => goto('interface'));
     add(t('hud.options.audio'), () => goto('audio'));
     add(t('hudChrome.perf.title'), () => goto('performance'));
+    // Online-only: capturing realm/character/position needs an authoritative server.
+    if (this.bugReportHooks) add(t('hudChrome.bugReport.menuButton'), () => goto('bugreport'));
     add(t('hud.options.logout'), () => this.optionsHooks?.logout());
     add(t('hud.options.returnToGame'), () => this.closeOptions());
     el.appendChild(list);
@@ -8996,6 +9104,130 @@ export class Hud {
     back.addEventListener('click', () => { audio.click(); this.optionsView = 'main'; this.renderOptions(); });
     el.append(reset, back);
     el.querySelector('[data-close]')?.addEventListener('click', () => this.closeOptions());
+  }
+
+  private renderBugReport(): void {
+    const hooks = this.bugReportHooks;
+    if (!hooks) { this.optionsView = 'main'; this.renderOptions(); return; }
+    const body = this.settingsViewShell(t('hudChrome.bugReport.menuButton'));
+    const p = this.sim.player;
+    const realm = this.sim.realm || t('hudChrome.bugReport.unknown');
+    const coords = `${formatNumber(p.pos.x, { maximumFractionDigits: 0, useGrouping: false })}, ` +
+      `${formatNumber(p.pos.y, { maximumFractionDigits: 0, useGrouping: false })}, ` +
+      `${formatNumber(p.pos.z, { maximumFractionDigits: 0, useGrouping: false })}`;
+
+    const info = document.createElement('div');
+    info.className = 'bug-info';
+    const row = (label: string, value: string): string =>
+      `<div class="bug-info-row"><span class="bug-info-label">${esc(label)}</span><span class="bug-info-val">${esc(value)}</span></div>`;
+    info.innerHTML =
+      row(t('hudChrome.bugReport.realm'), realm) +
+      row(t('hudChrome.bugReport.character'), p.name) +
+      row(t('hudChrome.bugReport.position'), coords);
+    body.appendChild(info);
+
+    // Capture once when the form opens so the screenshot reflects what the player
+    // saw, not a later frame. null when capture is unavailable/failed.
+    const shot = hooks.capture();
+
+    const descLabel = document.createElement('label');
+    descLabel.className = 'bug-label';
+    descLabel.setAttribute('for', 'bug-desc');
+    descLabel.textContent = t('hudChrome.bugReport.description');
+    const desc = document.createElement('textarea');
+    desc.id = 'bug-desc';
+    desc.className = 'bug-desc';
+    desc.maxLength = 2000;
+    desc.setAttribute('placeholder', t('hudChrome.bugReport.descriptionPlaceholder'));
+    desc.setAttribute('aria-describedby', 'bug-error');
+    body.append(descLabel, desc);
+
+    let includeShot = shot !== null;
+    if (shot) {
+      const shotWrap = document.createElement('div');
+      shotWrap.className = 'bug-shot';
+      const img = document.createElement('img');
+      img.className = 'bug-shot-img';
+      img.src = shot;
+      img.alt = t('hudChrome.bugReport.screenshotAlt');
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'btn set-toggle';
+      const syncToggle = () => {
+        toggle.textContent = includeShot ? t('hud.options.on') : t('hud.options.off');
+        toggle.classList.toggle('off', !includeShot);
+        toggle.setAttribute('aria-pressed', String(includeShot));
+        toggle.setAttribute('aria-label', t('hudChrome.bugReport.includeScreenshot'));
+        img.style.display = includeShot ? '' : 'none';
+      };
+      toggle.addEventListener('click', () => { audio.click(); includeShot = !includeShot; syncToggle(); });
+      syncToggle();
+      const toggleRow = document.createElement('div');
+      toggleRow.className = 'set-row';
+      const name = document.createElement('span');
+      name.className = 'set-name';
+      name.textContent = t('hudChrome.bugReport.includeScreenshot');
+      toggleRow.append(name, toggle);
+      shotWrap.append(toggleRow, img);
+      body.appendChild(shotWrap);
+    }
+
+    const error = document.createElement('div');
+    error.className = 'report-error';
+    error.id = 'bug-error';
+    // role="alert" already implies an assertive live region; a second aria-live
+    // would conflict, so it is the only announcement hook on this node.
+    error.setAttribute('role', 'alert');
+    body.appendChild(error);
+
+    const actions = document.createElement('div');
+    actions.className = 'report-actions';
+    const submit = document.createElement('button');
+    submit.className = 'btn';
+    submit.type = 'button';
+    submit.textContent = t('hudChrome.bugReport.submit');
+    const back = document.createElement('button');
+    back.className = 'btn';
+    back.type = 'button';
+    back.textContent = t('hud.options.back');
+    back.addEventListener('click', () => { audio.click(); this.optionsView = 'main'; this.renderOptions(); });
+    actions.append(submit, back);
+    body.appendChild(actions);
+
+    submit.addEventListener('click', () => {
+      const description = desc.value.trim();
+      if (!description) { error.textContent = t('hudChrome.bugReport.describeFirst'); return; }
+      submit.disabled = true;
+      error.textContent = '';
+      const sentShot = includeShot && shot !== null;
+      hooks.submit({ description, screenshot: includeShot ? shot : null, meta: hooks.collectMeta() })
+        .then(({ screenshotStored }) => {
+          // Be honest when the server dropped a screenshot the player asked to send.
+          const droppedShot = sentShot && !screenshotStored;
+          this.log(t(droppedShot ? 'hudChrome.bugReport.submittedNoShot' : 'hudChrome.bugReport.submitted'), '#ffd100');
+          this.optionsView = 'main';
+          this.renderOptions();
+        })
+        .catch((err: unknown) => {
+          submit.disabled = false;
+          error.textContent = this.localizeBugReportError(err);
+        });
+    });
+
+    $('#options-menu').querySelector('[data-close]')?.addEventListener('click', () => this.closeOptions());
+    // Focus the description so a keyboard/screen-reader user lands in the field.
+    window.setTimeout(() => desc.focus(), 0);
+  }
+
+  private localizeBugReportError(err: unknown): string {
+    const text = err instanceof Error ? err.message : '';
+    const keyByMessage: Record<string, TranslationKey> = {
+      'describe the bug': 'hudChrome.bugReport.describeFirst',
+      'bug report too large': 'hudChrome.bugReport.tooLarge',
+      'too many bug reports, try again later': 'hudChrome.bugReport.rateLimited',
+    };
+    const key = keyByMessage[text.toLowerCase()];
+    return key ? t(key) : t('hudChrome.bugReport.failed');
   }
 
   private renderGraphics(): void {

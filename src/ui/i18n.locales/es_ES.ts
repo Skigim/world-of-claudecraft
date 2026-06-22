@@ -86,4 +86,8 @@ export const es_ES: Partial<Record<TranslationKey, string>> = {
   "mobilePreflight.androidInstallDetail": "Para pantalla completa en Android, instala esta página o añádela a la pantalla de inicio primero.",
   "mobilePreflight.androidInstallStep": "En Chrome, toca el menú y luego Instalar app o Añadir a pantalla de inicio.",
   "mobilePreflight.otherInstallDetail": "Instala o añade esta página a la pantalla de inicio para la mejor experiencia móvil a pantalla completa.",
+  // Quest-tracker header toggle hover hint (es_ES uses "seguimiento" vs es-LatAm
+  // "rastreador"); the count badge inherits es (identical "({count})").
+  "hudChrome.questTracker.collapseHint": "Contraer el seguimiento de misiones",
+  "hudChrome.questTracker.expandHint": "Expandir el seguimiento de misiones",
 };

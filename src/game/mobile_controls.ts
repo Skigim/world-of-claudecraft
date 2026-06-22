@@ -109,6 +109,10 @@ export function isPhoneTouchDevice(win: Pick<Window, 'matchMedia'> = window): bo
   return win.matchMedia(PHONE_TOUCH_QUERY).matches;
 }
 
+function isNativeAppShell(): boolean {
+  return typeof document !== 'undefined' && document.body.classList.contains('native-app');
+}
+
 export interface OriginBounds { left: number; top: number; right: number; bottom: number; }
 
 /**
@@ -186,8 +190,8 @@ export class MobileControls {
   start(): void {
     if (!this.root || !this.moveJoystick || !this.moveStick || !this.cameraJoystick || !this.cameraStick) return;
     this.mq = window.matchMedia(PHONE_TOUCH_QUERY);
-    this.setActive(this.mq.matches);
-    this.mq.addEventListener?.('change', (e) => this.setActive(e.matches));
+    this.setActive(this.mq.matches || isNativeAppShell());
+    this.mq.addEventListener?.('change', (e) => this.setActive(e.matches || isNativeAppShell()));
 
     // The move joystick floats: the pointer lifecycle lives on the lower-left
     // capture zone (so a thumb can land anywhere), while the joystick element is

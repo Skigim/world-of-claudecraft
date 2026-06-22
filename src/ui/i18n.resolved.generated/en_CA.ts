@@ -174,6 +174,11 @@ export const en_CA: EnTranslations = {
       "title": "Emotes",
       "done": "Done"
     },
+    "questTracker": {
+      "count": "({count})",
+      "collapseHint": "Collapse quest tracker",
+      "expandHint": "Expand quest tracker"
+    },
     "chatTimestamps": {
       "show": "Show Chat Timestamps",
       "format": "Timestamp Format",
@@ -387,6 +392,24 @@ export const en_CA: EnTranslations = {
         "many": "Who: {count} players online on {realm}.",
         "other": "Who: {count} players online on {realm}."
       }
+    },
+    "bugReport": {
+      "menuButton": "Report a Bug",
+      "realm": "Realm",
+      "character": "Character",
+      "position": "Position",
+      "unknown": "Unknown",
+      "description": "What went wrong?",
+      "descriptionPlaceholder": "Describe the bug: what you did, what you expected, and what happened.",
+      "includeScreenshot": "Include Screenshot",
+      "screenshotAlt": "Screenshot of the current view attached to this bug report",
+      "submit": "Send Report",
+      "submitted": "Bug report sent. Thank you!",
+      "submittedNoShot": "Bug report sent, but the screenshot was too large to include.",
+      "describeFirst": "Please describe the bug before sending.",
+      "tooLarge": "That report is too large to send. Try again without the screenshot.",
+      "rateLimited": "You've sent several reports recently. Please wait a bit before sending another.",
+      "failed": "Could not send the bug report. Please try again."
     },
     "paperdoll": {
       "unequipAria": "Unequip {item}",

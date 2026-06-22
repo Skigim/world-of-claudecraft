@@ -19,7 +19,7 @@ import { voice } from './game/voice';
 import { sfx } from './game/sfx';
 import { activePvpOpponentIds, handlePickedEntity, hoverCursorKind, isAttackableEntity } from './game/interactions';
 import { clickMoveShouldCancel, clickMoveShouldWalk, clickMoveStep, distance2d, latencyAdjustedStopDistance, stepAngleToward } from './game/click_move';
-import { Api, isAuthError, ClientWorld, CharacterSummary, type ReleaseEntry } from './net/online';
+import { Api, isAuthError, ClientWorld, CharacterSummary, NATIVE_APP, type ReleaseEntry } from './net/online';
 import { setWalletDisplayAvailable, setWocBalance, setWalletUiEnabled, resolveWocBalanceUpdate } from './ui/wallet_balance';
 import {
   accountPortalModel, validatePasswordChange, validateEmailShape, deactivateConfirmReady,
@@ -33,6 +33,8 @@ import type { IWorld, LeaderboardEntry } from './world_api';
 import { findPlayerPath, resolvePlayerDestination } from './sim/pathfind';
 import { pathCrossesFence } from './sim/colliders';
 import { formatXp } from './ui/xp_bar';
+import { assembleBugReportMeta } from './ui/bug_report';
+import { zoneBiomeAt } from './sim/world';
 import { assetsReady } from './render/assets/preload';
 import { CharacterPreview } from './render/characters';
 import { skinCount } from './render/characters/manifest';
@@ -74,6 +76,8 @@ const HOMEPAGE_MUSIC_MUTED_KEY = 'woc_homepage_music_muted';
 const HOMEPAGE_MUSIC_VOLUME = 0.225;
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T => document.querySelector(sel) as T;
+document.body.classList.toggle('native-app', NATIVE_APP);
+if (NATIVE_APP) document.body.classList.add('mobile-touch');
 let pendingDeleteCharacter: CharacterSummary | null = null;
 let homepageMusic: HTMLAudioElement | null = null;
 let homepageMusicStarted = false;
@@ -278,6 +282,11 @@ function preventMobileZoom(): void {
   document.addEventListener('gesturechange', prevent, { passive: false });
   document.addEventListener('gestureend', prevent, { passive: false });
   document.addEventListener('touchend', (e) => {
+    const target = e.target instanceof Element ? e.target : null;
+    if (target?.closest('button, a, input, textarea, select, [role="button"], [role="option"], [tabindex]')) {
+      lastTouchEnd = Date.now();
+      return;
+    }
     const now = Date.now();
     if (now - lastTouchEnd <= 320) e.preventDefault();
     lastTouchEnd = now;
@@ -285,14 +294,14 @@ function preventMobileZoom(): void {
 }
 
 function syncPhoneTouchClass(): void {
-  document.body.classList.toggle('mobile-touch', isPhoneTouchDevice());
+  document.body.classList.toggle('mobile-touch', NATIVE_APP || isPhoneTouchDevice());
   syncCommunityMenuMode();
 }
 
 function syncCommunityMenuMode(): void {
   const communityMenu = document.getElementById('community-menu') as HTMLDetailsElement | null;
   if (!communityMenu) return;
-  communityMenu.open = !isPhoneTouchDevice();
+  communityMenu.open = !(NATIVE_APP || isPhoneTouchDevice());
 }
 
 syncAppViewport();
@@ -310,7 +319,7 @@ window.visualViewport?.addEventListener('resize', syncAppViewport);
 document.addEventListener('fullscreenchange', syncAppViewport);
 
 function requestMobileFullscreenLandscape(): void {
-  if (!isPhoneTouchDevice()) return;
+  if (NATIVE_APP || !isPhoneTouchDevice()) return;
   const root = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void };
   try {
     const request = root.requestFullscreen?.bind(root) ?? root.webkitRequestFullscreen?.bind(root);
@@ -420,6 +429,24 @@ function hideMobilePreflightPrompt(): void {
   document.body.classList.remove('mobile-preflight-open');
 }
 
+function resetMobileGameplayOverlays(): void {
+  document.body.classList.remove('mobile-preflight-open', 'mobile-more-open', 'mobile-chat-open', 'mobile-chatlog-peek');
+  document.getElementById('mobile-controls')?.classList.remove('expanded');
+  document.getElementById('mobile-more')?.classList.remove('active');
+  const preflight = document.getElementById('mobile-preflight') as HTMLElement | null;
+  preflight?.classList.remove('visible');
+  if (preflight) preflight.style.display = '';
+  const more = document.getElementById('mobile-extra-controls') as HTMLElement | null;
+  if (more) {
+    more.style.left = '';
+    more.style.top = '';
+    more.style.right = '';
+    more.style.bottom = '';
+    more.style.transform = '';
+    delete more.dataset.windowMoved;
+  }
+}
+
 type FullscreenDocument = Document & {
   webkitFullscreenElement?: Element | null;
   webkitExitFullscreen?: () => Promise<void> | void;
@@ -459,6 +486,7 @@ function exitBrowserFullscreen(): void {
 }
 
 function requestPreferredFullscreen(): void {
+  if (NATIVE_APP) return;
   if (isPhoneTouchDevice()) {
     requestMobileFullscreenLandscape();
     return;
@@ -570,6 +598,11 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
   // trailer: it's hidden now, and a decoding background video just wastes CPU/GPU
   // and battery during play.
   stopLandingTrailer();
+  resetMobileGameplayOverlays();
+  syncPhoneTouchClass();
+  syncAppViewport();
+  window.setTimeout(syncAppViewport, 250);
+  window.setTimeout(syncAppViewport, 800);
   if (document.activeElement instanceof HTMLElement) {
     document.activeElement.blur();
   }
@@ -958,6 +991,27 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
     hud.attachReporting({
       submit: (targetPid, reason, details) => api.reportPlayer(online.characterId, targetPid, reason, details),
       submitByName: (targetName, reason, details) => api.reportPlayerByName(online.characterId, targetName, reason, details),
+    });
+    hud.attachBugReporting({
+      capture: () => renderer?.captureScreenshot() ?? null,
+      collectMeta: () => assembleBugReportMeta({
+        build: `${__APP_VERSION__} (${__APP_BUILD_ID__})`,
+        userAgent: navigator.userAgent,
+        viewport: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio },
+        zone: zoneBiomeAt(world.player.pos.z),
+        level: world.player.level,
+        // Entity has no `cls`; the player's class is its templateId (see Entity).
+        className: world.player.templateId,
+        cameraYaw: renderer?.camYaw ?? 0,
+      }),
+      submit: (payload) => api.submitBugReport({
+        characterId: online.characterId,
+        characterName: world.player.name,
+        pos: { x: world.player.pos.x, y: world.player.pos.y, z: world.player.pos.z },
+        description: payload.description,
+        screenshot: payload.screenshot,
+        meta: payload.meta,
+      }),
     });
   }
   function interactKey(): void {
@@ -1712,6 +1766,7 @@ function updatePreviewContainer(panelId: string): void {
     const cls = (row?.dataset.class as PlayerClass) ?? 'warrior';
     characterPreview.setClass(cls);
     characterPreview.setSkin(Number(row?.dataset.skin ?? 0) || 0);
+    syncPreviewAfterPanelLayout();
     return;
   }
 
@@ -1725,6 +1780,16 @@ function updatePreviewContainer(panelId: string): void {
     if (panelId === '#charcreate-panel') refreshOnlineSkins(cls);
     else refreshOfflineSkins(cls);
   }
+
+  syncPreviewAfterPanelLayout();
+}
+
+function syncPreviewAfterPanelLayout(): void {
+  characterPreview?.syncSize();
+  requestAnimationFrame(() => {
+    characterPreview?.syncSize();
+    requestAnimationFrame(() => characterPreview?.syncSize());
+  });
 }
 
 const currentlyRenderedClass: Record<string, PlayerClass | null> = {
@@ -2151,7 +2216,7 @@ function setupAccountPortal(): void {
     }
   });
 
-  ($('#account-manage-wallet') as HTMLElement).addEventListener('click', () => accountGoToCharacters(true));
+  document.getElementById('account-manage-wallet')?.addEventListener('click', () => accountGoToCharacters(true));
   ($('#account-go-characters') as HTMLElement).addEventListener('click', () => accountGoToCharacters(false));
   ($('#account-logout') as HTMLElement).addEventListener('click', logoutAccount);
 }
@@ -3154,8 +3219,9 @@ let walletFlowStatus: 'connect' | 'sign' | 'verify' | null = null;
 let walletHiddenNoticeTimeout: number | null = null;
 
 // Feature flag: Wallet Standard support needs no project id. Keep an escape
-// hatch for deploys that want to hide the wallet UI entirely.
-const WALLET_ENABLED = String(import.meta.env.VITE_WALLET_DISABLED ?? '').trim() !== '1';
+// hatch for deploys that want to hide the wallet UI entirely. Native app builds
+// intentionally exclude wallet verification for now.
+const WALLET_ENABLED = !NATIVE_APP && String(import.meta.env.VITE_WALLET_DISABLED ?? '').trim() !== '1';
 
 function walletCharacterScreenVisible(): boolean {
   try {
@@ -3417,6 +3483,11 @@ function setWalletFlowStatus(status: typeof walletFlowStatus): void {
 }
 
 function updateWalletButton(): void {
+  if (!WALLET_ENABLED) {
+    setWocBalance(null, false);
+    setWalletDisplayAvailable(false);
+    return;
+  }
   syncWalletCharacterScreenVisibility();
   // currentWallet is sync; before the module loads, treat as disconnected.
   const { address, isConnected } = walletMod ? walletMod.currentWallet() : { address: null, isConnected: false };
@@ -3595,6 +3666,13 @@ function flashWalletError(message: string): void {
 // Refreshed after login: ask the server which wallet (if any) this account has
 // linked, so the button can show the verified ✓ state.
 async function refreshWalletLinkStatus(): Promise<void> {
+  if (!WALLET_ENABLED) {
+    linkedWalletPubkey = null;
+    linkedWocBalance = null;
+    connectedWocBalance = null;
+    updateWalletButton();
+    return;
+  }
   if (!api.token) {
     linkedWalletPubkey = null;
     linkedWocBalance = null;
@@ -3728,15 +3806,18 @@ async function switchWallet(): Promise<void> {
 
 function wireWallet(): void {
   setWalletUiEnabled(WALLET_ENABLED);
-  syncWalletCharacterScreenVisibility();
-  const btn = document.getElementById('btn-wallet');
-  if (!btn) return;
   // Feature-gate: when explicitly disabled, remove the wallet row entirely and
   // never download the wallet chunk.
   if (!WALLET_ENABLED) {
     document.querySelector('.cs-wallet')?.remove();
+    document.querySelector('.cs-wallet-hidden-note')?.remove();
+    document.querySelector('.account-wallet-card')?.remove();
+    updateWalletButton();
     return;
   }
+  syncWalletCharacterScreenVisibility();
+  const btn = document.getElementById('btn-wallet');
+  if (!btn) return;
   // These async actions are fire-and-forget from the click, so attach a .catch:
   // a wallet connect/disconnect rejection must surface, not vanish silently.
   const onErr = (what: string) => (e: unknown) => console.error(`[wallet] ${what} failed`, e);
@@ -4563,6 +4644,8 @@ function wireStartScreens(): void {
       if (header && toggleBtn) {
         header.classList.remove('menu-open');
         toggleBtn.setAttribute('aria-expanded', 'false');
+        const menu = document.getElementById('header-menu-container') as HTMLElement | null;
+        if (menu) menu.style.display = '';
       }
 
       if (customAction) {
@@ -4644,9 +4727,33 @@ function wireStartScreens(): void {
   const mobileMenuToggle = $('#mobile-menu-toggle');
   const homepageHeader = $('.homepage-header');
   if (mobileMenuToggle && homepageHeader) {
+    const headerMenu = document.getElementById('header-menu-container') as HTMLElement | null;
+    let lastNativeMenuToggleAt = 0;
+    const setMobileMenuOpen = (open: boolean) => {
+      homepageHeader.classList.toggle('menu-open', open);
+      mobileMenuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (headerMenu) headerMenu.style.display = open ? 'flex' : '';
+    };
+    const toggleMobileMenu = () => setMobileMenuOpen(!homepageHeader.classList.contains('menu-open'));
+    const handleNativeMenuToggle = (e: Event) => {
+      const target = e.target instanceof Element ? e.target : null;
+      if (!target?.closest('#mobile-menu-toggle')) return;
+      const now = Date.now();
+      if (now - lastNativeMenuToggleAt <= 250) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      lastNativeMenuToggleAt = now;
+      e.preventDefault();
+      e.stopPropagation();
+      toggleMobileMenu();
+    };
+    document.addEventListener('pointerup', handleNativeMenuToggle, true);
+    document.addEventListener('touchend', handleNativeMenuToggle, { capture: true, passive: false });
     mobileMenuToggle.addEventListener('click', () => {
-      const isOpen = homepageHeader.classList.toggle('menu-open');
-      mobileMenuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      if (Date.now() - lastNativeMenuToggleAt <= 250) return;
+      toggleMobileMenu();
     });
   }
 

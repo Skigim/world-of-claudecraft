@@ -2897,4 +2897,8 @@ export const it_IT: Partial<Record<TranslationKey, string>> = {
   "hudChrome.account.sectionWallet": "Portafoglio $WOC",
   "hudChrome.account.title": "Account",
   "hudChrome.account.walletSummary": "Verifica un portafoglio Solana per mostrare il distintivo da titolare sulla tua scheda giocatore.",
+  // On-screen quest tracker (hudChrome.questTracker.*): collapsed count badge + header toggle hover hint.
+  "hudChrome.questTracker.count": "({count})",
+  "hudChrome.questTracker.collapseHint": "Comprimi il riquadro Missioni",
+  "hudChrome.questTracker.expandHint": "Espandi il riquadro Missioni",
 };

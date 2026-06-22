@@ -5,6 +5,8 @@ const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8').rep
 const playHtml = readFileSync(new URL('../play.html', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 const privacyHtml = readFileSync(new URL('../public/privacy.html', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 const termsHtml = readFileSync(new URL('../public/terms.html', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+const dataDeletionHtml = readFileSync(new URL('../public/data-deletion.html', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+const supportHtml = readFileSync(new URL('../public/support.html', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 const viteConfig = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 const serverMain = readFileSync(new URL('../server/main.ts', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 const mainTs = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
@@ -98,16 +100,37 @@ describe('client HTML shell', () => {
     expect(playHtml).toContain('"url": "https://worldofclaudecraft.com/play"');
     expect(sitemapXml).toContain('<loc>https://worldofclaudecraft.com/privacy</loc>');
     expect(sitemapXml).toContain('<loc>https://worldofclaudecraft.com/terms</loc>');
+    expect(sitemapXml).toContain('<loc>https://worldofclaudecraft.com/data-deletion</loc>');
+    expect(sitemapXml).toContain('<loc>https://worldofclaudecraft.com/support</loc>');
     expect(privacyHtml).toContain('<link rel="canonical" href="https://worldofclaudecraft.com/privacy" />');
     expect(privacyHtml).toContain('<h1>Privacy Policy</h1>');
+    expect(privacyHtml).toContain('href="/support">Support</a>');
+    expect(privacyHtml).toContain('href="/data-deletion">Data Deletion</a>');
     expect(termsHtml).toContain('<link rel="canonical" href="https://worldofclaudecraft.com/terms" />');
     expect(termsHtml).toContain('<h1>Terms and Conditions</h1>');
+    expect(termsHtml).toContain('href="/support">Support</a>');
+    expect(termsHtml).toContain('href="/data-deletion">Data Deletion</a>');
+    expect(dataDeletionHtml).toContain('<link rel="canonical" href="https://worldofclaudecraft.com/data-deletion" />');
+    expect(dataDeletionHtml).toContain('<h1>Data Deletion</h1>');
+    expect(dataDeletionHtml).toContain('href="mailto:woc@levystreet.com"');
+    expect(dataDeletionHtml).toContain('href="https://discord.gg/GjhnUsBtw"');
+    expect(dataDeletionHtml).toContain('href="/support">Support</a>');
+    expect(supportHtml).toContain('<link rel="canonical" href="https://worldofclaudecraft.com/support" />');
+    expect(supportHtml).toContain('<h1>Support</h1>');
+    expect(supportHtml).toContain('href="mailto:woc@levystreet.com"');
+    expect(supportHtml).toContain('href="https://discord.gg/GjhnUsBtw"');
+    expect(supportHtml).toContain('href="/data-deletion">Data Deletion page</a>');
+    expect(supportHtml).toContain('"@type": "ContactPage"');
     expect(html).toContain('href="/terms" class="footer-link" data-i18n="footer.terms"');
     expect(html).toContain('href="/privacy" class="footer-link" data-i18n="footer.privacy"');
     expect(viteConfig).toContain("['/privacy', '/privacy.html']");
     expect(viteConfig).toContain("['/terms', '/terms.html']");
+    expect(viteConfig).toContain("['/data-deletion', '/data-deletion.html']");
+    expect(viteConfig).toContain("['/support', '/support.html']");
     expect(serverMain).toContain("['/privacy', '/privacy.html']");
     expect(serverMain).toContain("['/terms', '/terms.html']");
+    expect(serverMain).toContain("['/data-deletion', '/data-deletion.html']");
+    expect(serverMain).toContain("['/support', '/support.html']");
   });
 
   it('loads Meta Pixel outside local development and tracks level 5', () => {
@@ -118,6 +141,15 @@ describe('client HTML shell', () => {
     expect(html).toContain("if (!['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {");
     expect(hudTs).toContain("fbq('trackCustom', eventName, data ?? {});");
     expect(hudTs).toContain("if (ev.level === 5) trackMetaPixel('ReachedLevel5', { level: ev.level });");
+  });
+
+  it('excludes wallet verification surfaces from native app builds', () => {
+    expect(html).toContain('body.native-app #nav-btn-download,');
+    expect(html).toContain('body.native-app .cs-wallet,\n  body.native-app .cs-wallet-hidden-note,\n  body.native-app .account-wallet-card');
+    expect(html).toContain('<section class="account-card account-wallet-card">');
+    expect(mainTs).toContain("const WALLET_ENABLED = !NATIVE_APP && String(import.meta.env.VITE_WALLET_DISABLED ?? '').trim() !== '1';");
+    expect(mainTs).toContain("document.querySelector('.cs-wallet')?.remove();");
+    expect(mainTs).toContain("document.querySelector('.account-wallet-card')?.remove();");
   });
 
   it('offers the quest log in the mobile controls drawer', () => {
@@ -181,8 +213,10 @@ describe('client HTML shell', () => {
     expect(html).toContain('<a class="community-link github"');
     expect(html).toContain('<a class="community-link donate"');
     expect(html).toContain('body.mobile-touch.game-active #ui { z-index: 80; }');
+    expect(html).toContain('body.mobile-touch #community-hud {\n    right: max(8px, env(safe-area-inset-right));\n    top: calc(max(8px, env(safe-area-inset-top)) + 158px);');
     expect(html).toContain('body.mobile-touch .community-toggle {\n    width: 44px;\n    height: 44px;');
     expect(html).toContain('body.mobile-touch .community-toggle svg {\n    width: 20px;\n    height: 20px;');
+    expect(html).toContain('body.mobile-touch #community-hud { top: calc(max(6px, env(safe-area-inset-top)) + 132px);');
     expect(html).toContain('body.mobile-touch .community-toggle { width: 40px; height: 40px; }');
     expect(html).toContain('body.mobile-touch .community-tray {\n    position: absolute;');
     expect(html).toContain('z-index: 90;');
@@ -204,7 +238,7 @@ describe('client HTML shell', () => {
   });
 
   it('keeps desktop community links open after HUD clicks', () => {
-    expect(mainTs).toContain('communityMenu.open = !isPhoneTouchDevice();');
+    expect(mainTs).toContain('communityMenu.open = !(NATIVE_APP || isPhoneTouchDevice());');
     expect(hudTs).toContain("document.body.classList.contains('mobile-touch') && communityMenu?.open");
   });
 
@@ -247,6 +281,13 @@ describe('client HTML shell', () => {
     expect(html).toContain('body.mobile-touch #homepage-views-container {\n    padding-top: var(--spacing-lg);\n    padding-right: max(var(--spacing-md), env(safe-area-inset-right));');
     expect(html).toContain('body.mobile-touch .header-actions {\n    width: 100%;\n    display: flex;\n    flex-direction: column;\n    align-items: center;');
     expect(html).toContain('body.mobile-touch .footer-lang-row {\n    width: 100%;\n    flex-direction: column;\n    align-items: center;');
+    expect(html).toContain('body.native-app.mobile-touch .auth-panel-premium {\n    backdrop-filter: none;\n    -webkit-backdrop-filter: none;');
+    expect(html).toContain('body.native-app.mobile-touch[data-start-panel="login-panel"] .portal-ring,');
+    expect(html).toContain('touch-action: manipulation;\n    -webkit-tap-highlight-color: transparent;');
+    expect(mainTs).toContain("target?.closest('button, a, input, textarea, select, [role=\"button\"], [role=\"option\"], [tabindex]')");
+    expect(mainTs).toContain("document.addEventListener('pointerup', handleNativeMenuToggle, true);");
+    expect(mainTs).toContain("document.addEventListener('touchend', handleNativeMenuToggle, { capture: true, passive: false });");
+    expect(mainTs).toContain("if (headerMenu) headerMenu.style.display = open ? 'flex' : '';");
     expect(html).not.toContain('body.mobile-touch .homepage-header {\n    display: flex;\n    position: relative;');
     expect(mainTs).not.toContain("visualViewport?.addEventListener('scroll', syncAppViewport)");
   });

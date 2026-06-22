@@ -3,11 +3,11 @@ import { barChart, chartPanel } from './charts';
 import { escapeHtml, fmtBytes, fmtDate, fmtDuration } from './format';
 import { classLabel, t, localizeAdminError, ensureAdminLocaleLoaded, adminLanguage } from './i18n';
 import {
-  renderAccountDetail, renderAccountsTable, renderBlockedIps, renderCharactersTable, renderChatFilter,
+  renderAccountDetail, renderAccountsTable, renderBlockedIps, renderBugReportsTable, renderCharactersTable, renderChatFilter,
   renderModerationDetail, renderModerationQueue, renderOnlineTable, renderPager, renderProviderUsage,
 } from './tables';
 import type {
-  AccountDetail, AccountRow, Activity, BlockedIpsData, CharacterRow, ChatFilterData, LivePlayer,
+  AccountDetail, AccountRow, Activity, BlockedIpsData, BugReportRow, CharacterRow, ChatFilterData, LivePlayer,
   ModerationAccountDetail, ModerationQueueRow, Overview, Paginated,
 } from './types';
 
@@ -30,9 +30,10 @@ interface TableState {
 
 const accountsState: TableState = { page: 1, search: '', sort: 'id', dir: 'desc' };
 const charactersState: TableState = { page: 1, search: '', sort: 'level', dir: 'desc' };
+const bugReportsState = { page: 1 };
 let liveTimer: number | null = null;
 let activityTimer: number | null = null;
-type AdminPage = 'overview' | 'usage' | 'moderation' | 'chat-filter' | 'blocked-ips';
+type AdminPage = 'overview' | 'usage' | 'moderation' | 'chat-filter' | 'blocked-ips' | 'bug-reports';
 let activePage: AdminPage = 'overview';
 // Re-fetched when returning to the Moderation tab: its blocked-IP badges can be
 // changed from the Blocked IPs tab and would otherwise show stale.
@@ -93,6 +94,41 @@ function showPage(page: AdminPage): void {
   }
   if (page === 'chat-filter') void refreshChatFilter();
   if (page === 'blocked-ips') void refreshBlockedIps();
+  if (page === 'bug-reports') void refreshBugReports();
+}
+
+async function refreshBugReports(): Promise<void> {
+  try {
+    const params = new URLSearchParams({ page: String(bugReportsState.page) });
+    const data = await apiGet<Paginated<BugReportRow>>(`/admin/api/bug-reports?${params}`);
+    $('bug-reports').innerHTML = renderBugReportsTable(data.rows);
+    $('bug-reports-pager').innerHTML = renderPager(data.total, data.page, data.limit);
+  } catch (err) {
+    if (!handleAuthFailure(err)) $('bug-reports').innerHTML = `<div class="empty">${t('bugReports.loadFailed')}</div>`;
+  }
+}
+
+// Fetch one report's screenshot on demand (kept out of the list payload) and show
+// it in a click-to-dismiss overlay.
+async function showBugScreenshot(id: number): Promise<void> {
+  try {
+    const data = await apiGet<{ screenshot: string | null }>(`/admin/api/bug-reports/${id}/screenshot`);
+    if (!data.screenshot) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'bug-shot-overlay';
+    overlay.tabIndex = -1;
+    const img = document.createElement('img');
+    img.src = data.screenshot;
+    img.alt = t('bugReports.screenshotAlt');
+    overlay.appendChild(img);
+    const close = () => overlay.remove();
+    overlay.addEventListener('click', close);
+    overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    document.body.appendChild(overlay);
+    overlay.focus(); // so Escape works without a prior click
+  } catch (err) {
+    handleAuthFailure(err);
+  }
 }
 
 async function refreshChatFilter(): Promise<void> {
@@ -537,7 +573,7 @@ function wireEvents(): void {
   $('admin-tabs').addEventListener('click', (e) => {
     const tab = (e.target as HTMLElement).closest<HTMLButtonElement>('.admin-tab');
     const page = tab?.dataset.adminPage;
-    if (page === 'overview' || page === 'usage' || page === 'moderation' || page === 'chat-filter' || page === 'blocked-ips') showPage(page);
+    if (page === 'overview' || page === 'usage' || page === 'moderation' || page === 'chat-filter' || page === 'blocked-ips' || page === 'bug-reports') showPage(page);
   });
 
   wireChatFilterEvents();
@@ -559,6 +595,16 @@ function wireEvents(): void {
   $('characters-pager').addEventListener('click', (e) => {
     const page = pagerTarget(e);
     if (page !== null) { charactersState.page = page; void refreshCharacters(); }
+  });
+
+  $('bug-reports-pager').addEventListener('click', (e) => {
+    const page = pagerTarget(e);
+    if (page !== null) { bugReportsState.page = page; void refreshBugReports(); }
+  });
+
+  $('bug-reports').addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('button[data-bug-shot]') as HTMLButtonElement | null;
+    if (btn) void showBugScreenshot(Number(btn.dataset.bugShot));
   });
 
   $('accounts').addEventListener('click', (e) => {

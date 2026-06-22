@@ -1,6 +1,12 @@
 import type { IncomingMessage } from 'node:http';
 import { REALM_ORIGINS } from './realm';
 
+export const NATIVE_APP_ORIGINS = new Set([
+  'capacitor://localhost',
+  'http://localhost',
+  'https://localhost',
+]);
+
 // Anti-bot: programmatic clients (curl, headless scripts, multibox farms) call
 // /api/login and /api/register directly with no browser Origin header. A real
 // same-origin browser POST always sends an Origin equal to the page's origin, so
@@ -30,6 +36,7 @@ export function isWebClientRequest(
   if (typeof origin !== 'string' || origin === '') return false;
   const allow = new Set<string>([
     ...REALM_ORIGINS,
+    ...NATIVE_APP_ORIGINS,
     ...String(env.WEB_ORIGINS ?? '')
       .split(',')
       .map((s) => s.trim())

@@ -163,6 +163,10 @@ export const BOOL_SETTINGS = {
   // 5.7 MB video is never fetched). Forced on regardless for phones / Save-Data /
   // prefers-reduced-motion, see shouldUseStaticBackdrop in landing_backdrop.ts.
   landingHighContrast: { def: false },
+  // off by default (expanded): when on, the on-screen quest tracker is collapsed
+  // to just its "Quests (N)" header. Toggled by clicking the tracker header; kept
+  // here so the choice persists across sessions like the other HUD preferences.
+  questTrackerCollapsed: { def: false },
 } as const;
 
 export type NumericSettingKey = keyof typeof SETTING_RANGES;

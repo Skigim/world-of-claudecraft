@@ -1,7 +1,7 @@
 import { escapeHtml, fmtCopper, fmtDate, fmtDuration, fmtNumber, fmtPercent, fmtRelative } from './format';
 import { classLabel, zoneLabel, t } from './i18n';
 import type {
-  AccountDetail, AccountRow, BlockedIpsData, BlockedIpRow, CharacterRow, ChatFilterData, ChatModeratedAccount,
+  AccountDetail, AccountRow, BlockedIpsData, BlockedIpRow, BugReportRow, CharacterRow, ChatFilterData, ChatModeratedAccount,
   ChatModerationDetail, FilterWord, LivePlayer, ModerationAccountDetail, ModerationQueueRow,
   ProviderUsageCache, ProviderUsageSnapshot,
 } from './types';
@@ -518,4 +518,33 @@ function statusBadge(status: string, suspendedUntil: string | null): string {
   if (status === 'banned') return `<span class="badge bad">${t('accounts.badgeBanned')}</span>`;
   if (status === 'suspended') return `<span class="badge warn">${t('detail.suspendedUntil', { value: fmtDate(suspendedUntil) })}</span>`;
   return `<span class="badge">${t('detail.statusActive')}</span>`;
+}
+
+export function renderBugReportsTable(rows: BugReportRow[]): string {
+  if (rows.length === 0) return `<div class="empty">${t('bugReports.empty')}</div>`;
+  const body = rows.map((r) => {
+    const coords = `${fmtNumber(r.pos_x)}, ${fmtNumber(r.pos_y)}, ${fmtNumber(r.pos_z)}`;
+    // The list omits the screenshot bytes; offer a button that fetches the one
+    // report's screenshot on demand (see showBugScreenshot in main.ts).
+    const shot = r.has_screenshot
+      ? `<button class="btn-link" data-bug-shot="${r.id}">${t('bugReports.viewScreenshot')}</button>`
+      : `<span class="text-dim">${t('bugReports.noScreenshot')}</span>`;
+    const meta = `<details><summary>${t('bugReports.colMeta')}</summary><pre class="bug-meta">${escapeHtml(JSON.stringify(r.meta ?? {}, null, 2))}</pre></details>`;
+    return `<tr>
+      <td>${fmtRelative(r.created_at)}</td>
+      <td>${escapeHtml(r.realm) || '-'}</td>
+      <td>${escapeHtml(r.character_name) || '-'}</td>
+      <td>${escapeHtml(coords)}</td>
+      <td class="bug-desc-cell">${escapeHtml(r.description)}</td>
+      <td><span class="badge">${escapeHtml(r.status)}</span></td>
+      <td>${meta}</td>
+      <td>${shot}</td>
+    </tr>`;
+  });
+  return `<div class="table-scroll"><table>
+    <thead><tr>
+      <th>${t('bugReports.colWhen')}</th><th>${t('bugReports.colRealm')}</th><th>${t('bugReports.colCharacter')}</th><th>${t('bugReports.colPosition')}</th><th>${t('bugReports.colDescription')}</th><th>${t('bugReports.colStatus')}</th><th>${t('bugReports.colMeta')}</th><th>${t('bugReports.colScreenshot')}</th>
+    </tr></thead>
+    <tbody>${body.join('')}</tbody>
+  </table></div>`;
 }

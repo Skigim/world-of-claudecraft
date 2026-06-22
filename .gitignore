@@ -41,6 +41,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 *.log
+.idea/
 # .claude/: keep personal/local config out of git, but track the shared skills & agents
 .claude/*
 !.claude/skills/

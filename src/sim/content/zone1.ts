@@ -531,8 +531,9 @@ export const ZONE1_NPCS: Record<string, NpcDef> = {
   },
   ranger_elwyn: {
     id: 'ranger_elwyn', name: 'Ranger Elwyn', title: 'Glade Warden',
-    // posted at the south edge of Brightwood Glade, watching the treeline
-    pos: { x: 35, z: 118 }, facing: 0, color: 0x3a7d44,
+    // posted in the open treeline south of Brightwood Glade, a clear buffer
+    // ahead of the nearest wildlife camp so adventurers can parley in peace
+    pos: { x: 35, z: 105 }, facing: 0, color: 0x3a7d44,
     questIds: ['q_brightwood_thinning', 'q_brightwood_monarch'],
     greeting: 'Quiet, $C — the glade is calm today, and I mean to keep it that way.',
   },
@@ -912,18 +913,23 @@ export const ZONE1_CAMPS: CampDef[] = [
   // Undead: ruins northeast
   { mobId: 'restless_bones', center: { x: 80, z: 78 }, radius: 18, count: 8 },
   { mobId: 'captain_verlan', center: { x: 92, z: 90 }, radius: 4, count: 1 },
-  // Brightwood Glade: wildlife grove in the far north
-  { mobId: 'brightwood_hare', center: { x: 20, z: 132 }, radius: 22, count: 6 },
-  { mobId: 'glade_fox', center: { x: 48, z: 128 }, radius: 20, count: 5 },
-  { mobId: 'spotted_fawn', center: { x: 30, z: 145 }, radius: 18, count: 5 },
-  { mobId: 'meadow_crane', center: { x: 8, z: 150 }, radius: 16, count: 4 },
-  { mobId: 'thornpelt_badger', center: { x: 58, z: 150 }, radius: 16, count: 4 },
-  { mobId: 'dawnmane_doe', center: { x: 32, z: 138 }, radius: 20, count: 5 },
-  { mobId: 'bramble_lynx', center: { x: 60, z: 132 }, radius: 18, count: 6 },
-  { mobId: 'brightwood_stag', center: { x: 24, z: 156 }, radius: 16, count: 4 },
-  { mobId: 'grovetusk_boar', center: { x: 52, z: 162 }, radius: 14, count: 4 },
-  { mobId: 'sunhide_bear', center: { x: 36, z: 166 }, radius: 12, count: 3 },
-  { mobId: 'brightwood_monarch', center: { x: 38, z: 170 }, radius: 4, count: 1 },
+  // Brightwood Glade: wildlife grove in the far north. The camps fan out across
+  // the whole grove rather than piling on top of one another, so each species
+  // keeps its own pocket of meadow and quests here can actually be picked apart.
+  // Counts are unchanged (the RNG draw order is load-bearing for determinism);
+  // only the disc centres/radii spread, and every disc stays z+radius <= 178
+  // (the zone's north boundary sits at z=180).
+  { mobId: 'brightwood_hare', center: { x: -8, z: 126 }, radius: 22, count: 6 },
+  { mobId: 'glade_fox', center: { x: 50, z: 124 }, radius: 18, count: 5 },
+  { mobId: 'spotted_fawn', center: { x: 18, z: 150 }, radius: 16, count: 5 },
+  { mobId: 'meadow_crane', center: { x: -18, z: 142 }, radius: 16, count: 4 },
+  { mobId: 'thornpelt_badger', center: { x: 64, z: 156 }, radius: 16, count: 4 },
+  { mobId: 'dawnmane_doe', center: { x: 28, z: 136 }, radius: 18, count: 5 },
+  { mobId: 'bramble_lynx', center: { x: 78, z: 140 }, radius: 18, count: 6 },
+  { mobId: 'brightwood_stag', center: { x: 2, z: 162 }, radius: 16, count: 4 },
+  { mobId: 'grovetusk_boar', center: { x: 50, z: 164 }, radius: 14, count: 4 },
+  { mobId: 'sunhide_bear', center: { x: 28, z: 166 }, radius: 12, count: 3 },
+  { mobId: 'brightwood_monarch', center: { x: 42, z: 172 }, radius: 4, count: 1 },
 ];
 
 // Spawned LAST in the merged CAMPS array (see data.ts) so these appended draws

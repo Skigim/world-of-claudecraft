@@ -15,6 +15,7 @@ import { Sim } from '../src/sim/sim';
 import type { PlayerClass } from '../src/sim/types';
 import type { LeaderboardEntry } from '../src/world_api';
 import { cleanReportReason, createPlayerReport, createSuspiciousRegistrationReport } from './moderation_db';
+import { createBugReport, BugReportRateLimitError, BUG_DESCRIPTION_MAX } from './bug_report_db';
 import { resolveReportTarget } from './report_target';
 import { bufferHandshakeMessages } from './ws_buffer';
 import {
@@ -36,7 +37,7 @@ import { handleInternalApi } from './internal';
 import { handlePerfReport } from './perf_report';
 import { GameServer } from './game';
 import { REALM, REALM_DIRECTORY, REALM_ORIGINS } from './realm';
-import { webLoginEnforced, isWebClientRequest } from './web_login_guard';
+import { webLoginEnforced, isWebClientRequest, NATIVE_APP_ORIGINS } from './web_login_guard';
 import { cacheControlFor, etagFor, isNotModified } from './static_cache';
 import { recordUsageCacheEvent, recordUsageMetric, setUsageCacheSize } from './provider_usage';
 
@@ -57,6 +58,10 @@ const STATIC_PAGE_ALIASES = new Map([
   ['/privacy/', '/privacy.html'],
   ['/terms', '/terms.html'],
   ['/terms/', '/terms.html'],
+  ['/data-deletion', '/data-deletion.html'],
+  ['/data-deletion/', '/data-deletion.html'],
+  ['/support', '/support.html'],
+  ['/support/', '/support.html'],
 ]);
 // How long chat logs are kept (0 = forever); pruned at boot and daily.
 const CHAT_LOG_RETENTION_DAYS = Number(process.env.CHAT_LOG_RETENTION_DAYS ?? 90);
@@ -334,12 +339,12 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
 // ---------------------------------------------------------------------------
 
 // Cross-realm CORS: a client served by one realm may call another realm's API
-// after switching realms in the picker. Only the configured realm origins are
-// allowed; auth is via bearer token (no cookies), so reflecting these specific
-// origins is safe.
+// after switching realms in the picker. Native Capacitor builds also call the
+// production origin from localhost-style WebView origins. Auth is via bearer
+// token (no cookies), so reflecting these specific origins is safe.
 function maybeCors(req: http.IncomingMessage, res: http.ServerResponse): void {
   const origin = req.headers.origin;
-  if (typeof origin === 'string' && REALM_ORIGINS.has(origin)) {
+  if (typeof origin === 'string' && (REALM_ORIGINS.has(origin) || NATIVE_APP_ORIGINS.has(origin))) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -553,6 +558,51 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
         return json(res, 200, { ok: true, reportId: report.id });
       } catch (err) {
         return json(res, 400, { error: err instanceof Error ? err.message : 'could not submit report' });
+      }
+    }
+    if (req.method === 'POST' && url === '/api/bug-reports') {
+      const accountId = await bearerActiveAccount(req, res);
+      if (accountId === null) return;
+      // A downscaled screenshot data URL dominates the payload; allow ~1 MB
+      // (well above the 64 KB JSON default) and surface an oversize body as 413.
+      let body: any;
+      try {
+        body = await readBody(req, 1024 * 1024);
+      } catch (err) {
+        if (err instanceof Error && err.message === 'body too large') {
+          return json(res, 413, { error: 'bug report too large' });
+        }
+        return json(res, 400, { error: 'bad request' });
+      }
+      const description = typeof body.description === 'string' ? body.description.trim() : '';
+      if (!description) return json(res, 400, { error: 'describe the bug' });
+      const characterId = Number.isFinite(Number(body.characterId)) ? Number(body.characterId) : null;
+      // Only trust a character name the server can verify the account owns. A
+      // missing or unowned characterId resolves to no name (never the client value).
+      let characterName = '';
+      let resolvedCharacterId: number | null = null;
+      if (characterId !== null) {
+        const character = await getCharacter(accountId, characterId);
+        if (character) { resolvedCharacterId = character.id; characterName = character.name; }
+      }
+      const pos = body.pos && typeof body.pos === 'object' ? body.pos : {};
+      try {
+        // The screenshot allowlist and meta clamp live in createBugReport so they
+        // apply to every insert path, not just this route.
+        const report = await createBugReport({
+          accountId,
+          characterId: resolvedCharacterId,
+          characterName,
+          realm: REALM,
+          pos: { x: Number(pos.x), y: Number(pos.y), z: Number(pos.z) },
+          description: description.slice(0, BUG_DESCRIPTION_MAX),
+          screenshot: typeof body.screenshot === 'string' ? body.screenshot : null,
+          meta: body.meta,
+        });
+        return json(res, 200, { ok: true, reportId: report.id, screenshotStored: report.screenshotStored });
+      } catch (err) {
+        if (err instanceof BugReportRateLimitError) return json(res, 429, { error: err.message });
+        throw err;
       }
     }
     if (req.method === 'POST' && url === '/api/perf-report') {
