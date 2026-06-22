@@ -77,8 +77,8 @@ try {
   await page.goto(`${BASE}/guide/classes/warrior`, { waitUntil: 'networkidle0' });
   await page.waitForSelector('.guide-class-hero');
   check('class page hero renders', (await page.$eval('.guide-class-hero-name', (el) => el.textContent.trim())).length > 0);
-  check('class page shows specs', (await page.$$('.guide-spec')).length >= 1);
-  check('class page shows signature abilities', (await page.$$('.guide-ability')).length >= 1);
+  check('class page shows specs', (await page.$$('.guide-spec-card')).length >= 1);
+  check('class page shows signature abilities', (await page.$$('.guide-kit-item')).length >= 1);
   check('class page title is the class name', /Warrior/i.test(await page.title()));
   await page.screenshot({ path: 'tmp/guide-class-warrior.png', fullPage: true });
 
@@ -105,6 +105,39 @@ try {
   await page.waitForSelector('.guide-dungeon-card');
   check('dungeons shows teaser cards', (await page.$$('.guide-dungeon-card')).length >= 5);
   await page.screenshot({ path: 'tmp/guide-dungeons.png', fullPage: true });
+
+  // Class chooser (filterable index).
+  await page.goto(`${BASE}/guide/classes`, { waitUntil: 'networkidle0' });
+  await page.waitForSelector('.guide-chooser');
+  check('class chooser present', !!(await page.$('.guide-chooser')));
+  await page.click('.guide-chip[data-group="role"][data-value="healer"]');
+  const healerVisible = await page.$$eval('.guide-class-card', (els) => els.filter((e) => !e.hidden).length);
+  check('chooser filters the grid', healerVisible > 0 && healerVisible < 9, `visible=${healerVisible}`);
+  await page.click('.guide-chooser-clear');
+  const allVisible = await page.$$eval('.guide-class-card', (els) => els.filter((e) => !e.hidden).length);
+  check('chooser clear restores all nine', allVisible === 9);
+
+  // Site search.
+  await page.type('#guide-search-input', 'warrior');
+  await page.waitForSelector('.guide-search-opt');
+  check('search returns results', (await page.$$('.guide-search-opt')).length > 0);
+
+  // New pages render (not the placeholder).
+  for (const [path, sel] of [['reference/talents', '.guide-talents'], ['arena', '.guide-arena'], ['wish-i-knew', '.guide-wish']]) {
+    await page.goto(`${BASE}/guide/${path}`, { waitUntil: 'networkidle0' });
+    await page.waitForSelector('.guide-article h1');
+    check(`new page renders: ${path}`, !!(await page.$(sel)) && !(await page.$('.guide-placeholder')));
+  }
+
+  // Navigation aids: breadcrumb, prev/next, and the scrollspy TOC. The TOC only appears
+  // on pages with at least three section headings, so use Combat (four sections).
+  await page.goto(`${BASE}/guide/how-to-play`, { waitUntil: 'networkidle0' });
+  await page.waitForSelector('.guide-breadcrumb');
+  check('breadcrumb present on content page', !!(await page.$('.guide-breadcrumb')));
+  check('prev/next sequence present', !!(await page.$('.guide-seq')));
+  await page.goto(`${BASE}/guide/reference/combat`, { waitUntil: 'networkidle0' });
+  await page.waitForSelector('.guide-toc');
+  check('table of contents present on a multi-section page', (await page.$$('.guide-toc a')).length >= 3);
 
   // Deep link + 404.
   await page.goto(`${BASE}/guide/nope-not-real`, { waitUntil: 'networkidle0' });
