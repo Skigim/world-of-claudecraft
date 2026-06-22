@@ -230,7 +230,9 @@ export const pt_BR: EnTranslations = {
       "clickMoveRight": "Clique direito",
       "footstepSounds": "Sons de passos",
       "showWalletOnCharacterScreen": "Mostrar carteira na tela de personagens",
-      "showWalletOnPlayerCard": "Mostrar carteira no cartão de jogador"
+      "showWalletOnPlayerCard": "Mostrar carteira no cartão de jogador",
+      "uiScale": "Escala da interface",
+      "highContrastBackground": "Fundo de alto contraste"
     },
     "perf": {
       "title": "Sobreposição de Desempenho",
@@ -303,6 +305,10 @@ export const pt_BR: EnTranslations = {
     "playerCard": {
       "showWalletBadge": "Mostrar selo da carteira"
     },
+    "landing": {
+      "highContrast": "Alto contraste",
+      "highContrastAria": "Alternar o fundo de alto contraste: desativa o trailer em movimento para que o texto da tela inicial permaneça legível"
+    },
     "statInfo": {
       "fromYour": "Do seu {value} de {stat}:",
       "desc": {
@@ -368,6 +374,10 @@ export const pt_BR: EnTranslations = {
         "many": "Quem: {count} jogadores online em {realm}.",
         "other": "Quem: {count} jogadores online em {realm}."
       }
+    },
+    "paperdoll": {
+      "unequipAria": "Desequipar {item}",
+      "unequipHint": "Clique em ×, clique direito ou arraste para as bolsas para desequipar"
     },
     "account": {
       "title": "Conta",
@@ -1355,6 +1365,7 @@ export const pt_BR: EnTranslations = {
         "unignoreChat": "Parar de ignorar chat",
         "report": "Denunciar jogador",
         "removeParty": "Remover do grupo",
+        "convertToRaid": "Converter em raide",
         "cancel": "Cancelar"
       }
     },
@@ -1520,6 +1531,25 @@ export const pt_BR: EnTranslations = {
       "friendOnline": "{name} ficou online.",
       "friendOffline": "{name} ficou offline."
     },
+    "tutorial": {
+      "title": "Novo Aventureiro",
+      "stepLabel": "Passo {current} de {total}",
+      "skip": "Pular tutorial",
+      "dismiss": "Dispensar",
+      "doneTitle": "Pronto para a aventura",
+      "doneBody": "Você já domina o básico, {name}. O Vale é seu para explorar. Pressione {questKey} a qualquer momento para ver suas missões. Boa caçada!",
+      "moveTitle": "Dê os primeiros passos",
+      "moveBody": "Use {moveKeys} para se mover e o mouse para olhar ao redor. Dê alguns passos para começar.",
+      "seekTitle": "Procure o Marechal",
+      "seekBody": "O marechal Redbrook espera na cidade e tem trabalho para uma nova lâmina. Siga o marcador para chegar até ele.",
+      "talkTitle": "Aceite a tarefa",
+      "talkBody": "Aproxime-se do marechal Redbrook e pressione {interactKey} para falar, então aceite a tarefa dele.",
+      "slayTitle": "Lobos à porta",
+      "slayBody": "Cace os lobos da floresta na estrada do norte. Selecione um e ataque para reduzir a matilha.",
+      "slayProgress": "Lobos da floresta abatidos: {current} / {needed}",
+      "returnTitle": "Reivindique sua recompensa",
+      "returnBody": "Sua tarefa está concluída. Volte ao marechal Redbrook e pressione {interactKey} para entregá-la."
+    },
     "markers": {
       "names": {
         "star": "Estrela",
@@ -1573,6 +1603,12 @@ export const pt_BR: EnTranslations = {
       "guildTab": "Guilda",
       "ignoreTab": "Ignorar",
       "leaveParty": "Sair do grupo",
+      "raidTab": "Raide",
+      "raidEmpty": "Converta um grupo em raide para gerenciar os grupos de raide aqui.",
+      "raidGroupEmpty": "Nenhum jogador neste grupo.",
+      "raidGroupTitle": "Grupo {position} ({count}/5)",
+      "raidMoveToGroup": "Mover para o grupo {position}",
+      "raidLeader": "Líder de raide",
       "offlineEmpty": "Amigos, guildas e listas de ignorados ficam disponíveis no jogo online.",
       "friendsEmpty": "Você ainda não tem amigos. Busque alguém pelo nome abaixo.",
       "ignoreEmpty": "Sua lista de ignorados está vazia.",
@@ -1810,7 +1846,8 @@ export const pt_BR: EnTranslations = {
       "common": "Comum",
       "uncommon": "Incomum",
       "rare": "Raro",
-      "epic": "Épico"
+      "epic": "Épico",
+      "legendary": "Lendário"
     },
     "kind": {
       "weapon": "Arma",
@@ -3517,6 +3554,36 @@ export const pt_BR: EnTranslations = {
       "event_skin_token": {
         "name": "Baú cosmético misterioso"
       },
+      "deathless_heartwood": {
+        "name": "Cerne da Coroa Imortal"
+      },
+      "kingsbane_last_oath": {
+        "name": "Flagelo dos Reis, último juramento de Thornpeak"
+      },
+      "crownforged_dreadhelm": {
+        "name": "Elmo aterrador Forjacoroa"
+      },
+      "crownforged_warspaulders": {
+        "name": "Espaldares de guerra Forjacoroa"
+      },
+      "nighttalon_crown": {
+        "name": "Coroa Garra Noturna"
+      },
+      "nighttalon_shoulderguards": {
+        "name": "Guarda-ombros Garra Noturna"
+      },
+      "soulflame_cowl": {
+        "name": "Capuz Chama d'Alma"
+      },
+      "soulflame_mantle": {
+        "name": "Manto Chama d'Alma"
+      },
+      "stormcallers_crown": {
+        "name": "Coroa do Chamatormenta"
+      },
+      "stormcallers_spaulders": {
+        "name": "Espaldares do Chamatormenta"
+      },
       "unknown_alien_weaponry": {
         "name": "Armamento alienígena desconhecido"
       },
@@ -3731,6 +3798,12 @@ export const pt_BR: EnTranslations = {
       },
       "bound_guardian": {
         "name": "Guardião Vinculado"
+      },
+      "nythraxis_skeleton_warrior": {
+        "name": "Guarda real reerguido"
+      },
+      "nythraxis_scourge_of_thornpeak": {
+        "name": "Nythraxis, Flagelo de Thornpeak"
       },
       "brightwood_hare": {
         "name": "Lebre de Brightwood"
@@ -3983,6 +4056,11 @@ export const pt_BR: EnTranslations = {
         "name": "Patrulheiro Elwyn",
         "title": "Guardião da Clareira",
         "greeting": "Silêncio, {className} - a clareira está calma hoje, e pretendo mantê-la assim."
+      },
+      "brother_aldric_raid": {
+        "name": "Irmão Aldric",
+        "title": "Sacerdote do Vale",
+        "greeting": "Do cemitério da capela ao teto do mundo... a trilha termina aqui. Sinto a montanha ouvindo."
       },
       "tidewatcher_ondrel": {
         "name": "Ondrel Vane",
@@ -4709,8 +4787,8 @@ export const pt_BR: EnTranslations = {
       },
       "q_nythraxis_bound_guardian": {
         "title": "O Guardião Vinculado",
-        "text": "Voss escreveu que os sobreviventes selaram o Anel-sinete do rei atrás de um guardião antigo, para que ninguém chegasse à tumba de Nythraxis por acidente ou ambição. Leve a Pedra-chave da cripta ao círculo ritual no terreno plano a leste da cripta abandonada e a sudeste da tumba oeste. Use-a ali, quebre o guardião e traga o anel.",
-        "completion": "As três relíquias contam a mesma história: Aldren lutou para defender seu rei, Malric rompeu a fronteira da morte e Voss tentou impedir o que veio depois. O selo está enfraquecendo, e este anel é a chave da tumba de Nythraxis. Agora você está sintonizado para entrar na Cripta de Nythraxis.",
+        "text": "Voss escreveu que os sobreviventes selaram o Anel-sinete do rei atras de um guardiao antigo, para que ninguem chegasse a tumba de Nythraxis por acidente ou ambicao. Leve a Pedra-chave da cripta ao circulo ritual no terreno plano a leste da cripta abandonada e a sudeste da tumba oeste. Use-a ali, quebre o guardiao e traga o anel.",
+        "completion": "As tres reliquias contam a mesma historia: Aldren lutou para defender seu rei, Malric rompeu a fronteira da morte e Voss tentou impedir o que veio depois. O selo esta enfraquecendo, e este anel e a chave da tumba de Nythraxis. Agora voce esta sintonizado para entrar na Cripta de Nythraxis. Volte a cripta abandonada, destranque a porta real e enfrente Nythraxis antes que a furia do velho rei transborde por Thornpeak.",
         "objectives": {
           "0": {
             "label": "Pedra-chave usada no círculo ritual"
@@ -4720,6 +4798,16 @@ export const pt_BR: EnTranslations = {
           },
           "2": {
             "label": "Anel-sinete do rei"
+          }
+        }
+      },
+      "q_nythraxis_scourges_end": {
+        "title": "O fim do Flagelo",
+        "text": "O anel-sinete abriu o caminho, {playerName}, mas uma tumba aberta nao e uma vitoria. Nythraxis ja foi rei, e a ruina sob Thornpeak ainda esta presa a vontade dele. Entre na cripta com aliados em quem confia. Quebre a coroa imortal antes que sua ordem alcance o campo de batalha acima.",
+        "completion": "Entao a coroa finalmente se cala. Thornpeak ainda carregara seus mortos, mas nenhum rei sob a montanha voltara a chama-los para a guerra. Voce terminou aquilo que Aldren, Malric e Voss so conseguiram conter.",
+        "objectives": {
+          "0": {
+            "label": "Nythraxis derrotado"
           }
         }
       },
@@ -5056,6 +5144,11 @@ export const pt_BR: EnTranslations = {
       "nythraxis_crypt": {
         "name": "Cripta abandonada",
         "enterText": "Você cruza o limiar da cripta abandonada.",
+        "leaveText": "Você retorna ao ar frio de Thornpeak."
+      },
+      "nythraxis_boss_arena": {
+        "name": "Arena de raide de Nythraxis",
+        "enterText": "Você atravessa a porta real selada.",
         "leaveText": "Você retorna ao ar frio de Thornpeak."
       },
       "drowned_temple": {
