@@ -288,6 +288,12 @@ const PET_FOLLOW_DISTANCE = 3.5;
 const PET_TELEPORT_DISTANCE = 60; // owner this far away: pet warps to heel
 const PET_ASSIST_RANGE = 50; // how far the pet scans for enemies engaging the pair
 const PET_AGGRESSIVE_RANGE = 18; // aggressive pets look for idle enemies this close
+// A pet only keeps its OWNER flagged in combat while it is actively trading blows
+// (its combatTimer resets to 0 on every hit dealt/taken). A pet that merely holds a
+// target it is chasing or can't reach stops dragging the owner into perpetual combat
+// past this window, so the owner's out-of-combat health regen resumes. Matches the
+// 5s combat-linger used for the owner's own inCombat flag.
+const PET_COMBAT_LINGER = 5;
 const PET_TAUNT_RANGE = 5;
 const PET_GROWL_INTERVAL = 10; // controlled pets can tank by forcing attention
 const PET_FEED_DURATION = 5;
@@ -1721,8 +1727,10 @@ export class Sim {
         const tgt = this.entities.get(e.aggroTargetId);
         if (tgt && tgt.ownerId !== null) this.engagedPids.add(tgt.ownerId);
       }
-      // a player's pet that is engaging an enemy keeps its owner in combat
-      if (e.ownerId !== null && e.aggroTargetId !== null) this.engagedPids.add(e.ownerId);
+      // a player's pet that is actively fighting an enemy keeps its owner in
+      // combat. A pet merely holding a target it is not trading blows with (out of
+      // reach, stale) must not freeze the owner's health regen indefinitely (#regen)
+      if (e.ownerId !== null && e.aggroTargetId !== null && e.combatTimer < PET_COMBAT_LINGER) this.engagedPids.add(e.ownerId);
     }
     for (const meta of this.players.values()) {
       const p = this.entities.get(meta.entityId);
