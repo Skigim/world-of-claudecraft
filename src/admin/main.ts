@@ -116,12 +116,16 @@ async function showBugScreenshot(id: number): Promise<void> {
     if (!data.screenshot) return;
     const overlay = document.createElement('div');
     overlay.className = 'bug-shot-overlay';
+    overlay.tabIndex = -1;
     const img = document.createElement('img');
     img.src = data.screenshot;
     img.alt = t('bugReports.screenshotAlt');
     overlay.appendChild(img);
-    overlay.addEventListener('click', () => overlay.remove());
+    const close = () => overlay.remove();
+    overlay.addEventListener('click', close);
+    overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
     document.body.appendChild(overlay);
+    overlay.focus(); // so Escape works without a prior click
   } catch (err) {
     handleAuthFailure(err);
   }
