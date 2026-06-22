@@ -95,6 +95,20 @@ export function emailDataExport(t: Target): void {
   }));
 }
 
+export function emailTwoFactorEnabled(t: Target, recoveryCodeCount: number): void {
+  fire(getEmailService().send({
+    event: 'two_factor_enabled', to: t.email, locale: t.locale, accountId: t.id,
+    data: { username: t.username, recoveryCodeCount: String(recoveryCodeCount) },
+  }));
+}
+
+export function emailTwoFactorDisabled(t: Target): void {
+  fire(getEmailService().send({
+    event: 'two_factor_disabled', to: t.email, locale: t.locale, accountId: t.id,
+    data: { username: t.username },
+  }));
+}
+
 export function emailSecurityIncident(
   t: Target,
   action: string,

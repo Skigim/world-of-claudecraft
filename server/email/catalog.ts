@@ -65,6 +65,21 @@ const en: Record<EmailTemplateKey, EmailTemplate> = {
       'You requested a copy of your account data. It was generated and returned to your browser as a JSON download.\n\n' +
       'If you did not request this, please contact support.',
   },
+  two_factor_enabled: {
+    subject: `Two-factor authentication is on for your ${BRAND} account`,
+    text:
+      'Hi {{username}},\n\n' +
+      'Two-factor authentication was just turned on for your account. From now on, signing in needs a code from your authenticator app.\n\n' +
+      'You also have {{recoveryCodeCount}} single-use recovery codes. Keep them somewhere safe: they are the only way back in if you lose your authenticator.\n\n' +
+      'If you did not enable this, contact support immediately: your account may be compromised.',
+  },
+  two_factor_disabled: {
+    subject: `Two-factor authentication is off for your ${BRAND} account`,
+    text:
+      'Hi {{username}},\n\n' +
+      'Two-factor authentication was just turned off for your account, and any unused recovery codes were discarded.\n\n' +
+      'If you did not do this, change your password now and turn two-factor authentication back on.',
+  },
   security_incident: {
     subject: `Security notice for your ${BRAND} account`,
     text:

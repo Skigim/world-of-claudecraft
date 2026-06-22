@@ -24,6 +24,14 @@ import {
   consumeEmailChangeRequest,
   exportAccountData,
   listCharacters,
+  accountTwoFactorEnabled,
+  getTotpState,
+  setTotpPending,
+  enableTotp,
+  disableTotp,
+  updateTotpLastWindow,
+  consumeRecoveryCode,
+  type AccountRow,
 } from './db';
 import {
   emailAccountCreated,
@@ -32,9 +40,21 @@ import {
   emailDataExport,
   emailEmailChangeRequested,
   emailChangeVerifyUrl,
+  emailTwoFactorEnabled,
+  emailTwoFactorDisabled,
   makeEmailToken,
   hashEmailToken,
 } from './email';
+import {
+  generateSecret,
+  otpauthUri,
+  verifyTotp,
+  generateRecoveryCodes,
+  hashRecoveryCode,
+} from './totp';
+
+// Issuer label shown in the user's authenticator app next to the 6-digit code.
+const TOTP_ISSUER = 'World of ClaudeCraft';
 
 const EMAIL_MAX_LENGTH = 254;
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -61,11 +81,13 @@ export async function handleAccountWhoami(
   const acct = await accountById(accountId);
   if (!acct) return json(res, 404, { error: 'account not found' });
   const characterCount = await characterCountForAccount(accountId);
+  const twoFactorEnabled = await accountTwoFactorEnabled(accountId);
   return json(res, 200, {
     username: acct.username,
     email: acct.email ?? '',
     createdAt: acct.created_at,
     characterCount,
+    twoFactorEnabled,
   });
 }
 
@@ -254,6 +276,111 @@ export async function handleAccountMarketing(
   await setAccountMarketingOptIn(accountId, optIn);
   if (optIn) await ensureUnsubscribeToken(accountId, makeEmailToken().token);
   return json(res, 200, { optIn });
+}
+
+// ── Two-factor auth (TOTP) ──────────────────────────────────────────────────
+//
+// Enrolment is two steps so a misconfigured authenticator can never lock anyone
+// out: setup mints a PENDING secret (not yet enforced) and returns its QR URI;
+// enable confirms a live code, promotes the secret, and only THEN mints recovery
+// codes. Both setup and disable re-verify the password (mirrors the password and
+// deactivate handlers): a bare session is not enough to change the second factor.
+
+// POST /api/account/2fa/setup — password re-verify, then return a pending secret
+// + otpauth URI for the user to scan. Idempotent: re-running before enabling just
+// supersedes the previous pending secret.
+export async function handleAccount2faSetup(
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  accountId: number,
+): Promise<void> {
+  if (rateLimited(req)) return json(res, 429, { error: 'too many attempts, slow down' });
+  const body = await readBody(req);
+  const acct = await accountById(accountId);
+  if (!acct) return json(res, 404, { error: 'account not found' });
+  if (!(await verifyPassword(String(body.password ?? ''), acct.password_hash))) {
+    recordAuthFailure(acct.username);
+    return json(res, 401, { error: 'password is incorrect' });
+  }
+  clearAuthFailures(acct.username);
+  const state = await getTotpState(accountId);
+  if (state?.enabledAt) return json(res, 409, { error: 'two-factor is already enabled' });
+  const secret = generateSecret();
+  await setTotpPending(accountId, secret);
+  return json(res, 200, { secret, otpauthUri: otpauthUri(secret, acct.username, TOTP_ISSUER) });
+}
+
+// POST /api/account/2fa/enable — confirm a live code against the pending secret,
+// activate 2FA, and return the one-time recovery codes (shown to the user once).
+export async function handleAccount2faEnable(
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  accountId: number,
+  now: number = Date.now(),
+): Promise<void> {
+  if (rateLimited(req)) return json(res, 429, { error: 'too many attempts, slow down' });
+  const body = await readBody(req);
+  const state = await getTotpState(accountId);
+  if (!state) return json(res, 404, { error: 'account not found' });
+  if (state.enabledAt) return json(res, 409, { error: 'two-factor is already enabled' });
+  if (!state.pendingSecret) return json(res, 400, { error: 'start two-factor setup first' });
+  const code = String(body.code ?? '');
+  if (verifyTotp(state.pendingSecret, code, now) === null) {
+    return json(res, 400, { error: 'that code is not valid, try again' });
+  }
+  const recoveryCodes = generateRecoveryCodes();
+  await enableTotp(accountId, state.pendingSecret, recoveryCodes.map(hashRecoveryCode));
+  const acct = await accountById(accountId);
+  if (acct) emailTwoFactorEnabled(acct, recoveryCodes.length);
+  return json(res, 200, { ok: true, recoveryCodes });
+}
+
+// POST /api/account/2fa/disable — password re-verify, then clear the secret and
+// all recovery codes. Best-effort security notice email.
+export async function handleAccount2faDisable(
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  accountId: number,
+): Promise<void> {
+  if (rateLimited(req)) return json(res, 429, { error: 'too many attempts, slow down' });
+  const body = await readBody(req);
+  const acct = await accountById(accountId);
+  if (!acct) return json(res, 404, { error: 'account not found' });
+  if (!(await verifyPassword(String(body.password ?? ''), acct.password_hash))) {
+    recordAuthFailure(acct.username);
+    return json(res, 401, { error: 'password is incorrect' });
+  }
+  clearAuthFailures(acct.username);
+  const state = await getTotpState(accountId);
+  if (!state?.enabledAt) return json(res, 400, { error: 'two-factor is not enabled' });
+  await disableTotp(accountId);
+  emailTwoFactorDisabled(acct);
+  return json(res, 200, { ok: true });
+}
+
+// Login-time second-factor check, shared by the /api/login handler. Accepts a
+// live TOTP code (replay-guarded: a code is good for at most one login inside its
+// 30s window) OR a single-use recovery code. Returns true on success. Never
+// throws: any unexpected state resolves to a denied second factor.
+export async function verifyLoginTwoFactor(
+  account: AccountRow,
+  code: string,
+  recoveryCode: string,
+  now: number = Date.now(),
+): Promise<boolean> {
+  if (code && account.totp_secret) {
+    const matched = verifyTotp(account.totp_secret, code, now);
+    if (matched === null) return false;
+    const last = account.totp_last_window;
+    const lastNum = last === null || last === undefined ? null : Number(last);
+    if (lastNum !== null && matched <= lastNum) return false; // already spent this window
+    await updateTotpLastWindow(account.id, matched);
+    return true;
+  }
+  if (recoveryCode) {
+    return consumeRecoveryCode(account.id, hashRecoveryCode(recoveryCode));
+  }
+  return false;
 }
 
 // GET /api/email/unsubscribe?token=... public one-click marketing unsubscribe.

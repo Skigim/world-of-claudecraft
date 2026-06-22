@@ -122,6 +122,28 @@ CREATE TABLE IF NOT EXISTS email_log (
   sent_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS email_log_account ON email_log(account_id, sent_at DESC);
+-- Optional TOTP two-factor auth. totp_secret holds the confirmed base32 secret
+-- (NULL until 2FA is fully enabled); totp_pending_secret holds a secret minted
+-- by setup but not yet confirmed with a live code, so a botched enrolment never
+-- locks anyone out. totp_enabled_at gates the login challenge. totp_last_window
+-- is the highest TOTP counter already accepted at login: a code may be used at
+-- most once, so a stolen code cannot be replayed inside its own 30s window.
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS totp_secret TEXT;
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS totp_pending_secret TEXT;
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS totp_enabled_at TIMESTAMPTZ;
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS totp_last_window BIGINT;
+-- Single-use 2FA recovery codes. Only the SHA-256 of each code is stored (the
+-- plaintext is shown to the user once at enrolment), and a code is burned by
+-- stamping consumed_at, mirroring the email-change token posture.
+CREATE TABLE IF NOT EXISTS account_totp_recovery (
+  id BIGSERIAL PRIMARY KEY,
+  account_id INT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  code_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  consumed_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS account_totp_recovery_account ON account_totp_recovery(account_id);
+CREATE UNIQUE INDEX IF NOT EXISTS account_totp_recovery_hash ON account_totp_recovery(account_id, code_hash);
 CREATE INDEX IF NOT EXISTS accounts_created_at ON accounts(created_at DESC);
 CREATE INDEX IF NOT EXISTS accounts_created_ip_created ON accounts(created_ip, created_at DESC);
 CREATE INDEX IF NOT EXISTS accounts_created_user_agent_created ON accounts(created_user_agent, created_at DESC);
@@ -360,6 +382,10 @@ export interface AccountRow {
   id: number;
   username: string;
   password_hash: string;
+  // Present on the login path (findAccount): null/undefined when 2FA is off.
+  totp_secret?: string | null;
+  totp_enabled_at?: string | null;
+  totp_last_window?: string | number | null;
 }
 
 export interface AccountModerationStatus {
@@ -461,7 +487,11 @@ export async function createAccount(username: string, passwordHash: string, meta
 }
 
 export async function findAccount(username: string): Promise<AccountRow | null> {
-  const res = await pool.query('SELECT id, username, password_hash FROM accounts WHERE username = $1', [username]);
+  const res = await pool.query(
+    `SELECT id, username, password_hash, totp_secret, totp_enabled_at, totp_last_window
+     FROM accounts WHERE username = $1`,
+    [username],
+  );
   return res.rows[0] ?? null;
 }
 
@@ -680,12 +710,128 @@ export async function recordEmailLog(entry: EmailLogEntry): Promise<void> {
   );
 }
 
+// ── Two-factor auth (TOTP) ──────────────────────────────────────────────────
+
+export interface TotpState {
+  secret: string | null;
+  pendingSecret: string | null;
+  enabledAt: string | null;
+  lastWindow: number | null;
+}
+
+export async function getTotpState(accountId: number): Promise<TotpState | null> {
+  const res = await pool.query(
+    `SELECT totp_secret, totp_pending_secret, totp_enabled_at, totp_last_window
+     FROM accounts WHERE id = $1`,
+    [accountId],
+  );
+  const row = res.rows[0];
+  if (!row) return null;
+  return {
+    secret: row.totp_secret ?? null,
+    pendingSecret: row.totp_pending_secret ?? null,
+    enabledAt: row.totp_enabled_at ?? null,
+    lastWindow: row.totp_last_window === null || row.totp_last_window === undefined ? null : Number(row.totp_last_window),
+  };
+}
+
+export async function accountTwoFactorEnabled(accountId: number): Promise<boolean> {
+  const res = await pool.query('SELECT totp_enabled_at FROM accounts WHERE id = $1', [accountId]);
+  return !!res.rows[0]?.totp_enabled_at;
+}
+
+// Stash a not-yet-confirmed secret from the setup step. Clears any prior pending
+// secret so a re-run of setup always supersedes an abandoned one.
+export async function setTotpPending(accountId: number, secret: string): Promise<void> {
+  await pool.query('UPDATE accounts SET totp_pending_secret = $2 WHERE id = $1', [accountId, secret]);
+}
+
+// Promote the pending secret to active in one transaction with a fresh batch of
+// recovery codes, so enabling 2FA and its recovery codes can never half-apply.
+export async function enableTotp(accountId: number, secret: string, recoveryHashes: string[]): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `UPDATE accounts
+       SET totp_secret = $2, totp_pending_secret = NULL, totp_enabled_at = now(), totp_last_window = NULL
+       WHERE id = $1`,
+      [accountId, secret],
+    );
+    await client.query('DELETE FROM account_totp_recovery WHERE account_id = $1', [accountId]);
+    for (const hash of recoveryHashes) {
+      await client.query(
+        'INSERT INTO account_totp_recovery (account_id, code_hash) VALUES ($1, $2)',
+        [accountId, hash],
+      );
+    }
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function disableTotp(accountId: number): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `UPDATE accounts
+       SET totp_secret = NULL, totp_pending_secret = NULL, totp_enabled_at = NULL, totp_last_window = NULL
+       WHERE id = $1`,
+      [accountId],
+    );
+    await client.query('DELETE FROM account_totp_recovery WHERE account_id = $1', [accountId]);
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// Advance the replay guard. Guarded so a slow/duplicate request can only ever
+// move the accepted counter forward, never backward.
+export async function updateTotpLastWindow(accountId: number, counter: number): Promise<void> {
+  await pool.query(
+    `UPDATE accounts SET totp_last_window = $2
+     WHERE id = $1 AND (totp_last_window IS NULL OR totp_last_window < $2)`,
+    [accountId, counter],
+  );
+}
+
+// Burn a recovery code atomically. The UPDATE ... WHERE consumed_at IS NULL is
+// the race guard: a code matches at most one unconsumed row, and two concurrent
+// uses of the same code can never both win.
+export async function consumeRecoveryCode(accountId: number, codeHash: string): Promise<boolean> {
+  const res = await pool.query(
+    `UPDATE account_totp_recovery SET consumed_at = now()
+     WHERE account_id = $1 AND code_hash = $2 AND consumed_at IS NULL
+     RETURNING id`,
+    [accountId, codeHash],
+  );
+  return res.rowCount! > 0;
+}
+
+export async function countUnusedRecoveryCodes(accountId: number): Promise<number> {
+  const res = await pool.query(
+    'SELECT COUNT(*)::int AS count FROM account_totp_recovery WHERE account_id = $1 AND consumed_at IS NULL',
+    [accountId],
+  );
+  return res.rows[0]?.count ?? 0;
+}
+
 // GDPR-style data export bundle: the account's own profile plus every character
 // it owns on this realm, as plain JSON. Excludes secrets (password hash, tokens).
 export async function exportAccountData(accountId: number): Promise<Record<string, unknown> | null> {
   const acct = await accountById(accountId);
   if (!acct) return null;
   const characters = await listCharacters(accountId);
+  const twoFactorEnabled = await accountTwoFactorEnabled(accountId);
   return {
     exportedAt: new Date().toISOString(),
     account: {
@@ -695,6 +841,7 @@ export async function exportAccountData(accountId: number): Promise<Record<strin
       createdAt: acct.created_at,
       locale: acct.locale,
       marketingOptIn: acct.marketing_opt_in,
+      twoFactorEnabled,
     },
     characters: characters.map((c) => ({
       id: c.id,

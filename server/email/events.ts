@@ -16,6 +16,8 @@ export type EmailEvent =
   | 'email_change_notice'
   | 'account_deleted'
   | 'data_export'
+  | 'two_factor_enabled'
+  | 'two_factor_disabled'
   | 'security_incident'
   | 'generic';
 
@@ -33,6 +35,8 @@ export interface EmailData {
   email_change_notice: { username: string; newEmail: string };
   account_deleted: { username: string };
   data_export: { username: string };
+  two_factor_enabled: { username: string; recoveryCodeCount: string };
+  two_factor_disabled: { username: string };
   security_incident: { username: string; action: string; reason: string; until: string };
   generic: { username: string; heading: string; body: string };
 }
@@ -55,6 +59,8 @@ export const EVENT_CATEGORY: Record<EmailEvent, EmailCategory> = {
   email_change_notice: 'transactional',
   account_deleted: 'transactional',
   data_export: 'transactional',
+  two_factor_enabled: 'transactional',
+  two_factor_disabled: 'transactional',
   security_incident: 'transactional',
   generic: 'marketing',
 };

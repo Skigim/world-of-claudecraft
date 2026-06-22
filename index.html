@@ -8252,6 +8252,13 @@
           <!-- Cloudflare Turnstile widget mounts here when configured (src/main.ts). -->
           <div id="cf-turnstile-container" class="auth-turnstile"></div>
 
+          <!-- Second-factor step: revealed when the server returns twoFactorRequired. -->
+          <div class="auth-field" id="login-2fa-field" hidden>
+            <label for="login-2fa-code" class="auth-label" data-i18n="auth.twoFactorLabel">Authentication code</label>
+            <input id="login-2fa-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="14" data-i18n-placeholder="auth.twoFactorPlaceholder" placeholder="6-digit or recovery code" />
+            <p class="account-hint" data-i18n="auth.twoFactorHint">Enter the code from your authenticator app, or one of your recovery codes.</p>
+          </div>
+
           <div id="login-error" class="auth-error" aria-live="polite"></div>
 
           <div class="auth-actions auth-actions-row">
@@ -8553,6 +8560,87 @@
                 <div id="account-email-msg" class="auth-field-msg" aria-live="polite"></div>
                 <button type="submit" class="btn btn-secondary" data-i18n="hudChrome.account.saveEmail">Save Email</button>
               </form>
+            </section>
+
+            <!-- Security: verified email change, two-factor, data export -->
+            <section class="account-card">
+              <h3 class="account-card-title" data-i18n="hudChrome.account.sectionSecurity">Security</h3>
+
+              <!-- Verified email change -->
+              <form id="account-change-email-form" class="account-form" novalidate>
+                <h4 class="account-form-title" data-i18n="hudChrome.account.changeEmailTitle">Change Email</h4>
+                <p class="account-hint" data-i18n="hudChrome.account.changeEmailHint">We email a confirmation link to the new address and a notice to the old one. Your email only changes once you open the link.</p>
+                <div class="auth-field">
+                  <label for="account-change-email-pass" class="auth-label" data-i18n="hudChrome.account.currentPassword">Current password</label>
+                  <input id="account-change-email-pass" type="password" maxlength="128" autocomplete="current-password" />
+                </div>
+                <div class="auth-field">
+                  <label for="account-change-email-new" class="auth-label" data-i18n="hudChrome.account.changeEmailNew">New email</label>
+                  <input id="account-change-email-new" type="email" maxlength="254" autocomplete="email" />
+                </div>
+                <div id="account-change-email-msg" class="auth-field-msg" aria-live="polite"></div>
+                <button type="submit" class="btn btn-secondary" data-i18n="hudChrome.account.changeEmailSubmit">Send Confirmation Link</button>
+              </form>
+
+              <!-- Two-factor authentication (TOTP) -->
+              <div id="account-2fa" class="account-form">
+                <h4 class="account-form-title" data-i18n="hudChrome.account.twoFactorTitle">Two-Factor Authentication</h4>
+                <p id="account-2fa-status" class="account-hint" aria-live="polite"></p>
+
+                <!-- disabled state: reveal a password prompt to begin setup -->
+                <button type="button" class="btn btn-secondary" id="account-2fa-setup-btn" data-i18n="hudChrome.account.twoFactorSetupBtn">Set Up Two-Factor</button>
+                <form id="account-2fa-begin-form" class="account-form" novalidate hidden>
+                  <div class="auth-field">
+                    <label for="account-2fa-password" class="auth-label" data-i18n="hudChrome.account.currentPassword">Current password</label>
+                    <input id="account-2fa-password" type="password" maxlength="128" autocomplete="current-password" />
+                  </div>
+                  <button type="submit" class="btn btn-primary" data-i18n="hudChrome.account.twoFactorBegin">Begin Setup</button>
+                </form>
+
+                <!-- setup state: show secret + confirm a live code -->
+                <div id="account-2fa-setup" hidden>
+                  <p class="account-hint" data-i18n="hudChrome.account.twoFactorScanHint">Add this key to your authenticator app, then enter the 6-digit code it shows.</p>
+                  <p class="auth-label" data-i18n="hudChrome.account.twoFactorSecretLabel">Setup key</p>
+                  <code id="account-2fa-secret" class="account-2fa-secret"></code>
+                  <p><a id="account-2fa-link" class="auth-link" href="#" data-i18n="hudChrome.account.twoFactorOpenApp">Open in authenticator app</a></p>
+                  <form id="account-2fa-confirm-form" class="account-form" novalidate>
+                    <div class="auth-field">
+                      <label for="account-2fa-code" class="auth-label" data-i18n="hudChrome.account.twoFactorCodeLabel">6-digit code</label>
+                      <input id="account-2fa-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" />
+                    </div>
+                    <button type="submit" class="btn btn-primary" data-i18n="hudChrome.account.twoFactorVerifyBtn">Verify and Enable</button>
+                  </form>
+                </div>
+
+                <!-- recovery state: one-time codes -->
+                <div id="account-2fa-recovery" hidden>
+                  <h4 class="account-form-title" data-i18n="hudChrome.account.twoFactorRecoveryTitle">Save your recovery codes</h4>
+                  <p class="account-hint" data-i18n="hudChrome.account.twoFactorRecoveryHint">Each code works once. Store them somewhere safe.</p>
+                  <ul id="account-2fa-codes" class="account-2fa-codes"></ul>
+                  <button type="button" class="btn btn-secondary" id="account-2fa-download" data-i18n="hudChrome.account.twoFactorDownloadCodes">Download Codes</button>
+                  <button type="button" class="btn btn-primary" id="account-2fa-done" data-i18n="hudChrome.account.twoFactorDone">Done</button>
+                </div>
+
+                <!-- enabled state: turn it off (password-gated) -->
+                <form id="account-2fa-disable-form" class="account-form" novalidate hidden>
+                  <p class="account-hint" data-i18n="hudChrome.account.twoFactorDisableHint">Enter your password to turn two-factor off. Your recovery codes will be discarded.</p>
+                  <div class="auth-field">
+                    <label for="account-2fa-disable-pass" class="auth-label" data-i18n="hudChrome.account.currentPassword">Current password</label>
+                    <input id="account-2fa-disable-pass" type="password" maxlength="128" autocomplete="current-password" />
+                  </div>
+                  <button type="submit" class="btn btn-danger" data-i18n="hudChrome.account.twoFactorDisableBtn">Turn Off Two-Factor</button>
+                </form>
+
+                <div id="account-2fa-msg" class="auth-field-msg" aria-live="polite"></div>
+              </div>
+
+              <!-- GDPR data export -->
+              <div id="account-export" class="account-form">
+                <h4 class="account-form-title" data-i18n="hudChrome.account.exportTitle">Export My Data</h4>
+                <p class="account-hint" data-i18n="hudChrome.account.exportHint">Download a copy of your account and characters as a JSON file. We also email you a confirmation.</p>
+                <button type="button" class="btn btn-secondary" id="account-export-btn" data-i18n="hudChrome.account.exportBtn">Download My Data</button>
+                <div id="account-export-msg" class="auth-field-msg" aria-live="polite"></div>
+              </div>
             </section>
 
             <!-- Wallet / $WOC -->

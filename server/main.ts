@@ -28,6 +28,7 @@ import { handleWocBalance, parseWocBalanceQuery } from './woc_balance';
 import {
   handleAccountWhoami, handleAccountChangePassword, handleAccountLogout, handleAccountSetEmail, handleAccountDeactivate,
   handleAccountEmailChange, handleAccountEmailVerify, handleAccountExport, handleAccountMarketing, handleEmailUnsubscribe,
+  handleAccount2faSetup, handleAccount2faEnable, handleAccount2faDisable, verifyLoginTwoFactor,
 } from './account';
 import { emailAccountCreated } from './email';
 import { handleCardUpload, handleCardRoutes, captureReferral, cardUploadContentLengthTooLarge } from './player_card';
@@ -438,6 +439,20 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       if (game.isIpBlocked(requestIp(req)) && !(await isAdminAccount(account.id))) {
         return json(res, 429, { error: 'too many attempts — wait a minute and try again' });
       }
+      // Second factor: if 2FA is enabled, the password alone is not enough. With
+      // no code supplied we return a challenge (not a token) so the client shows
+      // the code step; with a code (or recovery code) we verify it before issuing.
+      if (account.totp_enabled_at) {
+        const code = typeof body.code === 'string' ? body.code : '';
+        const recoveryCode = typeof body.recoveryCode === 'string' ? body.recoveryCode : '';
+        if (!code && !recoveryCode) {
+          return json(res, 200, { twoFactorRequired: true });
+        }
+        if (!(await verifyLoginTwoFactor(account, code, recoveryCode))) {
+          recordAuthFailure(username);
+          return json(res, 401, { error: 'invalid authentication code', twoFactorRequired: true });
+        }
+      }
       clearAuthFailures(username); // correct password: forgive earlier typos
       await touchLogin(account.id, requestMetadata(req));
       const token = newToken();
@@ -676,6 +691,21 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       const accountId = await bearerActiveAccount(req, res);
       if (accountId === null) return;
       return handleAccountMarketing(req, res, accountId);
+    }
+    if (req.method === 'POST' && url === '/api/account/2fa/setup') {
+      const accountId = await bearerActiveAccount(req, res);
+      if (accountId === null) return;
+      return handleAccount2faSetup(req, res, accountId);
+    }
+    if (req.method === 'POST' && url === '/api/account/2fa/enable') {
+      const accountId = await bearerActiveAccount(req, res);
+      if (accountId === null) return;
+      return handleAccount2faEnable(req, res, accountId);
+    }
+    if (req.method === 'POST' && url === '/api/account/2fa/disable') {
+      const accountId = await bearerActiveAccount(req, res);
+      if (accountId === null) return;
+      return handleAccount2faDisable(req, res, accountId);
     }
     // Public one-click marketing unsubscribe (link from a marketing email).
     if (req.method === 'GET' && url.startsWith('/api/email/unsubscribe')) {

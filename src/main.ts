@@ -24,6 +24,9 @@ import { setWalletDisplayAvailable, setWocBalance, setWalletUiEnabled, resolveWo
 import {
   accountPortalModel, validatePasswordChange, validateEmailShape, deactivateConfirmReady,
 } from './ui/account_portal';
+import {
+  formatSecretGroups, formatRecoveryCodesFile, isCompleteTotpCode, classifyAuthCode,
+} from './ui/two_factor_setup';
 import { absolutePublishedCardUrl, setCardUploader, setReferralProvider, setStandingProvider } from './ui/player_card_share';
 // The wallet module is loaded lazily via dynamic import() in the wallet
 // controller below, so it stays out of the main entry chunk and only loads when
@@ -179,6 +182,9 @@ function userFacingApiError(err: unknown): string {
   if (normalized === 'log out all characters before deactivating') return t('hudChrome.account.errCharactersOnline');
   if (normalized === 'this account has been deactivated.') return t('hudChrome.account.deactivatedLocked');
   if (normalized === 'password must be at most 128 chars') return t('hudChrome.account.errPasswordLong');
+  if (normalized === 'that is already your email address') return t('hudChrome.account.errEmailUnchanged');
+  if (normalized === 'that code is not valid, try again' || normalized === 'invalid authentication code') return t('hudChrome.account.errTwoFactorCode');
+  if (normalized === 'start two-factor setup first' || normalized === 'two-factor is already enabled' || normalized === 'two-factor is not enabled') return t('hudChrome.account.errTwoFactorState');
   // The account row vanished mid-session (404 from /api/account/*); treat as a
   // dropped session rather than rendering raw English in the form.
   if (normalized === 'account not found') return t('errors.api.notAuthenticated');
@@ -2034,15 +2040,33 @@ function setAccountFieldMsg(sel: string, text: string, ok: boolean): void {
   el.classList.toggle('is-ok', ok && text !== '');
 }
 
+// Reflect the account's 2FA state: when enabled, only the password-gated disable
+// form shows; when disabled, only the "Set Up" entry point. The transient setup
+// and recovery panes always reset to hidden so re-opening the portal is clean.
+function paintTwoFactorStatus(enabled: boolean): void {
+  const setText = (sel: string, key: TranslationKey) => { const el = document.querySelector(sel); if (el) el.textContent = t(key); };
+  setText('#account-2fa-status', enabled ? 'hudChrome.account.twoFactorStatusOn' : 'hudChrome.account.twoFactorStatusOff');
+  const show = (sel: string, visible: boolean) => { const el = document.querySelector(sel) as HTMLElement | null; if (el) el.hidden = !visible; };
+  show('#account-2fa-setup-btn', !enabled);
+  show('#account-2fa-begin-form', false);
+  show('#account-2fa-setup', false);
+  show('#account-2fa-recovery', false);
+  show('#account-2fa-disable-form', enabled);
+  const msg = document.getElementById('account-2fa-msg');
+  if (msg) { msg.textContent = ''; msg.className = 'auth-field-msg'; }
+}
+
 function paintAccountPortal(
   model: ReturnType<typeof accountPortalModel>,
   // When the account fetch failed transiently we re-render the shell but must
   // NOT clobber an already-populated email field: a blank value would otherwise
   // be submitted as a null email update on the next save.
   preserveEmailInput = false,
+  twoFactorEnabled = false,
 ): void {
   ($('#account-logged-out') as HTMLElement).hidden = model.loggedIn;
   ($('#account-sections') as HTMLElement).hidden = !model.loggedIn;
+  if (model.loggedIn) paintTwoFactorStatus(twoFactorEnabled);
   $('#account-username').textContent = model.header.username;
   const since = $('#account-member-since');
   since.textContent = model.header.memberSinceIso
@@ -2075,7 +2099,7 @@ async function loadAccountPortal(setChrome: boolean): Promise<void> {
     paintAccountPortal(accountPortalModel({
       loggedIn: true, username: acct.username, email: acct.email,
       createdAt: acct.createdAt, characterCount: acct.characterCount,
-    }));
+    }), false, acct.twoFactorEnabled);
   } catch (err) {
     if (isAuthError(err)) { handleAccountSessionExpired(); return; }
     console.warn('account session check deferred (transient):', err);
@@ -2178,9 +2202,133 @@ function setupAccountPortal(): void {
     }
   });
 
+  setupSecuritySection();
+
   document.getElementById('account-manage-wallet')?.addEventListener('click', () => accountGoToCharacters(true));
   ($('#account-go-characters') as HTMLElement).addEventListener('click', () => accountGoToCharacters(false));
   ($('#account-logout') as HTMLElement).addEventListener('click', logoutAccount);
+}
+
+// Verified email change + two-factor enrolment + data export. Split out of
+// setupAccountPortal to keep each concern legible; called once on first wiring.
+function setupSecuritySection(): void {
+  // ── Verified email change ──
+  ($('#account-change-email-form') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pass = ($('#account-change-email-pass') as HTMLInputElement).value;
+    const email = ($('#account-change-email-new') as HTMLInputElement).value;
+    if (!validateEmailShape(email)) {
+      setAccountFieldMsg('#account-change-email-msg', t('hudChrome.account.errEmailInvalid'), false);
+      return;
+    }
+    try {
+      await api.changeEmail(pass, email);
+      setAccountFieldMsg('#account-change-email-msg', t('hudChrome.account.changeEmailSent'), true);
+      ($('#account-change-email-pass') as HTMLInputElement).value = '';
+      ($('#account-change-email-new') as HTMLInputElement).value = '';
+    } catch (e2) {
+      setAccountFieldMsg('#account-change-email-msg', userFacingApiError(e2), false);
+    }
+  });
+
+  // ── Two-factor: enrolment wizard ──
+  const twoFaMsg = '#account-2fa-msg';
+  const show = (sel: string, visible: boolean) => { const el = document.querySelector(sel) as HTMLElement | null; if (el) el.hidden = !visible; };
+  let recoveryCodes: string[] = [];
+
+  ($('#account-2fa-setup-btn') as HTMLElement).addEventListener('click', () => {
+    show('#account-2fa-setup-btn', false);
+    show('#account-2fa-begin-form', true);
+    ($('#account-2fa-password') as HTMLInputElement).focus();
+  });
+
+  ($('#account-2fa-begin-form') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const password = ($('#account-2fa-password') as HTMLInputElement).value;
+    try {
+      const { secret, otpauthUri } = await api.twoFactorSetup(password);
+      ($('#account-2fa-secret') as HTMLElement).textContent = formatSecretGroups(secret);
+      ($('#account-2fa-link') as HTMLAnchorElement).href = otpauthUri;
+      ($('#account-2fa-password') as HTMLInputElement).value = '';
+      show('#account-2fa-begin-form', false);
+      show('#account-2fa-setup', true);
+      ($('#account-2fa-code') as HTMLInputElement).focus();
+      setAccountFieldMsg(twoFaMsg, '', true);
+    } catch (e2) {
+      setAccountFieldMsg(twoFaMsg, userFacingApiError(e2), false);
+    }
+  });
+
+  ($('#account-2fa-confirm-form') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = ($('#account-2fa-code') as HTMLInputElement).value;
+    if (!isCompleteTotpCode(code)) {
+      setAccountFieldMsg(twoFaMsg, t('hudChrome.account.errTwoFactorCode'), false);
+      return;
+    }
+    try {
+      const res = await api.twoFactorEnable(code.replace(/\s/g, ''));
+      recoveryCodes = res.recoveryCodes;
+      const list = $('#account-2fa-codes') as HTMLElement;
+      list.innerHTML = '';
+      for (const c of recoveryCodes) {
+        const li = document.createElement('li');
+        li.textContent = c;
+        list.appendChild(li);
+      }
+      ($('#account-2fa-code') as HTMLInputElement).value = '';
+      show('#account-2fa-setup', false);
+      show('#account-2fa-recovery', true);
+      setAccountFieldMsg(twoFaMsg, t('hudChrome.account.twoFactorEnabledMsg'), true);
+    } catch (e2) {
+      setAccountFieldMsg(twoFaMsg, userFacingApiError(e2), false);
+    }
+  });
+
+  ($('#account-2fa-download') as HTMLElement).addEventListener('click', () => {
+    const blob = new Blob([formatRecoveryCodesFile(recoveryCodes, api.username ?? '')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'woc-recovery-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  ($('#account-2fa-done') as HTMLElement).addEventListener('click', () => {
+    recoveryCodes = [];
+    paintTwoFactorStatus(true);
+  });
+
+  ($('#account-2fa-disable-form') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const password = ($('#account-2fa-disable-pass') as HTMLInputElement).value;
+    try {
+      await api.twoFactorDisable(password);
+      ($('#account-2fa-disable-pass') as HTMLInputElement).value = '';
+      paintTwoFactorStatus(false);
+      setAccountFieldMsg(twoFaMsg, t('hudChrome.account.twoFactorDisabledMsg'), true);
+    } catch (e2) {
+      setAccountFieldMsg(twoFaMsg, userFacingApiError(e2), false);
+    }
+  });
+
+  // ── GDPR data export ──
+  ($('#account-export-btn') as HTMLElement).addEventListener('click', async () => {
+    try {
+      const bundle = await api.exportData();
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'woc-account-export.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      setAccountFieldMsg('#account-export-msg', t('hudChrome.account.exportDone'), true);
+    } catch (e2) {
+      setAccountFieldMsg('#account-export-msg', userFacingApiError(e2), false);
+    }
+  });
 }
 
 function showRealmList(dir?: import('./net/online').RealmDirectory): void {
@@ -4239,8 +4387,25 @@ function wireStartScreens(): void {
       return;
     }
     try {
-      if (mode === 'login') await api.login(username, password, token);
-      else await api.register(username, password, token, REFERRAL_SLUG);
+      if (mode === 'login') {
+        const twoFaField = $('#login-2fa-field') as HTMLElement;
+        const twoFaInput = $('#login-2fa-code') as HTMLInputElement;
+        const raw = twoFaField.hidden ? '' : twoFaInput.value;
+        const factor = raw ? classifyAuthCode(raw) : { code: '', recoveryCode: '' };
+        const result = await api.login(username, password, token, factor.code, factor.recoveryCode);
+        if (result.twoFactorRequired) {
+          // Password accepted; the account needs a second factor. Reveal the code
+          // field and mint a fresh Turnstile token for the follow-up submit (the
+          // first token was single-use).
+          twoFaField.hidden = false;
+          twoFaInput.focus();
+          loginError(t('auth.twoFactorHint'));
+          resetTurnstile();
+          return;
+        }
+      } else {
+        await api.register(username, password, token, REFERRAL_SLUG);
+      }
     } catch (err) {
       // Auth itself failed (bad credentials, taken username, Turnstile reject…).
       // The token is single-use, so refresh the widget for the next attempt.
