@@ -55,6 +55,15 @@ export const hudChromeStrings = {
       energy: "Energy",
     },
   },
+  // On-screen quest tracker. The "(N)" count shown beside the header while the
+  // tracker is collapsed (the number is spliced in via formatNumber), plus the
+  // header button's state-aware hover/title hint (Collapse while expanded,
+  // Expand while collapsed).
+  questTracker: {
+    count: "({count})",
+    collapseHint: "Collapse quest tracker",
+    expandHint: "Expand quest tracker",
+  },
   chatTimestamps: {
     show: "Show Chat Timestamps",
     format: "Timestamp Format",
@@ -124,6 +133,9 @@ export const hudChromeStrings = {
     clickMoveRight: "Right Click",
     // Audio panel toggle for the per-footfall step clips (off by default).
     footstepSounds: "Footstep Sounds",
+    // Toggle for the OSRS-style click-feedback marker: entity targets and
+    // click-to-move destinations (on by default).
+    clickFeedback: "Click Marker",
     showWalletOnCharacterScreen: "Show Wallet on Character Screen",
     showWalletOnPlayerCard: "Show Wallet on Player Card",
     // Interface panel: global HUD zoom slider, and the mirror of the landing
@@ -316,6 +328,26 @@ export const hudChromeStrings = {
       many: "Who: {count} players online on {realm}.",
       other: "Who: {count} players online on {realm}.",
     },
+  },
+  // "Report a Bug" options sub-view (online only). Captures realm/character/
+  // position/screenshot plus a free-text description and posts to the server.
+  bugReport: {
+    menuButton: "Report a Bug",
+    realm: "Realm",
+    character: "Character",
+    position: "Position",
+    unknown: "Unknown",
+    description: "What went wrong?",
+    descriptionPlaceholder: "Describe the bug: what you did, what you expected, and what happened.",
+    includeScreenshot: "Include Screenshot",
+    screenshotAlt: "Screenshot of the current view attached to this bug report",
+    submit: "Send Report",
+    submitted: "Bug report sent. Thank you!",
+    submittedNoShot: "Bug report sent, but the screenshot was too large to include.",
+    describeFirst: "Please describe the bug before sending.",
+    tooLarge: "That report is too large to send. Try again without the screenshot.",
+    rateLimited: "You've sent several reports recently. Please wait a bit before sending another.",
+    failed: "Could not send the bug report. Please try again.",
   },
   // Character window (paperdoll) controls.
   paperdoll: {

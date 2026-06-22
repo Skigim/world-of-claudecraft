@@ -1142,6 +1142,10 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
   "questUi.log.completedStatus": "Terminée",
   "questUi.log.returnTo": "Retournez voir {name}",
   "questUi.log.abandon": "Abandonner la quête",
+  "questUi.log.abandonConfirmTitle": "Abandonner la quête",
+  "questUi.log.abandonConfirmBody": "Voulez-vous vraiment abandonner {name} ?",
+  "questUi.log.abandonConfirm": "Oui",
+  "questUi.log.abandonCancel": "Annuler",
   "questUi.log.suggestedPlayers": "Joueurs conseillés : {count}",
   "questUi.dialog.close": "Fermer le dialogue de quête",
   "questUi.dialog.greetingFallback": "Salutations.",
@@ -2897,4 +2901,8 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
   "hudChrome.account.sectionWallet": "Portefeuille $WOC",
   "hudChrome.account.title": "Compte",
   "hudChrome.account.walletSummary": "Vérifiez un portefeuille Solana pour afficher l'apparat de détenteur sur votre carte de joueur.",
+  // On-screen quest tracker (hudChrome.questTracker.*): collapsed count badge + header toggle hover hint.
+  "hudChrome.questTracker.count": "({count})",
+  "hudChrome.questTracker.collapseHint": "Réduire le suivi des quêtes",
+  "hudChrome.questTracker.expandHint": "Développer le suivi des quêtes",
 };

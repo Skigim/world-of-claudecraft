@@ -13,6 +13,7 @@ import { AnimState, CharacterVisual, createCharacterVisual } from './characters'
 import { skinCount, visualKeyFor } from './characters/manifest';
 import { mechAssetsReady, preloadMechAssets } from './characters/assets';
 import { isVisuallyDead } from './anim_state';
+import { clickMarkerAnim, clickMarkerColor, CLICK_MARKER_LIFETIME } from './click_marker';
 import { LocoTrack, newLocoTrack, updateLocomotion } from './locomotion';
 import type { SpatialAudioSink, Surface } from './audio_sink';
 import { buildPropMaterialPrewarmGroup, buildProps } from './props';
@@ -36,6 +37,7 @@ import { buildMotes, MotesView } from './motes';
 import { buildBirds, BirdsView } from './birds';
 import { buildImpactSite, type ImpactSiteView } from './impact_site';
 import { shouldRenderStealthGhost } from './stealth';
+import { downscaleDims } from './screenshot';
 import { RenderBudgetGovernor, type RenderBudgetState } from './render_budget';
 import { t } from '../ui/i18n';
 import { tEntity } from '../ui/entity_i18n';
@@ -99,6 +101,7 @@ const LIGHT_BUDGET_RANGE_SQ = 55 * 55;
 // HDR boosts so the bloom pass picks these out (composer tiers only)
 const SELECTION_RING_BOOST = 1.5;
 const SELECTION_RING_SPIN = 0.6; // rad/s — slow classic target-reticle rotation
+const CLICK_MARKER_POOL = 4; // concurrent click-feedback markers before reuse
 const SPARKLE_BOOST = 1.5;
 const PORTAL_BOOST = 2;
 // Third-person camera collision (see updateCamera). Prop colliders marked
@@ -341,6 +344,15 @@ interface PooledObjectView {
   height: number;
 }
 
+interface ClickMarkerSlot {
+  group: THREE.Group;
+  ring: THREE.Mesh;
+  cross: THREE.Group;
+  ringMat: THREE.MeshBasicMaterial;
+  crossMat: THREE.MeshBasicMaterial;
+  elapsed: number; // seconds since spawn; >= CLICK_MARKER_LIFETIME means free
+}
+
 function selfSnapshotAlpha(alpha: number, lead: number): number {
   return Math.min(1.25, alpha + Math.max(0, lead));
 }
@@ -580,6 +592,11 @@ export class Renderer {
   views = new Map<number, EntityView>();
   nameplateLayer: HTMLDivElement;
   selectionRing: THREE.Mesh;
+  // Pool of transient click-feedback markers (ring plus crossed "X"). Each slot is
+  // a group reused round-robin, so rapid clicking never allocates. A slot with
+  // `elapsed >= lifetime` is free. See click_marker.ts for the animation curves.
+  private clickMarkers: ClickMarkerSlot[] = [];
+  private clickMarkerNext = 0;
   raycaster = new THREE.Raycaster();
   clickTargets: THREE.Object3D[] = [];
   camYaw = Math.PI;
@@ -922,6 +939,35 @@ export class Renderer {
     setRenderCategory(this.selectionRing, 'ui3d');
     this.selectionRing.visible = false;
     this.scene.add(this.selectionRing);
+
+    // click-feedback marker pool: a small fixed set of ring+X groups reused
+    // round-robin, so rapid clicking never allocates. Geometry is shared; each
+    // slot owns its own materials so the ring and X fade independently and
+    // recolour per click (gold neutral, red on a hostile). Laid flat as decals at
+    // the ground point in sync(); built once here.
+    const cmRingGeo = new THREE.RingGeometry(0.42, 0.6, 40);
+    cmRingGeo.rotateX(-Math.PI / 2);
+    // The "X": two thin flat bars crossed at right angles, lying in the XZ plane.
+    const cmBarGeo = new THREE.PlaneGeometry(0.16, 1.0);
+    cmBarGeo.rotateX(-Math.PI / 2);
+    for (let i = 0; i < CLICK_MARKER_POOL; i++) {
+      const group = new THREE.Group();
+      const ringMat = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, depthTest: false });
+      const ring = new THREE.Mesh(cmRingGeo, ringMat);
+      const crossMat = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, depthTest: false });
+      const cross = new THREE.Group();
+      for (const rot of [Math.PI / 4, -Math.PI / 4]) {
+        const bar = new THREE.Mesh(cmBarGeo, crossMat);
+        bar.rotation.y = rot;
+        cross.add(bar);
+      }
+      group.add(ring, cross);
+      group.visible = false;
+      group.renderOrder = 3; // draw over terrain decals (depthTest off above)
+      setRenderCategory(group, 'ui3d');
+      this.scene.add(group);
+      this.clickMarkers.push({ group, ring, cross, ringMat, crossMat, elapsed: CLICK_MARKER_LIFETIME });
+    }
 
     // particle system: projectiles, impacts, heal glows, ambience
     this.vfx = new Vfx(this.scene, (id, frac) => {
@@ -3073,6 +3119,7 @@ export class Renderer {
     } else {
       this.selectionRing.visible = false;
     }
+    this.updateClickMarkers(dt);
     markPhase('entities');
 
     let worldStart = performance.now();
@@ -3249,6 +3296,31 @@ export class Renderer {
       activeViews: this.views.size,
       visibleViews,
     };
+  }
+
+  // Grab a JPEG screenshot of the live scene for a bug report. The main
+  // WebGLRenderer is created WITHOUT preserveDrawingBuffer (that costs memory on
+  // the hot path), so the colour buffer is valid only until control returns to
+  // the browser and it composites. We therefore render one fresh frame and read
+  // it back synchronously in the SAME call, before yielding, then downscale onto
+  // a 2D canvas and export JPEG to keep the payload small. Returns null on any
+  // failure (lost context, tainted canvas) so the caller can degrade gracefully.
+  captureScreenshot(maxEdge = 1280, quality = 0.7): string | null {
+    try {
+      if (this.post) this.post.render();
+      else this.webgl.render(this.scene, this.camera);
+      const gl = this.webgl.domElement;
+      const dims = downscaleDims(gl.width, gl.height, maxEdge);
+      const out = document.createElement('canvas');
+      out.width = dims.w;
+      out.height = dims.h;
+      const ctx = out.getContext('2d');
+      if (!ctx) return null;
+      ctx.drawImage(gl, 0, 0, dims.w, dims.h);
+      return out.toDataURL('image/jpeg', quality);
+    } catch {
+      return null;
+    }
   }
 
   // Forward-renderer point-light budget: every campfire/torch light exists,
@@ -3730,6 +3802,40 @@ export class Renderer {
       }
     }
     return bestId;
+  }
+
+  // Drop a transient OSRS-style click marker at a world ground point. Called from
+  // main.ts on a qualifying left-click; `hostile` tints it red. Pure presentation,
+  // it never reads or writes sim state. No-op if the pool is empty.
+  spawnClickMarker(x: number, z: number, hostile: boolean): void {
+    if (this.clickMarkers.length === 0) return;
+    const slot = this.clickMarkers[this.clickMarkerNext];
+    this.clickMarkerNext = (this.clickMarkerNext + 1) % this.clickMarkers.length;
+    const y = groundHeight(x, z, this.sim.cfg.seed) + 0.06; // tiny lift to avoid z-fighting
+    slot.group.position.set(x, y, z);
+    slot.elapsed = 0;
+    const color = clickMarkerColor(hostile);
+    slot.ringMat.color.setHex(color);
+    slot.crossMat.color.setHex(color);
+    if (!this.lowGfx) {
+      slot.ringMat.color.multiplyScalar(SELECTION_RING_BOOST); // subtle bloom edge, matches reticle
+      slot.crossMat.color.multiplyScalar(SELECTION_RING_BOOST);
+    }
+    slot.group.visible = true;
+  }
+
+  // Advance every live click marker by dt and apply the ring/X fade+scale curves.
+  private updateClickMarkers(dt: number): void {
+    for (const slot of this.clickMarkers) {
+      if (slot.elapsed >= CLICK_MARKER_LIFETIME) continue;
+      slot.elapsed += dt;
+      const a = clickMarkerAnim(slot.elapsed);
+      if (!a.active) { slot.group.visible = false; continue; }
+      slot.ring.scale.setScalar(a.ringScale);
+      slot.ringMat.opacity = a.ringAlpha;
+      slot.cross.scale.setScalar(a.crossScale);
+      slot.crossMat.opacity = a.crossAlpha;
+    }
   }
 
   worldToScreen(x: number, y: number, z: number): { x: number; y: number; behind: boolean } {

@@ -777,10 +777,35 @@
   .report-error { min-height: 16px; color: #ff7a5e; font-size: 12px; margin-top: 6px; }
   .report-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
 
+  /* ---------- bug report (options sub-view) ---------- */
+  .bug-info { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px;
+    background: #101018; border: 1px solid #4a3d1d; border-radius: 4px; padding: 8px; }
+  .bug-info-row { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  .bug-info-label { color: #c9b27a; }
+  .bug-info-val { color: #e8d8a8; text-align: right; overflow-wrap: anywhere; }
+  .bug-label { display: block; color: #c9b27a; font-size: 12px; margin: 8px 0 4px; }
+  .bug-desc { width: 100%; height: 90px; resize: none; background: #101018;
+    border: 1px solid #4a3d1d; border-radius: 4px; color: #e8d8a8; padding: 6px; font-size: 16px; }
+  .bug-shot { margin-top: 8px; }
+  .bug-shot-img { display: block; width: 100%; max-width: 100%; margin-top: 6px;
+    border: 1px solid #4a3d1d; border-radius: 4px; }
+
   /* ---------- quest tracker ---------- */
   #quest-tracker { position: absolute; right: 14px; top: 262px; width: 240px; font-size: 12px;
     color: var(--gold); text-shadow: 1px 1px 2px #000; pointer-events: none; }
-  #quest-tracker .qt-header { font-family: var(--title-font); font-size: 14px; border-bottom: 1px solid #ffd10044; margin-bottom: 4px; padding-bottom: 2px; }
+  /* The header is a <button>: it re-enables pointer events over the otherwise
+     click-through overlay and toggles the tracker's collapsed state. Native button
+     chrome is reset so it keeps the plain gold-title look. */
+  #quest-tracker .qt-header { display: flex; align-items: center; gap: 6px; width: 100%;
+    font-family: var(--title-font); font-size: 14px; color: var(--gold); text-align: left;
+    background: none; border: 0; border-bottom: 1px solid #ffd10044; margin: 0 0 4px; padding: 0 0 2px;
+    cursor: pointer; pointer-events: auto; text-shadow: 1px 1px 2px #000; }
+  #quest-tracker .qt-header:hover { color: #fff; }
+  #quest-tracker .qt-header:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 2px; }
+  #quest-tracker .qt-chevron { font-size: 10px; line-height: 1; }
+  #quest-tracker .qt-count { color: var(--gold-dim); font-weight: 400; }
+  /* keep the toggle a comfortable touch target on coarse (touch) pointers */
+  @media (pointer: coarse) { #quest-tracker .qt-header { min-height: 40px; } }
   #quest-tracker .qt-title { font-weight: bold; margin-top: 8px; font-family: var(--title-font); }
   #quest-tracker .qt-obj { color: #e8e0c8; font-size: 11px; margin-left: 8px; }
   #quest-tracker .qt-obj.done,
@@ -985,7 +1010,9 @@
   .ql-list { width: 180px; border-right: 1px solid #463a1c; padding-right: 8px; }
   .ql-item { display: block; width: 100%; padding: 4px 6px; border: 0; background: transparent; text-align: left; font-size: 12px; color: #d8c89a; cursor: var(--cursor-point); border-radius: 3px; font-family: var(--title-font); }
   .ql-item:hover, .ql-item.sel { background: #ffffff14; color: var(--gold); }
-  .ql-detail { flex: 1; font-size: 12px; max-height: 380px; overflow-y: auto; }
+  .ql-detail { flex: 1; font-size: 12px; max-height: 380px; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .ql-detail-body { min-height: 0; overflow-y: auto; padding-right: var(--spacing-xs); }
+  .ql-detail-actions { flex: 0 0 auto; padding-top: var(--spacing-sm); }
   .ql-empty { color: var(--color-text-muted); font-size: 12px; padding: var(--spacing-xs); }
   .ql-detail-title { font-size: 15px; }
   .ql-detail-text { margin-top: var(--spacing-sm); }
@@ -5474,6 +5501,9 @@
     min-width: 0;
   }
   body.mobile-touch #quest-log-window .ql-detail {
+    min-width: 0;
+  }
+  body.mobile-touch #quest-log-window .ql-detail-body {
     min-width: 0;
   }
   body.mobile-touch #options-menu .btn {

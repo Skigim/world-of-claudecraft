@@ -196,6 +196,11 @@ export const ko_KR: EnTranslations = {
         "energy": "에너지"
       }
     },
+    "questTracker": {
+      "count": "({count})",
+      "collapseHint": "퀘스트 추적기 접기",
+      "expandHint": "퀘스트 추적기 펼치기"
+    },
     "chatTimestamps": {
       "show": "채팅 시각 표시",
       "format": "시각 표시 형식",
@@ -251,6 +256,7 @@ export const ko_KR: EnTranslations = {
       "clickMoveLeft": "왼쪽 클릭",
       "clickMoveRight": "오른쪽 클릭",
       "footstepSounds": "발소리",
+      "clickFeedback": "클릭 표시",
       "showWalletOnCharacterScreen": "캐릭터 화면에 지갑 표시",
       "showWalletOnPlayerCard": "플레이어 카드에 지갑 표시",
       "uiScale": "UI 배율",
@@ -408,6 +414,24 @@ export const ko_KR: EnTranslations = {
         "many": "검색: {realm} 서버에 {count}명의 플레이어가 접속 중입니다.",
         "other": "검색: {realm} 서버에 {count}명의 플레이어가 접속 중입니다."
       }
+    },
+    "bugReport": {
+      "menuButton": "버그 신고",
+      "realm": "서버",
+      "character": "캐릭터",
+      "position": "좌표",
+      "unknown": "알 수 없음",
+      "description": "무엇이 잘못되었나요?",
+      "descriptionPlaceholder": "버그를 설명해 주세요: 무엇을 했고, 무엇을 기대했으며, 무엇이 일어났는지.",
+      "includeScreenshot": "스크린샷 포함",
+      "screenshotAlt": "이 버그 신고에 첨부된 현재 화면의 스크린샷",
+      "submit": "신고 보내기",
+      "submitted": "버그 신고가 전송되었습니다. 감사합니다!",
+      "submittedNoShot": "버그 신고가 전송되었습니다. 다만 스크린샷이 너무 커서 첨부하지 못했습니다.",
+      "describeFirst": "보내기 전에 버그를 설명해 주세요.",
+      "tooLarge": "신고가 너무 커서 보낼 수 없습니다. 스크린샷 없이 다시 시도하세요.",
+      "rateLimited": "최근에 여러 건의 신고를 보냈습니다. 잠시 후 다시 보내 주세요.",
+      "failed": "버그 신고를 보낼 수 없습니다. 다시 시도해 주세요."
     },
     "paperdoll": {
       "unequipAria": "{item} 장착 해제",
@@ -1803,6 +1827,10 @@ export const ko_KR: EnTranslations = {
       "completedStatus": "완료됨",
       "returnTo": "{name}에게 돌아가기",
       "abandon": "퀘스트 포기",
+      "abandonConfirmTitle": "퀘스트 포기",
+      "abandonConfirmBody": "{name} 퀘스트를 정말 포기할까요?",
+      "abandonConfirm": "예",
+      "abandonCancel": "취소",
       "suggestedPlayers": "권장 플레이어: {count}"
     },
     "dialog": {

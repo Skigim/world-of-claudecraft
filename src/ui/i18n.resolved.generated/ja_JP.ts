@@ -196,6 +196,11 @@ export const ja_JP: EnTranslations = {
         "energy": "エネルギー"
       }
     },
+    "questTracker": {
+      "count": "（{count}）",
+      "collapseHint": "クエストトラッカーを折りたたむ",
+      "expandHint": "クエストトラッカーを展開する"
+    },
     "chatTimestamps": {
       "show": "チャットに時刻を表示",
       "format": "時刻の表記形式",
@@ -251,6 +256,7 @@ export const ja_JP: EnTranslations = {
       "clickMoveLeft": "左クリック",
       "clickMoveRight": "右クリック",
       "footstepSounds": "足音",
+      "clickFeedback": "クリックマーカー",
       "showWalletOnCharacterScreen": "キャラクター画面にウォレットを表示",
       "showWalletOnPlayerCard": "プレイヤーカードにウォレットを表示",
       "uiScale": "UIスケール",
@@ -408,6 +414,24 @@ export const ja_JP: EnTranslations = {
         "many": "Who：{realm}に{count}人のプレイヤーがオンラインです。",
         "other": "Who：{realm}に{count}人のプレイヤーがオンラインです。"
       }
+    },
+    "bugReport": {
+      "menuButton": "バグを報告",
+      "realm": "サーバー",
+      "character": "キャラクター",
+      "position": "座標",
+      "unknown": "不明",
+      "description": "何が起きましたか？",
+      "descriptionPlaceholder": "バグの内容を記入してください：何をして、何を期待し、実際に何が起きたか。",
+      "includeScreenshot": "スクリーンショットを添付",
+      "screenshotAlt": "このバグ報告に添付された現在の画面のスクリーンショット",
+      "submit": "報告を送信",
+      "submitted": "バグ報告を送信しました。ありがとうございます！",
+      "submittedNoShot": "バグ報告を送信しました。ただしスクリーンショットが大きすぎて添付できませんでした。",
+      "describeFirst": "送信する前にバグの内容を記入してください。",
+      "tooLarge": "報告のサイズが大きすぎて送信できません。スクリーンショットを外して再試行してください。",
+      "rateLimited": "最近、報告を複数回送信しています。しばらく待ってから送信してください。",
+      "failed": "バグ報告を送信できませんでした。もう一度お試しください。"
     },
     "paperdoll": {
       "unequipAria": "{item}を外す",
@@ -1803,6 +1827,10 @@ export const ja_JP: EnTranslations = {
       "completedStatus": "完了済み",
       "returnTo": "{name}に戻る",
       "abandon": "クエストを破棄",
+      "abandonConfirmTitle": "クエストを破棄",
+      "abandonConfirmBody": "{name}を本当に破棄しますか？",
+      "abandonConfirm": "はい",
+      "abandonCancel": "キャンセル",
       "suggestedPlayers": "推奨プレイヤー数: {count}"
     },
     "dialog": {

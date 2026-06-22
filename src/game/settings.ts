@@ -153,11 +153,20 @@ export const BOOL_SETTINGS = {
   // players who want them back can re-enable. Independent of the SFX volume
   // slider — jump/land/splash/swim and combat one-shots are unaffected.
   footstepSfx: { def: false },
+  // on by default: a brief OSRS-style ground marker (an expanding ring plus a
+  // crossed "X") where you left-click in the world, gold for a normal click and
+  // red when the click lands on a hostile. Purely a local presentation cue; it
+  // never touches sim state. Off removes the marker entirely.
+  clickFeedback: { def: true },
   // off by default: swap the looping landing-page trailer for a static, dimmed,
   // high-contrast backdrop so the start-screen text stays legible (and the
   // 5.7 MB video is never fetched). Forced on regardless for phones / Save-Data /
-  // prefers-reduced-motion — see shouldUseStaticBackdrop in landing_backdrop.ts.
+  // prefers-reduced-motion, see shouldUseStaticBackdrop in landing_backdrop.ts.
   landingHighContrast: { def: false },
+  // off by default (expanded): when on, the on-screen quest tracker is collapsed
+  // to just its "Quests (N)" header. Toggled by clicking the tracker header; kept
+  // here so the choice persists across sessions like the other HUD preferences.
+  questTrackerCollapsed: { def: false },
 } as const;
 
 export type NumericSettingKey = keyof typeof SETTING_RANGES;

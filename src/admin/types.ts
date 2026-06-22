@@ -161,6 +161,25 @@ export interface ModerationQueueRow {
   online: boolean;
 }
 
+// Mirrors server/bug_report_db.ts BugReportRow (snake_case from the SQL row). The
+// list row exposes only whether a screenshot exists; the bytes are fetched per
+// report via GET /admin/api/bug-reports/:id/screenshot.
+export interface BugReportRow {
+  id: number;
+  account_id: number | null;
+  character_id: number | null;
+  character_name: string;
+  realm: string;
+  pos_x: number;
+  pos_y: number;
+  pos_z: number;
+  description: string;
+  has_screenshot: boolean;
+  meta: unknown;
+  status: string;
+  created_at: string;
+}
+
 export interface ReportDetail {
   id: number;
   reason: string;

@@ -196,6 +196,11 @@ export const pt_BR: EnTranslations = {
         "energy": "Energy"
       }
     },
+    "questTracker": {
+      "count": "({count})",
+      "collapseHint": "Recolher missões",
+      "expandHint": "Expandir missões"
+    },
     "chatTimestamps": {
       "show": "Mostrar horário no chat",
       "format": "Formato do horário",
@@ -251,6 +256,7 @@ export const pt_BR: EnTranslations = {
       "clickMoveLeft": "Clique esquerdo",
       "clickMoveRight": "Clique direito",
       "footstepSounds": "Sons de passos",
+      "clickFeedback": "Click Marker",
       "showWalletOnCharacterScreen": "Mostrar carteira na tela de personagens",
       "showWalletOnPlayerCard": "Mostrar carteira no cartão de jogador",
       "uiScale": "Escala da interface",
@@ -408,6 +414,24 @@ export const pt_BR: EnTranslations = {
         "many": "Quem: {count} jogadores online em {realm}.",
         "other": "Quem: {count} jogadores online em {realm}."
       }
+    },
+    "bugReport": {
+      "menuButton": "Report a Bug",
+      "realm": "Realm",
+      "character": "Character",
+      "position": "Position",
+      "unknown": "Unknown",
+      "description": "What went wrong?",
+      "descriptionPlaceholder": "Describe the bug: what you did, what you expected, and what happened.",
+      "includeScreenshot": "Include Screenshot",
+      "screenshotAlt": "Screenshot of the current view attached to this bug report",
+      "submit": "Send Report",
+      "submitted": "Bug report sent. Thank you!",
+      "submittedNoShot": "Bug report sent, but the screenshot was too large to include.",
+      "describeFirst": "Please describe the bug before sending.",
+      "tooLarge": "That report is too large to send. Try again without the screenshot.",
+      "rateLimited": "You've sent several reports recently. Please wait a bit before sending another.",
+      "failed": "Could not send the bug report. Please try again."
     },
     "paperdoll": {
       "unequipAria": "Desequipar {item}",
@@ -1803,6 +1827,10 @@ export const pt_BR: EnTranslations = {
       "completedStatus": "Concluída",
       "returnTo": "Volte até {name}",
       "abandon": "Abandonar missão",
+      "abandonConfirmTitle": "Abandonar missão",
+      "abandonConfirmBody": "Tem certeza de que deseja abandonar {name}?",
+      "abandonConfirm": "Sim",
+      "abandonCancel": "Cancelar",
       "suggestedPlayers": "Jogadores sugeridos: {count}"
     },
     "dialog": {

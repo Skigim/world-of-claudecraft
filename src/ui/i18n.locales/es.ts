@@ -1142,6 +1142,10 @@ export const es: Partial<Record<TranslationKey, string>> = {
   "questUi.log.completedStatus": "Completada",
   "questUi.log.returnTo": "Regresa con {name}",
   "questUi.log.abandon": "Abandonar misión",
+  "questUi.log.abandonConfirmTitle": "Abandonar misión",
+  "questUi.log.abandonConfirmBody": "¿Seguro que quieres abandonar {name}?",
+  "questUi.log.abandonConfirm": "Sí",
+  "questUi.log.abandonCancel": "Cancelar",
   "questUi.log.suggestedPlayers": "Jugadores sugeridos: {count}",
   "questUi.dialog.close": "Cerrar diálogo de misión",
   "questUi.dialog.greetingFallback": "Saludos.",
@@ -2897,4 +2901,8 @@ export const es: Partial<Record<TranslationKey, string>> = {
   "hudChrome.account.sectionWallet": "Cartera $WOC",
   "hudChrome.account.title": "Cuenta",
   "hudChrome.account.walletSummary": "Verifica una cartera de Solana para mostrar el distintivo de titular en tu tarjeta de jugador.",
+  // On-screen quest tracker (hudChrome.questTracker.*): collapsed count badge + header toggle hover hint.
+  "hudChrome.questTracker.count": "({count})",
+  "hudChrome.questTracker.collapseHint": "Contraer rastreador de misiones",
+  "hudChrome.questTracker.expandHint": "Expandir rastreador de misiones",
 };

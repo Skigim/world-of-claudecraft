@@ -1142,6 +1142,10 @@ export const de_DE: Partial<Record<TranslationKey, string>> = {
   "questUi.log.completedStatus": "Abgeschlossen",
   "questUi.log.returnTo": "Kehrt zu {name} zurück",
   "questUi.log.abandon": "Quest aufgeben",
+  "questUi.log.abandonConfirmTitle": "Quest aufgeben",
+  "questUi.log.abandonConfirmBody": "Möchtet Ihr {name} wirklich aufgeben?",
+  "questUi.log.abandonConfirm": "Ja",
+  "questUi.log.abandonCancel": "Abbrechen",
   "questUi.log.suggestedPlayers": "Empfohlene Spieler: {count}",
   "questUi.dialog.close": "Questdialog schließen",
   "questUi.dialog.greetingFallback": "Seid gegrüßt.",
@@ -2897,4 +2901,8 @@ export const de_DE: Partial<Record<TranslationKey, string>> = {
   "hudChrome.account.sectionWallet": "$WOC-Wallet",
   "hudChrome.account.title": "Konto",
   "hudChrome.account.walletSummary": "Verifiziert ein Solana-Wallet, um Inhaber-Flair auf Eurer Spielerkarte anzuzeigen.",
+  // On-screen quest tracker (hudChrome.questTracker.*): collapsed count badge + header toggle hover hint.
+  "hudChrome.questTracker.count": "({count})",
+  "hudChrome.questTracker.collapseHint": "Quests einklappen",
+  "hudChrome.questTracker.expandHint": "Quests ausklappen",
 };

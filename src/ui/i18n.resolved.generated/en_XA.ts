@@ -196,6 +196,11 @@ export const en_XA: EnTranslations = {
         "energy": "[Éñéŕĝý]"
       }
     },
+    "questTracker": {
+      "count": "[({count})]",
+      "collapseHint": "[Çóļļáþšé ɋúéšţ ţŕáçķéŕ]",
+      "expandHint": "[Éẋþáñð ɋúéšţ ţŕáçķéŕ]"
+    },
     "chatTimestamps": {
       "show": "[Šĥóŵ Çĥáţ Ţíɱéšţáɱþš]",
       "format": "[Ţíɱéšţáɱþ Ƒóŕɱáţ]",
@@ -251,6 +256,7 @@ export const en_XA: EnTranslations = {
       "clickMoveLeft": "[Ļéƒţ Çļíçķ]",
       "clickMoveRight": "[Ŕíĝĥţ Çļíçķ]",
       "footstepSounds": "[Ƒóóţšţéþ Šóúñðš]",
+      "clickFeedback": "[Çļíçķ Ɱáŕķéŕ]",
       "showWalletOnCharacterScreen": "[Šĥóŵ Ŵáļļéţ óñ Çĥáŕáçţéŕ Šçŕééñ]",
       "showWalletOnPlayerCard": "[Šĥóŵ Ŵáļļéţ óñ Þļáýéŕ Çáŕð]",
       "uiScale": "[ÚÍ Šçáļé]",
@@ -408,6 +414,24 @@ export const en_XA: EnTranslations = {
         "many": "[Ŵĥó: {count} þļáýéŕš óñļíñé óñ {realm}.]",
         "other": "[Ŵĥó: {count} þļáýéŕš óñļíñé óñ {realm}.]"
       }
+    },
+    "bugReport": {
+      "menuButton": "[Ŕéþóŕţ á Ɓúĝ]",
+      "realm": "[Ŕéáļɱ]",
+      "character": "[Çĥáŕáçţéŕ]",
+      "position": "[Þóšíţíóñ]",
+      "unknown": "[Úñķñóŵñ]",
+      "description": "[Ŵĥáţ ŵéñţ ŵŕóñĝ?]",
+      "descriptionPlaceholder": "[Ðéšçŕíƀé ţĥé ƀúĝ: ŵĥáţ ýóú ðíð, ŵĥáţ ýóú éẋþéçţéð, áñð ŵĥáţ ĥáþþéñéð.]",
+      "includeScreenshot": "[Íñçļúðé Šçŕééñšĥóţ]",
+      "screenshotAlt": "[Šçŕééñšĥóţ óƒ ţĥé çúŕŕéñţ ʋíéŵ áţţáçĥéð ţó ţĥíš ƀúĝ ŕéþóŕţ]",
+      "submit": "[Šéñð Ŕéþóŕţ]",
+      "submitted": "[Ɓúĝ ŕéþóŕţ šéñţ. Ţĥáñķ ýóú!]",
+      "submittedNoShot": "[Ɓúĝ ŕéþóŕţ šéñţ, ƀúţ ţĥé šçŕééñšĥóţ ŵáš ţóó ļáŕĝé ţó íñçļúðé.]",
+      "describeFirst": "[Þļéášé ðéšçŕíƀé ţĥé ƀúĝ ƀéƒóŕé šéñðíñĝ.]",
+      "tooLarge": "[Ţĥáţ ŕéþóŕţ íš ţóó ļáŕĝé ţó šéñð. Ţŕý áĝáíñ ŵíţĥóúţ ţĥé šçŕééñšĥóţ.]",
+      "rateLimited": "[Ýóú'ʋé šéñţ šéʋéŕáļ ŕéþóŕţš ŕéçéñţļý. Þļéášé ŵáíţ á ƀíţ ƀéƒóŕé šéñðíñĝ áñóţĥéŕ.]",
+      "failed": "[Çóúļð ñóţ šéñð ţĥé ƀúĝ ŕéþóŕţ. Þļéášé ţŕý áĝáíñ.]"
     },
     "paperdoll": {
       "unequipAria": "[Úñéɋúíþ {item}]",
@@ -1803,6 +1827,10 @@ export const en_XA: EnTranslations = {
       "completedStatus": "[Çóɱþļéţéð]",
       "returnTo": "[Ŕéţúŕñ ţó {name}]",
       "abandon": "[Áƀáñðóñ Ɋúéšţ]",
+      "abandonConfirmTitle": "[Áƀáñðóñ Ɋúéšţ]",
+      "abandonConfirmBody": "[Áŕé ýóú šúŕé ýóú ŵáñţ ţó áƀáñðóñ {name}?]",
+      "abandonConfirm": "[Ýéš]",
+      "abandonCancel": "[Çáñçéļ]",
       "suggestedPlayers": "[Šúĝĝéšţéð þļáýéŕš: {count}]"
     },
     "dialog": {

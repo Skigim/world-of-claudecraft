@@ -31,6 +31,11 @@ describe('web login guard (anti-bot)', () => {
     expect(isWebClientRequest(req({ origin: 'http://localhost:5173', host: '127.0.0.1:8787' }))).toBe(true);
   });
 
+  it('accepts Capacitor native app origins', () => {
+    expect(isWebClientRequest(req({ origin: 'capacitor://localhost', host: 'worldofclaudecraft.com' }))).toBe(true);
+    expect(isWebClientRequest(req({ origin: 'https://localhost', host: 'worldofclaudecraft.com' }))).toBe(true);
+  });
+
   it('rejects a foreign origin', () => {
     expect(isWebClientRequest(req({ origin: 'https://evil.example.com', host: 'play.example.com' }))).toBe(false);
   });

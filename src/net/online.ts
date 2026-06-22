@@ -50,6 +50,19 @@ export function buildWebSocketUrl(protocol: string, host: string): string {
   return `${proto}://${host}/ws`;
 }
 
+function normalizeOrigin(raw: string): string {
+  return raw.trim().replace(/\/+$/, '');
+}
+
+export const NATIVE_APP = String(import.meta.env.VITE_NATIVE_APP ?? '') === '1';
+export const NATIVE_API_ORIGIN = normalizeOrigin(String(import.meta.env.VITE_API_ORIGIN ?? ''));
+
+export function apiUrl(path: string, base = ''): string {
+  if (/^https?:\/\//.test(path)) return path;
+  const origin = normalizeOrigin(base) || NATIVE_API_ORIGIN;
+  return origin ? `${origin}${path}` : path;
+}
+
 export function buildWebSocketAuthMessage(token: string, characterId: number): { t: 'auth'; token: string; character: number } {
   return { t: 'auth', token, character: characterId };
 }
@@ -109,17 +122,17 @@ export class Api {
   realm: string | null = null;
   // base origin for realm-scoped calls (characters, search, ws). '' = the page
   // origin; set to another realm's origin when the player picks a realm
-  base = '';
+  base = NATIVE_API_ORIGIN;
 
   setRealm(url: string): void {
-    this.base = url || '';
+    this.base = normalizeOrigin(url) || NATIVE_API_ORIGIN;
   }
 
   // The realm directory is always read from the page's own server. Sending the
   // token (when logged in) also returns per-realm character counts.
   async realms(): Promise<RealmDirectory> {
     try {
-      const res = await fetch('/api/realms', { headers: this.token ? { Authorization: `Bearer ${this.token}` } : {} });
+      const res = await fetch(apiUrl('/api/realms'), { headers: this.token ? { Authorization: `Bearer ${this.token}` } : {} });
       if (!res.ok) return { current: '', realms: [], characters: {} };
       const d = await res.json();
       return { current: d.current ?? '', realms: d.realms ?? [], characters: d.characters ?? {} };
@@ -131,7 +144,7 @@ export class Api {
   // Live status for a realm (population + reachability), for the realm picker.
   async realmStatus(url: string): Promise<{ online: boolean; players: number }> {
     try {
-      const res = await fetch(`${url}/api/status`, { signal: AbortSignal.timeout(3000) });
+      const res = await fetch(apiUrl('/api/status', url), { signal: AbortSignal.timeout(3000) });
       if (!res.ok) return { online: false, players: 0 };
       const d = await res.json();
       return { online: true, players: d.players_online ?? 0 };
@@ -141,7 +154,7 @@ export class Api {
   }
 
   private async post(path: string, body: unknown): Promise<any> {
-    const res = await fetch(this.base + path, {
+    const res = await fetch(apiUrl(path, this.base), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -155,7 +168,7 @@ export class Api {
   }
 
   private async get(path: string): Promise<any> {
-    const res = await fetch(this.base + path, {
+    const res = await fetch(apiUrl(path, this.base), {
       headers: this.token ? { Authorization: `Bearer ${this.token}` } : {},
     });
     const data = await res.json().catch(() => ({}));
@@ -164,7 +177,7 @@ export class Api {
   }
 
   private async delete(path: string, body: unknown): Promise<any> {
-    const res = await fetch(this.base + path, {
+    const res = await fetch(apiUrl(path, this.base), {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -278,6 +291,20 @@ export class Api {
     await this.post('/api/reports', { reporterCharacterId, targetCharacterName, reason, details });
   }
 
+  async submitBugReport(payload: {
+    characterId: number;
+    characterName: string;
+    pos: { x: number; y: number; z: number };
+    description: string;
+    screenshot: string | null;
+    meta: unknown;
+  }): Promise<{ screenshotStored: boolean }> {
+    const res = await this.post('/api/bug-reports', payload);
+    // The server drops a screenshot that fails its allowlist/size gate; surface
+    // that so the player is not told the screenshot was attached when it was not.
+    return { screenshotStored: res?.screenshotStored !== false };
+  }
+
   async projectStats(): Promise<{ accounts_created: number; players_online: number; realm: string }> {
     return this.get('/api/project-stats');
   }
@@ -296,7 +323,7 @@ export class Api {
   // server. Not realm-scoped — always read from the page's own origin.
   async releases(limit = 20): Promise<ReleaseEntry[]> {
     try {
-      const res = await fetch(`/api/releases?limit=${limit}`);
+      const res = await fetch(apiUrl(`/api/releases?limit=${limit}`));
       if (!res.ok) return [];
       const data = await res.json();
       return data.releases ?? [];
@@ -510,12 +537,12 @@ export class ClientWorld implements IWorld {
   constructor(token: string, characterId: number, cls: PlayerClass, base = '') {
     this.characterId = characterId;
     this.token = token;
-    this.base = base;
+    this.base = normalizeOrigin(base) || NATIVE_API_ORIGIN;
     this.cfg = { seed: 20061, playerClass: cls };
     // when a realm was picked, connect to that realm's origin; otherwise the
     // page's own host
-    const wsUrl = base
-      ? base.replace(/^http/, 'ws') + '/ws'
+    const wsUrl = this.base
+      ? this.base.replace(/^http/, 'ws') + '/ws'
       : buildWebSocketUrl(location.protocol, location.host);
     this.ws = new WebSocket(wsUrl);
     this.ws.onopen = () => {
@@ -1056,6 +1083,9 @@ export class ClientWorld implements IWorld {
     this.cmd({ cmd: 'turnin', quest: questId });
   }
   abandonQuest(questId: string): void {
+    if (!this.canSendCommand()) return;
+    this.questLog.delete(questId);
+    this.pendingQuestCommands.delete(questId);
     this.cmd({ cmd: 'abandon', quest: questId });
   }
   equipItem(itemId: string): void {
@@ -1231,7 +1261,7 @@ export class ClientWorld implements IWorld {
     const q = query.trim();
     if (!q) return [];
     try {
-      const res = await fetch(`${this.base}/api/search?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${this.token}` } });
+      const res = await fetch(apiUrl(`/api/search?q=${encodeURIComponent(q)}`, this.base), { headers: { Authorization: `Bearer ${this.token}` } });
       if (!res.ok) return [];
       return (await res.json()).results ?? [];
     } catch {
@@ -1270,7 +1300,7 @@ export class ClientWorld implements IWorld {
   }
   async leaderboard(): Promise<LeaderboardEntry[]> {
     try {
-      const res = await fetch(`${this.base}/api/leaderboard?metric=lifetimeXp&limit=100`);
+      const res = await fetch(apiUrl('/api/leaderboard?metric=lifetimeXp&limit=100', this.base));
       if (!res.ok) return [];
       return (await res.json()).leaders ?? [];
     } catch {

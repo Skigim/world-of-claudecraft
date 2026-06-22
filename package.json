@@ -1,6 +1,6 @@
 {
   "name": "world-of-claudecraft",
-  "version": "0.10.0",
+  "version": "0.13.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -8,6 +8,10 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run i18n:build && npm run i18n:admin && npm run i18n:scan && node scripts/build_media_manifest.mjs generate && vite build && node scripts/build_media_manifest.mjs emit",
+    "build:native": "VITE_NATIVE_APP=1 VITE_API_ORIGIN=${VITE_API_ORIGIN:-https://worldofclaudecraft.com} npm run build",
+    "native:sync": "npm run build:native && npx cap sync",
+    "native:open:ios": "npm run native:sync && npx cap open ios",
+    "native:open:android": "npm run native:sync && npx cap open android",
     "preview": "vite preview",
     "pretest": "npm run i18n:build && npm run i18n:admin && npm run i18n:scan",
     "test": "vitest run",
@@ -51,6 +55,10 @@
     "ws": "^8.21.0"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/ios": "^8.4.0",
     "@gltf-transform/cli": "^4.4.0",
     "@types/node": "^25.9.2",
     "@types/pg": "^8.20.0",

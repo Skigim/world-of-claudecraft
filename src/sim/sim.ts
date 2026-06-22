@@ -22,6 +22,7 @@ import {
 } from './content/augments';
 import { Rng } from './rng';
 import { SpatialGrid } from './spatial';
+import { orderTabTargets } from './tab_target';
 import {
   HEAL_THREAT_FACTOR, MELEE_SWITCH_MULT, RANGED_SWITCH_MULT,
   TAUNT_FORCE_SECONDS, addThreat, clearThreat, stealthDetectionRadius, threatEntries, threatModifier, topThreatValue,
@@ -128,7 +129,8 @@ const PARTY_MAX = 5;
 const RAID_MIN = 5;
 const RAID_MAX = 10;
 const RAID_GROUP_MAX = 5;
-const VARKAS_BONEGUARD_DAMAGE_IDLE_DESPAWN_SECONDS = 60;
+const DAMAGE_IDLE_DESPAWN_SECONDS = 60;
+const DAMAGE_IDLE_DESPAWN_MOB_IDS = new Set(['varkas_boneguard', 'bound_guardian']);
 const RAID_ALLOWED_DUNGEON_IDS = new Set(['nythraxis_crypt', 'nythraxis_boss_arena']);
 const RAID_REQUIRED_DUNGEON_IDS = new Set(['nythraxis_boss_arena']);
 const PARTY_XP_RANGE = 80; // yards: members this close share kill xp/credit
@@ -288,6 +290,12 @@ const PET_FOLLOW_DISTANCE = 3.5;
 const PET_TELEPORT_DISTANCE = 60; // owner this far away: pet warps to heel
 const PET_ASSIST_RANGE = 50; // how far the pet scans for enemies engaging the pair
 const PET_AGGRESSIVE_RANGE = 18; // aggressive pets look for idle enemies this close
+// A pet only keeps its OWNER flagged in combat while it is actively trading blows
+// (its combatTimer resets to 0 on every hit dealt/taken). A pet that merely holds a
+// target it is chasing or can't reach stops dragging the owner into perpetual combat
+// past this window, so the owner's out-of-combat health regen resumes. Matches the
+// 5s combat-linger used for the owner's own inCombat flag.
+const PET_COMBAT_LINGER = 5;
 const PET_TAUNT_RANGE = 5;
 const PET_GROWL_INTERVAL = 10; // controlled pets can tank by forcing attention
 const PET_FEED_DURATION = 5;
@@ -1667,8 +1675,8 @@ export class Sim {
         e.despawnTimer -= DT;
         if (e.despawnTimer <= 0) despawnIds.push(e.id);
       }
-      if (e.kind === 'mob' && e.templateId === 'varkas_boneguard' && !e.dead) {
-        e.damageIdleDespawnTimer = (e.damageIdleDespawnTimer ?? VARKAS_BONEGUARD_DAMAGE_IDLE_DESPAWN_SECONDS) - DT;
+      if (e.kind === 'mob' && DAMAGE_IDLE_DESPAWN_MOB_IDS.has(e.templateId) && !e.dead && !e.inCombat) {
+        e.damageIdleDespawnTimer = (e.damageIdleDespawnTimer ?? DAMAGE_IDLE_DESPAWN_SECONDS) - DT;
         if (e.damageIdleDespawnTimer <= 0) despawnIds.push(e.id);
       }
       if (e.overheadEmoteId && this.time >= e.overheadEmoteUntil) {
@@ -1721,8 +1729,10 @@ export class Sim {
         const tgt = this.entities.get(e.aggroTargetId);
         if (tgt && tgt.ownerId !== null) this.engagedPids.add(tgt.ownerId);
       }
-      // a player's pet that is engaging an enemy keeps its owner in combat
-      if (e.ownerId !== null && e.aggroTargetId !== null) this.engagedPids.add(e.ownerId);
+      // a player's pet that is actively fighting an enemy keeps its owner in
+      // combat. A pet merely holding a target it is not trading blows with (out of
+      // reach, stale) must not freeze the owner's health regen indefinitely (#regen)
+      if (e.ownerId !== null && e.aggroTargetId !== null && e.combatTimer < PET_COMBAT_LINGER) this.engagedPids.add(e.ownerId);
     }
     for (const meta of this.players.values()) {
       const p = this.entities.get(meta.entityId);
@@ -4128,8 +4138,8 @@ export class Sim {
     this.emit({ type: 'damage', sourceId: source?.id ?? -1, targetId: target.id, amount, crit, school, ability, kind });
 
     if (amount > 0) {
-      if (target.kind === 'mob' && target.templateId === 'varkas_boneguard') {
-        target.damageIdleDespawnTimer = VARKAS_BONEGUARD_DAMAGE_IDLE_DESPAWN_SECONDS;
+      if (target.kind === 'mob' && DAMAGE_IDLE_DESPAWN_MOB_IDS.has(target.templateId)) {
+        target.damageIdleDespawnTimer = DAMAGE_IDLE_DESPAWN_SECONDS;
       }
       for (let i = target.auras.length - 1; i >= 0; i--) {
         if (target.auras[i].breaksOnDamage) {
@@ -7158,10 +7168,20 @@ export class Sim {
     const p = r.e;
     const candidates = this.enemyCandidates(p);
     if (candidates.length === 0) return;
-    candidates.sort((a, b) => a.d - b.d);
-    const curIdx = candidates.findIndex((c) => c.e.id === p.targetId);
-    const next = candidates[(curIdx + 1) % candidates.length];
-    p.targetId = next.e.id;
+    // Cycle the enemies the player can see / is fighting first; off-screen ones
+    // stay reachable but never steal the selection (see tab_target.ts).
+    const ordered = orderTabTargets(
+      candidates.map((c) => ({
+        id: c.e.id,
+        dx: c.e.pos.x - p.pos.x,
+        dz: c.e.pos.z - p.pos.z,
+        d: c.d,
+        engaged: c.e.aggroTargetId === p.id || c.e.targetId === p.id,
+      })),
+      p.facing,
+    );
+    const curIdx = ordered.indexOf(p.targetId ?? -1);
+    p.targetId = ordered[(curIdx + 1) % ordered.length];
   }
 
   targetNearestEnemy(pid?: number): void {
