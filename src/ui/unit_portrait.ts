@@ -32,24 +32,35 @@ export const MAX_PORTRAIT_DPR = 3;
 /** Backing-store px for a portrait canvas at a given CSS size and device pixel
  *  ratio, clamped to [1, {@link MAX_PORTRAIT_DPR}]x and rounded to whole px. */
 export function portraitBackingPx(cssSize: number, dpr: number): number {
-  const scale = Math.min(MAX_PORTRAIT_DPR, Math.max(1, Number.isFinite(dpr) && dpr > 0 ? dpr : 1));
-  return Math.max(1, Math.round(cssSize * scale));
+	const scale = Math.min(
+		MAX_PORTRAIT_DPR,
+		Math.max(1, Number.isFinite(dpr) && dpr > 0 ? dpr : 1),
+	);
+	return Math.max(1, Math.round(cssSize * scale));
 }
 
-export interface DrawRect { dx: number; dy: number; dw: number; dh: number; }
+export interface DrawRect {
+	dx: number;
+	dy: number;
+	dw: number;
+	dh: number;
+}
 
 /** Centred draw rectangle for blitting a `size`x`size` image at `overscan`
  *  scale into a `size`x`size` canvas (negative offsets when overscan > 1). */
 export function overscanRect(size: number, overscan: number): DrawRect {
-  const dw = size * overscan;
-  const off = (size - dw) / 2;
-  return { dx: off, dy: off, dw, dh: dw };
+	const dw = size * overscan;
+	const off = (size - dw) / 2;
+	return { dx: off, dy: off, dw, dh: dw };
 }
 
 /** Crest icon id for a non-player target: NPCs get the status emblem, mobs get
  *  their creature-family crest (humanoid when the family is unknown). */
-export function crestIdForEntity(kind: string, family: string | undefined): string {
-  if (kind === 'npc') return 'status_npc';
-  if (family === 'beast') return 'family_beast';
-  return `family_${family ?? 'humanoid'}`;
+export function crestIdForEntity(
+	kind: string,
+	family: string | undefined,
+): string {
+	if (kind === "npc") return "status_npc";
+	if (family === "beast") return "family_beast";
+	return `family_${family ?? "humanoid"}`;
 }

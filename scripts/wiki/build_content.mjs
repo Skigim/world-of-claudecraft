@@ -10,12 +10,13 @@
 // numbers, mechanic names, loot, the raid boss name, or per-encounter scripts. The
 // rich localized prose (spec/mastery text) is resolved live at render time through
 // src/ui/talent_i18n.ts, not baked here.
-import * as esbuild from 'esbuild';
-import { writeFileSync } from 'node:fs';
-import path from 'node:path';
+
+import { writeFileSync } from "node:fs";
+import path from "node:path";
+import * as esbuild from "esbuild";
 
 const root = process.cwd();
-const outFile = path.join(root, 'src', 'guide', 'content.generated.ts');
+const outFile = path.join(root, "src", "guide", "content.generated.ts");
 
 const entrySource = `
   export { CLASSES, ABILITIES } from './src/sim/content/classes.ts';
@@ -30,21 +31,37 @@ const entrySource = `
 `;
 
 const built = await esbuild.build({
-  stdin: { contents: entrySource, resolveDir: root, sourcefile: 'wiki-content-entry.ts', loader: 'ts' },
-  bundle: true,
-  platform: 'node',
-  format: 'esm',
-  write: false,
-  logLevel: 'silent',
+	stdin: {
+		contents: entrySource,
+		resolveDir: root,
+		sourcefile: "wiki-content-entry.ts",
+		loader: "ts",
+	},
+	bundle: true,
+	platform: "node",
+	format: "esm",
+	write: false,
+	logLevel: "silent",
 });
-const dataUrl = `data:text/javascript;base64,${Buffer.from(built.outputFiles[0].text).toString('base64')}`;
+const dataUrl = `data:text/javascript;base64,${Buffer.from(built.outputFiles[0].text).toString("base64")}`;
 const {
-  CLASSES, ABILITIES, TALENTS, ALL_CLASSES, ZONES, DUNGEONS, MOBS, WARLOCK_PET_MOBS,
-  ZONE1_MOBS, ZONE2_MOBS, ZONE3_MOBS, VISUALS, visualKeyFor,
+	CLASSES,
+	ABILITIES,
+	TALENTS,
+	ALL_CLASSES,
+	ZONES,
+	DUNGEONS,
+	MOBS,
+	WARLOCK_PET_MOBS,
+	ZONE1_MOBS,
+	ZONE2_MOBS,
+	ZONE3_MOBS,
+	VISUALS,
+	visualKeyFor,
 } = await import(dataUrl);
 
-const ROLE_ORDER = ['tank', 'healer', 'dps'];
-const hex = (n) => `#${(n >>> 0).toString(16).padStart(6, '0').slice(-6)}`;
+const ROLE_ORDER = ["tank", "healer", "dps"];
+const hex = (n) => `#${(n >>> 0).toString(16).padStart(6, "0").slice(-6)}`;
 const abilityRef = (aid) => ({ id: aid, name: ABILITIES[aid]?.name ?? aid });
 
 // 3D model registry, mirrored from the renderer's VisualDef manifest so the Guide's
@@ -56,78 +73,88 @@ const abilityRef = (aid) => ({ id: aid, name: ABILITIES[aid]?.name ?? aid });
 // on each class/creature/pet as `tint`, resolved here from the VisualDef tint mode.
 const MODELS = {};
 function modelKeyFor(visualKey) {
-  const def = VISUALS[visualKey];
-  if (!def) return null;
-  if (!MODELS[visualKey]) {
-    const spec = { url: def.url, idle: def.clips?.idle ?? null, height: def.height };
-    if (def.yaw) spec.yaw = def.yaw;
-    if (def.hover) spec.hover = def.hover;
-    if (def.show) spec.show = def.show;
-    if (def.attach) {
-      spec.attach = def.attach.map((a) => {
-        const o = { url: a.url, bone: a.bone };
-        if (a.position) o.position = a.position;
-        if (a.rotationY) o.rotationY = a.rotationY;
-        if (a.gripRef) o.gripRef = a.gripRef;
-        return o;
-      });
-    }
-    if (def.weaponFix) spec.weaponFix = def.weaponFix;
-    if (def.tint !== undefined) spec.tintStrength = def.tintStrength ?? 0.4;
-    MODELS[visualKey] = spec;
-  }
-  return visualKey;
+	const def = VISUALS[visualKey];
+	if (!def) return null;
+	if (!MODELS[visualKey]) {
+		const spec = {
+			url: def.url,
+			idle: def.clips?.idle ?? null,
+			height: def.height,
+		};
+		if (def.yaw) spec.yaw = def.yaw;
+		if (def.hover) spec.hover = def.hover;
+		if (def.show) spec.show = def.show;
+		if (def.attach) {
+			spec.attach = def.attach.map((a) => {
+				const o = { url: a.url, bone: a.bone };
+				if (a.position) o.position = a.position;
+				if (a.rotationY) o.rotationY = a.rotationY;
+				if (a.gripRef) o.gripRef = a.gripRef;
+				return o;
+			});
+		}
+		if (def.weaponFix) spec.weaponFix = def.weaponFix;
+		if (def.tint !== undefined) spec.tintStrength = def.tintStrength ?? 0.4;
+		MODELS[visualKey] = spec;
+	}
+	return visualKey;
 }
 // The color the viewer should lerp materials toward, or null when the model is not
 // tinted. 'entity' tint uses the entity's own color (white for a class preview, the mob
 // template color for a creature); a fixed tint uses the manifest value.
 function tintFor(visualKey, entityColor) {
-  const def = VISUALS[visualKey];
-  if (!def || def.tint === undefined) return null;
-  return def.tint === 'entity' ? entityColor : def.tint;
+	const def = VISUALS[visualKey];
+	if (!def || def.tint === undefined) return null;
+	return def.tint === "entity" ? entityColor : def.tint;
 }
-const playerVisualKey = (id) => visualKeyFor({ kind: 'player', templateId: id });
-const mobVisualKey = (id) => visualKeyFor({ kind: 'mob', templateId: id });
+const playerVisualKey = (id) =>
+	visualKeyFor({ kind: "player", templateId: id });
+const mobVisualKey = (id) => visualKeyFor({ kind: "mob", templateId: id });
 
 // How many early, spoiler-safe abilities lead the "signature kit". The full kit
 // (allAbilities) follows so every class icon is showcased.
 const SIGNATURE_COUNT = 6;
 
 const classes = ALL_CLASSES.map((id) => {
-  const def = CLASSES[id];
-  const specDefs = TALENTS[id]?.specs ?? [];
-  // specs carry id + signature ability id so the page can resolve localized spec and
-  // mastery prose live via talent_i18n; name/role stay for structure and tests.
-  const specs = specDefs.map((s) => ({ id: s.id, name: s.name, role: s.role, signature: s.signature }));
-  const roles = ROLE_ORDER.filter((r) => specs.some((s) => s.role === r));
-  const kit = def.abilities ?? [];
-  // The class preview uses the same model + white tint the in-game character creator does.
-  const vk = playerVisualKey(id);
-  const tint = tintFor(vk, 0xffffff);
-  return {
-    id,
-    color: hex(def.color),
-    resource: def.resourceType,
-    roles,
-    specs,
-    signatureAbilities: kit.slice(0, SIGNATURE_COUNT).map(abilityRef),
-    abilities: kit.map(abilityRef),
-    model: modelKeyFor(vk),
-    ...(tint != null ? { tint: hex(tint) } : {}),
-  };
+	const def = CLASSES[id];
+	const specDefs = TALENTS[id]?.specs ?? [];
+	// specs carry id + signature ability id so the page can resolve localized spec and
+	// mastery prose live via talent_i18n; name/role stay for structure and tests.
+	const specs = specDefs.map((s) => ({
+		id: s.id,
+		name: s.name,
+		role: s.role,
+		signature: s.signature,
+	}));
+	const roles = ROLE_ORDER.filter((r) => specs.some((s) => s.role === r));
+	const kit = def.abilities ?? [];
+	// The class preview uses the same model + white tint the in-game character creator does.
+	const vk = playerVisualKey(id);
+	const tint = tintFor(vk, 0xffffff);
+	return {
+		id,
+		color: hex(def.color),
+		resource: def.resourceType,
+		roles,
+		specs,
+		signatureAbilities: kit.slice(0, SIGNATURE_COUNT).map(abilityRef),
+		abilities: kit.map(abilityRef),
+		model: modelKeyFor(vk),
+		...(tint != null ? { tint: hex(tint) } : {}),
+	};
 });
 
 // Zones, in world order (south to north). POI labels and the welcome line are
 // spoiler-safe (no coordinates).
 const zones = ZONES.map((z) => ({
-  id: z.id,
-  name: z.name,
-  min: z.levelRange[0],
-  max: z.levelRange[1],
-  biome: z.biome,
-  hub: z.hub?.name ?? '',
-  pois: (z.pois ?? []).map((p) => p.label),
-  welcome: z.welcome ?? '',
+	id: z.id,
+	name: z.name,
+	min: z.levelRange[0],
+	max: z.levelRange[1],
+	biome: z.biome,
+	hub: z.hub?.name ?? "",
+	pois: (z.pois ?? []).map((p) => p.label),
+	welcome: z.welcome ?? "",
 }));
 
 // Dungeons + the raid. Only group content (suggestedPlayers >= 5) so the solo raid
@@ -135,61 +162,90 @@ const zones = ZONES.map((z) => ({
 // spawns, so it can never drift from the game. The raid's sim name contains the
 // final boss name, so it is withheld here and the page renders its own unnamed copy.
 const dungeonBand = (def) => {
-  let min = Infinity;
-  let max = -Infinity;
-  for (const s of def.spawns ?? []) {
-    const m = MOBS[s.mobId];
-    if (!m) continue;
-    if (m.minLevel < min) min = m.minLevel;
-    if (m.maxLevel > max) max = m.maxLevel;
-  }
-  return min === Infinity ? { min: null, max: null } : { min, max };
+	let min = Infinity;
+	let max = -Infinity;
+	for (const s of def.spawns ?? []) {
+		const m = MOBS[s.mobId];
+		if (!m) continue;
+		if (m.minLevel < min) min = m.minLevel;
+		if (m.maxLevel > max) max = m.maxLevel;
+	}
+	return min === Infinity ? { min: null, max: null } : { min, max };
 };
 const dungeons = Object.values(DUNGEONS)
-  .filter((d) => (d.suggestedPlayers ?? 0) >= 5)
-  .map((d) => {
-    const isRaid = (d.suggestedPlayers ?? 0) >= 10;
-    const band = dungeonBand(d);
-    return {
-      id: isRaid ? 'raid' : d.id,
-      isRaid,
-      suggestedPlayers: d.suggestedPlayers,
-      min: band.min,
-      max: band.max,
-      ...(isRaid ? {} : { name: d.name }),
-    };
-  })
-  .sort((a, b) => (a.min ?? 99) - (b.min ?? 99) || a.suggestedPlayers - b.suggestedPlayers);
+	.filter((d) => (d.suggestedPlayers ?? 0) >= 5)
+	.map((d) => {
+		const isRaid = (d.suggestedPlayers ?? 0) >= 10;
+		const band = dungeonBand(d);
+		return {
+			id: isRaid ? "raid" : d.id,
+			isRaid,
+			suggestedPlayers: d.suggestedPlayers,
+			min: band.min,
+			max: band.max,
+			...(isRaid ? {} : { name: d.name }),
+		};
+	})
+	.sort(
+		(a, b) =>
+			(a.min ?? 99) - (b.min ?? 99) || a.suggestedPlayers - b.suggestedPlayers,
+	);
 
 // Warlock demons, in summon order. Names only; role flavor is authored guide copy.
 const warlockPets = Object.values(WARLOCK_PET_MOBS).map((p) => {
-  const vk = mobVisualKey(p.id);
-  const tint = tintFor(vk, p.color ?? 0xffffff);
-  return { id: p.id, name: p.name, model: modelKeyFor(vk), ...(tint != null ? { tint: hex(tint) } : {}) };
+	const vk = mobVisualKey(p.id);
+	const tint = tintFor(vk, p.color ?? 0xffffff);
+	return {
+		id: p.id,
+		name: p.name,
+		model: modelKeyFor(vk),
+		...(tint != null ? { tint: hex(tint) } : {}),
+	};
 });
 
 // Bestiary: OVERWORLD creatures only, grouped by family. Excludes elite/boss (dungeon
 // and raid encounters) and warlock pet summons, so nothing here spoils instanced content.
-const FAMILY_ORDER = ['beast', 'spider', 'murloc', 'kobold', 'humanoid', 'troll', 'ogre', 'undead', 'elemental', 'dragonkin'];
+const FAMILY_ORDER = [
+	"beast",
+	"spider",
+	"murloc",
+	"kobold",
+	"humanoid",
+	"troll",
+	"ogre",
+	"undead",
+	"elemental",
+	"dragonkin",
+];
 const famMap = {};
-for (const [id, m] of Object.entries({ ...ZONE1_MOBS, ...ZONE2_MOBS, ...ZONE3_MOBS })) {
-  if (m.elite || m.boss) continue;
-  if (id.startsWith('warlock_')) continue; // summoned pets, not wild creatures
-  if (/vision/i.test(id) || /^Vision\b/.test(m.name)) continue; // cinematic apparitions, not creatures
-  const vk = mobVisualKey(id);
-  const tint = tintFor(vk, m.color ?? 0xffffff);
-  const family = m.type;
-  (famMap[family] ??= new Map()).set(m.name, {
-    name: m.name, min: m.minLevel, max: m.maxLevel, rare: !!m.rare,
-    templateId: id, model: modelKeyFor(vk), ...(tint != null ? { tint: hex(tint) } : {}),
-  });
+for (const [id, m] of Object.entries({
+	...ZONE1_MOBS,
+	...ZONE2_MOBS,
+	...ZONE3_MOBS,
+})) {
+	if (m.elite || m.boss) continue;
+	if (id.startsWith("warlock_")) continue; // summoned pets, not wild creatures
+	if (/vision/i.test(id) || /^Vision\b/.test(m.name)) continue; // cinematic apparitions, not creatures
+	const vk = mobVisualKey(id);
+	const tint = tintFor(vk, m.color ?? 0xffffff);
+	const family = m.type;
+	famMap[family] ??= new Map();
+	famMap[family].set(m.name, {
+		name: m.name,
+		min: m.minLevel,
+		max: m.maxLevel,
+		rare: !!m.rare,
+		templateId: id,
+		model: modelKeyFor(vk),
+		...(tint != null ? { tint: hex(tint) } : {}),
+	});
 }
-const families = FAMILY_ORDER
-  .filter((f) => famMap[f])
-  .map((f) => ({
-    family: f,
-    creatures: [...famMap[f].values()].sort((a, b) => a.min - b.min || a.name.localeCompare(b.name)),
-  }));
+const families = FAMILY_ORDER.filter((f) => famMap[f]).map((f) => ({
+	family: f,
+	creatures: [...famMap[f].values()].sort(
+		(a, b) => a.min - b.min || a.name.localeCompare(b.name),
+	),
+}));
 
 const header = `// GENERATED by scripts/wiki/build_content.mjs from src/sim/content. Do not edit by hand.
 // Regenerate with \`npm run wiki:content\`; tests/guide.test.ts checks it stays fresh.
@@ -258,14 +314,19 @@ export interface GuideCreature { name: string; min: number; max: number; rare: b
 export interface GuideFamily { family: string; creatures: GuideCreature[]; }
 `;
 
-writeFileSync(outFile, [
-  header,
-  `\nexport const GUIDE_CLASSES: GuideClassInfo[] = ${JSON.stringify(classes, null, 2)};\n`,
-  `\nexport const GUIDE_ZONES: GuideZoneInfo[] = ${JSON.stringify(zones, null, 2)};\n`,
-  `\nexport const GUIDE_DUNGEONS: GuideDungeon[] = ${JSON.stringify(dungeons, null, 2)};\n`,
-  `\nexport const GUIDE_WARLOCK_PETS: GuideWarlockPet[] = ${JSON.stringify(warlockPets, null, 2)};\n`,
-  `\nexport const GUIDE_FAMILIES: GuideFamily[] = ${JSON.stringify(families, null, 2)};\n`,
-  `\nexport const GUIDE_MODELS: Record<string, GuideModelSpec> = ${JSON.stringify(MODELS, null, 2)};\n`,
-].join(''));
+writeFileSync(
+	outFile,
+	[
+		header,
+		`\nexport const GUIDE_CLASSES: GuideClassInfo[] = ${JSON.stringify(classes, null, 2)};\n`,
+		`\nexport const GUIDE_ZONES: GuideZoneInfo[] = ${JSON.stringify(zones, null, 2)};\n`,
+		`\nexport const GUIDE_DUNGEONS: GuideDungeon[] = ${JSON.stringify(dungeons, null, 2)};\n`,
+		`\nexport const GUIDE_WARLOCK_PETS: GuideWarlockPet[] = ${JSON.stringify(warlockPets, null, 2)};\n`,
+		`\nexport const GUIDE_FAMILIES: GuideFamily[] = ${JSON.stringify(families, null, 2)};\n`,
+		`\nexport const GUIDE_MODELS: Record<string, GuideModelSpec> = ${JSON.stringify(MODELS, null, 2)};\n`,
+	].join(""),
+);
 // eslint-disable-next-line no-console
-console.log(`generated src/guide/content.generated.ts (${classes.length} classes, ${zones.length} zones, ${dungeons.length} dungeons, ${warlockPets.length} warlock pets, ${families.length} families, ${Object.keys(MODELS).length} models)`);
+console.log(
+	`generated src/guide/content.generated.ts (${classes.length} classes, ${zones.length} zones, ${dungeons.length} dungeons, ${warlockPets.length} warlock pets, ${families.length} families, ${Object.keys(MODELS).length} models)`,
+);
