@@ -463,7 +463,7 @@ describe('parties', () => {
       sim.partyInvite(pid, leader);
       sim.partyAccept(pid);
     }
-    const party = sim.partyOf(leader)!;
+    const party = mustParty(sim, leader);
     expect(party.members.length).toBeGreaterThan(5);
     sim.convertRaidToParty(leader);
     expect(party.raid).toBe(true);
@@ -481,7 +481,7 @@ describe('parties', () => {
     sim.enterDungeon('sunken_bastion', leader);
     expect(sim.entities.get(leader)?.pos.x).toBeLessThan(DUNGEON_X_THRESHOLD);
     sim.enterDungeon('nythraxis_boss_arena', leader);
-    expect(dungeonAt(sim.entities.get(leader)?.pos.x)?.id).toBe('nythraxis_boss_arena');
+    expect(dungeonAt(mustEntity(sim, leader).pos.x)?.id).toBe('nythraxis_boss_arena');
   });
 
   it('party members share kill xp with the group bonus and quest credit', () => {
@@ -529,11 +529,11 @@ describe('parties', () => {
     }
     expect(wolf.lootable).toBe(true);
     const copper = wolf.loot?.copper;
-    const aBefore = sim.meta(a)?.copper;
-    const bBefore = sim.meta(b)?.copper;
+    const aBefore = sim.meta(a)?.copper ?? 0;
+    const bBefore = sim.meta(b)?.copper ?? 0;
     sim.lootCorpse(wolf.id, b);
-    const aGain = sim.meta(a)?.copper - aBefore;
-    const bGain = sim.meta(b)?.copper - bBefore;
+    const aGain = (sim.meta(a)?.copper ?? 0) - aBefore;
+    const bGain = (sim.meta(b)?.copper ?? 0) - bBefore;
     expect(aGain + bGain).toBe(copper);
     expect(Math.abs(aGain - bGain)).toBeLessThanOrEqual(1);
   });
@@ -847,7 +847,7 @@ describe('the Hollow Crypt', () => {
     const a = sim.addPlayer('warrior', 'Aleph');
     teleport(sim, a, 80, 88);
     sim.enterCrypt(a);
-    const slot = sim.instanceSlotAt(sim.entities.get(a)?.pos)!;
+    const slot = sim.instanceSlotAt(mustEntity(sim, a).pos) ?? 0;
     const origin = instanceOrigin(0, slot);
     const cryptMobs = [...sim.entities.values()].filter(
       (e) =>

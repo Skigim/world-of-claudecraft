@@ -29,6 +29,11 @@ type SimInternals = {
   partyLootCandidatesForMob: (mob: Entity) => PlayerMeta[];
 };
 
+function mustNumber(value: number | undefined, label: string): number {
+  if (value === undefined) throw new Error(`missing ${label}`);
+  return value;
+}
+
 function setup() {
   const sim = new Sim({ seed: 42, playerClass: 'warrior', noPlayer: true });
   const internals = sim as unknown as SimInternals;
@@ -60,9 +65,9 @@ describe('downed party member keeps loot/xp rights (classic group rules)', () =>
     const { internals, faller, fE, mob } = setup();
     fE.dead = true; // downed during the fight, corpse left on the mob
 
-    const before = internals.players.get(faller)?.lifetimeXp;
+    const before = mustNumber(internals.players.get(faller)?.lifetimeXp, 'before xp');
     internals.handleDeath(mob, internals.entities.get(mob.tappedById!) ?? null);
-    const after = internals.players.get(faller)?.lifetimeXp;
+    const after = mustNumber(internals.players.get(faller)?.lifetimeXp, 'after xp');
 
     expect(after).toBeGreaterThan(before);
   });
@@ -100,9 +105,9 @@ describe('downed party member keeps loot/xp rights (classic group rules)', () =>
   it('an alive nearby member still earns XP (no regression)', () => {
     const { internals, faller, mob } = setup();
     // faller stays alive this time
-    const before = internals.players.get(faller)?.lifetimeXp;
+    const before = mustNumber(internals.players.get(faller)?.lifetimeXp, 'before xp');
     internals.handleDeath(mob, internals.entities.get(mob.tappedById!) ?? null);
-    const after = internals.players.get(faller)?.lifetimeXp;
+    const after = mustNumber(internals.players.get(faller)?.lifetimeXp, 'after xp');
     expect(after).toBeGreaterThan(before);
   });
 
