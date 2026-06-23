@@ -95,7 +95,6 @@ import {
 	leashPolicyForMob,
 	MobRuntime,
 	sameAllegiance,
-	socialPullRadius,
 	WORLD_LEASH_DISTANCE,
 } from "./mob_behavior";
 import {
@@ -103,6 +102,7 @@ import {
 	effectiveMobMeleeRange,
 	type MobCombatProfile,
 } from "./mob_combat";
+import { MobTargeting } from "./mobs/mob_targeting";
 import {
 	findPlayerPath,
 	PLAYER_BODY_RADIUS,
@@ -117,9 +117,6 @@ import {
 	addThreat,
 	clearThreat,
 	HEAL_THREAT_FACTOR,
-	MELEE_SWITCH_MULT,
-	RANGED_SWITCH_MULT,
-	stealthDetectionRadius,
 	TAUNT_FORCE_SECONDS,
 	threatEntries,
 	threatModifier,
@@ -1046,6 +1043,7 @@ export class Sim {
 	readonly devCommands: boolean;
 	private pendingMobRespawns: PendingMobRespawn[] = [];
 	private groundAoEs: GroundAoE[] = [];
+	private readonly mobTargeting: MobTargeting;
 
 	constructor(cfg: SimConfig) {
 		this.devCommands = cfg.devCommands ?? false;
@@ -1059,6 +1057,16 @@ export class Sim {
 			lockoutNowMs: cfg.lockoutNowMs ?? (() => Math.floor(this.time * 1000)),
 		};
 		this.rng = new Rng(cfg.seed);
+		this.mobTargeting = new MobTargeting({
+			entities: this.entities,
+			grid: this.grid,
+			playerGrid: this.playerGrid,
+			templateFor: (templateId) => MOBS[templateId],
+			isTrivialTo: (mob, player) => this.isTrivialTo(mob, player),
+			nythraxisAddFallbackTarget: (add) => this.nythraxisAddFallbackTarget(add),
+			scheduleNythraxisAddDespawnIfBossReset: (add) =>
+				this.scheduleNythraxisAddDespawnIfBossReset(add),
+		});
 
 		// NPCs — nudged out of buildings and deep water if their data position is bad
 		for (const npcDef of Object.values(NPCS)) {
@@ -6745,26 +6753,7 @@ export class Sim {
 	// attacker. With no living threat left, it evades home instead of grabbing a
 	// nearby bystander who never acted on the mob.
 	private retargetMob(mob: Entity): void {
-		const next = this.highestThreatTarget(mob);
-		if (next) {
-			mob.aggroTargetId = next.id;
-			mob.aiState = "chase";
-			mob.inCombat = true;
-			mob.despawnTimer = undefined;
-			return;
-		}
-		const nythraxisFallback = this.nythraxisAddFallbackTarget(mob);
-		if (nythraxisFallback) {
-			mob.aggroTargetId = nythraxisFallback.id;
-			mob.aiState = "chase";
-			mob.inCombat = true;
-			mob.despawnTimer = undefined;
-			addThreat(mob, nythraxisFallback.id, 1);
-			return;
-		}
-		if (this.scheduleNythraxisAddDespawnIfBossReset(mob)) return;
-		mob.aggroTargetId = null;
-		mob.aiState = "evade";
+		this.mobTargeting.retargetMob(mob);
 	}
 
 	private findNythraxisBossForAdd(add: Entity): Entity | null {
@@ -6815,64 +6804,14 @@ export class Sim {
 
 	/** Highest-threat living attacker on the table; prunes stale entries. */
 	private highestThreatTarget(mob: Entity): Entity | null {
-		let best: Entity | null = null;
-		let bestT = -1;
-		for (const [id, t] of mob.threat) {
-			const e = this.entities.get(id);
-			if (!e || e.dead) {
-				mob.threat.delete(id);
-				continue;
-			}
-			if (t > bestT) {
-				bestT = t;
-				best = e;
-			}
-		}
-		return best;
+		return this.mobTargeting.highestThreatTarget(mob);
 	}
 
 	// Classic pull-over rules, applied every AI tick while fighting: an attacker
 	// takes aggro past 110% of the current target's threat in melee range of
 	// the mob, or past 130% at range. A taunt forces the target outright.
 	private updateMobTarget(mob: Entity): void {
-		if (mob.forcedTargetTimer > 0) {
-			mob.forcedTargetTimer -= DT;
-			const forced =
-				mob.forcedTargetId !== null
-					? this.entities.get(mob.forcedTargetId)
-					: null;
-			if (forced && !forced.dead) {
-				mob.aggroTargetId = forced.id;
-				return;
-			}
-		}
-		if (mob.forcedTargetTimer <= 0) mob.forcedTargetId = null;
-		const cur =
-			mob.aggroTargetId !== null ? this.entities.get(mob.aggroTargetId) : null;
-		if (!cur || cur.dead) {
-			const next = this.highestThreatTarget(mob);
-			if (next) mob.aggroTargetId = next.id;
-			return;
-		}
-		const curThreat = mob.threat.get(cur.id) ?? 0;
-		let best = cur;
-		let bestT = curThreat;
-		for (const [id, t] of mob.threat) {
-			if (id === cur.id || t <= bestT) continue;
-			const e = this.entities.get(id);
-			if (!e || e.dead) {
-				mob.threat.delete(id);
-				continue;
-			}
-			const inMelee = dist2d(mob.pos, e.pos) <= MELEE_RANGE * 1.2;
-			const needed =
-				curThreat * (inMelee ? MELEE_SWITCH_MULT : RANGED_SWITCH_MULT);
-			if (t > needed) {
-				best = e;
-				bestT = t;
-			}
-		}
-		if (best !== cur) mob.aggroTargetId = best.id;
+		this.mobTargeting.updateMobTarget(mob);
 	}
 
 	// Effective melee reach. Large creatures measure range from their centre, which
@@ -6978,55 +6917,14 @@ export class Sim {
 	}
 
 	private aggroMob(mob: Entity, target: Entity, social: boolean): void {
-		if (
-			mob.dead ||
-			mob.aiState === "evade" ||
-			mob.aiState === "chase" ||
-			mob.aiState === "attack" ||
-			mob.aiState === "flee"
-		)
-			return;
-		mob.aiState = "chase";
-		mob.aggroTargetId = target.id;
-		mob.inCombat = true;
-		mob.leashAnchor = { ...mob.pos };
-		addThreat(mob, target.id, 1); // seed the hate table so taunts/heals have a baseline
-		if (social) {
-			const pullRadius = socialPullRadius(MOBS[mob.templateId]);
-			this.grid.forEachInRadius(mob.pos.x, mob.pos.z, pullRadius, (m, d2) => {
-				if (
-					m.kind === "mob" &&
-					m.id !== mob.id &&
-					!m.dead &&
-					m.hostile &&
-					m.aiState === "idle" &&
-					m.ownerId === null &&
-					sameAllegiance(mob, m) &&
-					d2 < pullRadius * pullRadius
-				) {
-					m.aiState = "chase";
-					m.aggroTargetId = target.id;
-					m.inCombat = true;
-					m.leashAnchor = { ...m.pos };
-					addThreat(m, target.id, 1);
-				}
-			});
-		}
+		this.mobTargeting.aggroMob(mob, target, social);
 	}
 
 	private nearestLivingPlayer(
 		pos: Vec3,
 		maxDist: number,
 	): { e: Entity; d: number } | null {
-		let best: Entity | null = null;
-		let bestD2 = maxDist * maxDist;
-		this.playerGrid.forEachInRadius(pos.x, pos.z, maxDist, (e, d2) => {
-			if (!e.dead && d2 < bestD2) {
-				bestD2 = d2;
-				best = e;
-			}
-		});
-		return best ? { e: best, d: Math.sqrt(bestD2) } : null;
+		return this.mobTargeting.nearestLivingPlayer(pos, maxDist);
 	}
 
 	// Classic "trivial con": a wild mob far below the player's level stops
@@ -7167,48 +7065,18 @@ export class Sim {
 					mob.prevPos = { ...mob.pos };
 					mob.facing = Math.PI;
 					mob.prevFacing = Math.PI;
-					const template = MOBS[mob.templateId];
-					let detected: Entity | null = null;
-					let detectedD = Infinity;
-					this.playerGrid.forEachInRadius(mob.pos.x, mob.pos.z, 25, (e, d2) => {
-						if (e.dead) return;
-						const radius = Math.max(
-							4,
-							Math.min(20, template.aggroRadius + (mob.level - e.level) * 1.5),
-						);
-						const d = Math.sqrt(d2);
-						if (d < radius && d < detectedD) {
-							detected = e;
-							detectedD = d;
-						}
-					});
+					const detected = this.mobTargeting.detectPlayerInAggroRadius(
+						mob,
+						25,
+						false,
+					);
 					if (detected) this.aggroMob(mob, detected, true);
 					return;
 				}
-				const template = MOBS[mob.templateId];
-				if (new MobRuntime(mob, template).aggression === "aggressive") {
-					let detected: Entity | null = null;
-					let detectedD = Infinity;
-					this.playerGrid.forEachInRadius(mob.pos.x, mob.pos.z, 25, (e, d2) => {
-						if (e.dead) return;
-						if (this.isTrivialTo(mob, e)) return;
-						let radius = Math.max(
-							4,
-							Math.min(20, template.aggroRadius + (mob.level - e.level) * 1.5),
-						);
-						// stealthed rogues are harder to detect, relative to observer level
-						if (e.auras.some((a) => a.kind === "stealth"))
-							radius = stealthDetectionRadius(mob, e, radius);
-						const d = Math.sqrt(d2);
-						if (d < radius && d < detectedD) {
-							detected = e;
-							detectedD = d;
-						}
-					});
-					if (detected) {
-						this.aggroMob(mob, detected, true);
-						break;
-					}
+				const detected = this.mobTargeting.detectAggroTarget(mob);
+				if (detected) {
+					this.aggroMob(mob, detected, true);
+					break;
 				}
 				mob.wanderTimer -= DT;
 				if (mob.wanderTimer <= 0) {
