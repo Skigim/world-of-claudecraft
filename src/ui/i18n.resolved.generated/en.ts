@@ -174,6 +174,28 @@ export const en: EnTranslations = {
       "title": "Emotes",
       "done": "Done"
     },
+    "theme": {
+      "preset": "UI Theme",
+      "customColors": "Custom Colors",
+      "reset": "Reset",
+      "presets": {
+        "classic": "Classic Gold",
+        "midnight": "Midnight",
+        "parchment": "Parchment",
+        "highContrast": "High Contrast"
+      },
+      "knob": {
+        "accent": "Accent",
+        "border": "Border",
+        "panel": "Frame",
+        "text": "Text",
+        "textMuted": "Muted Text",
+        "hp": "Health",
+        "mana": "Mana",
+        "rage": "Rage",
+        "energy": "Energy"
+      }
+    },
     "questTracker": {
       "count": "({count})",
       "collapseHint": "Collapse quest tracker",
@@ -209,12 +231,27 @@ export const en: EnTranslations = {
       "hapticsOff": "Haptics Off",
       "toggleHaptics": "Toggle haptics"
     },
+    "tutorial": {
+      "moveBodyTouch": "Use the movement stick to move and drag the screen to look around. Take a few steps to begin.",
+      "talkBodyTouch": "Stand close to Marshal Redbrook and tap the Use button to speak, then accept his task.",
+      "returnBodyTouch": "Your task is done. Return to Marshal Redbrook and tap the Use button to turn it in.",
+      "doneBodyTouch": "You have the basics, {name}. The Vale is yours to explore. Tap More, then Quests, to review your quest log anytime. Good hunting."
+    },
     "widgets": {
       "clockTitle": "Local time - click to toggle 12/24-hour",
       "worldCoordinates": "World coordinates",
       "coordinates": "Coordinates",
       "heading": "Heading",
       "minimapZoom": "Minimap zoom"
+    },
+    "raidLockout": {
+      "title": "Raid Lockouts",
+      "allReady": "All raids ready",
+      "daysHours": "{d}d {h}h",
+      "hoursMinutes": "{h}h {m}m",
+      "minutes": "{m}m",
+      "lessThanMinute": "<1m",
+      "lockedToast": "You are locked to {raid}. Unlocks in {time}."
     },
     "compass": {
       "N": "N",
@@ -253,6 +290,8 @@ export const en: EnTranslations = {
       "interfaceModeNote": "Auto picks desktop or touch controls from your device. Choose Desktop to force keyboard and mouse (useful on a tablet with a keyboard), or Touch for the on-screen controls.",
       "footstepSounds": "Footstep Sounds",
       "clickFeedback": "Click Marker",
+      "lockCursorOnRotate": "Lock Cursor While Rotating",
+      "keybindHelpLockCursorOnRotate": "Keeps the mouse cursor inside the window while you drag to rotate the camera, so it cannot reach the screen edge or move to another monitor. Turn off if you prefer a free cursor.",
       "showWalletOnCharacterScreen": "Show Wallet on Character Screen",
       "showWalletOnPlayerCard": "Show Wallet on Player Card",
       "uiScale": "UI Scale",
@@ -476,7 +515,62 @@ export const en: EnTranslations = {
       "deactivateConfirm": "Deactivate My Account",
       "deactivated": "Your account has been deactivated.",
       "logOut": "Log Out",
-      "logOutSummary": "Sign out of this device."
+      "logOutSummary": "Sign out of this device.",
+      "sectionSecurity": "Security",
+      "changeEmailTitle": "Change Email",
+      "changeEmailHint": "We email a confirmation link to the new address and a notice to the old one. Your email only changes once you open the link.",
+      "changeEmailNew": "New email",
+      "changeEmailSubmit": "Send Confirmation Link",
+      "changeEmailSent": "Check your inbox: open the link we sent to confirm your new email.",
+      "errEmailUnchanged": "That is already your email address.",
+      "twoFactorTitle": "Two-Factor Authentication",
+      "twoFactorStatusOn": "Two-factor authentication is ON for your account.",
+      "twoFactorStatusOff": "Add an authenticator app for stronger account security.",
+      "twoFactorSetupBtn": "Set Up Two-Factor",
+      "twoFactorBeginHint": "Enter your password to begin setup.",
+      "twoFactorBegin": "Begin Setup",
+      "twoFactorScanHint": "Add this key to your authenticator app (Google Authenticator, Authy, 1Password, and similar), then enter the 6-digit code it shows.",
+      "twoFactorSecretLabel": "Setup key",
+      "twoFactorOpenApp": "Open in authenticator app",
+      "twoFactorCodeLabel": "6-digit code",
+      "twoFactorVerifyBtn": "Verify and Enable",
+      "twoFactorEnabledMsg": "Two-factor authentication is now on.",
+      "twoFactorRecoveryTitle": "Save your recovery codes",
+      "twoFactorRecoveryHint": "Each code works once. Store them somewhere safe: they are the only way back in if you lose your authenticator app.",
+      "twoFactorDownloadCodes": "Download Codes",
+      "twoFactorDone": "Done",
+      "twoFactorDisableHint": "Enter your password to turn two-factor off. Your recovery codes will be discarded.",
+      "twoFactorDisableBtn": "Turn Off Two-Factor",
+      "twoFactorDisabledMsg": "Two-factor authentication is off.",
+      "errTwoFactorCode": "That code is not valid, try again.",
+      "errTwoFactorState": "Two-factor setup is not in the expected state. Reload and try again.",
+      "exportTitle": "Export My Data",
+      "exportHint": "Download a copy of your account and characters as a JSON file. We also email you a confirmation.",
+      "exportBtn": "Download My Data",
+      "exportDone": "Your data was downloaded. We emailed you a confirmation.",
+      "exportFailed": "Could not export your data. Try again in a moment."
+    },
+    "bags": {
+      "filterGroupAria": "Filter bags by category",
+      "filterAll": "All",
+      "filterWeapon": "Weapons",
+      "filterArmor": "Armor",
+      "filterConsumable": "Consumables",
+      "filterMaterial": "Materials",
+      "filterQuest": "Quest",
+      "sortAria": "Sort bag items",
+      "sortRecent": "Recent",
+      "sortQuality": "Quality",
+      "sortName": "Name",
+      "searchPlaceholder": "Search items",
+      "searchAria": "Search bag items by name",
+      "noMatch": "No items match your filters."
+    },
+    "raidConvert": {
+      "toPartyDone": "Your raid has converted back to a party.",
+      "notRaid": "Your group is not a raid.",
+      "leaderOnly": "Only the raid leader may convert to a party.",
+      "tooLarge": "A raid with more than five members cannot convert back to a party."
     }
   },
   "guide": {
@@ -879,7 +973,6 @@ export const en: EnTranslations = {
       "notedLabel": "Of note",
       "flavor": {
         "old_greyjaw": "A scarred old wolf no trap has held, blamed for three hounds and a stable boy's arm. He hunts the deep woods alone, and turns savage the longer a fight wears on.",
-        "brightwood_stag": "A proud grove deer that lowers its crown of antlers and bulls forward, growing harder to face the longer it is pressed.",
         "grubjaw": "A fen troll so greedy the other trolls will not dig beside him, said to have eaten a trader's last two pack-mules, harness and all.",
         "shardlord_kazzix": "A storm elemental given shoulders, walking the far crags above Stormcrag with a heartshard worth braving the lightning for.",
         "mirejaw_frenzy": "A marsh murloc that whips itself into a thrashing frenzy mid-fight, the loudest thing in a loud, territorial pack.",
@@ -945,7 +1038,7 @@ export const en: EnTranslations = {
       "marshPlaceNotes": "Fenbridge guards the only dry road. The Prowler Reeds and Deepfen Shallows teem with marsh beasts and murlocs; the Widow Thicket is spun thick with web; the Drowned Chapel and the Troll Mounds keep older dangers; the Gravecaller Encampment is the cult dug in, and the Sunken Bastion is the marsh's instanced heart.",
       "peaksPlaceNotes": "Highwatch holds the wall. Stalker Ridge and the Deeprock Burrows belong to ridge cats and kobolds; the Ogre Foothills and Drogmar's War-Camp to brutes for hire; Stormcrag crackles with elementals and the Glimmermere glows below it; the Wyrmcult Tents and Revenant Fields ring the cult's high ground, with Gravewyrm Sanctum at its peak.",
       "gladeTitle": "A quiet corner: Brightwood Glade",
-      "gladeBody": "Not every story in the Vale is about the dead. In the north, a sunlit grove called Brightwood Glade keeps its own gentler rhythm, watched over by a lone ranger who would rather steward it than fight. Her work is balance: thinning what overbreeds, and, when its hollow grows too dangerous to leave be, giving the grove's old crowned stag a respectful end. It is a soft counterpoint to the trail you are following, and worth the detour."
+      "gladeBody": "Not every story in the Vale is about the dead. In the north, a sunlit grove called Brightwood Glade keeps its own gentler rhythm, with quiet paths, grazing deer, and wary beasts under the boughs. It is a soft counterpoint to the trail you are following, and worth seeing when the road gives you room to wander."
     },
     "questsPage": {
       "heading": "Quests",
@@ -993,9 +1086,7 @@ export const en: EnTranslations = {
       "aldricRole": "Priest of the Vale",
       "aldricBody": "A humble village priest who first names the cult over a defiled grave in Eastbrook, then follows its trail in person through the marsh and up to the wall at Highwatch. He is the steady heart of the whole campaign.",
       "marenRole": "The Marshal's Scout",
-      "marenBody": "A low-talking tracker you meet in the reeds of Mirefen, all quiet feet and a short blade. She follows the trail north too, and it is her ear that catches the words that send you to the peaks.",
-      "elwynRole": "Glade Warden of Brightwood",
-      "elwynBody": "The lone keeper of a sunlit grove in the north of the Vale. Her work is stewardship, not slaughter: thinning what overbreeds and granting the grove's oldest beast a kinder end than the wolves would."
+      "marenBody": "A low-talking tracker you meet in the reeds of Mirefen, all quiet feet and a short blade. She follows the trail north too, and it is her ear that catches the words that send you to the peaks."
     },
     "dungeonsPage": {
       "heading": "Dungeons and Raids",
@@ -1388,7 +1479,10 @@ export const en: EnTranslations = {
     "characterNamePlaceholder": "Character name",
     "enterWorld": "Enter World",
     "offlineCharacter": "Offline Character",
-    "create": "Create"
+    "create": "Create",
+    "twoFactorLabel": "Authentication code",
+    "twoFactorPlaceholder": "6-digit or recovery code",
+    "twoFactorHint": "Enter the code from your authenticator app, or one of your recovery codes."
   },
   "wallet": {
     "label": "$WOC Wallet",
@@ -1788,7 +1882,9 @@ export const en: EnTranslations = {
     "genre": "MMORPG",
     "playMode": "Multiplayer",
     "applicationCategory": "Game",
-    "operatingSystem": "Web browser"
+    "operatingSystem": "Web browser",
+    "officialLabel": "Official World of ClaudeCraft website",
+    "officialBody": "worldofclaudecraft.com is the official free browser MMO for the Claudemoon realm. Play online with a persistent character, explore solo offline, read the wiki, and follow verified community links from this site."
   },
   "a11y": {
     "goHome": "Go to homepage",
@@ -1857,6 +1953,11 @@ export const en: EnTranslations = {
     "high": "High",
     "medium": "Medium",
     "low": "Low",
+    "popTipLow": "Low population: fewer than 15 players online right now. Plenty of room; great for a fresh start.",
+    "popTipMedium": "Medium population: 15 to 39 players online right now. A healthy, active realm.",
+    "popTipHigh": "High population: 40 to 79 players online right now. Busy, with lots of players around.",
+    "popTipFull": "Full population: 80 or more players online right now. Very busy; you may wait in a login queue.",
+    "popTipOffline": "Offline: this realm is unreachable right now and cannot be joined.",
     "characterCountOne": "{count} character",
     "characterCountOther": "{count} characters",
     "selectedRealm": "Realm: {name}",
@@ -2191,6 +2292,7 @@ export const en: EnTranslations = {
         "report": "Report Player",
         "removeParty": "Remove from Party",
         "convertToRaid": "Convert to raid",
+        "convertToParty": "Convert to party",
         "cancel": "Cancel"
       }
     },
@@ -2309,6 +2411,10 @@ export const en: EnTranslations = {
       "whisperAmbiguous": "Several players match '{name}'. Use exact capitalization.",
       "whisperMissing": "There is no player named '{name}' online.",
       "whisperSelf": "You mutter to yourself. Nobody hears it.",
+      "assistSelf": "You can't assist yourself.",
+      "assistNoTarget": "{name} has no target.",
+      "assistWhom": "Assist whom? Target a player or use /assist <name>.",
+      "assisting": "Assisting {name}.",
       "notInParty": "You are not in a party.",
       "unknownCommand": "Unknown command: {command}. Try /s /y /w /p /g.",
       "chatCooldown": "Chat is on cooldown for {seconds}s.",
@@ -3369,7 +3475,7 @@ export const en: EnTranslations = {
       },
       "travel_form": {
         "name": "Travel Form",
-        "description": "Instantly shift into a swift travel form, increasing movement speed by 40%. You cannot use other abilities while shifted, but can shift in or out of combat — ideal for escaping."
+        "description": "Instantly shift into a swift travel form, increasing movement speed by 40%. You cannot use other abilities while shifted, but can shift in or out of combat, ideal for escaping."
       },
       "enrage": {
         "name": "Enrage",
@@ -3768,6 +3874,9 @@ export const en: EnTranslations = {
       "ridge_stalker_pelt": {
         "name": "Ridge Stalker Pelt"
       },
+      "pristine_ridge_stalker_pelt": {
+        "name": "Pristine Ridge Stalker Pelt"
+      },
       "glowing_wax": {
         "name": "Glowing Wax"
       },
@@ -3987,9 +4096,6 @@ export const en: EnTranslations = {
       "milepost_boots": {
         "name": "Milepost Boots"
       },
-      "glade_pelt": {
-        "name": "Glade Pelt"
-      },
       "soft_down": {
         "name": "Soft Down Tuft"
       },
@@ -4007,9 +4113,6 @@ export const en: EnTranslations = {
       },
       "monarch_crown_helm": {
         "name": "Monarch's Crown"
-      },
-      "monarch_heart": {
-        "name": "The Monarch's Heart"
       },
       "bristleback_maul": {
         "name": "Bristleback Maul"
@@ -4208,6 +4311,9 @@ export const en: EnTranslations = {
       },
       "cragmaw_prowlboots": {
         "name": "Cragmaw Prowlboots"
+      },
+      "cragmaw_huntcord": {
+        "name": "Cragmaw's Huntcord"
       },
       "drowned_tide_scepter": {
         "name": "Drowned Tide Scepter"
@@ -4634,42 +4740,6 @@ export const en: EnTranslations = {
       "nythraxis_scourge_of_thornpeak": {
         "name": "Nythraxis, Scourge of Thornpeak"
       },
-      "brightwood_hare": {
-        "name": "Brightwood Hare"
-      },
-      "glade_fox": {
-        "name": "Glade Fox"
-      },
-      "spotted_fawn": {
-        "name": "Spotted Fawn"
-      },
-      "meadow_crane": {
-        "name": "Meadow Crane"
-      },
-      "thornpelt_badger": {
-        "name": "Thornpelt Badger"
-      },
-      "dawnmane_doe": {
-        "name": "Dawnmane Doe"
-      },
-      "bramble_lynx": {
-        "name": "Bramble Lynx"
-      },
-      "brightwood_stag": {
-        "name": "Brightwood Stag"
-      },
-      "grovetusk_boar": {
-        "name": "Grovetusk Boar"
-      },
-      "sunhide_bear": {
-        "name": "Sunhide Bear"
-      },
-      "brightwood_monarch": {
-        "name": "The Brightwood Monarch"
-      },
-      "elder_bristleback": {
-        "name": "Elder Bristleback"
-      },
       "ironvein_foreman": {
         "name": "Ironvein Foreman"
       },
@@ -4693,12 +4763,6 @@ export const en: EnTranslations = {
       },
       "nhalia_mourner": {
         "name": "Nhalia Mourner"
-      },
-      "sableweb_hatchling": {
-        "name": "Sableweb Hatchling"
-      },
-      "sableweb_matriarch": {
-        "name": "Sableweb Matriarch"
       },
       "sister_nhalia": {
         "name": "Sister Nhalia"
@@ -4880,11 +4944,6 @@ export const en: EnTranslations = {
         "name": "Loremaster Caddis",
         "title": "Loremaster",
         "greeting": "Mind the loose shale, {className}. The mountain has been... restless of late. I intend to learn why."
-      },
-      "ranger_elwyn": {
-        "name": "Ranger Elwyn",
-        "title": "Glade Warden",
-        "greeting": "Quiet, {className} - the glade is calm today, and I mean to keep it that way."
       },
       "brother_aldric_raid": {
         "name": "Brother Aldric",
@@ -5637,145 +5696,6 @@ export const en: EnTranslations = {
         "objectives": {
           "0": {
             "label": "Nythraxis slain"
-          }
-        }
-      },
-      "q_brightwood_thinning": {
-        "title": "Thinning the Glade",
-        "text": "Brightwood Glade is overrun, {playerName}. The bramble lynx breed faster than I can cull them, and the herds trample what little grazing is left. Slay 8 Bramble Lynx and bring me 6 Glade Pelts so I can judge the health of the rest.",
-        "completion": "Good. The pride is thinned and these pelts are sound - the glade will hold another season.",
-        "objectives": {
-          "0": {
-            "label": "Bramble Lynx slain"
-          },
-          "1": {
-            "label": "Glade Pelt"
-          }
-        }
-      },
-      "q_brightwood_monarch": {
-        "title": "The Brightwood Monarch",
-        "text": "There is one beast I will not loose an arrow at alone: the Brightwood Monarch, the great stag that rules the deep glade. He has grown old and savage, goring any who near his hollow. He is more than a match for one hunter - bring a friend or two. Lay him to rest and bring me his heart, {playerName}.",
-        "completion": "So the old king has fallen. A heavy thing, this - but a kinder end than the wolves would have given him. Wear this crown of his antlers with respect, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "The Monarch's Heart"
-          }
-        }
-      },
-      "q_ledger_first_duty": {
-        "title": "A Warden's First Duty",
-        "text": "You want to earn your keep in Eastbrook, {playerName}? Then start where every warden starts. The thornpelt badgers have dug their setts clean through the Brightwood Glade, in the far north past Wolf Run, and the grove floor is caving into their burrows. Cull 8 Thornpelt Badgers and the ledger will remember your name.",
-        "completion": "Eight setts emptied and the grove floor settled. Good. Every name in this ledger started just where you are standing.",
-        "objectives": {
-          "0": {
-            "label": "Thornpelt Badger culled"
-          }
-        }
-      },
-      "q_ledger_teeth": {
-        "title": "Teeth in the Dark",
-        "text": "The glade foxes have grown bold as wolves - they slip the henhouses at dusk and are gone before a lantern is lit, and a hungry vixen will take a lamb as soon as a hen. Thin them, {playerName}. Slay 10 Glade Foxes and let the rest learn to fear the light again.",
-        "completion": "Ten foxes, and the henhouses are quiet at dusk again. The ledger grows kinder to you.",
-        "objectives": {
-          "0": {
-            "label": "Glade Fox slain"
-          }
-        }
-      },
-      "q_ledger_reedwater": {
-        "title": "Reedwater Patrol",
-        "text": "Redbrook sent you? Good - these old bones cannot wade the shallows anymore. The meadow cranes have found my nets, and they spear more of my catch than the Mudfin ever did. Thin them: 8 Meadow Cranes, and mind the deep water.",
-        "completion": "That will keep the long-legged thieves off my nets for a season. Tell the Marshal the shallows are mine again.",
-        "objectives": {
-          "0": {
-            "label": "Meadow Crane driven off"
-          }
-        }
-      },
-      "q_ledger_silk": {
-        "title": "Browse and Bramble",
-        "text": "The ledger marks the eastern woods as warden ground too - and my physic-beds are part of it. The spotted fawns have stripped my silverleaf and bloodthistle to the root, and without those simples half of Eastbrook goes without medicine. I take no joy in it, but cull 8 Spotted Fawns before the autumn herbs are lost entirely.",
-        "completion": "The beds may yet recover, thanks to you. A hard mercy - but a child burning with fever needs the simples more than the wood needs the deer. The ledger is square.",
-        "objectives": {
-          "0": {
-            "label": "Spotted Fawn culled"
-          }
-        }
-      },
-      "q_ledger_brood": {
-        "title": "The Spawning Dark",
-        "text": "Killing the lurkers only made room for the brood. The Sableweb hatchlings are pouring out of the deep nest, and a hundred small fangs kill a traveler as surely as one great one. Crush 8 Sableweb Hatchlings before they grow.",
-        "completion": "A grim work, drowning a nest. But mercy now is a hundred funerals spared later. The ledger is square.",
-        "objectives": {
-          "0": {
-            "label": "Sableweb Hatchling crushed"
-          }
-        }
-      },
-      "q_ledger_deepvermin": {
-        "title": "Vermin in the Deep",
-        "text": "The Marshal's ledger says you clear pests. Well, my dig has the worst of them. The tunnel rats breed faster than my crew can swing a pick - put down 12 Tunnel Rat Diggers and maybe we strike copper before winter.",
-        "completion": "Twelve of the candle-headed vermin, gone! Right, lads - back down the shaft. You have earned the Marshal a good word, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "Tunnel Rat Digger slain"
-          }
-        }
-      },
-      "q_ledger_toll": {
-        "title": "The Tusked Road",
-        "text": "The grovetusk boars have come down out of the Brightwood and onto the southeast trade road - great tusked brutes that gore the draft oxen and overturn carts for the spilled grain. The ledger has a price on every one. Reopen the road: put down 8 Grovetusk Boars.",
-        "completion": "Eight brutes off the road, and the carts are rolling again. Word is already spreading that the trade road has a new keeper. The ledger climbs in your favor.",
-        "objectives": {
-          "0": {
-            "label": "Grovetusk Boar slain"
-          }
-        }
-      },
-      "q_ledger_vigil": {
-        "title": "Vigil at the Chapel",
-        "text": "The Marshal sends his wardens to me when the trouble is past the reach of swords alone. The chapel dead will not lie still, and I am too old to stand the night vigil. Keep it for me, {playerName} - lay 10 Restless Bones back to their rest.",
-        "completion": "Ten souls returned to the earth, and a night of peace bought for the chapel. The Light remembers such vigils, even when the ledger forgets.",
-        "objectives": {
-          "0": {
-            "label": "Restless Bones laid to rest"
-          }
-        }
-      },
-      "q_ledger_great_boar": {
-        "title": "The Great Bristleback",
-        "text": "There is an old bull boar in the western thickets - the Elder Bristleback, hide like bark and a temper to match. He has gored two of my hide-runners. Bring him down and clear 6 of the lesser Wild Boar that shelter behind him, and I will see your name set high in the ledger.",
-        "completion": "The Elder Bristleback, dead by your hand! That hide alone is worth a season of trade. You have made the ledger proud, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "Elder Bristleback slain"
-          },
-          "1": {
-            "label": "Wild Boar of the herd slain"
-          }
-        }
-      },
-      "q_ledger_outlaw_captain": {
-        "title": "The Outlaw Captain",
-        "text": "The last name in the ledger is the one I have wanted crossed out for a year: Captain Verlan, who turned half the Vale to banditry. He shelters behind his lieutenants in the southeast camp. Cut down 6 Vale Bandits to reach him, then end Verlan himself. Do not go alone.",
-        "completion": "Captain Verlan, dead, and his coat brought to my door. The ledger is closed, {playerName} - and the Vale will tell wardens-to-come the name of the one who closed it.",
-        "objectives": {
-          "0": {
-            "label": "Vale Bandit cut down"
-          },
-          "1": {
-            "label": "Captain Verlan slain"
-          }
-        }
-      },
-      "q_mogger_tracks": {
-        "title": "Mogger's Trail",
-        "text": "Before you take the road north, Eastbrook has one last thorn in its side: Mogger. The brute has been trampling the lower meadow and driving the boars mad. Clear the meadow around his trail so we can see where he lairs.",
-        "completion": "Those tracks are fresh and deep enough to hold rain. Mogger is no camp tale, {playerName} - and he is close.",
-        "objectives": {
-          "0": {
-            "label": "Wild Boar driven from the trail"
           }
         }
       },

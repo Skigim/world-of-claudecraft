@@ -12,13 +12,26 @@ vi.mock('../server/db', () => ({
   grantAccountMechChroma: vi.fn(async () => ({ completedQuestIds: [], mechChromaIds: [] })),
 }));
 
-import { GameServer, ClientSession, wireEntity } from '../server/game';
 import { saveCharacterState } from '../server/db';
+import { type ClientSession, GameServer, wireEntity } from '../server/game';
 import { ClientWorld } from '../src/net/online';
 import { Sim } from '../src/sim/sim';
 import { DT, type PlayerClass } from '../src/sim/types';
 
-const DELTA_KEYS = ['inv', 'buyback', 'equip', 'qlog', 'qdone', 'cds', 'stats', 'weapon', 'party', 'trade', 'duel'];
+const DELTA_KEYS = [
+  'inv',
+  'buyback',
+  'equip',
+  'qlog',
+  'qdone',
+  'lockouts',
+  'cds',
+  'stats',
+  'weapon',
+  'party',
+  'trade',
+  'duel',
+];
 
 interface FakeClient {
   sent: any[];
@@ -37,7 +50,13 @@ function lastSnap(sent: any[]): any {
   return null;
 }
 
-function joinServer(server: GameServer, fc: FakeClient, characterId: number, name: string, cls: PlayerClass = 'warrior'): ClientSession {
+function joinServer(
+  server: GameServer,
+  fc: FakeClient,
+  characterId: number,
+  name: string,
+  cls: PlayerClass = 'warrior',
+): ClientSession {
   const session = server.join(fc.ws, characterId, characterId, name, cls, null);
   if ('error' in session) throw new Error(session.error);
   session.blockListLoaded = true;
@@ -46,7 +65,7 @@ function joinServer(server: GameServer, fc: FakeClient, characterId: number, nam
 
 function eventTexts(sent: any[]): string[] {
   return sent
-    .flatMap((msg) => msg.t === 'events' ? msg.list : [])
+    .flatMap((msg) => (msg.t === 'events' ? msg.list : []))
     .filter((ev) => ev.type === 'log' || ev.type === 'error')
     .map((ev) => ev.text);
 }
@@ -91,6 +110,45 @@ function bareClient(pid: number): ClientWorld {
   return c;
 }
 
+describe('raid lockouts over the wire', () => {
+  it('ships a granted lockout in self.lockouts and ClientWorld mirrors it end to end', () => {
+    const server = new GameServer();
+    const fc = fakeWs();
+    const session = joinServer(server, fc, 1, 'Locked');
+    const sim = (server as any).sim;
+    const meta = sim.players.get(session.pid);
+    const until = Date.now() + 5 * 60 * 60 * 1000;
+    meta.raidLockouts.set('nythraxis_boss_arena', until);
+
+    broadcast(server);
+    const snap = lastSnap(fc.sent);
+    expect(snap.self.lockouts).toEqual({ nythraxis_boss_arena: until });
+
+    const client = bareClient(session.pid);
+    (client as any).applySnapshot(snap);
+    const out = client.raidLockouts();
+    expect(out.map((l) => l.id)).toEqual(['nythraxis_boss_arena']);
+    expect(out[0].msRemaining).toBeGreaterThan(5 * 60 * 60 * 1000 - 5000);
+  });
+
+  it('clears the client lockout once the server-side entry has expired', () => {
+    const server = new GameServer();
+    const fc = fakeWs();
+    const session = joinServer(server, fc, 1, 'Expiring');
+    const sim = (server as any).sim;
+    const meta = sim.players.get(session.pid);
+    meta.raidLockouts.set('nythraxis_boss_arena', Date.now() - 1000); // already past
+
+    broadcast(server);
+    const snap = lastSnap(fc.sent);
+    expect(snap.self.lockouts).toEqual({}); // server filters to future-only
+
+    const client = bareClient(session.pid);
+    (client as any).applySnapshot(snap);
+    expect(client.raidLockouts()).toEqual([]);
+  });
+});
+
 describe('delta snapshots', () => {
   let server: GameServer;
   let fc: FakeClient;
@@ -119,7 +177,10 @@ describe('delta snapshots', () => {
     const server = new GameServer();
     const fc = fakeWs();
     const joined = server.join(fc.ws, 1, 1, 'Cosmetic', 'warrior', null, false, {
-      accountCosmetics: { completedQuestIds: ['q_aldrics_fallen_star'], mechChromaIds: ['amber_crimson'] },
+      accountCosmetics: {
+        completedQuestIds: ['q_aldrics_fallen_star'],
+        mechChromaIds: ['amber_crimson'],
+      },
     });
     if ('error' in joined) throw new Error(joined.error);
     const session = joined;
@@ -198,12 +259,14 @@ describe('delta snapshots', () => {
     expect(row.moveSpeedMultiplier).toBeCloseTo(1.4);
     expect(row.runSpeed).toBeCloseTo(9.8);
     expect(row.swimming).toBe(false);
-    expect(row.auras).toContainEqual(expect.objectContaining({
-      id: 'travel_form',
-      name: 'Travel Form',
-      kind: 'form_travel',
-      value: 1.4,
-    }));
+    expect(row.auras).toContainEqual(
+      expect.objectContaining({
+        id: 'travel_form',
+        name: 'Travel Form',
+        kind: 'form_travel',
+        value: 1.4,
+      }),
+    );
   });
 
   it('sell command forwards bounded stack quantities', () => {
@@ -213,12 +276,18 @@ describe('delta snapshots', () => {
     player.prevPos = { ...player.pos };
     server.sim.addItem('wolf_fang', 5, session.pid);
 
-    server.handleMessage(session, JSON.stringify({ t: 'cmd', cmd: 'sell', item: 'wolf_fang', count: 3 }));
+    server.handleMessage(
+      session,
+      JSON.stringify({ t: 'cmd', cmd: 'sell', item: 'wolf_fang', count: 3 }),
+    );
 
     expect(server.sim.meta(session.pid)?.copper).toBe(12);
     expect(server.sim.countItem('wolf_fang', session.pid)).toBe(2);
 
-    server.handleMessage(session, JSON.stringify({ t: 'cmd', cmd: 'sell', item: 'wolf_fang', count: 99 }));
+    server.handleMessage(
+      session,
+      JSON.stringify({ t: 'cmd', cmd: 'sell', item: 'wolf_fang', count: 99 }),
+    );
 
     expect(server.sim.meta(session.pid)?.copper).toBe(20);
     expect(server.sim.countItem('wolf_fang', session.pid)).toBe(0);
@@ -231,7 +300,10 @@ describe('delta snapshots', () => {
     broadcast(server);
     fc.sent.length = 0;
 
-    server.handleMessage(session, JSON.stringify({ t: 'cmd', cmd: 'discard', item: 'widow_venom_sac', count: 2 }));
+    server.handleMessage(
+      session,
+      JSON.stringify({ t: 'cmd', cmd: 'discard', item: 'widow_venom_sac', count: 2 }),
+    );
     broadcast(server);
 
     expect(server.sim.countItem('widow_venom_sac', session.pid)).toBe(4);
@@ -255,7 +327,19 @@ describe('delta snapshots', () => {
 
   it('turns echoed input acks into client latency samples', () => {
     const client = bareClient(1);
-    const first = { id: 1, k: 'player', tid: 'player', nm: 'Testa', lv: 1, x: 0, y: 0, z: 0, f: 0, hp: 100, mhp: 100 };
+    const first = {
+      id: 1,
+      k: 'player',
+      tid: 'player',
+      nm: 'Testa',
+      lv: 1,
+      x: 0,
+      y: 0,
+      z: 0,
+      f: 0,
+      hp: 100,
+      mhp: 100,
+    };
     (client as any).pendingInputSeqSentAt.set(1, 100);
     (client as any).pendingInputSeqSentAt.set(2, 140);
 
@@ -274,12 +358,33 @@ describe('delta snapshots', () => {
   it('snaps a dead mob to its respawn pose instead of interpolating from the corpse', () => {
     const client = bareClient(1);
     const corpse = {
-      id: 99, k: 'mob', tid: 'forest_wolf', nm: 'Forest Wolf', lv: 1,
-      x: 0, y: 0, z: 0, f: 0, hp: 0, mhp: 45, dead: true, h: true,
+      id: 99,
+      k: 'mob',
+      tid: 'forest_wolf',
+      nm: 'Forest Wolf',
+      lv: 1,
+      x: 0,
+      y: 0,
+      z: 0,
+      f: 0,
+      hp: 0,
+      mhp: 45,
+      dead: true,
+      h: true,
     };
     const respawned = {
-      id: 99, tid: 'forest_wolf', nm: 'Forest Wolf', lv: 1,
-      x: 10, y: 0, z: 0, f: 0, hp: 45, mhp: 45, dead: false, h: true,
+      id: 99,
+      tid: 'forest_wolf',
+      nm: 'Forest Wolf',
+      lv: 1,
+      x: 10,
+      y: 0,
+      z: 0,
+      f: 0,
+      hp: 45,
+      mhp: 45,
+      dead: false,
+      h: true,
     };
 
     const oldPerf = (globalThis as any).performance;
@@ -324,7 +429,10 @@ describe('delta snapshots', () => {
     expect(client.consumeInventoryChanged()).toBe(true);
 
     fc.sent.length = 0;
-    server.handleMessage(session, JSON.stringify({ t: 'cmd', cmd: 'sell', item: 'apprentice_staff' }));
+    server.handleMessage(
+      session,
+      JSON.stringify({ t: 'cmd', cmd: 'sell', item: 'apprentice_staff' }),
+    );
     broadcast(server);
     const snap = lastSnap(fc.sent);
     expect(snap.self).toHaveProperty('buyback');
@@ -343,7 +451,10 @@ describe('delta snapshots', () => {
     // unknown quest: the sim rejects it and quest state does not change, but
     // the next snapshot must still carry quest fields so stale client UI
     // converges back to the server's truth
-    server.handleMessage(session, JSON.stringify({ t: 'cmd', cmd: 'accept', quest: 'no_such_quest' }));
+    server.handleMessage(
+      session,
+      JSON.stringify({ t: 'cmd', cmd: 'accept', quest: 'no_such_quest' }),
+    );
     broadcast(server);
     const snap = lastSnap(fc.sent);
     expect(snap.self).toHaveProperty('qlog');
@@ -379,6 +490,55 @@ describe('delta snapshots', () => {
     expect(snapOld.self).not.toHaveProperty('inv');
     // both players spawn together, so each sees the other in ents
     expect(snapNew.ents.some((e: any) => e.id === session.pid)).toBe(true);
+  });
+});
+
+describe('raid party wire', () => {
+  let server: GameServer;
+  let fcLeader: FakeClient;
+  let leader: ClientSession;
+  let fcMember: FakeClient;
+  let member: ClientSession;
+
+  beforeEach(() => {
+    server = new GameServer();
+    fcLeader = fakeWs();
+    leader = joinServer(server, fcLeader, 1, 'Leada');
+    fcMember = fakeWs();
+    member = joinServer(server, fcMember, 2, 'Memba');
+    // Form a party, then mark it a raid and split into two subgroups. The
+    // convert-to-raid command gates on a full five-player party, so we set the
+    // raid state directly: this test pins the WIRE serialization, not that gate.
+    const sim = server.sim;
+    sim.partyInvite(member.pid, leader.pid);
+    sim.partyAccept(member.pid);
+    const party = (sim as any).partyOf(leader.pid);
+    party.raid = true;
+    party.raidGroups.set(member.pid, 2);
+  });
+
+  it('self.party wire carries the raid flag and per-member subgroup', () => {
+    broadcast(server);
+    const snap = lastSnap(fcLeader.sent);
+    expect(snap.self.party).not.toBeNull();
+    // The raid flag must survive the wire so the HUD renders the raid roster.
+    expect(snap.self.party.raid).toBe(true);
+    // Every member must carry its subgroup so the social panel can bucket them.
+    for (const m of snap.self.party.members) {
+      expect(m, `member ${m.pid} missing group`).toHaveProperty('group');
+    }
+    const memberGroup = snap.self.party.members.find((m: any) => m.pid === member.pid)?.group;
+    expect(memberGroup).toBe(2);
+  });
+
+  it('online ClientWorld mirrors raid roster from the wire', () => {
+    broadcast(server);
+    const snap = lastSnap(fcLeader.sent);
+    const client = bareClient(leader.pid);
+    (client as any).applySnapshot(snap);
+    expect(client.partyInfo).not.toBeNull();
+    expect(client.partyInfo!.raid).toBe(true);
+    expect(client.partyInfo!.members.find((m) => m.pid === member.pid)?.group).toBe(2);
   });
 });
 
@@ -460,11 +620,14 @@ describe('online movement input lifetime', () => {
     const fc = fakeWs();
     const session = joinServer(server, fc, 1, 'Spinner');
 
-    server.handleMessage(session, JSON.stringify({
-      t: 'input',
-      seq: 1,
-      mi: { f: 0, b: 0, tl: 1, tr: 0, sl: 0, sr: 0, j: 0 },
-    }));
+    server.handleMessage(
+      session,
+      JSON.stringify({
+        t: 'input',
+        seq: 1,
+        mi: { f: 0, b: 0, tl: 1, tr: 0, sl: 0, sr: 0, j: 0 },
+      }),
+    );
     const meta = server.sim.meta(session.pid)!;
     expect(meta.moveInput.turnLeft).toBe(true);
 
@@ -490,12 +653,14 @@ describe('chat moderation', () => {
     }
     (server as any).routeEvents(server.sim.tick());
 
-    const events = fc.sent.flatMap((msg) => msg.t === 'events' ? msg.list : []);
+    const events = fc.sent.flatMap((msg) => (msg.t === 'events' ? msg.list : []));
     expect(events.filter((ev) => ev.type === 'chat')).toHaveLength(5);
-    expect(events).toContainEqual(expect.objectContaining({
-      type: 'error',
-      text: 'You are sending messages too quickly. Slow down.',
-    }));
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: 'error',
+        text: 'You are sending messages too quickly. Slow down.',
+      }),
+    );
   });
 
   it('locks chat for 20 seconds after repeated over-limit messages', () => {
@@ -509,58 +674,87 @@ describe('chat moderation', () => {
     }
     (server as any).routeEvents(server.sim.tick());
 
-    const events = fc.sent.flatMap((msg) => msg.t === 'events' ? msg.list : []);
+    const events = fc.sent.flatMap((msg) => (msg.t === 'events' ? msg.list : []));
     expect(events.filter((ev) => ev.type === 'chat')).toHaveLength(5);
-    expect(events).toContainEqual(expect.objectContaining({
-      type: 'error',
-      text: 'Chat locked for 20s because you are sending messages too quickly.',
-    }));
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: 'error',
+        text: 'Chat locked for 20s because you are sending messages too quickly.',
+      }),
+    );
   });
 
   it('blocks hard-word (slur) messages and escalates warning -> mute', () => {
     const server = new GameServer();
-    server.chatFilter.load({ soft: [], hard: ['slurword'], config: { warningsBeforeMute: 1, muteLadderSeconds: [600] } });
+    server.chatFilter.load({
+      soft: [],
+      hard: ['slurword'],
+      config: { warningsBeforeMute: 1, muteLadderSeconds: [600] },
+    });
     const fc = fakeWs();
     const session = joinServer(server, fc, 1, 'Testa');
 
     // First offense: blocked entirely + warning; it never becomes a chat event.
     fc.sent.length = 0;
-    server.handleMessage(session, JSON.stringify({ t: 'cmd', cmd: 'chat', text: 'you are a slurword' }));
+    server.handleMessage(
+      session,
+      JSON.stringify({ t: 'cmd', cmd: 'chat', text: 'you are a slurword' }),
+    );
     (server as any).routeEvents(server.sim.tick());
-    let events = fc.sent.flatMap((msg) => msg.t === 'events' ? msg.list : []);
+    let events = fc.sent.flatMap((msg) => (msg.t === 'events' ? msg.list : []));
     expect(events.some((ev) => ev.type === 'chat')).toBe(false);
-    expect(events).toContainEqual(expect.objectContaining({ type: 'error', text: expect.stringContaining('Warning') }));
+    expect(events).toContainEqual(
+      expect.objectContaining({ type: 'error', text: expect.stringContaining('Warning') }),
+    );
 
     // Second offense: escalates to a timed mute.
     fc.sent.length = 0;
-    server.handleMessage(session, JSON.stringify({ t: 'cmd', cmd: 'chat', text: 'slurword strikes again' }));
-    events = fc.sent.flatMap((msg) => msg.t === 'events' ? msg.list : []);
-    expect(events).toContainEqual(expect.objectContaining({ type: 'error', text: expect.stringContaining('muted') }));
+    server.handleMessage(
+      session,
+      JSON.stringify({ t: 'cmd', cmd: 'chat', text: 'slurword strikes again' }),
+    );
+    events = fc.sent.flatMap((msg) => (msg.t === 'events' ? msg.list : []));
+    expect(events).toContainEqual(
+      expect.objectContaining({ type: 'error', text: expect.stringContaining('muted') }),
+    );
 
     // Now muted: even a clean message is dropped until the mute expires.
     fc.sent.length = 0;
-    server.handleMessage(session, JSON.stringify({ t: 'cmd', cmd: 'chat', text: 'hello everyone' }));
+    server.handleMessage(
+      session,
+      JSON.stringify({ t: 'cmd', cmd: 'chat', text: 'hello everyone' }),
+    );
     (server as any).routeEvents(server.sim.tick());
-    events = fc.sent.flatMap((msg) => msg.t === 'events' ? msg.list : []);
+    events = fc.sent.flatMap((msg) => (msg.t === 'events' ? msg.list : []));
     expect(events.some((ev) => ev.type === 'chat')).toBe(false);
-    expect(events).toContainEqual(expect.objectContaining({ type: 'error', text: expect.stringContaining('muted') }));
+    expect(events).toContainEqual(
+      expect.objectContaining({ type: 'error', text: expect.stringContaining('muted') }),
+    );
   });
 
   it('leaves soft (cosmetic) words untouched server-side — clients mask them', () => {
     const server = new GameServer();
-    server.chatFilter.load({ soft: ['darn'], hard: [], config: { warningsBeforeMute: 1, muteLadderSeconds: [600] } });
+    server.chatFilter.load({
+      soft: ['darn'],
+      hard: [],
+      config: { warningsBeforeMute: 1, muteLadderSeconds: [600] },
+    });
     const fc = fakeWs();
     const session = joinServer(server, fc, 1, 'Testa');
     fc.sent.length = 0;
     server.handleMessage(session, JSON.stringify({ t: 'cmd', cmd: 'chat', text: 'oh darn it' }));
     (server as any).routeEvents(server.sim.tick());
-    const events = fc.sent.flatMap((msg) => msg.t === 'events' ? msg.list : []);
+    const events = fc.sent.flatMap((msg) => (msg.t === 'events' ? msg.list : []));
     expect(events).toContainEqual(expect.objectContaining({ type: 'chat', text: 'oh darn it' }));
   });
 
   it('ships the soft word list to clients in the hello payload', () => {
     const server = new GameServer();
-    server.chatFilter.load({ soft: ['darn', 'heck'], hard: ['slurword'], config: { warningsBeforeMute: 1, muteLadderSeconds: [600] } });
+    server.chatFilter.load({
+      soft: ['darn', 'heck'],
+      hard: ['slurword'],
+      config: { warningsBeforeMute: 1, muteLadderSeconds: [600] },
+    });
     const fc = fakeWs();
     joinServer(server, fc, 1, 'Testa');
     const hello = fc.sent.find((msg) => msg.t === 'hello');
@@ -568,7 +762,6 @@ describe('chat moderation', () => {
     // Hard words are enforcement-only and must never be shipped to the client.
     expect(JSON.stringify(hello)).not.toContain('slurword');
   });
-
 });
 
 describe('autosaves', () => {
@@ -682,7 +875,9 @@ describe('/who command', () => {
 
     server.handleMessage(self, JSON.stringify({ t: 'cmd', cmd: 'chat', text: '/who' }));
 
-    expect(eventTexts(fc.sent)).toContain('Your ignore list is still loading. Try /who again in a moment.');
+    expect(eventTexts(fc.sent)).toContain(
+      'Your ignore list is still loading. Try /who again in a moment.',
+    );
   });
 
   it('omits players whose own ignore list is still loading', () => {
@@ -706,7 +901,10 @@ describe('client-side delta merge', () => {
   it('does not apply optimistic quest accept or completion state', () => {
     const client = bareClient(1);
     const sent: any[] = [];
-    (client as any).ws = { readyState: 1, send: (payload: string) => sent.push(JSON.parse(payload)) };
+    (client as any).ws = {
+      readyState: 1,
+      send: (payload: string) => sent.push(JSON.parse(payload)),
+    };
     const oldWebSocket = (globalThis as any).WebSocket;
     (globalThis as any).WebSocket = { OPEN: 1 };
     try {
@@ -730,13 +928,26 @@ describe('client-side delta merge', () => {
   it('flushes changed movement immediately without resending unchanged frames', () => {
     const client = bareClient(1);
     const sent: any[] = [];
-    (client as any).ws = { readyState: 1, send: (payload: string) => sent.push(JSON.parse(payload)) };
+    (client as any).ws = {
+      readyState: 1,
+      send: (payload: string) => sent.push(JSON.parse(payload)),
+    };
     const oldWebSocket = (globalThis as any).WebSocket;
     (globalThis as any).WebSocket = { OPEN: 1 };
     try {
-      Object.assign(client.moveInput, { forward: true, back: false, turnLeft: false, turnRight: false, strafeLeft: false, strafeRight: false, jump: false });
+      Object.assign(client.moveInput, {
+        forward: true,
+        back: false,
+        turnLeft: false,
+        turnRight: false,
+        strafeLeft: false,
+        strafeRight: false,
+        jump: false,
+      });
       expect(client.flushInput(100)).toBe(true);
-      expect(sent).toEqual([{ t: 'input', seq: 1, mi: { f: 1, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 } }]);
+      expect(sent).toEqual([
+        { t: 'input', seq: 1, mi: { f: 1, b: 0, tl: 0, tr: 0, sl: 0, sr: 0, j: 0 } },
+      ]);
 
       expect(client.flushInput(105)).toBe(false);
       expect(sent).toHaveLength(1);
@@ -746,7 +957,11 @@ describe('client-side delta merge', () => {
       expect(sent).toHaveLength(1);
 
       expect(client.flushInput(120)).toBe(true);
-      expect(sent.at(-1)).toEqual({ t: 'input', seq: 2, mi: { f: 0, b: 0, tl: 0, tr: 0, sl: 0, sr: 1, j: 0 } });
+      expect(sent.at(-1)).toEqual({
+        t: 'input',
+        seq: 2,
+        mi: { f: 0, b: 0, tl: 0, tr: 0, sl: 0, sr: 1, j: 0 },
+      });
     } finally {
       (globalThis as any).WebSocket = oldWebSocket;
     }
@@ -755,8 +970,17 @@ describe('client-side delta merge', () => {
   it('snaps the interpolation anchor on a teleport but tweens normal moves', () => {
     const client = bareClient(1);
     const ent = (x: number, z: number) => ({
-      id: 2, k: 'mob', tid: 'wolf', nm: 'Wolf', lv: 3,
-      x, y: 0, z, f: 0, hp: 40, mhp: 40,
+      id: 2,
+      k: 'mob',
+      tid: 'wolf',
+      nm: 'Wolf',
+      lv: 3,
+      x,
+      y: 0,
+      z,
+      f: 0,
+      hp: 40,
+      mhp: 40,
     });
     const apply = (x: number, z: number) => (client as any).applySnapshot({ ents: [ent(x, z)] });
 
@@ -819,7 +1043,20 @@ describe('despawn grace (anti-flicker)', () => {
   // A full ("first sight") wire record carrying identity, so applyWire creates
   // the entity rather than skipping it as a half-initialized lite ghost.
   function fullWire(id: number, x: number, z: number, extra: Record<string, unknown> = {}) {
-    return { id, k: 'player', tid: 'warrior', nm: `E${id}`, lv: 1, x, y: 0, z, f: 0, hp: 100, mhp: 100, ...extra };
+    return {
+      id,
+      k: 'player',
+      tid: 'warrior',
+      nm: `E${id}`,
+      lv: 1,
+      x,
+      y: 0,
+      z,
+      f: 0,
+      hp: 100,
+      mhp: 100,
+      ...extra,
+    };
   }
   function snap(self: any, ents: any[], keep: number[] = []) {
     return { t: 'snap', tick: 1, time: 0, self, ents, keep };
@@ -948,7 +1185,19 @@ describe('guild nameplate wire', () => {
 
   it('restores entity.guild on the client from a full record', () => {
     const client = bareClient(99);
-    const base = { id: 7, k: 'player', tid: 'warrior', nm: 'Brae', lv: 5, x: 0, y: 0, z: 0, f: 0, hp: 100, mhp: 100 };
+    const base = {
+      id: 7,
+      k: 'player',
+      tid: 'warrior',
+      nm: 'Brae',
+      lv: 5,
+      x: 0,
+      y: 0,
+      z: 0,
+      f: 0,
+      hp: 100,
+      mhp: 100,
+    };
 
     (client as any).applySnapshot({ t: 'snap', ents: [{ ...base, gd: 'Silver Hand' }] });
     expect(client.entities.get(7)!.guild).toBe('Silver Hand');

@@ -174,6 +174,28 @@ export const de_DE: EnTranslations = {
       "title": "Emotes",
       "done": "Fertig"
     },
+    "theme": {
+      "preset": "Oberflächendesign",
+      "customColors": "Eigene Farben",
+      "reset": "Zurücksetzen",
+      "presets": {
+        "classic": "Klassisches Gold",
+        "midnight": "Mitternacht",
+        "parchment": "Pergament",
+        "highContrast": "Hoher Kontrast"
+      },
+      "knob": {
+        "accent": "Akzent",
+        "border": "Rahmen",
+        "panel": "Fensterrahmen",
+        "text": "Text",
+        "textMuted": "Gedämpfter Text",
+        "hp": "Gesundheit",
+        "mana": "Mana",
+        "rage": "Wut",
+        "energy": "Energie"
+      }
+    },
     "questTracker": {
       "count": "({count})",
       "collapseHint": "Quests einklappen",
@@ -209,12 +231,27 @@ export const de_DE: EnTranslations = {
       "hapticsOff": "Haptik aus",
       "toggleHaptics": "Haptik umschalten"
     },
+    "tutorial": {
+      "moveBodyTouch": "Nutze den Bewegungsstick zum Bewegen und zieh über den Bildschirm, um dich umzusehen. Mach ein paar Schritte, um zu beginnen.",
+      "talkBodyTouch": "Stell dich nah an Marschall Redbrook und tippe auf die Schaltfläche Benutzen, um mit ihm zu sprechen, und nimm dann seine Aufgabe an.",
+      "returnBodyTouch": "Deine Aufgabe ist erledigt. Kehre zu Marschall Redbrook zurück und tippe auf die Schaltfläche Benutzen, um sie abzugeben.",
+      "doneBodyTouch": "Du beherrschst die Grundlagen, {name}. Das Eastbrook-Tal liegt bereit, von dir erkundet zu werden. Tippe auf Mehr und dann auf Questlog, um jederzeit dein Questlog einzusehen. Gute Jagd."
+    },
     "widgets": {
       "clockTitle": "Ortszeit - klicken, um zwischen 12-/24-Stunden zu wechseln",
       "worldCoordinates": "Weltkoordinaten",
       "coordinates": "Koordinaten",
       "heading": "Blickrichtung",
       "minimapZoom": "Minikarten-Zoom"
+    },
+    "raidLockout": {
+      "title": "Schlachtzug-Sperren",
+      "allReady": "Alle Schlachtzüge bereit",
+      "daysHours": "{d}T {h}Std",
+      "hoursMinutes": "{h}Std {m}Min",
+      "minutes": "{m}Min",
+      "lessThanMinute": "<1Min",
+      "lockedToast": "Du bist für {raid} gesperrt. Freischaltung in {time}."
     },
     "compass": {
       "N": "N",
@@ -253,6 +290,8 @@ export const de_DE: EnTranslations = {
       "interfaceModeNote": "Auto wählt je nach Gerät die Desktop- oder Touch-Steuerung. Wähle Desktop, um Tastatur und Maus zu erzwingen (praktisch bei einem Tablet mit Tastatur), oder Touch für die Bildschirmsteuerung.",
       "footstepSounds": "Schrittgeräusche",
       "clickFeedback": "Klickmarkierung",
+      "lockCursorOnRotate": "Cursor beim Drehen sperren",
+      "keybindHelpLockCursorOnRotate": "Hält den Mauszeiger im Fenster, während Ihr zum Drehen der Kamera zieht, damit er nicht den Bildschirmrand erreicht oder auf einen anderen Monitor wandert. Schaltet dies aus, wenn Ihr einen freien Cursor bevorzugt.",
       "showWalletOnCharacterScreen": "Wallet auf dem Charakterbildschirm anzeigen",
       "showWalletOnPlayerCard": "Wallet auf der Spielerkarte anzeigen",
       "uiScale": "UI-Skalierung",
@@ -476,7 +515,62 @@ export const de_DE: EnTranslations = {
       "deactivateConfirm": "Mein Konto deaktivieren",
       "deactivated": "Euer Konto wurde deaktiviert.",
       "logOut": "Abmelden",
-      "logOutSummary": "Von diesem Gerät abmelden."
+      "logOutSummary": "Von diesem Gerät abmelden.",
+      "sectionSecurity": "Sicherheit",
+      "changeEmailTitle": "E-Mail ändern",
+      "changeEmailHint": "Wir senden einen Bestätigungslink an die neue Adresse und einen Hinweis an die alte. Eure E-Mail ändert sich erst, wenn Ihr den Link öffnet.",
+      "changeEmailNew": "Neue E-Mail",
+      "changeEmailSubmit": "Bestätigungslink senden",
+      "changeEmailSent": "Prüft Euren Posteingang: Öffnet den Link, den wir gesendet haben, um Eure neue E-Mail zu bestätigen.",
+      "errEmailUnchanged": "Das ist bereits Eure E-Mail-Adresse.",
+      "twoFactorTitle": "Zwei-Faktor-Authentifizierung",
+      "twoFactorStatusOn": "Die Zwei-Faktor-Authentifizierung ist für Euer Konto AKTIV.",
+      "twoFactorStatusOff": "Fügt eine Authentifizierungs-App hinzu, um Euer Konto besser zu schützen.",
+      "twoFactorSetupBtn": "Zwei-Faktor einrichten",
+      "twoFactorBeginHint": "Gebt Euer Passwort ein, um die Einrichtung zu beginnen.",
+      "twoFactorBegin": "Einrichtung beginnen",
+      "twoFactorScanHint": "Fügt diesen Schlüssel zu Eurer Authentifizierungs-App hinzu (Google Authenticator, Authy, 1Password und ähnliche) und gebt dann den 6-stelligen Code ein, den sie anzeigt.",
+      "twoFactorSecretLabel": "Einrichtungsschlüssel",
+      "twoFactorOpenApp": "In Authentifizierungs-App öffnen",
+      "twoFactorCodeLabel": "6-stelliger Code",
+      "twoFactorVerifyBtn": "Bestätigen und aktivieren",
+      "twoFactorEnabledMsg": "Die Zwei-Faktor-Authentifizierung ist jetzt aktiv.",
+      "twoFactorRecoveryTitle": "Speichert Eure Wiederherstellungscodes",
+      "twoFactorRecoveryHint": "Jeder Code funktioniert nur einmal. Bewahrt sie an einem sicheren Ort auf: Sie sind der einzige Weg zurück, falls Ihr Eure Authentifizierungs-App verliert.",
+      "twoFactorDownloadCodes": "Codes herunterladen",
+      "twoFactorDone": "Fertig",
+      "twoFactorDisableHint": "Gebt Euer Passwort ein, um die Zwei-Faktor-Authentifizierung zu deaktivieren. Eure Wiederherstellungscodes werden verworfen.",
+      "twoFactorDisableBtn": "Zwei-Faktor deaktivieren",
+      "twoFactorDisabledMsg": "Die Zwei-Faktor-Authentifizierung ist deaktiviert.",
+      "errTwoFactorCode": "Dieser Code ist ungültig, versucht es erneut.",
+      "errTwoFactorState": "Die Zwei-Faktor-Einrichtung befindet sich nicht im erwarteten Zustand. Ladet neu und versucht es erneut.",
+      "exportTitle": "Meine Daten exportieren",
+      "exportHint": "Ladet eine Kopie Eures Kontos und Eurer Charaktere als JSON-Datei herunter. Wir senden Euch zudem eine Bestätigung per E-Mail.",
+      "exportBtn": "Meine Daten herunterladen",
+      "exportDone": "Eure Daten wurden heruntergeladen. Wir haben Euch eine Bestätigung per E-Mail gesendet.",
+      "exportFailed": "Eure Daten konnten nicht exportiert werden. Versucht es gleich noch einmal."
+    },
+    "bags": {
+      "filterGroupAria": "Taschen nach Kategorie filtern",
+      "filterAll": "Alle",
+      "filterWeapon": "Waffen",
+      "filterArmor": "Rüstung",
+      "filterConsumable": "Verbrauchbares",
+      "filterMaterial": "Materialien",
+      "filterQuest": "Quest",
+      "sortAria": "Taschengegenstände sortieren",
+      "sortRecent": "Neueste",
+      "sortQuality": "Qualität",
+      "sortName": "Name",
+      "searchPlaceholder": "Gegenstände durchsuchen",
+      "searchAria": "Taschengegenstände nach Namen durchsuchen",
+      "noMatch": "Keine Gegenstände entsprechen Euren Filtern."
+    },
+    "raidConvert": {
+      "toPartyDone": "Euer Schlachtzug wurde wieder in eine Gruppe umgewandelt.",
+      "notRaid": "Eure Gruppe ist kein Schlachtzug.",
+      "leaderOnly": "Nur der Schlachtzugsleiter darf in eine Gruppe umwandeln.",
+      "tooLarge": "Ein Schlachtzug mit mehr als fünf Mitgliedern kann nicht wieder in eine Gruppe umgewandelt werden."
     }
   },
   "guide": {
@@ -879,7 +973,6 @@ export const de_DE: EnTranslations = {
       "notedLabel": "Bemerkenswert",
       "flavor": {
         "old_greyjaw": "Ein vernarbter alter Wolf, den keine Falle gehalten hat, dem drei Jagdhunde und der Arm eines Stalljungen zur Last gelegt werden. Er jagt allein in den tiefen Wäldern und wird umso wilder, je länger ein Kampf andauert.",
-        "brightwood_stag": "Ein stolzer Hain-Hirsch, der seine Krone aus Geweih senkt und vorwärts stürmt, und der schwerer zu bezwingen wird, je länger man ihn bedrängt.",
         "grubjaw": "Ein Moortroll, so gierig, dass die anderen Trolle nicht neben ihm graben wollen, von dem man sagt, er habe einem Händler die letzten zwei Packmaultiere gefressen, samt Geschirr und allem.",
         "shardlord_kazzix": "Ein Sturmelementar, dem man Schultern gegeben hat und der über die fernen Felszacken hoch über Stormcrag wandelt, mit einem Herzsplitter, für den es sich lohnt, dem Blitz zu trotzen.",
         "mirejaw_frenzy": "Ein Moor-Murloc, der sich mitten im Kampf in eine um sich schlagende Raserei steigert, das lauteste Wesen in einem lauten, territorialen Rudel.",
@@ -945,7 +1038,7 @@ export const de_DE: EnTranslations = {
       "marshPlaceNotes": "Fenbridge bewacht die einzige trockene Straße. Das Pirscherschilf und die Tieffenniederung wimmeln von Moorbestien und Murlocs; das Witwendickicht ist dicht mit Netzen versponnen; die Ertrunkene Kapelle und die Trollhügel beherbergen ältere Gefahren; das Grabruferlager ist der eingegrabene Kult, und die versunkene Bastion ist das instanzierte Herz des Moores.",
       "peaksPlaceNotes": "Highwatch hält die Mauer. Der Pirscherkamm und die Tieffelsbaue gehören Bergkatzen und Kobolden; die Ogervorberge und Drogmars Kriegslager den Schlägern für Sold; Stormcrag knistert vor Elementaren, und der Glimmermere leuchtet darunter; die Wyrmkultzelte und die Wiedergängerfelder umringen das Hochland des Kults, mit dem Gravewyrm-Heiligtum auf seinem Gipfel.",
       "gladeTitle": "Eine stille Ecke: Brightwood Glade",
-      "gladeBody": "Nicht jede Geschichte im Tal handelt von den Toten. Im Norden hält ein sonnenbeschienener Hain namens Brightwood Glade seinen eigenen sanfteren Rhythmus, behütet von einer einsamen Waldläuferin, die ihn lieber pflegt als kämpft. Ihre Arbeit ist Gleichgewicht: zu lichten, was sich überzüchtet, und, wenn seine Aushöhlung zu gefährlich wird, um sie zu belassen, dem alten gekrönten Hirsch des Hains ein würdevolles Ende zu geben. Es ist ein leiser Gegenpol zu der Spur, der du folgst, und den Umweg wert."
+      "gladeBody": "Nicht jede Geschichte im Tal handelt von den Toten. Im Norden bewahrt ein sonnenheller Hain namens Brightwood Glade seinen eigenen, sanfteren Rhythmus, mit stillen Pfaden, grasenden Hirschen und wachsamen Tieren unter den Zweigen. Er ist ein ruhiger Gegenklang zu der Spur, der du folgst, und einen Blick wert, wenn die Straße dir Raum zum Umherstreifen lässt."
     },
     "questsPage": {
       "heading": "Quests",
@@ -993,9 +1086,7 @@ export const de_DE: EnTranslations = {
       "aldricRole": "Priester des Tals",
       "aldricBody": "Ein bescheidener Dorfpriester, der den Kult zuerst über einem geschändeten Grab in Eastbrook beim Namen nennt und dann seiner Spur höchstpersönlich durch das Moor und hinauf zur Mauer von Highwatch folgt. Er ist das ruhige Herz des ganzen Feldzugs.",
       "marenRole": "Die Späherin des Marschalls",
-      "marenBody": "Eine wortkarge Fährtenleserin, der du im Schilf von Mirefen begegnest, lauter leise Füße und eine kurze Klinge. Auch sie folgt der Spur nach Norden, und es ist ihr Ohr, das die Worte auffängt, die dich zu den Gipfeln schicken.",
-      "elwynRole": "Lichtungswächterin von Brightwood",
-      "elwynBody": "Die einsame Hüterin eines sonnenbeschienenen Hains im Norden des Tals. Ihre Arbeit ist Pflege, nicht Gemetzel: Sie lichtet, was sich überzüchtet, und gewährt dem ältesten Tier des Hains ein gnädigeres Ende, als die Wölfe es ihm bereiten würden."
+      "marenBody": "Eine wortkarge Fährtenleserin, der du im Schilf von Mirefen begegnest, lauter leise Füße und eine kurze Klinge. Auch sie folgt der Spur nach Norden, und es ist ihr Ohr, das die Worte auffängt, die dich zu den Gipfeln schicken."
     },
     "dungeonsPage": {
       "heading": "Dungeons und Schlachtzüge",
@@ -1388,7 +1479,10 @@ export const de_DE: EnTranslations = {
     "characterNamePlaceholder": "Charaktername",
     "enterWorld": "Welt betreten",
     "offlineCharacter": "Offline-Charakter",
-    "create": "Erstellen"
+    "create": "Erstellen",
+    "twoFactorLabel": "Authentifizierungscode",
+    "twoFactorPlaceholder": "6-stelliger Code oder Wiederherstellungscode",
+    "twoFactorHint": "Gib den Code aus deiner Authentifizierungs-App ein oder einen deiner Wiederherstellungscodes."
   },
   "wallet": {
     "label": "$WOC-Wallet",
@@ -1788,7 +1882,9 @@ export const de_DE: EnTranslations = {
     "genre": "MMORPG",
     "playMode": "Mehrspieler",
     "applicationCategory": "Spiel",
-    "operatingSystem": "Webbrowser"
+    "operatingSystem": "Webbrowser",
+    "officialLabel": "Offizielle Website von World of ClaudeCraft",
+    "officialBody": "worldofclaudecraft.com ist das offizielle kostenlose Browser-MMO für das Reich Claudemoon. Spiele online mit einem dauerhaften Charakter, erkunde solo offline, lies das Wiki und folge den verifizierten Community-Links auf dieser Website."
   },
   "a11y": {
     "goHome": "Zur Startseite",
@@ -1857,6 +1953,11 @@ export const de_DE: EnTranslations = {
     "high": "Hoch",
     "medium": "Mittel",
     "low": "Niedrig",
+    "popTipLow": "Niedrige Bevölkerung: derzeit weniger als 15 Spieler online. Viel Platz; ideal für einen Neustart.",
+    "popTipMedium": "Mittlere Bevölkerung: derzeit 15 bis 39 Spieler online. Ein gesunder, aktiver Realm.",
+    "popTipHigh": "Hohe Bevölkerung: derzeit 40 bis 79 Spieler online. Belebt, mit vielen Spielern in der Nähe.",
+    "popTipFull": "Volle Bevölkerung: derzeit 80 oder mehr Spieler online. Sehr belebt; eventuell müsst Ihr in einer Login-Warteschlange warten.",
+    "popTipOffline": "Offline: Dieser Realm ist derzeit nicht erreichbar und kann nicht betreten werden.",
     "characterCountOne": "{count} Charakter",
     "characterCountOther": "{count} Charaktere",
     "selectedRealm": "Realm: {name}",
@@ -2191,6 +2292,7 @@ export const de_DE: EnTranslations = {
         "report": "Spieler melden",
         "removeParty": "Aus Gruppe entfernen",
         "convertToRaid": "In Schlachtzug umwandeln",
+        "convertToParty": "In Gruppe umwandeln",
         "cancel": "Abbrechen"
       }
     },
@@ -2309,6 +2411,10 @@ export const de_DE: EnTranslations = {
       "whisperAmbiguous": "Mehrere Spieler passen zu '{name}'. Verwendet die exakte Großschreibung.",
       "whisperMissing": "Kein Spieler namens '{name}' ist online.",
       "whisperSelf": "Ihr murmelt zu Euch selbst. Niemand hört es.",
+      "assistSelf": "Ihr könnt Euch nicht selbst unterstützen.",
+      "assistNoTarget": "{name} hat kein Ziel.",
+      "assistWhom": "Wem beistehen? Wählt einen Spieler oder benutzt /assist <name>.",
+      "assisting": "Ihr unterstützt {name}.",
       "notInParty": "Ihr seid in keiner Gruppe.",
       "unknownCommand": "Unbekannter Befehl: {command}. Versucht /s /y /w /p /g.",
       "chatCooldown": "Chat hat noch {seconds}s Abklingzeit.",
@@ -3768,6 +3874,9 @@ export const de_DE: EnTranslations = {
       "ridge_stalker_pelt": {
         "name": "Balg eines Gratpirschers"
       },
+      "pristine_ridge_stalker_pelt": {
+        "name": "Makelloser Balg eines Gratpirschers"
+      },
       "glowing_wax": {
         "name": "Glühendes Wachs"
       },
@@ -3987,9 +4096,6 @@ export const de_DE: EnTranslations = {
       "milepost_boots": {
         "name": "Meilenstein-Stiefel"
       },
-      "glade_pelt": {
-        "name": "Lichtungsfell"
-      },
       "soft_down": {
         "name": "Weicher Daunenbüschel"
       },
@@ -4007,9 +4113,6 @@ export const de_DE: EnTranslations = {
       },
       "monarch_crown_helm": {
         "name": "Krone des Monarchen"
-      },
-      "monarch_heart": {
-        "name": "Das Herz des Monarchen"
       },
       "bristleback_maul": {
         "name": "Bristleback-Schlägel"
@@ -4208,6 +4311,9 @@ export const de_DE: EnTranslations = {
       },
       "cragmaw_prowlboots": {
         "name": "Schleicherstiefel von Cragmaw"
+      },
+      "cragmaw_huntcord": {
+        "name": "Jagdgurt von Cragmaw"
       },
       "drowned_tide_scepter": {
         "name": "Zepter der ertrunkenen Flut"
@@ -4634,42 +4740,6 @@ export const de_DE: EnTranslations = {
       "nythraxis_scourge_of_thornpeak": {
         "name": "Nythraxis, Geißel von Thornpeak"
       },
-      "brightwood_hare": {
-        "name": "Hellholz-Hase"
-      },
-      "glade_fox": {
-        "name": "Lichtungsfuchs"
-      },
-      "spotted_fawn": {
-        "name": "Geflecktes Hirschkalb"
-      },
-      "meadow_crane": {
-        "name": "Wiesenkranich"
-      },
-      "thornpelt_badger": {
-        "name": "Dornpelz-Dachs"
-      },
-      "dawnmane_doe": {
-        "name": "Morgenmähnen-Hirschkuh"
-      },
-      "bramble_lynx": {
-        "name": "Dornenluchs"
-      },
-      "brightwood_stag": {
-        "name": "Hellholz-Hirsch"
-      },
-      "grovetusk_boar": {
-        "name": "Hainhauer-Keiler"
-      },
-      "sunhide_bear": {
-        "name": "Sonnenfell-Bär"
-      },
-      "brightwood_monarch": {
-        "name": "Der Hellholz-Monarch"
-      },
-      "elder_bristleback": {
-        "name": "Alter Bristleback"
-      },
       "ironvein_foreman": {
         "name": "Eisenader-Vorarbeiter"
       },
@@ -4693,12 +4763,6 @@ export const de_DE: EnTranslations = {
       },
       "nhalia_mourner": {
         "name": "Nhalia-Trauernde"
-      },
-      "sableweb_hatchling": {
-        "name": "Sableweb-Jungtier"
-      },
-      "sableweb_matriarch": {
-        "name": "Sableweb-Matriarchin"
       },
       "sister_nhalia": {
         "name": "Schwester Nhalia"
@@ -4880,11 +4944,6 @@ export const de_DE: EnTranslations = {
         "name": "Lehrmeister Caddis",
         "title": "Lehrmeister",
         "greeting": "Achte auf lockeren Schiefer, {className}. Der Berg ist unruhig geworden, und ich will wissen warum."
-      },
-      "ranger_elwyn": {
-        "name": "Waldläufer Elwyn",
-        "title": "Hüter der Lichtung",
-        "greeting": "Ruhig, {className} - die Lichtung ist heute friedlich, und das gedenke ich so zu erhalten."
       },
       "brother_aldric_raid": {
         "name": "Bruder Aldric",
@@ -5637,145 +5696,6 @@ export const de_DE: EnTranslations = {
         "objectives": {
           "0": {
             "label": "Nythraxis besiegt"
-          }
-        }
-      },
-      "q_brightwood_thinning": {
-        "title": "Die Lichtung ausdünnen",
-        "text": "Die Hellholz-Lichtung ist überlaufen, {playerName}. Die Dornenluchse vermehren sich schneller, als ich sie ausmerzen kann, und die Herden zertrampeln das wenige Weideland, das noch bleibt. Erlegt 8 Dornenluchse und bringt mir 6 Lichtungsfelle, damit ich über das Wohl der übrigen urteilen kann.",
-        "completion": "Gut. Das Rudel ist ausgedünnt und diese Felle sind heil - die Lichtung wird eine weitere Jahreszeit überstehen.",
-        "objectives": {
-          "0": {
-            "label": "Dornenluchse erlegt"
-          },
-          "1": {
-            "label": "Lichtungsfell"
-          }
-        }
-      },
-      "q_brightwood_monarch": {
-        "title": "Der Hellholz-Monarch",
-        "text": "Es gibt eine Bestie, auf die ich allein keinen Pfeil löse: den Hellholz-Monarchen, den großen Hirsch, der über die tiefe Lichtung herrscht. Er ist alt und wild geworden und spießt jeden auf, der seinem Bau zu nahe kommt. Er ist mehr, als ein einzelner Jäger gewachsen ist - bringt einen Freund oder zwei mit. Bettet ihn zur Ruhe und bringt mir sein Herz, {playerName}.",
-        "completion": "So ist der alte König also gefallen. Eine schwere Sache, dies - doch ein gnädigeres Ende, als die Wölfe ihm beschert hätten. Tragt diese Krone aus seinem Geweih mit Achtung, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "Das Herz des Monarchen"
-          }
-        }
-      },
-      "q_ledger_first_duty": {
-        "title": "Eines Hüters erste Pflicht",
-        "text": "Ihr wollt Euch in Eastbrook Euren Unterhalt verdienen, {playerName}? Dann fangt dort an, wo jeder Hüter anfängt. Die Dornpelz-Dachse haben ihre Baue quer durch die Hellholz-Lichtung gegraben, hoch im Norden jenseits des Wolfslaufs, und der Waldboden bricht in ihre Gänge ein. Erlegt 8 Dornpelz-Dachse, und das Verzeichnis wird sich Eures Namens entsinnen.",
-        "completion": "Acht Baue geräumt und der Waldboden hat sich gesetzt. Gut. Jeder Name in diesem Verzeichnis hat genau dort begonnen, wo Ihr jetzt steht.",
-        "objectives": {
-          "0": {
-            "label": "Dornpelz-Dachs erlegt"
-          }
-        }
-      },
-      "q_ledger_teeth": {
-        "title": "Zähne in der Dunkelheit",
-        "text": "Die Lichtungsfüchse sind kühn geworden wie Wölfe - sie schleichen sich in der Dämmerung in die Hühnerställe und sind verschwunden, ehe eine Laterne brennt, und eine hungrige Füchsin reißt ein Lamm so bereitwillig wie ein Huhn. Lichtet ihre Reihen, {playerName}. Erlegt 10 Lichtungsfüchse und lehrt den Rest, das Licht wieder zu fürchten.",
-        "completion": "Zehn Füchse, und die Hühnerställe sind in der Dämmerung wieder still. Das Verzeichnis wird Euch gnädiger.",
-        "objectives": {
-          "0": {
-            "label": "Lichtungsfüchse erlegt"
-          }
-        }
-      },
-      "q_ledger_reedwater": {
-        "title": "Schilfwasser-Patrouille",
-        "text": "Redbrook hat Euch geschickt? Gut - diese alten Knochen können nicht mehr durch die Untiefen waten. Die Wiesenkraniche haben meine Netze entdeckt, und sie spießen mehr von meinem Fang auf, als es die Schlammflossen je taten. Lichtet ihre Reihen: 8 Wiesenkraniche, und hütet Euch vor dem tiefen Wasser.",
-        "completion": "Das hält die langbeinigen Diebe eine Jahreszeit lang von meinen Netzen fern. Sagt dem Marschall, die Untiefen gehören wieder mir.",
-        "objectives": {
-          "0": {
-            "label": "Wiesenkraniche vertrieben"
-          }
-        }
-      },
-      "q_ledger_silk": {
-        "title": "Äsung und Gestrüpp",
-        "text": "Das Verzeichnis weist auch die östlichen Wälder als Hüterland aus - und meine Heilkräuterbeete gehören dazu. Die gefleckten Kitze haben mein Silberblatt und meine Blutdistel bis zur Wurzel abgefressen, und ohne diese Heilkräuter bleibt halb Eastbrook ohne Medizin. Es bereitet mir keine Freude, doch erlegt 8 Gefleckte Kitze, ehe die Herbstkräuter gänzlich verloren sind.",
-        "completion": "Die Beete mögen sich noch erholen, dank Euch. Eine harte Gnade - doch ein Kind, das im Fieber brennt, braucht die Heilkräuter dringender, als der Wald die Rehe braucht. Das Verzeichnis ist beglichen.",
-        "objectives": {
-          "0": {
-            "label": "Gefleckte Kitze erlegt"
-          }
-        }
-      },
-      "q_ledger_brood": {
-        "title": "Die laichende Finsternis",
-        "text": "Die Lauerer zu töten machte nur der Brut Platz. Die Schwarzweber-Brütlinge strömen aus dem tiefen Nest, und hundert kleine Fänge töten einen Reisenden ebenso sicher wie ein großer. Zermalmt 8 Schwarzweber-Brütlinge, ehe sie heranwachsen.",
-        "completion": "Ein grimmiges Werk, ein Nest zu ertränken. Doch Gnade jetzt erspart hundert Begräbnisse später. Die Schuld ist beglichen.",
-        "objectives": {
-          "0": {
-            "label": "Schwarzweber-Brütlinge zermalmt"
-          }
-        }
-      },
-      "q_ledger_deepvermin": {
-        "title": "Ungeziefer in der Tiefe",
-        "text": "Im Verzeichnis des Marschalls steht, Ihr räumt mit Schädlingen auf. Nun, mein Stollen hat die schlimmsten von ihnen. Die Tunnelratten vermehren sich schneller, als meine Mannschaft die Spitzhacke schwingen kann - legt 12 Tunnelratten-Gräber um, und vielleicht stoßen wir vor dem Winter auf Kupfer.",
-        "completion": "Zwölf des kerzenköpfigen Ungeziefers, dahin! Recht so, Burschen - zurück in den Schacht. Ihr habt Euch ein gutes Wort beim Marschall verdient, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "Tunnelratten-Gräber erlegt"
-          }
-        }
-      },
-      "q_ledger_toll": {
-        "title": "Die Straße der Hauer",
-        "text": "Die Hainhauer-Keiler sind aus dem Lichtwald herabgekommen und auf die südöstliche Handelsstraße - mächtige, hauerbewehrte Bestien, die die Zugochsen aufspießen und die Karren umstürzen, um das verschüttete Korn zu fressen. Das Verzeichnis hat auf jeden von ihnen einen Preis gesetzt. Macht die Straße wieder frei: streckt 8 Hainhauer-Keiler nieder.",
-        "completion": "Acht Bestien fort von der Straße, und die Karren rollen wieder. Es spricht sich bereits herum, dass die Handelsstraße einen neuen Hüter hat. Das Verzeichnis steigt zu Euren Gunsten.",
-        "objectives": {
-          "0": {
-            "label": "Hainhauer-Keiler erlegt"
-          }
-        }
-      },
-      "q_ledger_vigil": {
-        "title": "Wache an der Kapelle",
-        "text": "Der Marschall schickt seine Hüter zu mir, wenn die Not über die Reichweite von Schwertern allein hinausgeht. Die Toten der Kapelle wollen nicht stillliegen, und ich bin zu alt, um die Nachtwache zu halten. Haltet sie für mich, {playerName} - bettet 10 Ruhelose Gebeine zurück zu ihrer Ruhe.",
-        "completion": "Zehn Seelen der Erde zurückgegeben und eine Nacht des Friedens für die Kapelle erkauft. Das Licht entsinnt sich solcher Wachen, selbst wenn das Verzeichnis sie vergisst.",
-        "objectives": {
-          "0": {
-            "label": "Ruhelose Gebeine zur Ruhe gebettet"
-          }
-        }
-      },
-      "q_ledger_great_boar": {
-        "title": "Der Große Borstenrücken",
-        "text": "In den westlichen Dickichten haust ein alter Eberbulle - der Alte Borstenrücken, mit einer Haut wie Borke und einem Gemüt, das dazu passt. Er hat zwei meiner Fellläufer aufgespießt. Bringt ihn zur Strecke und räumt 6 der geringeren Wildschweine fort, die sich hinter ihm verbergen, und ich werde Euren Namen hoch oben im Verzeichnis eintragen.",
-        "completion": "Der Alte Borstenrücken, von Eurer Hand erschlagen! Allein dieses Fell ist eine Handelssaison wert. Ihr habt das Verzeichnis stolz gemacht, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "Alter Borstenrücken erlegt"
-          },
-          "1": {
-            "label": "Wildschweine der Rotte erlegt"
-          }
-        }
-      },
-      "q_ledger_outlaw_captain": {
-        "title": "Der Räuberhauptmann",
-        "text": "Der letzte Name im Verzeichnis ist der, den ich seit einem Jahr gestrichen sehen will: Hauptmann Verlan, der das halbe Tal in die Räuberei trieb. Er verschanzt sich hinter seinen Leutnants im südöstlichen Lager. Streckt 6 Talbanditen nieder, um zu ihm vorzudringen, und macht dann Verlan selbst ein Ende. Geht nicht allein.",
-        "completion": "Hauptmann Verlan, tot, und sein Mantel vor meiner Tür. Das Verzeichnis ist geschlossen, {playerName} - und das Tal wird den Hütern, die nach Euch kommen, den Namen dessen nennen, der es geschlossen hat.",
-        "objectives": {
-          "0": {
-            "label": "Talbanditen niedergestreckt"
-          },
-          "1": {
-            "label": "Hauptmann Verlan erlegt"
-          }
-        }
-      },
-      "q_mogger_tracks": {
-        "title": "Moggers Spur",
-        "text": "Bevor du die Straße nach Norden nimmst, hat Eastbrook noch einen letzten Dorn im Fleisch: Mogger. Der Grobian zertrampelt die untere Wiese und treibt die Eber in den Wahnsinn. Säubere die Wiese um seine Spur, damit wir sehen, wo er haust.",
-        "completion": "Diese Spuren sind frisch und tief genug, um Regen zu halten. Mogger ist kein Lagerfeuermärchen, {playerName}, und er ist nah.",
-        "objectives": {
-          "0": {
-            "label": "Wilder Eber von der Spur vertrieben"
           }
         }
       },

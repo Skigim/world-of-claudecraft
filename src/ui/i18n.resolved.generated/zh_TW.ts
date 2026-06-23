@@ -174,6 +174,28 @@ export const zh_TW: EnTranslations = {
       "title": "表情",
       "done": "完成"
     },
+    "theme": {
+      "preset": "介面主題",
+      "customColors": "自訂顏色",
+      "reset": "重設",
+      "presets": {
+        "classic": "經典金色",
+        "midnight": "午夜",
+        "parchment": "羊皮紙",
+        "highContrast": "高對比"
+      },
+      "knob": {
+        "accent": "強調色",
+        "border": "邊框",
+        "panel": "框架",
+        "text": "文字",
+        "textMuted": "次要文字",
+        "hp": "生命",
+        "mana": "法力",
+        "rage": "怒氣",
+        "energy": "能量"
+      }
+    },
     "questTracker": {
       "count": "（{count}）",
       "collapseHint": "收合任務追蹤器",
@@ -209,12 +231,27 @@ export const zh_TW: EnTranslations = {
       "hapticsOff": "觸覺回饋已關閉",
       "toggleHaptics": "切換觸覺回饋"
     },
+    "tutorial": {
+      "moveBodyTouch": "使用搖桿移動，拖曳螢幕環顧四周。先走幾步開始吧。",
+      "talkBodyTouch": "靠近雷德布魯克元帥並點按「使用」按鈕與他交談，然後接受他的任務。",
+      "returnBodyTouch": "任務已完成。返回雷德布魯克元帥處並點按「使用」按鈕繳交任務。",
+      "doneBodyTouch": "你已掌握基礎，{name}。東溪谷任你探索。點按「更多」再選「任務日誌」即可隨時查看任務。祝你狩獵順利。"
+    },
     "widgets": {
       "clockTitle": "本地時間 - 點擊切換 12／24 小時制",
       "worldCoordinates": "世界座標",
       "coordinates": "座標",
       "heading": "方位",
       "minimapZoom": "小地圖縮放"
+    },
+    "raidLockout": {
+      "title": "團隊副本鎖定",
+      "allReady": "所有團隊副本就緒",
+      "daysHours": "{d}天{h}小時",
+      "hoursMinutes": "{h}小時{m}分",
+      "minutes": "{m}分",
+      "lessThanMinute": "<1分",
+      "lockedToast": "你已鎖定到{raid}。{time}後解鎖。"
     },
     "compass": {
       "N": "北",
@@ -253,6 +290,8 @@ export const zh_TW: EnTranslations = {
       "interfaceModeNote": "自動會根據你的裝置選擇桌面或觸控操作。選擇桌面可強制使用鍵盤與滑鼠（適合有鍵盤的平板），選擇觸控則使用螢幕上的操作控制項。",
       "footstepSounds": "腳步聲",
       "clickFeedback": "點擊標記",
+      "lockCursorOnRotate": "旋轉時鎖定游標",
+      "keybindHelpLockCursorOnRotate": "拖曳旋轉鏡頭時將滑鼠游標保持在視窗內，使其無法到達螢幕邊緣或移動到另一台顯示器。若你偏好自由游標，請關閉此選項。",
       "showWalletOnCharacterScreen": "在角色畫面顯示錢包",
       "showWalletOnPlayerCard": "在玩家卡片顯示錢包",
       "uiScale": "介面縮放",
@@ -476,7 +515,62 @@ export const zh_TW: EnTranslations = {
       "deactivateConfirm": "停用我的帳號",
       "deactivated": "您的帳號已停用。",
       "logOut": "登出",
-      "logOutSummary": "登出目前的裝置。"
+      "logOutSummary": "登出目前的裝置。",
+      "sectionSecurity": "安全性",
+      "changeEmailTitle": "變更電子郵件",
+      "changeEmailHint": "我們會將確認連結寄到新的電子郵件地址，並通知舊地址。只有在你開啟連結後，電子郵件才會變更。",
+      "changeEmailNew": "新的電子郵件",
+      "changeEmailSubmit": "寄送確認連結",
+      "changeEmailSent": "請查看你的收件匣：開啟我們寄出的連結以確認你的新電子郵件。",
+      "errEmailUnchanged": "這已經是你目前的電子郵件地址了。",
+      "twoFactorTitle": "雙重驗證",
+      "twoFactorStatusOn": "你的帳號已開啟雙重驗證。",
+      "twoFactorStatusOff": "新增驗證器應用程式，強化帳號安全性。",
+      "twoFactorSetupBtn": "設定雙重驗證",
+      "twoFactorBeginHint": "請輸入密碼以開始設定。",
+      "twoFactorBegin": "開始設定",
+      "twoFactorScanHint": "將這組金鑰新增到你的驗證器應用程式（Google Authenticator、Authy、1Password 等類似應用程式），然後輸入它顯示的 6 位數驗證碼。",
+      "twoFactorSecretLabel": "設定金鑰",
+      "twoFactorOpenApp": "在驗證器應用程式中開啟",
+      "twoFactorCodeLabel": "6 位數驗證碼",
+      "twoFactorVerifyBtn": "驗證並啟用",
+      "twoFactorEnabledMsg": "雙重驗證已開啟。",
+      "twoFactorRecoveryTitle": "儲存你的復原碼",
+      "twoFactorRecoveryHint": "每組代碼僅能使用一次。請將它們存放在安全的地方：如果你遺失了驗證器應用程式，這是唯一能重新登入的方式。",
+      "twoFactorDownloadCodes": "下載代碼",
+      "twoFactorDone": "完成",
+      "twoFactorDisableHint": "請輸入密碼以關閉雙重驗證。你的復原碼將會作廢。",
+      "twoFactorDisableBtn": "關閉雙重驗證",
+      "twoFactorDisabledMsg": "雙重驗證已關閉。",
+      "errTwoFactorCode": "這組代碼無效，請再試一次。",
+      "errTwoFactorState": "雙重驗證設定不在預期的狀態。請重新載入後再試一次。",
+      "exportTitle": "匯出我的資料",
+      "exportHint": "下載你的帳號與角色資料副本，格式為 JSON 檔案。我們也會寄送確認信給你。",
+      "exportBtn": "下載我的資料",
+      "exportDone": "你的資料已下載。我們已寄送確認信給你。",
+      "exportFailed": "無法匯出你的資料。請稍候再試一次。"
+    },
+    "bags": {
+      "filterGroupAria": "依類別篩選背包",
+      "filterAll": "全部",
+      "filterWeapon": "武器",
+      "filterArmor": "護甲",
+      "filterConsumable": "消耗品",
+      "filterMaterial": "材料",
+      "filterQuest": "任務",
+      "sortAria": "排序背包物品",
+      "sortRecent": "最近",
+      "sortQuality": "品質",
+      "sortName": "名稱",
+      "searchPlaceholder": "搜尋物品",
+      "searchAria": "依名稱搜尋背包物品",
+      "noMatch": "沒有符合篩選條件的物品。"
+    },
+    "raidConvert": {
+      "toPartyDone": "你的團隊已轉換回隊伍。",
+      "notRaid": "你的隊伍並非團隊。",
+      "leaderOnly": "只有團隊領袖可以轉換為隊伍。",
+      "tooLarge": "超過五名成員的團隊無法轉換回隊伍。"
     }
   },
   "guide": {
@@ -879,7 +973,6 @@ export const zh_TW: EnTranslations = {
       "notedLabel": "值得一提",
       "flavor": {
         "old_greyjaw": "一頭傷痕累累的老狼，沒有任何陷阱困得住牠，被指控害死了三條獵犬，還咬斷一名馬廄小弟的手臂。牠獨自獵食於深林之中，戰鬥拖得愈久就愈兇殘。",
-        "brightwood_stag": "一頭高傲的林地雄鹿，會低下牠那頂鹿角王冠橫衝直撞，而且被逼得愈久就愈難對付。",
         "grubjaw": "一頭貪婪到連其他巨魔都不願在牠身旁挖掘的沼澤巨魔，據說曾把一名商人最後兩頭馱騾連同挽具一併吞下肚。",
         "shardlord_kazzix": "一具長出了肩膀的風暴元素，行走在風暴岩之上的遠處峭壁間，身上的心核碎片值得人冒著雷電去搶。",
         "mirejaw_frenzy": "一隻沼澤魚人，會在戰鬥中把自己鞭策成一陣亂揮亂打的狂亂，是一群喧鬧又護地的同類中嗓門最大的那個。",
@@ -944,8 +1037,8 @@ export const zh_TW: EnTranslations = {
       "valePlaceNotes": "東溪鎮是你的第一個主據點。狼徑與野豬草甸是溫和的狩獵場；鏡湖是適合垂釣的靜謐水域；蛛網林與銅礦坑藏著蜘蛛與貪礦的掘地者；一座盜匪營地與墮落禮拜堂另有更粗野的活計；碧木林地則是北方一片平和的野生林地。",
       "marshPlaceNotes": "沼橋鎮鎮守著唯一一條乾燥的道路。潛獵蘆葦叢與深沼淺灘擠滿了沼澤野獸與魚人；寡婦密林被蛛網織得密不透風；溺亡禮拜堂與巨魔土塚藏著更古老的危險；喚墓者營地是邪教的據點，而沉沒堡壘則是沼澤的副本核心。",
       "peaksPlaceNotes": "高守哨站鎮守著城牆。潛行者山脊與深岩地洞屬於山脊巨貓與狗頭人；食人魔山麓與卓格瑪戰營屬於受僱的暴徒；風暴岩劈啪作響地竄動著元素，微光湖則在其下發著光；龍裔邪教帳篷與亡魂之野環繞著邪教佔據的高地，墓龍聖所就矗立於其頂峰。",
-      "gladeTitle": "一處靜謐的角落：碧木林地",
-      "gladeBody": "並非谷地裡的每一個故事都與亡者有關。在北方，一片名為碧木林地、陽光普照的林間空地保有它自己更為平和的節奏，由一名寧願看管它而非戰鬥的孤獨遊俠守望著。她的職責是平衡：剔除過度繁衍之物，並在林地老去的鹿王巢穴變得太過危險而不能放任不管時，給予牠一個體面的結局。這是你正在追隨的軌跡的一段柔和對照，值得你繞道一訪。"
+      "gladeTitle": "寧靜一隅：碧木林地",
+      "gladeBody": "谷地裡的故事並不全都關於亡者。北方有一片陽光灑落的林地，名為碧木林地，保有自己較溫和的節奏：安靜小徑、啃草的鹿，以及枝葉下警覺的野獸。它是你所追循之路旁的一段柔和對照，當道路給你餘裕漫遊時，很值得前去一看。"
     },
     "questsPage": {
       "heading": "任務",
@@ -993,9 +1086,7 @@ export const zh_TW: EnTranslations = {
       "aldricRole": "谷地的牧師",
       "aldricBody": "一位謙卑的鄉村牧師，他最先在東溪一座被玷污的墳前指出邪教的名號，隨後親自循著線索穿過沼澤，一路向上來到高守哨站的城牆。他是整場戰役中堅定不移的核心。",
       "marenRole": "元帥的斥候",
-      "marenBody": "你在泥沼的蘆葦叢中遇見的一位寡言追蹤者，腳步輕巧無聲，配著一把短刃。她也一路向北追查線索，正是她的耳朵捕捉到了那幾句話，把你送往群峰。",
-      "elwynRole": "碧木林地守衛",
-      "elwynBody": "北谷一片陽光普照的林間空地唯一的守護者。她的職責是看管，而非殺戮：剔除過度繁衍之物，並讓林地中最年邁的野獸得到比死於狼口更仁慈的結局。"
+      "marenBody": "你在泥沼的蘆葦叢中遇見的一位寡言追蹤者，腳步輕巧無聲，配著一把短刃。她也一路向北追查線索，正是她的耳朵捕捉到了那幾句話，把你送往群峰。"
     },
     "dungeonsPage": {
       "heading": "地城與團隊副本",
@@ -1388,7 +1479,10 @@ export const zh_TW: EnTranslations = {
     "characterNamePlaceholder": "輸入角色名稱",
     "enterWorld": "進入世界",
     "offlineCharacter": "單機角色",
-    "create": "建立"
+    "create": "建立",
+    "twoFactorLabel": "驗證碼",
+    "twoFactorPlaceholder": "6 位數驗證碼或復原碼",
+    "twoFactorHint": "請輸入驗證器應用程式顯示的驗證碼，或其中一組復原碼。"
   },
   "wallet": {
     "label": "$WOC 錢包",
@@ -1788,7 +1882,9 @@ export const zh_TW: EnTranslations = {
     "genre": "MMORPG",
     "playMode": "多人遊戲",
     "applicationCategory": "遊戲",
-    "operatingSystem": "網頁瀏覽器"
+    "operatingSystem": "網頁瀏覽器",
+    "officialLabel": "World of ClaudeCraft 官方網站",
+    "officialBody": "worldofclaudecraft.com 是 Claudemoon 伺服器的官方免費瀏覽器 MMO。你可以用持久角色線上遊玩，也可以離線單人探索、閱讀 wiki，並從本站前往已驗證的社群連結。"
   },
   "a11y": {
     "goHome": "前往首頁",
@@ -1857,6 +1953,11 @@ export const zh_TW: EnTranslations = {
     "high": "高",
     "medium": "中",
     "low": "低",
+    "popTipLow": "人數較少：目前在線玩家不足 15 人。空間充足，適合全新開始。",
+    "popTipMedium": "人數適中：目前在線玩家 15 至 39 人。健康活躍的伺服器。",
+    "popTipHigh": "人數較多：目前在線玩家 40 至 79 人。繁忙，玩家眾多。",
+    "popTipFull": "人數已滿：目前在線玩家 80 人或以上。非常繁忙；登入時可能需要排隊。",
+    "popTipOffline": "離線：此伺服器目前無法連接，無法加入。",
     "characterCountOne": "{count} 個角色",
     "characterCountOther": "{count} 個角色",
     "selectedRealm": "伺服器：{name}",
@@ -2191,6 +2292,7 @@ export const zh_TW: EnTranslations = {
         "report": "檢舉玩家",
         "removeParty": "移出隊伍",
         "convertToRaid": "轉換為團隊",
+        "convertToParty": "轉換為隊伍",
         "cancel": "取消"
       }
     },
@@ -2309,6 +2411,10 @@ export const zh_TW: EnTranslations = {
       "whisperAmbiguous": "有多名玩家符合「{name}」。請使用準確大小寫。",
       "whisperMissing": "沒有名為「{name}」的玩家在線上。",
       "whisperSelf": "你自言自語，沒人聽見。",
+      "assistSelf": "你無法協助自己。",
+      "assistNoTarget": "{name} 沒有目標。",
+      "assistWhom": "協助誰？請選定一名玩家，或使用 /assist <name>。",
+      "assisting": "正在協助 {name}。",
       "notInParty": "你不在隊伍中。",
       "unknownCommand": "未知指令：{command}。請嘗試 /s /y /w /p /g。",
       "chatCooldown": "聊天冷卻中，還需 {seconds} 秒。",
@@ -3768,6 +3874,9 @@ export const zh_TW: EnTranslations = {
       "ridge_stalker_pelt": {
         "name": "山脊潛伏者毛皮"
       },
+      "pristine_ridge_stalker_pelt": {
+        "name": "無瑕的山脊潛伏者毛皮"
+      },
       "glowing_wax": {
         "name": "發光蠟塊"
       },
@@ -3987,9 +4096,6 @@ export const zh_TW: EnTranslations = {
       "milepost_boots": {
         "name": "里程靴"
       },
-      "glade_pelt": {
-        "name": "林間獸皮"
-      },
       "soft_down": {
         "name": "柔軟絨毛"
       },
@@ -4007,9 +4113,6 @@ export const zh_TW: EnTranslations = {
       },
       "monarch_crown_helm": {
         "name": "君主之冠"
-      },
-      "monarch_heart": {
-        "name": "君主之心"
       },
       "bristleback_maul": {
         "name": "硬鬃重槌"
@@ -4208,6 +4311,9 @@ export const zh_TW: EnTranslations = {
       },
       "cragmaw_prowlboots": {
         "name": "裂顎潛行靴"
+      },
+      "cragmaw_huntcord": {
+        "name": "裂顎的狩獵腰索"
       },
       "drowned_tide_scepter": {
         "name": "溺亡潮汐權杖"
@@ -4634,42 +4740,6 @@ export const zh_TW: EnTranslations = {
       "nythraxis_scourge_of_thornpeak": {
         "name": "尼思拉克西斯，荊峰之災"
       },
-      "brightwood_hare": {
-        "name": "明木野兔"
-      },
-      "glade_fox": {
-        "name": "林間狐狸"
-      },
-      "spotted_fawn": {
-        "name": "斑點幼鹿"
-      },
-      "meadow_crane": {
-        "name": "草甸鶴"
-      },
-      "thornpelt_badger": {
-        "name": "棘毛獾"
-      },
-      "dawnmane_doe": {
-        "name": "曦鬃母鹿"
-      },
-      "bramble_lynx": {
-        "name": "棘叢猞猁"
-      },
-      "brightwood_stag": {
-        "name": "明木雄鹿"
-      },
-      "grovetusk_boar": {
-        "name": "林牙野豬"
-      },
-      "sunhide_bear": {
-        "name": "陽皮熊"
-      },
-      "brightwood_monarch": {
-        "name": "明木君主"
-      },
-      "elder_bristleback": {
-        "name": "年長硬鬃"
-      },
       "ironvein_foreman": {
         "name": "鐵脈工頭"
       },
@@ -4693,12 +4763,6 @@ export const zh_TW: EnTranslations = {
       },
       "nhalia_mourner": {
         "name": "娜莉亞哀悼者"
-      },
-      "sableweb_hatchling": {
-        "name": "黑網幼蛛"
-      },
-      "sableweb_matriarch": {
-        "name": "黑網主母"
       },
       "sister_nhalia": {
         "name": "娜莉亞修女"
@@ -4880,11 +4944,6 @@ export const zh_TW: EnTranslations = {
         "name": "凱迪斯博學者",
         "title": "博學者",
         "greeting": "小心鬆動的頁岩，{className}。這座山近來不安，我想知道原因。"
-      },
-      "ranger_elwyn": {
-        "name": "巡林員艾爾溫",
-        "title": "林地守護",
-        "greeting": "安靜點，{className}，今天林地很平靜，我打算讓它一直這樣。"
       },
       "brother_aldric_raid": {
         "name": "奧德里克修士",
@@ -5637,145 +5696,6 @@ export const zh_TW: EnTranslations = {
         "objectives": {
           "0": {
             "label": "擊敗尼思拉克西斯"
-          }
-        }
-      },
-      "q_brightwood_thinning": {
-        "title": "疏減林地",
-        "text": "明木林地已經氾濫成災了，{playerName}。棘叢猞猁繁衍的速度比我能撲滅牠們的還快，獸群又踐踏了所剩無幾的牧草。擊殺8隻棘叢猞猁，並帶6張林間獸皮回來，好讓我判斷其餘獸群的健康狀況。",
-        "completion": "很好。獸群被疏減了，這些獸皮也很完好，林地還能再撐過一季。",
-        "objectives": {
-          "0": {
-            "label": "棘叢猞猁已擊殺"
-          },
-          "1": {
-            "label": "林間獸皮"
-          }
-        }
-      },
-      "q_brightwood_monarch": {
-        "title": "明木君主",
-        "text": "有一頭野獸我不會獨自向牠放箭：明木君主，那頭統御深邃林地的巨鹿。牠已經變得老邁而兇殘，凡是接近牠巢穴的都會被牠的鹿角刺穿。牠遠非一名獵人所能匹敵，帶上一兩位夥伴吧。讓牠安息，並把牠的心臟帶來給我，{playerName}。",
-        "completion": "這麼說，老王已經倒下了。沉重的一刻啊，但這比讓野狼了結牠要仁慈得多。帶著敬意戴上這頂以牠鹿角製成的王冠吧，{playerName}。",
-        "objectives": {
-          "0": {
-            "label": "君主之心"
-          }
-        }
-      },
-      "q_ledger_first_duty": {
-        "title": "守護的首要職責",
-        "text": "你想在東溪掙口飯吃嗎，{playerName}？那就從每位守護都起步的地方開始。棘毛獾在明木林地一路掘出獸窩，遠在北方狼徑那頭，林地都快塌進牠們的洞穴裡了。剔除8頭棘毛獾，名冊就會記住你的名字。",
-        "completion": "八處獸窩都清空了，林地也歸於平整。很好。這本名冊上的每個名字，都是從你現在站的地方開始的。",
-        "objectives": {
-          "0": {
-            "label": "棘毛獾已剔除"
-          }
-        }
-      },
-      "q_ledger_teeth": {
-        "title": "黑暗中的尖牙",
-        "text": "這些林地狐變得跟野狼一樣膽大，牠們在黃昏潛入雞舍，趁人點燈之前就溜得無影無蹤；一隻餓壞的母狐叼走羔羊跟叼走母雞一樣乾脆。把牠們的數量壓下去，{playerName}。擊殺10隻林地狐，讓剩下的重新學會畏懼亮光。",
-        "completion": "十隻狐狸，黃昏的雞舍又恢復了安寧。名冊對你更友善了。",
-        "objectives": {
-          "0": {
-            "label": "林地狐已擊殺"
-          }
-        }
-      },
-      "q_ledger_reedwater": {
-        "title": "蘆葦水域巡邏",
-        "text": "赤溪派你來的？很好，我這把老骨頭再也涉不過淺灘了。那些草地鶴盯上了我的漁網，牠們叼走的漁獲比泥鰭一族當年還多。把牠們疏減一下：8隻草地鶴，還有，當心深水。",
-        "completion": "這樣能讓那些長腿賊子離我的漁網一季了。告訴元帥，淺灘又屬於我了。",
-        "objectives": {
-          "0": {
-            "label": "草地鶴已驅離"
-          }
-        }
-      },
-      "q_ledger_silk": {
-        "title": "啃食與荊棘",
-        "text": "名冊也把東邊的樹林劃為守護的轄地，我的藥圃也在其中。那些斑點幼鹿把我的銀葉草和血薊啃得連根都不剩，少了這些草藥，半個東溪鎮都會無藥可用。我並不樂見如此，但在秋季的藥草徹底絕收之前，必須剔除8隻斑點幼鹿。",
-        "completion": "多虧了你，藥圃或許還能恢復。這是不得已的仁慈，但對一個高燒不退的孩子而言，這些草藥遠比樹林裡的鹿群更要緊。名冊兩清了。",
-        "objectives": {
-          "0": {
-            "label": "斑點幼鹿已剔除"
-          }
-        }
-      },
-      "q_ledger_brood": {
-        "title": "繁生的黑暗",
-        "text": "殺光潛伏者只是給蛛群騰出了地方。黑網幼蛛正從深處的巢穴中傾巢而出，上百根小尖牙殺死旅人的本事，和一根巨牙一樣有效。趁牠們長大之前，碾碎8隻黑網幼蛛。",
-        "completion": "淹掉一窩巢穴是樁殘酷的活兒。但此刻的慈悲能省去日後上百場葬禮。這筆帳結清了。",
-        "objectives": {
-          "0": {
-            "label": "黑網幼蛛已碾碎"
-          }
-        }
-      },
-      "q_ledger_deepvermin": {
-        "title": "深處的害蟲",
-        "text": "元帥的名冊上說你會清除害蟲。嗯，我這座礦坑裡的是最糟的一批。地道鼠繁衍的速度比我的工班揮鎬還快，宰掉12隻地道鼠掘地者，也許我們入冬前就能挖到銅礦。",
-        "completion": "十二隻頂著燭光腦袋的害蟲，沒了！好，弟兄們，回礦井去。你替自己在元帥那兒掙了句好話，{playerName}。",
-        "objectives": {
-          "0": {
-            "label": "地道鼠掘地者已擊殺"
-          }
-        }
-      },
-      "q_ledger_toll": {
-        "title": "獠牙之路",
-        "text": "那些林牙野豬從輝光林下來，闖上了東南方的商道，那是一群長著獠牙的猛獸，牠們頂傷拉車的耕牛，掀翻馬車只為了散落的穀物。名冊上對每一隻都標了賞金。重新打通這條路：撂倒8隻林牙野豬。",
-        "completion": "八隻猛獸清出了道路，馬車又開始通行了。商道有了新守護者的消息已經傳開。名冊愈發向著你了。",
-        "objectives": {
-          "0": {
-            "label": "林牙野豬已擊殺"
-          }
-        }
-      },
-      "q_ledger_vigil": {
-        "title": "禮拜堂的守夜",
-        "text": "當麻煩超出刀劍所能及的範圍時，元帥便會把他的守護派來找我。禮拜堂的亡者不肯安歇，而我太老了，撐不住整夜的守夜。替我守住吧，{playerName}，讓10具不寧骸骨重歸安息。",
-        "completion": "十個亡魂歸於塵土，也為禮拜堂買來了一夜的安寧。聖光記得這樣的守夜，即便名冊已然遺忘。",
-        "objectives": {
-          "0": {
-            "label": "不寧骸骨已安息"
-          }
-        }
-      },
-      "q_ledger_great_boar": {
-        "title": "巨大的硬鬃",
-        "text": "西邊的灌木叢裡有一頭老公野豬，年長硬鬃，皮厚如樹皮，脾氣也一樣硬。牠已經頂傷了我兩名剝皮工。把牠放倒，再清掉躲在牠身後的6頭較弱的野豬，我就讓你的名字在名冊上高高掛起。",
-        "completion": "年長硬鬃，死於你手！光是那張獸皮就值上一季的交易。你讓名冊與有榮焉，{playerName}。",
-        "objectives": {
-          "0": {
-            "label": "年長硬鬃已擊殺"
-          },
-          "1": {
-            "label": "豬群的野豬已擊殺"
-          }
-        }
-      },
-      "q_ledger_outlaw_captain": {
-        "title": "亡命隊長",
-        "text": "名冊上最後一個名字，是我這一年來最想劃掉的：維爾蘭隊長，他把半個山谷的人都帶成了盜匪。他躲在東南營地裡，由他的副手們護著。砍倒6名谷地強盜殺到他面前，然後了結維爾蘭本人。別獨自前往。",
-        "completion": "維爾蘭隊長，死了，他的外套也送到了我門前。這筆帳結清了，{playerName}，而山谷會把結清它的那人之名，傳頌給後來的守護們。",
-        "objectives": {
-          "0": {
-            "label": "谷地強盜已砍倒"
-          },
-          "1": {
-            "label": "維爾蘭隊長已擊殺"
-          }
-        }
-      },
-      "q_mogger_tracks": {
-        "title": "莫格的蹤跡",
-        "text": "在你踏上北路前，東溪還有最後一根刺：莫格。那蠻獸踐踏下方草地，把野豬都逼瘋了。清理牠蹤跡周圍的草地，我們才能看出牠藏在哪裡。",
-        "completion": "這些足跡很新，也深得能積住雨水。莫格不是營火故事，{playerName}，而且牠就在附近。",
-        "objectives": {
-          "0": {
-            "label": "野豬被趕離蹤跡"
           }
         }
       },

@@ -12,6 +12,38 @@ bundle the built Vite client and connect to the production backend at
 - Cloudflare Turnstile must allow the native WebView origins used by Capacitor:
   `capacitor://localhost` for iOS and `http://localhost` for Android.
 
+## Versioning
+
+The app version lives in three files that must stay in lockstep:
+
+| File | Field(s) |
+|---|---|
+| `package.json` | `version` |
+| `android/app/build.gradle` | `versionName`, `versionCode` |
+| `ios/App/App.xcodeproj/project.pbxproj` | `MARKETING_VERSION`, `CURRENT_PROJECT_VERSION` |
+
+Do not edit these by hand. Bump them all in one step with npm's built-in
+`version` command, which fires the `version` lifecycle hook
+(`scripts/version_sync.mjs`) and folds the native files into the same commit and
+tag:
+
+```sh
+npm version 0.15.0        # exact version
+npm version minor         # or patch / major
+```
+
+This sets the marketing version (`version` / `versionName` / `MARKETING_VERSION`)
+to the new semver across all three files and increments the native build numbers
+(`versionCode` / `CURRENT_PROJECT_VERSION`), which the App Store and Play Store
+require to strictly increase on every upload.
+
+To resync the native manifests to the current `package.json` version without
+cutting a release commit (e.g. after a manual edit), run:
+
+```sh
+npm run version:sync
+```
+
 ## Commands
 
 ```sh

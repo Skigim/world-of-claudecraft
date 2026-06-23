@@ -174,6 +174,28 @@ export const fr_CA: EnTranslations = {
       "title": "Emotes",
       "done": "Terminé"
     },
+    "theme": {
+      "preset": "Thème de l'interface",
+      "customColors": "Couleurs personnalisées",
+      "reset": "Réinitialiser",
+      "presets": {
+        "classic": "Or classique",
+        "midnight": "Minuit",
+        "parchment": "Parchemin",
+        "highContrast": "Contraste élevé"
+      },
+      "knob": {
+        "accent": "Accent",
+        "border": "Bordure",
+        "panel": "Cadre",
+        "text": "Texte",
+        "textMuted": "Texte atténué",
+        "hp": "Santé",
+        "mana": "Mana",
+        "rage": "Rage",
+        "energy": "Énergie"
+      }
+    },
     "questTracker": {
       "count": "({count})",
       "collapseHint": "Réduire le suivi des quêtes",
@@ -209,12 +231,27 @@ export const fr_CA: EnTranslations = {
       "hapticsOff": "Vibrations désactivées",
       "toggleHaptics": "Activer/désactiver les vibrations"
     },
+    "tutorial": {
+      "moveBodyTouch": "Utilise le joystick de déplacement pour te déplacer et fais glisser l'écran pour regarder autour de toi. Fais quelques pas pour commencer.",
+      "talkBodyTouch": "Tiens-toi près du maréchal Redbrook et touche le bouton Utiliser pour lui parler, puis accepte sa mission.",
+      "returnBodyTouch": "Ta mission est accomplie. Retourne voir le maréchal Redbrook et touche le bouton Utiliser pour la rendre.",
+      "doneBodyTouch": "Tu maîtrises les bases, {name}. Le Val est à toi : touche Plus, puis Journal de quêtes, pour consulter ton journal de quêtes à tout moment. Bonne chasse !"
+    },
     "widgets": {
       "clockTitle": "Heure locale - cliquez pour basculer 12/24 heures",
       "worldCoordinates": "Coordonnées du monde",
       "coordinates": "Coordonnées",
       "heading": "Cap",
       "minimapZoom": "Zoom de la minicarte"
+    },
+    "raidLockout": {
+      "title": "Verrous de raid",
+      "allReady": "Tous les raids prêts",
+      "daysHours": "{d}j {h}h",
+      "hoursMinutes": "{h}h {m}min",
+      "minutes": "{m}min",
+      "lessThanMinute": "<1min",
+      "lockedToast": "Vous êtes verrouillé sur {raid}. Déverrouillage dans {time}."
     },
     "compass": {
       "N": "N",
@@ -253,6 +290,8 @@ export const fr_CA: EnTranslations = {
       "interfaceModeNote": "Auto choisit les commandes Desktop ou Touch selon votre appareil. Choisissez Desktop pour forcer le clavier et la souris (utile sur une tablette avec clavier), ou Touch pour les commandes à l'écran.",
       "footstepSounds": "Sons de pas",
       "clickFeedback": "Repère de clic",
+      "lockCursorOnRotate": "Verrouiller le curseur pendant la rotation",
+      "keybindHelpLockCursorOnRotate": "Maintient le curseur de la souris dans la fenêtre pendant que vous faites glisser pour faire pivoter la caméra, afin qu'il n'atteigne pas le bord de l'écran et ne passe pas sur un autre moniteur. Désactivez cette option si vous préférez un curseur libre.",
       "showWalletOnCharacterScreen": "Afficher le portefeuille sur l’écran des personnages",
       "showWalletOnPlayerCard": "Afficher le portefeuille sur la carte de joueur",
       "uiScale": "Échelle de l’interface",
@@ -476,7 +515,62 @@ export const fr_CA: EnTranslations = {
       "deactivateConfirm": "Désactiver mon compte",
       "deactivated": "Votre compte a été désactivé.",
       "logOut": "Se déconnecter",
-      "logOutSummary": "Déconnectez-vous de cet appareil."
+      "logOutSummary": "Déconnectez-vous de cet appareil.",
+      "sectionSecurity": "Sécurité",
+      "changeEmailTitle": "Changer l'e-mail",
+      "changeEmailHint": "Nous envoyons un lien de confirmation par e-mail à la nouvelle adresse et un avis à l'ancienne. Votre e-mail ne change qu'une fois le lien ouvert.",
+      "changeEmailNew": "Nouvel e-mail",
+      "changeEmailSubmit": "Envoyer le lien de confirmation",
+      "changeEmailSent": "Consultez votre boîte de réception : ouvrez le lien que nous avons envoyé pour confirmer votre nouvel e-mail.",
+      "errEmailUnchanged": "Il s'agit déjà de votre adresse e-mail.",
+      "twoFactorTitle": "Authentification à deux facteurs",
+      "twoFactorStatusOn": "L'authentification à deux facteurs est ACTIVÉE pour votre compte.",
+      "twoFactorStatusOff": "Ajoutez une application d'authentification pour renforcer la sécurité de votre compte.",
+      "twoFactorSetupBtn": "Configurer l'authentification à deux facteurs",
+      "twoFactorBeginHint": "Saisissez votre mot de passe pour commencer la configuration.",
+      "twoFactorBegin": "Commencer la configuration",
+      "twoFactorScanHint": "Ajoutez cette clé à votre application d'authentification (Google Authenticator, Authy, 1Password, et similaires), puis saisissez le code à 6 chiffres qu'elle affiche.",
+      "twoFactorSecretLabel": "Clé de configuration",
+      "twoFactorOpenApp": "Ouvrir dans l'application d'authentification",
+      "twoFactorCodeLabel": "Code à 6 chiffres",
+      "twoFactorVerifyBtn": "Vérifier et activer",
+      "twoFactorEnabledMsg": "L'authentification à deux facteurs est maintenant activée.",
+      "twoFactorRecoveryTitle": "Enregistrez vos codes de récupération",
+      "twoFactorRecoveryHint": "Chaque code fonctionne une seule fois. Conservez-les en lieu sûr : ils sont le seul moyen de revenir si vous perdez votre application d'authentification.",
+      "twoFactorDownloadCodes": "Télécharger les codes",
+      "twoFactorDone": "Terminé",
+      "twoFactorDisableHint": "Saisissez votre mot de passe pour désactiver l'authentification à deux facteurs. Vos codes de récupération seront supprimés.",
+      "twoFactorDisableBtn": "Désactiver l'authentification à deux facteurs",
+      "twoFactorDisabledMsg": "L'authentification à deux facteurs est désactivée.",
+      "errTwoFactorCode": "Ce code n'est pas valide, réessayez.",
+      "errTwoFactorState": "La configuration de l'authentification à deux facteurs n'est pas dans l'état attendu. Rechargez la page et réessayez.",
+      "exportTitle": "Exporter mes données",
+      "exportHint": "Téléchargez une copie de votre compte et de vos personnages sous forme de fichier JSON. Nous vous envoyons également une confirmation par e-mail.",
+      "exportBtn": "Télécharger mes données",
+      "exportDone": "Vos données ont été téléchargées. Nous vous avons envoyé une confirmation par e-mail.",
+      "exportFailed": "Impossible d'exporter vos données. Réessayez dans un moment."
+    },
+    "bags": {
+      "filterGroupAria": "Filtrer les sacs par catégorie",
+      "filterAll": "Tous",
+      "filterWeapon": "Armes",
+      "filterArmor": "Armure",
+      "filterConsumable": "Consommables",
+      "filterMaterial": "Matériaux",
+      "filterQuest": "Quête",
+      "sortAria": "Trier les objets du sac",
+      "sortRecent": "Récents",
+      "sortQuality": "Qualité",
+      "sortName": "Nom",
+      "searchPlaceholder": "Rechercher des objets",
+      "searchAria": "Rechercher les objets du sac par nom",
+      "noMatch": "Aucun objet ne correspond à vos filtres."
+    },
+    "raidConvert": {
+      "toPartyDone": "Votre raid a été reconverti en groupe.",
+      "notRaid": "Votre groupe n'est pas un raid.",
+      "leaderOnly": "Seul le chef de raid peut convertir en groupe.",
+      "tooLarge": "Un raid de plus de cinq membres ne peut pas être reconverti en groupe."
     }
   },
   "guide": {
@@ -879,7 +973,6 @@ export const fr_CA: EnTranslations = {
       "notedLabel": "À noter",
       "flavor": {
         "old_greyjaw": "Un vieux loup balafré qu'aucun piège n'a jamais tenu, tenu pour responsable de trois chiens et du bras d'un garçon d'écurie. Il chasse seul au plus profond des bois et devient sauvage à mesure que le combat s'éternise.",
-        "brightwood_stag": "Un fier cerf des bosquets qui baisse sa couronne de bois et charge tête baissée, devenant d'autant plus coriace qu'on le presse longtemps.",
         "grubjaw": "Un troll des fagnes si avide que les autres trolls refusent de creuser à ses côtés ; on dit qu'il a dévoré les deux dernières mules de bât d'un marchand, harnais compris.",
         "shardlord_kazzix": "Un élémentaire de tempête doté d'épaules, qui arpente les crêtes lointaines au-dessus de Stormcrag, porteur d'un éclat de cœur qui vaut bien d'affronter la foudre.",
         "mirejaw_frenzy": "Un murloc des marais qui se monte en frénésie convulsive en plein combat, le plus bruyant d'une meute bruyante et territoriale.",
@@ -944,8 +1037,8 @@ export const fr_CA: EnTranslations = {
       "valePlaceNotes": "Eastbrook est votre premier camp de base. La Course du Loup et le Pré du Sanglier sont des terrains de chasse cléments ; le lac Miroir est une eau calme où pêcher ; le Bois des toiles et la Mine de cuivre cachent araignées et fouisseurs avides de minerai ; un Camp de bandits et la Chapelle déchue gardent des besognes plus rudes ; la clairière de Brightwood est un paisible bosquet sauvage au nord.",
       "marshPlaceNotes": "Fenbridge garde la seule route sèche. Les Roseaux du Rôdeur et les Hauts-fonds de Deepfen grouillent de bêtes des marais et de murlocs ; le Fourré de la Veuve est tissé d'une épaisse toile ; la Chapelle noyée et les Tertres des trolls gardent des dangers plus anciens ; le Campement des Appelants des tombes, c'est le culte retranché, et le Bastion englouti est le cœur en instance du marais.",
       "peaksPlaceNotes": "Highwatch tient le rempart. La Crête du Traqueur et les Terriers de Deeprock appartiennent aux félins des crêtes et aux kobolds ; les Contreforts des ogres et le Camp de guerre de Drogmar à des brutes à gages ; Stormcrag crépite d'élémentaires et le Glimmermere luit en contrebas ; les Tentes du culte du Ver et les Champs des revenants ceignent les hauteurs du culte, avec le Sanctuaire du Gravewyrm à son sommet.",
-      "gladeTitle": "Un coin tranquille : la clairière de Brightwood",
-      "gladeBody": "Toutes les histoires du Val ne parlent pas des morts. Au nord, un bosquet baigné de soleil nommé la clairière de Brightwood garde son propre rythme, plus doux, veillé par une rôdeuse solitaire qui préfère l'entretenir que se battre. Son travail est l'équilibre : éclaircir ce qui pullule et, quand son creux devient trop dangereux pour qu'on le laisse, offrir au vieux cerf couronné du bosquet une fin respectueuse. C'est un contrepoint paisible à la piste que vous suivez, et le détour en vaut la peine."
+      "gladeTitle": "Un coin paisible : la clairière de Brightwood",
+      "gladeBody": "Toutes les histoires du Val ne parlent pas des morts. Au nord, une clairière ensoleillée appelée Brightwood garde son propre rythme plus doux, avec des sentiers calmes, des cerfs au pâturage et des bêtes méfiantes sous les branches. C’est un contrepoint apaisé à la piste que vous suivez, et elle mérite le détour quand la route vous laisse le temps de flâner."
     },
     "questsPage": {
       "heading": "Quêtes",
@@ -993,9 +1086,7 @@ export const fr_CA: EnTranslations = {
       "aldricRole": "Prêtre du Val",
       "aldricBody": "Un humble prêtre de village qui, le premier, nomme le culte au-dessus d'une tombe profanée à Eastbrook, puis suit sa piste en personne à travers le marais jusqu'au rempart de Highwatch. Il est le cœur constant de toute la campagne.",
       "marenRole": "L'éclaireuse du maréchal",
-      "marenBody": "Une traqueuse à la voix basse que vous croisez dans les roseaux de Mirefen, tout en pas feutrés et en lame courte. Elle suit la piste vers le nord, elle aussi, et c'est son oreille qui saisit les mots qui vous envoient vers les sommets.",
-      "elwynRole": "Gardienne de la clairière de Brightwood",
-      "elwynBody": "L'unique gardienne d'un bosquet baigné de soleil au nord du Val. Son travail est l'intendance, non le carnage : éclaircir ce qui pullule et offrir à la plus vieille bête du bosquet une fin plus douce que celle que lui réserveraient les loups."
+      "marenBody": "Une traqueuse à la voix basse que vous croisez dans les roseaux de Mirefen, tout en pas feutrés et en lame courte. Elle suit la piste vers le nord, elle aussi, et c'est son oreille qui saisit les mots qui vous envoient vers les sommets."
     },
     "dungeonsPage": {
       "heading": "Donjons et raids",
@@ -1388,7 +1479,10 @@ export const fr_CA: EnTranslations = {
     "characterNamePlaceholder": "Nom du personnage",
     "enterWorld": "Entrer dans le monde",
     "offlineCharacter": "Personnage hors ligne",
-    "create": "Créer"
+    "create": "Créer",
+    "twoFactorLabel": "Code d'authentification",
+    "twoFactorPlaceholder": "Code à 6 chiffres ou code de récupération",
+    "twoFactorHint": "Saisissez le code de votre application d'authentification, ou l'un de vos codes de récupération."
   },
   "wallet": {
     "label": "Portefeuille $WOC",
@@ -1788,7 +1882,9 @@ export const fr_CA: EnTranslations = {
     "genre": "MMORPG",
     "playMode": "Multijoueur",
     "applicationCategory": "Jeu",
-    "operatingSystem": "Navigateur Web"
+    "operatingSystem": "Navigateur Web",
+    "officialLabel": "Site officiel de World of ClaudeCraft",
+    "officialBody": "worldofclaudecraft.com est le MMO gratuit officiel sur navigateur du royaume Claudemoon. Jouez en ligne avec un personnage persistant, explorez en solo hors ligne, lisez le wiki et suivez les liens communautaires vérifiés depuis ce site."
   },
   "a11y": {
     "goHome": "Aller à l'accueil",
@@ -1857,6 +1953,11 @@ export const fr_CA: EnTranslations = {
     "high": "Élevée",
     "medium": "Moyenne",
     "low": "Faible",
+    "popTipLow": "Population faible : moins de 15 joueurs en ligne actuellement. Beaucoup de place ; idéal pour un nouveau départ.",
+    "popTipMedium": "Population moyenne : 15 à 39 joueurs en ligne actuellement. Un royaume actif et sain.",
+    "popTipHigh": "Population élevée : 40 à 79 joueurs en ligne actuellement. Fréquenté, avec beaucoup de joueurs autour.",
+    "popTipFull": "Population complète : 80 joueurs ou plus en ligne actuellement. Très fréquenté ; vous pourriez attendre dans une file de connexion.",
+    "popTipOffline": "Hors ligne : ce royaume est inaccessible pour le moment et ne peut pas être rejoint.",
     "characterCountOne": "{count} personnage",
     "characterCountOther": "{count} personnages",
     "selectedRealm": "Royaume: {name}",
@@ -2191,6 +2292,7 @@ export const fr_CA: EnTranslations = {
         "report": "Signaler le joueur",
         "removeParty": "Retirer du groupe",
         "convertToRaid": "Convertir en raid",
+        "convertToParty": "Convertir en groupe",
         "cancel": "Annuler"
       }
     },
@@ -2309,6 +2411,10 @@ export const fr_CA: EnTranslations = {
       "whisperAmbiguous": "Plusieurs joueurs correspondent à '{name}'. Respectez la casse exacte.",
       "whisperMissing": "Aucun joueur nommé '{name}' n'est en ligne.",
       "whisperSelf": "Vous marmonnez pour vous-même. Personne ne l'entend.",
+      "assistSelf": "Vous ne pouvez pas vous assister vous-même.",
+      "assistNoTarget": "{name} n'a pas de cible.",
+      "assistWhom": "Assister qui ? Ciblez un joueur ou utilisez /assist <name>.",
+      "assisting": "Vous assistez {name}.",
       "notInParty": "Vous n'êtes pas dans un groupe.",
       "unknownCommand": "Commande inconnue : {command}. Essayez /s /y /w /p /g.",
       "chatCooldown": "La discussion est en recharge pendant {seconds}s.",
@@ -3768,6 +3874,9 @@ export const fr_CA: EnTranslations = {
       "ridge_stalker_pelt": {
         "name": "Peau de rôdeur de la crête"
       },
+      "pristine_ridge_stalker_pelt": {
+        "name": "Peau immaculée de rôdeur de la crête"
+      },
       "glowing_wax": {
         "name": "Cire luisante"
       },
@@ -3987,9 +4096,6 @@ export const fr_CA: EnTranslations = {
       "milepost_boots": {
         "name": "Bottes de borne"
       },
-      "glade_pelt": {
-        "name": "Fourrure de clairière"
-      },
       "soft_down": {
         "name": "Touffe de duvet doux"
       },
@@ -4007,9 +4113,6 @@ export const fr_CA: EnTranslations = {
       },
       "monarch_crown_helm": {
         "name": "Couronne du Monarque"
-      },
-      "monarch_heart": {
-        "name": "Le Cœur du Monarque"
       },
       "bristleback_maul": {
         "name": "Maillet Bristleback"
@@ -4208,6 +4311,9 @@ export const fr_CA: EnTranslations = {
       },
       "cragmaw_prowlboots": {
         "name": "Bottes rôdeuses de Cragmaw"
+      },
+      "cragmaw_huntcord": {
+        "name": "Ceinturon de chasse de Cragmaw"
       },
       "drowned_tide_scepter": {
         "name": "Sceptre de la marée noyée"
@@ -4634,42 +4740,6 @@ export const fr_CA: EnTranslations = {
       "nythraxis_scourge_of_thornpeak": {
         "name": "Nythraxis, Fléau de Thornpeak"
       },
-      "brightwood_hare": {
-        "name": "Lièvre de Brightwood"
-      },
-      "glade_fox": {
-        "name": "Renard des clairières"
-      },
-      "spotted_fawn": {
-        "name": "Faon tacheté"
-      },
-      "meadow_crane": {
-        "name": "Grue des prés"
-      },
-      "thornpelt_badger": {
-        "name": "Blaireau Pelage-d'épines"
-      },
-      "dawnmane_doe": {
-        "name": "Biche Crinaube"
-      },
-      "bramble_lynx": {
-        "name": "Lynx des ronces"
-      },
-      "brightwood_stag": {
-        "name": "Cerf de Brightwood"
-      },
-      "grovetusk_boar": {
-        "name": "Sanglier Défense-des-bois"
-      },
-      "sunhide_bear": {
-        "name": "Ours Peau-de-soleil"
-      },
-      "brightwood_monarch": {
-        "name": "Le Monarque de Brightwood"
-      },
-      "elder_bristleback": {
-        "name": "Ancien Bristleback"
-      },
       "ironvein_foreman": {
         "name": "Contremaître Veinefer"
       },
@@ -4693,12 +4763,6 @@ export const fr_CA: EnTranslations = {
       },
       "nhalia_mourner": {
         "name": "Pleureuse de Nhalia"
-      },
-      "sableweb_hatchling": {
-        "name": "Jeune Sableweb"
-      },
-      "sableweb_matriarch": {
-        "name": "Matriarche Sableweb"
       },
       "sister_nhalia": {
         "name": "Sœur Nhalia"
@@ -4880,11 +4944,6 @@ export const fr_CA: EnTranslations = {
         "name": "Maître du savoir Caddis",
         "title": "Maître du savoir",
         "greeting": "Méfiez-vous des schistes instables, {className}. La montagne est agitée ces temps-ci, et je veux savoir pourquoi."
-      },
-      "ranger_elwyn": {
-        "name": "Rôdeuse Elwyn",
-        "title": "Garde de la clairière",
-        "greeting": "Silence, {className} - la clairière est calme aujourd'hui, et j'entends bien qu'elle le reste."
       },
       "brother_aldric_raid": {
         "name": "Frère Aldric",
@@ -5637,145 +5696,6 @@ export const fr_CA: EnTranslations = {
         "objectives": {
           "0": {
             "label": "Nythraxis vaincu"
-          }
-        }
-      },
-      "q_brightwood_thinning": {
-        "title": "Éclaircir la clairière",
-        "text": "La clairière de Brightwood est envahie, {playerName}. Les lynx des ronces se reproduisent plus vite que je ne peux les abattre, et les hardes piétinent le peu de pâture qu'il reste. Tuez 8 lynx des ronces et rapportez-moi 6 fourrures de clairière, que je juge de la santé du reste.",
-        "completion": "Bien. La harde est éclaircie et ces fourrures sont saines - la clairière tiendra une saison de plus.",
-        "objectives": {
-          "0": {
-            "label": "Lynx des ronces tué"
-          },
-          "1": {
-            "label": "Fourrure de clairière"
-          }
-        }
-      },
-      "q_brightwood_monarch": {
-        "title": "Le Monarque de Brightwood",
-        "text": "Il est une bête sur laquelle je ne décocherai pas une flèche seule : le Monarque de Brightwood, le grand cerf qui règne sur la clairière profonde. Il a vieilli et est devenu sauvage, encornant quiconque approche de son creux. Il est bien trop fort pour un seul chasseur - amenez un ami ou deux. Faites-le reposer en paix et rapportez-moi son cœur, {playerName}.",
-        "completion": "Ainsi le vieux roi est tombé. Une chose lourde à porter - mais une fin plus douce que celle que les loups lui auraient réservée. Portez cette couronne taillée dans ses andouillers avec respect, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "Le Cœur du Monarque"
-          }
-        }
-      },
-      "q_ledger_first_duty": {
-        "title": "Le premier devoir d'un gardien",
-        "text": "Vous voulez gagner votre place à Eastbrook, {playerName} ? Alors commencez là où commence tout gardien. Les blaireaux pelage-d'épines ont creusé leurs terriers à travers toute la Clairière de Brightwood, loin au nord au-delà de la Piste des loups, et le sol du bosquet s'effondre dans leurs galeries. Abattez 8 Blaireaux Pelage-d'épines et le registre retiendra votre nom.",
-        "completion": "Huit terriers vidés et le sol du bosquet s'est tassé. Bien. Chaque nom de ce registre a commencé là où vous vous tenez.",
-        "objectives": {
-          "0": {
-            "label": "Blaireau Pelage-d'épines abattu"
-          }
-        }
-      },
-      "q_ledger_teeth": {
-        "title": "Des crocs dans l'obscurité",
-        "text": "Les renards des clairières sont devenus hardis comme des loups - ils se faufilent dans les poulaillers au crépuscule et disparaissent avant qu'on n'allume une lanterne, et une renarde affamée emportera un agneau aussi volontiers qu'une poule. Éclaircissez leurs rangs, {playerName}. Tuez 10 renards des clairières et que les autres réapprennent à craindre la lumière.",
-        "completion": "Dix renards, et les poulaillers sont enfin paisibles au crépuscule. Le registre se fait plus clément envers vous.",
-        "objectives": {
-          "0": {
-            "label": "Renard des clairières tué"
-          }
-        }
-      },
-      "q_ledger_reedwater": {
-        "title": "Patrouille des roselières",
-        "text": "Redbrook vous envoie ? Bien - ces vieux os ne peuvent plus patauger dans les bas-fonds. Les grues des prairies ont trouvé mes filets, et elles harponnent davantage de mes prises que les Aileron-de-boue ne l'ont jamais fait. Éclaircissez leurs rangs : 8 grues des prairies, et prenez garde à l'eau profonde.",
-        "completion": "Voilà qui tiendra ces voleuses à longues pattes loin de mes filets pour une saison. Dites au maréchal que les bas-fonds sont de nouveau à moi.",
-        "objectives": {
-          "0": {
-            "label": "Grue des prairies chassée"
-          }
-        }
-      },
-      "q_ledger_silk": {
-        "title": "Brout et broussailles",
-        "text": "Le registre marque aussi les bois de l'est comme terre de gardien - et mes plates-bandes médicinales en font partie. Les faons tachetés ont ravagé jusqu'à la racine ma feuille d'argent et mon sang-chardon, et sans ces simples la moitié d'Eastbrook se retrouve sans remèdes. Je n'y prends nulle joie, mais abattez 8 faons tachetés avant que les herbes d'automne ne soient perdues à jamais.",
-        "completion": "Les plates-bandes pourront peut-être se rétablir, grâce à vous. Une clémence cruelle - mais un enfant brûlant de fièvre a plus besoin des simples que le bois n'a besoin des cerfs. Le registre est en règle.",
-        "objectives": {
-          "0": {
-            "label": "Faon tacheté abattu"
-          }
-        }
-      },
-      "q_ledger_brood": {
-        "title": "Les ténèbres qui essaiment",
-        "text": "Tuer les rôdeurs n'a fait que laisser la place à la couvée. Les jeunes Sableweb se déversent du nid profond, et cent petits crocs tuent un voyageur aussi sûrement qu'un seul énorme. Écrasez 8 jeunes Sableweb avant qu'ils ne grandissent.",
-        "completion": "Une sombre besogne, que de noyer un nid. Mais la clémence aujourd'hui, c'est une centaine d'enterrements épargnés plus tard. Le registre est en règle.",
-        "objectives": {
-          "0": {
-            "label": "Jeune Sableweb écrasé"
-          }
-        }
-      },
-      "q_ledger_deepvermin": {
-        "title": "Vermine des profondeurs",
-        "text": "Le registre du maréchal dit que vous débarrassez des nuisibles. Eh bien, ma galerie en a les pires. Les rats des tunnels se reproduisent plus vite que mon équipe ne manie la pioche - abattez 12 Terrassiers Rat des tunnels et peut-être trouverons-nous le cuivre avant l'hiver.",
-        "completion": "Douze de ces vermines à tête de chandelle, disparues ! Bien, les gars - on redescend dans le puits. Vous avez mérité un bon mot auprès du maréchal, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "Terrassier Rat des tunnels tué"
-          }
-        }
-      },
-      "q_ledger_toll": {
-        "title": "La route aux défenses",
-        "text": "Les sangliers grandcroc sont descendus de Bois-clair sur la route commerciale du sud-est - de grandes brutes à défenses qui encornent les bœufs de trait et renversent les chariots pour le grain répandu. Le registre met un prix sur la tête de chacun. Rouvrez la route : abattez 8 sangliers grandcroc.",
-        "completion": "Huit brutes débarrassées de la route, et les chariots roulent de nouveau. Le bruit court déjà que la route commerciale a un nouveau gardien. Le registre grimpe en votre faveur.",
-        "objectives": {
-          "0": {
-            "label": "Sanglier grandcroc tué"
-          }
-        }
-      },
-      "q_ledger_vigil": {
-        "title": "Veille à la chapelle",
-        "text": "Le maréchal m'envoie ses gardiens quand le trouble dépasse la portée des seules épées. Les morts de la chapelle ne veulent pas reposer en paix, et je suis trop vieux pour tenir la veille de nuit. Tenez-la pour moi, {playerName} - remettez 10 ossements agités au repos.",
-        "completion": "Dix âmes rendues à la terre, et une nuit de paix achetée pour la chapelle. La Lumière se souvient de telles veilles, même quand le registre les oublie.",
-        "objectives": {
-          "0": {
-            "label": "Ossements agités remis au repos"
-          }
-        }
-      },
-      "q_ledger_great_boar": {
-        "title": "Le grand Bristleback",
-        "text": "Il y a un vieux sanglier mâle dans les fourrés de l'ouest - l'Ancien Bristleback, une peau dure comme l'écorce et un tempérament à l'avenant. Il a encorné deux de mes écorcheurs. Abattez-le et éliminez 6 des sangliers sauvages moindres qui s'abritent derrière lui, et je ferai inscrire votre nom au plus haut du registre.",
-        "completion": "L'Ancien Bristleback, mort de votre main ! Cette peau à elle seule vaut une saison de commerce. Vous avez fait la fierté du registre, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "Ancien Bristleback tué"
-          },
-          "1": {
-            "label": "Sanglier sauvage de la harde tué"
-          }
-        }
-      },
-      "q_ledger_outlaw_captain": {
-        "title": "Le capitaine hors-la-loi",
-        "text": "Le dernier nom du registre est celui que je veux rayé depuis un an : le capitaine Verlan, qui a fait basculer la moitié du Val dans le banditisme. Il se terre derrière ses lieutenants dans le camp du sud-est. Abattez 6 bandits du Val pour l'atteindre, puis achevez Verlan lui-même. N'y allez pas seul.",
-        "completion": "Le capitaine Verlan, mort, et son manteau apporté à ma porte. Le registre est clos, {playerName} - et le Val dira aux gardiens à venir le nom de celui qui l'a clos.",
-        "objectives": {
-          "0": {
-            "label": "Bandit du Val abattu"
-          },
-          "1": {
-            "label": "Capitaine Verlan tué"
-          }
-        }
-      },
-      "q_mogger_tracks": {
-        "title": "La piste de Mogger",
-        "text": "Avant de prendre la route du nord, Eastbrook a une dernière épine dans le pied : Mogger. La brute piétine le pré bas et rend les sangliers fous. Nettoyez le pré autour de sa piste pour que nous voyions où il se terre.",
-        "completion": "Ces traces sont fraîches et assez profondes pour retenir la pluie. Mogger n'est pas une histoire de camp, {playerName}, et il est proche.",
-        "objectives": {
-          "0": {
-            "label": "Sanglier sauvage chassé de la piste"
           }
         }
       },

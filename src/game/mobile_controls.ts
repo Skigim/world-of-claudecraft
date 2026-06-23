@@ -493,10 +493,13 @@ export class MobileControls {
     if (document.body.classList.contains('mobile-chat-open')) {
       this.callbacks.onChat();
     } else {
-      const input = document.getElementById('chat-input') as HTMLInputElement | null;
+      const input = document.getElementById('chat-input') as HTMLTextAreaElement | null;
       if (input) {
         input.value = '';
         input.style.display = 'none';
+        // clear the autosized height so the next open starts at one line
+        input.style.height = '';
+        input.style.overflowY = '';
         input.blur();
       }
     }

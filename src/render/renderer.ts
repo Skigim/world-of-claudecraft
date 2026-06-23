@@ -3,8 +3,10 @@ import { ALL_CLASSES, isQuestTurnInNpc, type Entity, type SimEvent } from '../si
 import { OVERHEAD_EMOTES, type IWorld } from '../world_api';
 import { groundHeight, WATER_LEVEL, zoneBiomeAt } from '../sim/world';
 import { drapeRingLocalY } from './selection_ring';
+import { trackWebGLContext } from './context_release';
+import { buildFlaredConeFan, buildRingXZ, drapeConeWorld } from './target_cone_debug';
 import {
-  CLASSES, MOBS, ABILITIES, DUNGEON_X_THRESHOLD, DUNGEON_LIST, QUESTS,
+  CLASSES, MOBS, NPCS, ABILITIES, DUNGEON_X_THRESHOLD, DUNGEON_LIST, QUESTS,
   instanceOrigin, INSTANCE_SLOT_COUNT, ARENA_SLOT_COUNT, arenaOrigin, isArenaPos, dungeonAt,
   WORLD_MAX_Z, WORLD_MIN_Z, ZONES,
 } from '../sim/data';
@@ -16,6 +18,7 @@ import { mechAssetsReady, preloadMechAssets } from './characters/assets';
 import { isVisuallyDead } from './anim_state';
 import { clickMarkerAnim, clickMarkerColor, CLICK_MARKER_LIFETIME } from './click_marker';
 import { LocoTrack, newLocoTrack, updateLocomotion } from './locomotion';
+import { stepSelfFacing, releaseSelfFacing } from './facing_smooth';
 import type { SpatialAudioSink, Surface } from './audio_sink';
 import { buildPropMaterialPrewarmGroup, buildProps } from './props';
 import { plankTexture, sparkleTexture } from './textures';
@@ -45,6 +48,8 @@ import { tEntity } from '../ui/entity_i18n';
 import { raidMarkerDataUrl } from '../ui/icons';
 import { holderTierByIndex, holderTierBadgeDataUrl, holderTierDisplayName } from '../ui/holder_tier';
 import { isProjectedNameplateAnchorVisible, nameplateScreenTransform } from './nameplate_projection';
+import { targetIntensity } from './travel_speed_fx';
+import { TravelSpeedFxPainter } from './travel_speed_fx_painter';
 import { comboPipsFor, COMBO_PIP_MAX } from './nameplate_combo';
 import { stepCameraOcclusion, type CameraOcclusionState } from './camera_collision';
 import { castBarState } from './cast_bar';
@@ -66,7 +71,19 @@ const VIEW_CREATE_SLOW_FRAME_MS = 33;
 const VIEW_CREATE_HITCH_FRAME_MS = 50;
 const VIEW_CREATE_BACKOFF_SECONDS = 0.75;
 const VIEW_PREWARM_RANGE_SQ = ENTITY_VIEW_CREATE_RANGE_SQ;
-const VIEW_PREWARM_MAX_MS = 5000;
+const VIEW_PREWARM_MAX_MS = 12000;
+// Shader linking is the whole point of the prewarm: if it doesn't finish, the
+// first in-world frame that needs a program compiles it synchronously — the
+// multi-hundred-ms (up to ~1.7s) freeze players feel when new model types
+// appear. So the compile step gets its own budget (it normally drains in <~100ms
+// with KHR_parallel_shader_compile) rather than racing the leftover view-build
+// budget, which could starve it to a timeout. The cap only bites if a driver
+// stalls the parallel-compile queue; keep it modest, since a long hold here is
+// itself worse than the freeze it prevents.
+const PREWARM_COMPILE_MAX_MS = 10000;
+// Reserve at the tail of the view-build budget so the compile + final-frame
+// steps always start before the prewarm deadline (runEntry skips late entries).
+const PREWARM_BUILD_RESERVE_MS = 3000;
 const VIEW_PREWARM_MAX_VIEWS_LOW = 48;
 const VIEW_PREWARM_MAX_VIEWS_HIGH = 72;
 const VIEW_CREATED_TYPE_SAMPLE_LIMIT = 24;
@@ -173,6 +190,9 @@ const PREWARM_OBJECT_ITEM_IDS = [
 ] as const;
 const PREWARM_MOB_POOL_COPIES = 3;
 const PREWARM_OBJECT_POOL_COPIES = 2;
+// The common templates above are pooled several-deep (they spawn in groups); every
+// OTHER mob model is still built once so its shader program compiles at load.
+const PREWARM_MOB_COMMON_IDS = new Set<string>(PREWARM_MOB_TEMPLATE_IDS);
 
 function prewarmPlayerSkinVariantCount(): number {
   return ALL_CLASSES.reduce((sum, cls) => sum + skinCount(`player_${cls}`), 0);
@@ -592,6 +612,17 @@ export class Renderer {
   webgl: THREE.WebGLRenderer;
   views = new Map<number, EntityView>();
   nameplateLayer: HTMLDivElement;
+  // Travel-form speed-illusion overlay (presentation only; see travel_speed_fx*).
+  private travelSpeedFx: TravelSpeedFxPainter;
+  // Last local-player XZ, to derive ground speed for the speed cue (yd/s).
+  private lastLocalPos: { x: number; z: number } | null = null;
+  // Cached prefers-reduced-motion query. `.matches` stays live as the OS setting
+  // changes, so we read it per frame without re-allocating a MediaQueryList
+  // (matchMedia allocates a new object on every call) in the render hot path.
+  private reduceMotionMql: MediaQueryList | null =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : null;
   selectionRing: THREE.Group;
   selectionRingMesh: THREE.Mesh;
   selectionRingTicks: THREE.Group;
@@ -600,6 +631,20 @@ export class Renderer {
   // so sync() can re-drape the ring over the terrain without allocating.
   selectionRingLocalXZ: Float32Array;
   selectionRingDrapeY: Float32Array;
+  // Dev-only Tab-target cone overlay (enabled via ?targetcone=1 in main.ts).
+  // Null until enabled; once built it is re-draped over the terrain in front of
+  // the local player every frame. See target_cone_debug.ts.
+  private targetCone: {
+    group: THREE.Group;
+    pos: THREE.BufferAttribute;
+    localXZ: Float32Array;
+    worldXYZ: Float32Array;
+    // Full query-radius rim (40 yd): the absolute Tab range. Symmetric, so it is
+    // draped with facing 0.
+    ringPos: THREE.BufferAttribute;
+    ringXZ: Float32Array;
+    ringWorldXYZ: Float32Array;
+  } | null = null;
   // Pool of transient click-feedback markers (ring plus crossed "X"). Each slot is
   // a group reused round-robin, so rapid clicking never allocates. A slot with
   // `elapsed >= lifetime` is free. See click_marker.ts for the animation curves.
@@ -639,6 +684,11 @@ export class Renderer {
   private cullCharacters = false;
   private selfRenderPosition = new THREE.Vector3();
   private selfRenderPositionReady = false;
+  // Last yaw applied to the local player while the camera was driving its facing
+  // (mouselook / mouse-camera). Null when the override is disengaged, so the next
+  // engage re-seeds from the live interpolated facing instead of snapping. See
+  // facing_smooth.ts for why the camera-driven yaw must be rate-limited.
+  private selfFacingOverride: number | null = null;
   private cameraLookAt = new THREE.Vector3();
   // floating /say-/yell bubbles, keyed by speaker entity id
   private chatBubbles = new Map<number, { el: HTMLDivElement; until: number }>();
@@ -741,11 +791,15 @@ export class Renderer {
 
   constructor(private sim: IWorld, canvas: HTMLCanvasElement, nameplateLayer: HTMLDivElement) {
     this.nameplateLayer = nameplateLayer;
+    this.travelSpeedFx = new TravelSpeedFxPainter(nameplateLayer);
     // No default-framebuffer MSAA on any tier: high/ultra get AA from the
     // composer's MSAA HalfFloat target, low is meant to run without AA — and
     // requesting it here would hit software GL (the autodetect can only run
     // after the context exists) with the most expensive setting there is.
     this.webgl = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+    // Release this context promptly on page teardown so repeated logout/login
+    // reloads (location.reload) don't exhaust the browser's WebGL context pool.
+    trackWebGLContext(this.webgl);
     this.captureGlIdentity();
     canvas.addEventListener('webglcontextlost', () => { this.contextLostCount++; });
     canvas.addEventListener('webglcontextrestored', () => {
@@ -1624,7 +1678,7 @@ export class Renderer {
     this.updateChatBubbles();
   }
 
-  private prewarmEntity(kind: 'player' | 'mob', templateId: string, color: number, scale: number, skin = 0, id = -10_000): Entity {
+  private prewarmEntity(kind: 'player' | 'mob' | 'npc', templateId: string, color: number, scale: number, skin = 0, id = -10_000): Entity {
     const p = this.sim.player;
     return {
       ...p,
@@ -1719,7 +1773,7 @@ export class Renderer {
     pool.push(object);
   }
 
-  private buildEntityPrewarmGroup(): THREE.Group {
+  private buildEntityPrewarmGroup(deadline: number): THREE.Group {
     const group = new THREE.Group();
     const p = this.sim.player;
     group.position.set(p.pos.x, p.pos.y, p.pos.z - 14);
@@ -1730,17 +1784,64 @@ export class Renderer {
       group.add(obj);
       idx++;
     };
-    for (const templateId of PREWARM_MOB_TEMPLATE_IDS) {
+    // Track which visual MODELS have been built (visualKeyFor = the model selector;
+    // distinct shader programs are per-model, so this is what we must cover). The
+    // pool itself is still keyed per template via visualPoolKeyFor.
+    const builtModels = new Set<string>();
+    const build = (templateId: string, copies: number): void => {
       const template = MOBS[templateId];
-      if (!template) continue;
-      for (let i = 0; i < PREWARM_MOB_POOL_COPIES; i++) {
+      if (!template) return;
+      for (let i = 0; i < copies; i++) {
         const entity = this.prewarmEntity('mob', template.id, template.color, template.scale);
+        builtModels.add(visualKeyFor(entity));
         const visual = createCharacterVisual(entity);
-        const key = this.visualPoolKeyFor(entity);
-        if (key) this.storePooledVisual(key, visual);
+        const poolKey = this.visualPoolKeyFor(entity);
+        if (poolKey) this.storePooledVisual(poolKey, visual);
         visual.root.visible = true;
         place(visual.root);
       }
+    };
+    // Common mobs spawn in packs → pool several copies per template (this also
+    // compiles their shaders).
+    for (const templateId of PREWARM_MOB_TEMPLATE_IDS) build(templateId, PREWARM_MOB_POOL_COPIES);
+    // Then every remaining mob whose visual MODEL hasn't been built yet — one copy,
+    // so its shader program is compiled at load and never hitches in-world. Mobs that
+    // share a family model are built only once.
+    for (const templateId of Object.keys(MOBS)) {
+      if (PREWARM_MOB_COMMON_IDS.has(templateId)) continue;
+      if (performance.now() >= deadline) break;
+      const template = MOBS[templateId];
+      if (!template) continue;
+      const modelKey = visualKeyFor(this.prewarmEntity('mob', template.id, template.color, template.scale));
+      if (builtModels.has(modelKey)) continue;
+      build(templateId, 1);
+    }
+    return group;
+  }
+
+  // Every NPC visual MODEL once (NPCs were not prewarmed at all — entering a zone hub
+  // compiled their shaders live). Most NPCs share a handful of models (npc_knight,
+  // npc_mage, ...), so dedup by model key (visualKeyFor) builds each only once.
+  private buildNpcPrewarmGroup(deadline: number): THREE.Group {
+    const group = new THREE.Group();
+    const p = this.sim.player;
+    group.position.set(p.pos.x, p.pos.y, p.pos.z - 24);
+    setRenderCategory(group, 'prewarm');
+    let idx = 0;
+    const builtModels = new Set<string>();
+    for (const npc of Object.values(NPCS)) {
+      if (performance.now() >= deadline) break;
+      const entity = this.prewarmEntity('npc', npc.id, npc.color, 1);
+      const modelKey = visualKeyFor(entity);
+      if (builtModels.has(modelKey)) continue;
+      builtModels.add(modelKey);
+      const visual = createCharacterVisual(entity);
+      const poolKey = this.visualPoolKeyFor(entity);
+      if (poolKey) this.storePooledVisual(poolKey, visual);
+      visual.root.visible = true;
+      visual.root.position.set(((idx % 8) - 3.5) * 2.8, 0, Math.floor(idx / 8) * 2.8);
+      group.add(visual.root);
+      idx++;
     }
     return group;
   }
@@ -1871,6 +1972,10 @@ export class Renderer {
     const maxMs = Math.max(0, options.maxMs ?? VIEW_PREWARM_MAX_MS);
     const started = performance.now();
     const deadline = started + maxMs;
+    // Stop the archetype-build steps early so the later entries — crucially
+    // programs.compile — still START before `deadline` (runEntry skips anything
+    // that begins past it). Compiling is what kills the in-world freeze.
+    const buildDeadline = deadline - PREWARM_BUILD_RESERVE_MS;
     const manifestEntries: RendererPrewarmManifestEntryStats[] = [];
     const startCounts = this.prewarmCounts();
     const createdViewTypes: string[] = [];
@@ -1879,6 +1984,7 @@ export class Renderer {
     let candidateViews = 0;
     let doorPrewarmGroup: THREE.Group | null = null;
     let entityPrewarmGroup: THREE.Group | null = null;
+    let npcPrewarmGroup: THREE.Group | null = null;
     let playerPrewarmGroup: THREE.Group | null = null;
     let objectPrewarmGroup: THREE.Group | null = null;
     let propMaterialPrewarmGroup: THREE.Group | null = null;
@@ -1990,28 +2096,41 @@ export class Renderer {
         },
       },
       {
-        id: 'entities.mob-archetypes',
-        category: 'entities',
-        priority: 35,
-        required: true,
-        run: () => {
-          entityPrewarmGroup = this.buildEntityPrewarmGroup();
-          this.scene.add(entityPrewarmGroup);
-        },
-        detail: () => `templates=${PREWARM_MOB_TEMPLATE_IDS.length};copies=${PREWARM_MOB_POOL_COPIES}`,
-      },
-      {
+        // Players are the #1 shader-compile trigger in a crowd, so build their
+        // archetypes first (before the long mob tail) — guaranteed within budget.
         id: 'entities.player-archetypes',
         category: 'entities',
-        priority: 37,
+        priority: 34,
         required: true,
         run: () => {
-          const built = this.buildPlayerPrewarmGroup(deadline);
+          const built = this.buildPlayerPrewarmGroup(buildDeadline);
           playerPrewarmGroup = built.group;
           playerPrewarmVisuals = built.visualCount;
           this.scene.add(playerPrewarmGroup);
         },
         detail: () => `classes=${ALL_CLASSES.length};skins=${prewarmPlayerSkinVariantCount()};visuals=${playerPrewarmVisuals}`,
+      },
+      {
+        id: 'entities.mob-archetypes',
+        category: 'entities',
+        priority: 35,
+        required: true,
+        run: () => {
+          entityPrewarmGroup = this.buildEntityPrewarmGroup(buildDeadline);
+          this.scene.add(entityPrewarmGroup);
+        },
+        detail: () => `mobs=${Object.keys(MOBS).length};common=${PREWARM_MOB_TEMPLATE_IDS.length};copies=${PREWARM_MOB_POOL_COPIES}`,
+      },
+      {
+        id: 'entities.npc-archetypes',
+        category: 'entities',
+        priority: 36,
+        required: true,
+        run: () => {
+          npcPrewarmGroup = this.buildNpcPrewarmGroup(buildDeadline);
+          this.scene.add(npcPrewarmGroup);
+        },
+        detail: () => `npcs=${Object.keys(NPCS).length}`,
       },
       {
         id: 'objects.quest-archetypes',
@@ -2084,8 +2203,11 @@ export class Renderer {
         required: true,
         run: async () => {
         const compileStart = performance.now();
-        const compileBudgetMs = Math.max(0, deadline - compileStart);
-        if (compileBudgetMs > 0 && this.webgl.compileAsync) {
+        // Use a dedicated budget, not `deadline - now`: linking every program now is
+        // exactly what prevents the in-world freeze, so a near-empty leftover budget
+        // must not cut it short (the old bug — the async compile timed out and the
+        // programs linked synchronously on first sight instead).
+        if (this.webgl.compileAsync) {
           compileMode = 'async';
           let settled = false;
           const compilePromise = this.webgl.compileAsync(this.scene, this.camera)
@@ -2094,10 +2216,10 @@ export class Renderer {
               settled = true;
               console.warn('Renderer async prewarm compile failed', err);
             });
-          await Promise.race([compilePromise, sleep(compileBudgetMs)]);
+          await Promise.race([compilePromise, sleep(PREWARM_COMPILE_MAX_MS)]);
           compileTimedOut = !settled;
           compileMs = roundMs(performance.now() - compileStart);
-        } else if (compileBudgetMs > 0) {
+        } else {
           compileMode = 'sync';
           this.webgl.compile(this.scene, this.camera);
           compileMs = roundMs(performance.now() - compileStart);
@@ -2155,6 +2277,7 @@ export class Renderer {
       this.vfx.clear();
       if (doorPrewarmGroup) this.scene.remove(doorPrewarmGroup);
       if (entityPrewarmGroup) this.scene.remove(entityPrewarmGroup);
+      if (npcPrewarmGroup) this.scene.remove(npcPrewarmGroup);
       if (playerPrewarmGroup) this.scene.remove(playerPrewarmGroup);
       if (objectPrewarmGroup) this.scene.remove(objectPrewarmGroup);
       if (propMaterialPrewarmGroup) this.scene.remove(propMaterialPrewarmGroup);
@@ -2844,6 +2967,55 @@ export class Renderer {
     this.views.delete(id);
   }
 
+  // Build the dev-only Tab-target overlay. Called once from main.ts when
+  // ?targetcone=1 is set; the flared-cone half-angle function, near radius, and
+  // query radius are injected so this module never imports the sim targeting
+  // code. Idempotent. Draws a filled flared near-radius cone (idle cluster), its
+  // outline, and a full query-radius rim (absolute Tab range; engaged enemies
+  // inside the cone reach out to here).
+  enableTargetConeDebug(halfAt: (d: number) => number, nearRadius: number, queryRadius: number): void {
+    if (this.targetCone) return;
+    const fan = buildFlaredConeFan(nearRadius, halfAt, 16, 48);
+    const worldXYZ = new Float32Array(fan.vertexCount * 3);
+    // Wrap the array by reference (not Float32BufferAttribute, which copies) so
+    // re-draping worldXYZ each frame writes straight into the uploaded buffer.
+    const pos = new THREE.BufferAttribute(worldXYZ, 3);
+    const fillGeo = new THREE.BufferGeometry();
+    fillGeo.setAttribute('position', pos);
+    fillGeo.setIndex(new THREE.BufferAttribute(fan.index, 1));
+    const fillMat = new THREE.MeshBasicMaterial({
+      color: 0x49c0ff, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide,
+    });
+    const fill = new THREE.Mesh(fillGeo, fillMat);
+    fill.frustumCulled = false; // re-draped every frame; its bounds go stale
+    // Outline: a LineLoop over the flared perimeter (left edge -> outer arc ->
+    // right edge), sharing the position buffer so one update moves fill and edge.
+    const lineGeo = new THREE.BufferGeometry();
+    lineGeo.setAttribute('position', pos);
+    lineGeo.setIndex(new THREE.BufferAttribute(fan.outline, 1));
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x9be0ff, transparent: true, opacity: 0.85, depthWrite: false });
+    const outline = new THREE.LineLoop(lineGeo, lineMat);
+    outline.frustumCulled = false;
+    // Query-radius rim: a full circle at max Tab range, in a contrasting amber so
+    // it reads apart from the blue cone.
+    const ringXZ = buildRingXZ(queryRadius, 96);
+    const ringWorldXYZ = new Float32Array((ringXZ.length / 2) * 3);
+    const ringPos = new THREE.BufferAttribute(ringWorldXYZ, 3);
+    const ringGeo = new THREE.BufferGeometry();
+    ringGeo.setAttribute('position', ringPos);
+    const ringMat = new THREE.LineBasicMaterial({ color: 0xffb24d, transparent: true, opacity: 0.55, depthWrite: false });
+    const ring = new THREE.LineLoop(ringGeo, ringMat);
+    ring.frustumCulled = false;
+    const group = new THREE.Group();
+    group.add(fill);
+    group.add(outline);
+    group.add(ring);
+    setRenderCategory(group, 'ui3d');
+    group.visible = false;
+    this.scene.add(group);
+    this.targetCone = { group, pos, localXZ: fan.localXZ, worldXYZ, ringPos, ringXZ, ringWorldXYZ };
+  }
+
   sync(alpha: number, dt: number, renderFacingOverride: number | null, selfAlphaLead = 0): void {
     const totalStart = performance.now();
     let phaseStart = totalStart;
@@ -2972,7 +3144,22 @@ export class Renderer {
       const z = isSelf ? selfPos.z : e.prevPos.z + (e.pos.z - e.prevPos.z) * ea;
       v.group.position.set(x, y, z);
       let facing = e.prevFacing + shortestAngle(e.prevFacing, e.facing) * ea;
-      if (id === p.id && renderFacingOverride !== null) facing = renderFacingOverride;
+      if (id === p.id && renderFacingOverride !== null) {
+        // Rate-limit the camera-driven heading so engaging mouselook (or starting
+        // to move in Mouse Camera mode) rotates the model smoothly toward the
+        // camera instead of teleporting it up to 180deg in a single frame. Seed
+        // from the current interpolated facing on first engage.
+        facing = stepSelfFacing(this.selfFacingOverride ?? facing, renderFacingOverride, dt);
+        this.selfFacingOverride = facing;
+      } else if (id === p.id && this.selfFacingOverride !== null) {
+        // Disengage frame: route the return to the interpolated sim facing
+        // through the SAME rate limiter so releasing mouselook mid-flick (before
+        // the model caught up to the camera) rotates back smoothly instead of
+        // snapping. Hold the override until it has converged onto the sim facing.
+        const r = releaseSelfFacing(this.selfFacingOverride, facing, dt);
+        facing = r.facing;
+        this.selfFacingOverride = r.done ? null : r.facing;
+      }
       v.group.rotation.y = facing;
 
       if (e.kind === 'object') {
@@ -3194,6 +3381,24 @@ export class Renderer {
       this.selectionRing.visible = false;
     }
     this.updateClickMarkers(dt);
+    // dev-only Tab-target cone overlay: re-drape the front cone on the terrain
+    // under the local player, oriented to the model's rendered facing.
+    if (this.targetCone) {
+      if (p.dead) {
+        this.targetCone.group.visible = false;
+      } else {
+        const seed = this.sim.cfg.seed;
+        const lv = this.views.get(p.id);
+        const facing = lv ? lv.group.rotation.y : p.facing;
+        const sample = (sx: number, sz: number): number => groundHeight(sx, sz, seed);
+        drapeConeWorld(this.targetCone.localXZ, selfPos.x, selfPos.z, facing, 0.07, sample, this.targetCone.worldXYZ);
+        this.targetCone.pos.needsUpdate = true;
+        // The rim is a full circle, so facing is irrelevant: drape it with 0.
+        drapeConeWorld(this.targetCone.ringXZ, selfPos.x, selfPos.z, 0, 0.07, sample, this.targetCone.ringWorldXYZ);
+        this.targetCone.ringPos.needsUpdate = true;
+        this.targetCone.group.visible = true;
+      }
+    }
     markPhase('entities');
 
     let worldStart = performance.now();
@@ -3312,6 +3517,7 @@ export class Renderer {
     this.updateNameplates(fullNameplatePass);
     this.updateChatBubbles();
     markPhase('nameplates');
+    this.updateTravelSpeedFx(p, selfPos, dt);
     // Fiesta screen shake: trauma^2 jitter offsets the camera for the draw only.
     let shakeX = 0, shakeY = 0;
     if (this.shakeTrauma > 0) {
@@ -3370,6 +3576,35 @@ export class Renderer {
       activeViews: this.views.size,
       visibleViews,
     };
+  }
+
+  // Drive the travel-form speed-illusion overlay. Presentation only: gated on the
+  // LOCAL player being shifted into travel form AND actually moving, with the
+  // intensity scaled by real ground speed. Honors prefers-reduced-motion. The
+  // streak/vignette math lives in the pure core (travel_speed_fx.ts); this only
+  // derives the speed and forwards a target intensity to the painter.
+  private updateTravelSpeedFx(p: Entity, selfPos: THREE.Vector3, dt: number): void {
+    // Measure ground speed from the SAME interpolated self render position the
+    // camera uses (selfPos), advanced per render frame, so the cue tracks the
+    // smooth on-screen motion rather than the raw 20Hz sim-tick snapping of p.pos.
+    let speed = 0;
+    const last = this.lastLocalPos;
+    if (last && dt > 0) {
+      speed = Math.hypot(selfPos.x - last.x, selfPos.z - last.z) / dt;
+    }
+    if (this.lastLocalPos) {
+      this.lastLocalPos.x = selfPos.x;
+      this.lastLocalPos.z = selfPos.z;
+    } else {
+      this.lastLocalPos = { x: selfPos.x, z: selfPos.z };
+    }
+    const inTravelForm = p.auras.some((a) => a.kind === 'form_travel');
+    const target = targetIntensity({ inTravelForm, speed, reducedMotion: this.reducedMotion() });
+    this.travelSpeedFx.update(target, dt);
+  }
+
+  private reducedMotion(): boolean {
+    return this.reduceMotionMql?.matches ?? false;
   }
 
   // Grab a JPEG screenshot of the live scene for a bug report. The main

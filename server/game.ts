@@ -1,31 +1,49 @@
 import type { WebSocket } from 'ws';
-import { Sim } from '../src/sim/sim';
-import type { PlayerMeta } from '../src/sim/sim';
-import { DT, Entity, EQUIP_SLOTS, EquipSlot, RUN_SPEED, SimEvent, dist2d, emptyMoveInput } from '../src/sim/types';
-import { parseMoveInputFrame } from '../src/sim/move_input';
+import { createBotDetector } from '#bot-detector';
 import { verifyChallenge } from '../src/sim/client_challenge';
-import { stealthDetectionRadius, threatEntries } from '../src/sim/threat';
-import { zoneAt, DUNGEONS } from '../src/sim/data';
 import { MECH_CHROMAS, mechChromaItemId, mechChromaSkinIndex } from '../src/sim/content/skins';
+import { DUNGEONS, zoneAt } from '../src/sim/data';
+import { parseMoveInputFrame } from '../src/sim/move_input';
+import type { PlayerMeta } from '../src/sim/sim';
+import { MAX_CHAT_MESSAGE_LEN, Sim } from '../src/sim/sim';
+import { stealthDetectionRadius, threatEntries } from '../src/sim/threat';
 import {
-  grantAccountMechChroma, markAccountQuestComplete, revokeAccountMechChroma, saveCharacterState, openPlaySession, closePlaySession,
-  insertChatLogs, pool, loadMarketState, saveMarketState, walletForAccount,
-} from './db';
-import { holderInfoForPubkey } from './woc_balance';
-import type { AccountChatMuteStatus, AccountCosmetics, RequestMetadata } from './db';
+  DT,
+  dist2d,
+  type Entity,
+  EQUIP_SLOTS,
+  type EquipSlot,
+  emptyMoveInput,
+  RUN_SPEED,
+  type SimEvent,
+} from '../src/sim/types';
+import { isOverheadEmoteId } from '../src/world_api';
+import { offensiveName } from './auth';
+import type { BotDetector, BotTrackingContext } from './bot_detector/contract';
 import { ChatFilter } from './chat_filter';
-import { loadChatFilterState, applyChatStrike, recordChatViolation } from './chat_filter_db';
+import { applyChatStrike, loadChatFilterState, recordChatViolation } from './chat_filter_db';
+import { ChatLogger } from './chat_log';
+import type { AccountChatMuteStatus, AccountCosmetics, RequestMetadata } from './db';
+import {
+  closePlaySession,
+  grantAccountMechChroma,
+  insertChatLogs,
+  loadMarketState,
+  markAccountQuestComplete,
+  openPlaySession,
+  pool,
+  revokeAccountMechChroma,
+  saveCharacterState,
+  saveMarketState,
+  walletForAccount,
+} from './db';
 import { IpBlockList } from './ip_block';
 import { loadActiveBlockedIps } from './ip_block_db';
-import { offensiveName } from './auth';
-import { ChatLogger } from './chat_log';
-import { SocialService } from './social';
-import type { Presence, PresenceStatus, SocialActor, SocialEvent, SocialTransport } from './social';
-import { PgSocialDb } from './social_db';
 import { REALM } from './realm';
-import { isOverheadEmoteId } from '../src/world_api';
-import { createBotDetector } from '#bot-detector';
-import type { BotDetector, BotTrackingContext } from './bot_detector/contract';
+import type { Presence, PresenceStatus, SocialActor, SocialTransport } from './social';
+import { SocialService } from './social';
+import { PgSocialDb } from './social_db';
+import { holderInfoForPubkey } from './woc_balance';
 
 const WORLD_SEED = 20061;
 const ALDRIC_METEOR_QUEST_ID = 'q_aldrics_fallen_star';
@@ -239,8 +257,12 @@ function identityFields(e: Entity): Record<string, unknown> {
 // conditional ones keep their absent-means-unset semantics.
 function dynamicFields(e: Entity): Record<string, unknown> {
   const out: Record<string, unknown> = {
-    x: round2(e.pos.x), y: round2(e.pos.y), z: round2(e.pos.z), f: round2(e.facing),
-    hp: e.hp, mhp: e.maxHp,
+    x: round2(e.pos.x),
+    y: round2(e.pos.y),
+    z: round2(e.pos.z),
+    f: round2(e.facing),
+    hp: e.hp,
+    mhp: e.maxHp,
   };
   if (e.dead) out.dead = 1;
   if (e.lootable) out.loot = 1;
@@ -266,7 +288,15 @@ function dynamicFields(e: Entity): Record<string, unknown> {
   // top hate-table entries so the party threat meter shows real numbers
   if (e.kind === 'mob' && !e.dead && e.threat.size > 0) out.thr = threatEntries(e, 8);
   if (e.auras.length > 0) {
-    out.auras = e.auras.map((a): WireAura => ({ id: a.id, name: a.name, kind: a.kind, rem: round2(a.remaining), dur: a.duration }));
+    out.auras = e.auras.map(
+      (a): WireAura => ({
+        id: a.id,
+        name: a.name,
+        kind: a.kind,
+        rem: round2(a.remaining),
+        dur: a.duration,
+      }),
+    );
   }
   if (e.kind === 'mob' && e.lootable && e.loot) {
     out.lootList = { copper: e.loot.copper, items: e.loot.items };
@@ -297,7 +327,13 @@ function isStealthed(e: Entity): boolean {
 // the per-session last-sent tick rather than a tick-parity stagger: when
 // the event loop degrades and one broadcast covers several sim ticks, a
 // parity check can stay permanently false and starve entities frozen
-function isUpdateDue(tick: number, e: Entity, d2: number, viewer: Entity, sentAtTick: number): boolean {
+function isUpdateDue(
+  tick: number,
+  e: Entity,
+  d2: number,
+  viewer: Entity,
+  sentAtTick: number,
+): boolean {
   if (d2 <= FULL_RATE_RADIUS_SQ) return true;
   if (viewer.targetId === e.id || e.aggroTargetId === viewer.id) return true;
   const divisor = d2 <= HALF_RATE_RADIUS_SQ ? HALF_RATE_DIVISOR : QUARTER_RATE_DIVISOR;
@@ -425,7 +461,10 @@ export class GameServer {
     const lower = wanted.toLowerCase();
     for (const s of this.clients.values()) {
       if (s.name === wanted) return s; // exact case wins
-      if (s.name.toLowerCase() === lower) { ci = s; ciCount++; }
+      if (s.name.toLowerCase() === lower) {
+        ci = s;
+        ciCount++;
+      }
     }
     return ciCount === 1 ? ci : null;
   }
@@ -445,15 +484,26 @@ export class GameServer {
   private socialTransport(): SocialTransport {
     const actor = (s: ClientSession): SocialActor => ({ characterId: s.characterId, name: s.name });
     return {
-      byCharacterId: (id) => { const s = this.sessionByCharacterId(id); return s ? actor(s) : null; },
-      byName: (name) => { const s = this.sessionByName(name); return s ? actor(s) : null; },
+      byCharacterId: (id) => {
+        const s = this.sessionByCharacterId(id);
+        return s ? actor(s) : null;
+      },
+      byName: (name) => {
+        const s = this.sessionByName(name);
+        return s ? actor(s) : null;
+      },
       isOnline: (id) => this.sessionByCharacterId(id) !== null,
-      locationOf: (id) => { const s = this.sessionByCharacterId(id); return s ? this.presenceOf(s) : null; },
+      locationOf: (id) => {
+        const s = this.sessionByCharacterId(id);
+        return s ? this.presenceOf(s) : null;
+      },
       deliver: (id, events) => {
         const s = this.sessionByCharacterId(id);
         if (s) this.send(s, { t: 'events', list: events });
       },
-      pushSnapshot: (id) => { void this.sendSocialSnapshot(id); },
+      pushSnapshot: (id) => {
+        void this.sendSocialSnapshot(id);
+      },
       onBlocksChanged: (id, ids) => {
         const s = this.sessionByCharacterId(id);
         if (s) s.blockedIds = new Set(ids);
@@ -526,7 +576,8 @@ export class GameServer {
         this.broadcastSocialPositions();
       }
       const tickMs = Number(process.hrtime.bigint() - now) / 1e6;
-      this.tickMsAvg = this.tickMsAvg === 0 ? tickMs : this.tickMsAvg + TICK_EMA_ALPHA * (tickMs - this.tickMsAvg);
+      this.tickMsAvg =
+        this.tickMsAvg === 0 ? tickMs : this.tickMsAvg + TICK_EMA_ALPHA * (tickMs - this.tickMsAvg);
       this.saveTimer += dt;
       if (this.saveTimer >= AUTOSAVE_SECONDS) {
         this.saveTimer = 0;
@@ -537,7 +588,9 @@ export class GameServer {
     // Refresh every online player's $WOC holder-tier flair off the 20 Hz loop:
     // an RPC call per wallet (cached for minutes inside holderInfoForPubkey) has
     // no place in the tick. Catches mid-session balance changes.
-    this.holderTierInterval = setInterval(() => { void this.refreshAllHolderTiers(); }, HOLDER_TIER_REFRESH_MS);
+    this.holderTierInterval = setInterval(() => {
+      void this.refreshAllHolderTiers();
+    }, HOLDER_TIER_REFRESH_MS);
   }
 
   stop(): void {
@@ -550,7 +603,9 @@ export class GameServer {
   private async refreshHolderTier(session: ClientSession): Promise<void> {
     if (this.devTierPids.has(session.pid)) return; // dev override pinned this pid
     const wallet = await walletForAccount(session.accountId);
-    const { tier, balance } = wallet ? await holderInfoForPubkey(wallet.pubkey) : { tier: 0, balance: 0 };
+    const { tier, balance } = wallet
+      ? await holderInfoForPubkey(wallet.pubkey)
+      : { tier: 0, balance: 0 };
     // The player may have left during the await; only apply if still the live
     // session for this pid.
     if (this.clients.get(session.pid) !== session) return;
@@ -566,8 +621,13 @@ export class GameServer {
     if (this.holderTierRefreshing) return; // a slow cycle (RPC) must not pile up
     this.holderTierRefreshing = true;
     try {
-      await Promise.all([...this.clients.values()].map((session) =>
-        this.refreshHolderTier(session).catch((err) => console.error('holder-tier refresh failed:', err))));
+      await Promise.all(
+        [...this.clients.values()].map((session) =>
+          this.refreshHolderTier(session).catch((err) =>
+            console.error('holder-tier refresh failed:', err),
+          ),
+        ),
+      );
     } finally {
       this.holderTierRefreshing = false;
     }
@@ -580,7 +640,7 @@ export class GameServer {
     for (const session of this.clients.values()) {
       const action = this.botDetector.handleTick(session.botTrackingContext, now, ANTIBOT_ENFORCE);
       if (action === 'kick') {
-        void this.leave(session, 'disconnected');
+        void this.kickSession(session, 'rejected by server', 'disconnected');
       }
     }
   }
@@ -591,7 +651,18 @@ export class GameServer {
       const meta = this.sim.meta(session.pid);
       if (!meta) continue;
       const mi = meta.moveInput;
-      if (!(mi.forward || mi.back || mi.turnLeft || mi.turnRight || mi.strafeLeft || mi.strafeRight || mi.jump)) continue;
+      if (
+        !(
+          mi.forward ||
+          mi.back ||
+          mi.turnLeft ||
+          mi.turnRight ||
+          mi.strafeLeft ||
+          mi.strafeRight ||
+          mi.jump
+        )
+      )
+        continue;
       Object.assign(meta.moveInput, emptyMoveInput());
     }
   }
@@ -614,7 +685,10 @@ export class GameServer {
     };
   }
 
-  private rememberAccountCosmetics(accountId: number, cosmetics: AccountCosmetics): AccountCosmetics {
+  private rememberAccountCosmetics(
+    accountId: number,
+    cosmetics: AccountCosmetics,
+  ): AccountCosmetics {
     const merged = this.mergeAccountCosmetics(
       this.accountCosmeticsByAccount.get(accountId) ?? { completedQuestIds: [], mechChromaIds: [] },
       cosmetics,
@@ -699,7 +773,13 @@ export class GameServer {
     cls: import('../src/sim/types').PlayerClass,
     state: import('../src/sim/sim').CharacterState | null,
     isGm = false,
-    meta: RequestMetadata & Partial<AccountChatMuteStatus> & { accountCosmetics?: AccountCosmetics; chatStrikes?: number; isAdmin?: boolean; clientSeed?: string } = {},
+    meta: RequestMetadata &
+      Partial<AccountChatMuteStatus> & {
+        accountCosmetics?: AccountCosmetics;
+        chatStrikes?: number;
+        isAdmin?: boolean;
+        clientSeed?: string;
+      } = {},
   ): ClientSession | { error: string } {
     if (this.sessionsByCharacterId.has(characterId)) return { error: 'character already in world' };
     // Anti-bot: cap simultaneous online characters per account. Accounts can
@@ -728,12 +808,27 @@ export class GameServer {
     );
     this.applyAccountQuestLockouts(pid, accountCosmetics);
     const sessionIp = meta.ip ?? '';
-    const botTrackingContext = this.botDetector.createTrackingContext({ accountId, characterId, name, ip: sessionIp }, meta);
+    const botTrackingContext = this.botDetector.createTrackingContext(
+      { accountId, characterId, name, ip: sessionIp },
+      meta,
+    );
     const session: ClientSession = {
-      ws, accountId, accountCosmetics, characterId, pid, name,
-      lastSave: Date.now(), alive: true, joinedAt: Date.now(), dbSessionId: null, left: false,
-      chatTokens: CHAT_RATE_BURST, chatLastRefill: Date.now() / 1000, chatLastRateError: 0,
-      chatRateViolations: 0, chatCooldownUntil: 0,
+      ws,
+      accountId,
+      accountCosmetics,
+      characterId,
+      pid,
+      name,
+      lastSave: Date.now(),
+      alive: true,
+      joinedAt: Date.now(),
+      dbSessionId: null,
+      left: false,
+      chatTokens: CHAT_RATE_BURST,
+      chatLastRefill: Date.now() / 1000,
+      chatLastRateError: 0,
+      chatRateViolations: 0,
+      chatCooldownUntil: 0,
       chatMutedUntil: meta.mutedUntil ? new Date(meta.mutedUntil).getTime() : null,
       chatMuteReason: meta.reason ?? '',
       chatStrikes: meta.chatStrikes ?? 0,
@@ -760,7 +855,9 @@ export class GameServer {
         // If the player disconnected before this insert landed, leave() saw a
         // null id and skipped the close. Close it now so the row isn't orphaned.
         if (session.left) {
-          void closePlaySession(id).catch((err) => console.error('failed to close play session:', err));
+          void closePlaySession(id).catch((err) =>
+            console.error('failed to close play session:', err),
+          );
         }
       })
       .catch((err) => console.error('failed to open play session:', err));
@@ -781,11 +878,16 @@ export class GameServer {
     });
     // Only the entering player sees their own world-entry notice; we don't
     // broadcast it to everyone (and likewise don't broadcast departures below).
-    this.send(session, { t: 'events', list: [{ type: 'log', text: `${name} has entered World of ClaudeCraft.`, color: '#ffd100' }] });
+    this.send(session, {
+      t: 'events',
+      list: [{ type: 'log', text: `${name} has entered World of ClaudeCraft.`, color: '#ffd100' }],
+    });
     void this.initSocial(session);
     // Stamp the $WOC holder-tier flair (best-effort: a balance read must never
     // affect joining the world).
-    void this.refreshHolderTier(session).catch((err) => console.error('holder-tier refresh failed:', err));
+    void this.refreshHolderTier(session).catch((err) =>
+      console.error('holder-tier refresh failed:', err),
+    );
     return session;
   }
 
@@ -799,11 +901,34 @@ export class GameServer {
       console.error('failed to load block list:', err);
     }
     await this.sendSocialSnapshot(session.characterId);
-    await this.social.announcePresence({ characterId: session.characterId, name: session.name }, true)
+    await this.social
+      .announcePresence({ characterId: session.characterId, name: session.name }, true)
       .catch((err) => console.error('presence announce failed:', err));
   }
 
-  async leave(session: ClientSession, reason: string): Promise<void> {
+  // Tear down a live session as a kick: tell the client why, close the socket,
+  // then run the normal leave() cleanup. Sending the error frame and closing the
+  // socket (not just calling leave) is what lets net/online.ts surface the
+  // disconnect and return the app to character select, so a kicked player can
+  // rejoin. Every forced-disconnect path (moderation, IP block, character
+  // takeover, and the anti-bot tick) funnels through here so none can
+  // half-tear-down a session, leaving the world without the client and wedging
+  // the player "connected" with no way back in.
+  private kickSession(
+    session: ClientSession,
+    clientError: string,
+    leaveReason: string,
+  ): Promise<void> {
+    this.send(session, { t: 'error', error: clientError });
+    try {
+      session.ws.close();
+    } catch {
+      /* connection already closing */
+    }
+    return this.leave(session, leaveReason);
+  }
+
+  async leave(session: ClientSession, _reason: string): Promise<void> {
     if (session.left || !this.clients.has(session.pid)) return;
     session.left = true;
     this.clients.delete(session.pid);
@@ -816,10 +941,13 @@ export class GameServer {
     this.devTierPids.delete(session.pid);
     this.social.forget(session.characterId);
     // delete from clients first so friends see them as offline in the notice
-    void this.social.announcePresence({ characterId: session.characterId, name: session.name }, false)
+    void this.social
+      .announcePresence({ characterId: session.characterId, name: session.name }, false)
       .catch((err) => console.error('presence announce failed:', err));
     if (session.dbSessionId !== null) {
-      void closePlaySession(session.dbSessionId).catch((err) => console.error('failed to close play session:', err));
+      void closePlaySession(session.dbSessionId).catch((err) =>
+        console.error('failed to close play session:', err),
+      );
     }
     await this.saveCharacterOnLeave(session);
     this.sessionsByCharacterId.delete(session.characterId);
@@ -893,7 +1021,9 @@ export class GameServer {
       for (;;) {
         const session = sessions[next++];
         if (!session) return;
-        await this.saveCharacter(session).catch((err) => console.error(`${reason} failed for ${session.name}:`, err));
+        await this.saveCharacter(session).catch((err) =>
+          console.error(`${reason} failed for ${session.name}:`, err),
+        );
       }
     };
     await Promise.all(Array.from({ length: Math.min(SAVE_CONCURRENCY, sessions.length) }, worker));
@@ -921,7 +1051,9 @@ export class GameServer {
   async endAllPlaySessions(): Promise<void> {
     for (const session of this.clients.values()) {
       if (session.dbSessionId === null) continue;
-      await closePlaySession(session.dbSessionId).catch((err) => console.error('failed to close play session:', err));
+      await closePlaySession(session.dbSessionId).catch((err) =>
+        console.error('failed to close play session:', err),
+      );
     }
   }
 
@@ -987,19 +1119,23 @@ export class GameServer {
     return new Set([...this.clients.values()].map((s) => s.accountId));
   }
 
-  reportTargetForPid(pid: number): { accountId: number; characterId: number; characterName: string } | null {
+  reportTargetForPid(
+    pid: number,
+  ): { accountId: number; characterId: number; characterName: string } | null {
     const session = this.clients.get(pid);
     return session
-      ? { accountId: session.accountId, characterId: session.characterId, characterName: session.name }
+      ? {
+          accountId: session.accountId,
+          characterId: session.characterId,
+          characterName: session.name,
+        }
       : null;
   }
 
   disconnectAccount(accountId: number, reason: string): void {
     for (const session of [...this.clients.values()]) {
       if (session.accountId !== accountId) continue;
-      this.send(session, { t: 'error', error: reason });
-      try { session.ws.close(); } catch { /* connection already closing */ }
-      void this.leave(session, 'moderation action');
+      void this.kickSession(session, reason, 'moderation action');
     }
   }
 
@@ -1009,14 +1145,15 @@ export class GameServer {
   // freed before the caller re-enters — otherwise the new login would race the
   // old save (clobbering progress) or be rejected with "character already in
   // world". Idempotent: a no-op (returns 'not-online') when nobody is online.
-  async takeOverCharacter(accountId: number, characterId: number): Promise<'taken-over' | 'not-online'> {
+  async takeOverCharacter(
+    accountId: number,
+    characterId: number,
+  ): Promise<'taken-over' | 'not-online'> {
     const session = this.sessionByCharacterId(characterId);
     // Ownership is also enforced at the REST layer; re-check here so this method
     // can never disconnect a session that belongs to another account.
     if (!session || session.accountId !== accountId) return 'not-online';
-    this.send(session, { t: 'error', error: 'character taken over' });
-    try { session.ws.close(); } catch { /* connection already closing */ }
-    await this.leave(session, 'character taken over');
+    await this.kickSession(session, 'character taken over', 'character taken over');
     return 'taken-over';
   }
 
@@ -1068,7 +1205,10 @@ export class GameServer {
       if (session.accountId !== accountId) continue;
       session.chatMutedUntil = until.getTime();
       session.chatMuteReason = reason.trim();
-      this.send(session, { t: 'events', list: [{ type: 'error', text: this.chatMuteMessage(session) }] });
+      this.send(session, {
+        t: 'events',
+        list: [{ type: 'error', text: this.chatMuteMessage(session) }],
+      });
     }
   }
 
@@ -1117,9 +1257,7 @@ export class GameServer {
   disconnectByIp(ip: string, reason: string): void {
     for (const session of [...this.clients.values()]) {
       if (session.ip !== ip || session.isAdmin) continue;
-      this.send(session, { t: 'error', error: reason });
-      try { session.ws.close(); } catch { /* connection already closing */ }
-      void this.leave(session, 'moderation action');
+      void this.kickSession(session, reason, 'moderation action');
     }
   }
 
@@ -1127,9 +1265,7 @@ export class GameServer {
     const now = Date.now();
     for (const session of [...this.clients.values()]) {
       if (session.isAdmin || !this.ipBlockList.isBlocked(session.ip, now)) continue;
-      this.send(session, { t: 'error', error: reason });
-      try { session.ws.close(); } catch { /* connection already closing */ }
-      void this.leave(session, 'moderation action');
+      void this.kickSession(session, reason, 'moderation action');
     }
   }
 
@@ -1160,7 +1296,12 @@ export class GameServer {
     try {
       msg = JSON.parse(raw);
     } catch {
-      this.botDetector.observeProtocolAnomaly(session.botTrackingContext, 'invalid_json', raw, receivedAtMs);
+      this.botDetector.observeProtocolAnomaly(
+        session.botTrackingContext,
+        'invalid_json',
+        raw,
+        receivedAtMs,
+      );
       return;
     }
     // a malformed payload must never take down the server for everyone
@@ -1171,12 +1312,22 @@ export class GameServer {
     }
   }
 
-  private dispatchMessage(session: ClientSession, msg: any, raw: string, receivedAtMs: number): void {
+  private dispatchMessage(
+    session: ClientSession,
+    msg: any,
+    raw: string,
+    receivedAtMs: number,
+  ): void {
     // JSON.parse returns null / numbers / strings / arrays for valid JSON that
     // isn't an object — `null` in particular threw on `msg.t`. Drop anything
     // that isn't a plain object before touching its fields.
     if (typeof msg !== 'object' || msg === null || Array.isArray(msg)) {
-      this.botDetector.observeProtocolAnomaly(session.botTrackingContext, 'non_object', raw, receivedAtMs);
+      this.botDetector.observeProtocolAnomaly(
+        session.botTrackingContext,
+        'non_object',
+        raw,
+        receivedAtMs,
+      );
       return;
     }
     const sim = this.sim;
@@ -1198,29 +1349,71 @@ export class GameServer {
       return;
     }
     if (msg.t !== 'cmd') {
-      this.botDetector.observeProtocolAnomaly(session.botTrackingContext, 'unknown_type', raw, receivedAtMs);
+      this.botDetector.observeProtocolAnomaly(
+        session.botTrackingContext,
+        'unknown_type',
+        raw,
+        receivedAtMs,
+      );
       return;
     }
-    this.botDetector.observeCommand(session.botTrackingContext, String(msg.cmd ?? ''), receivedAtMs, msg);
+    this.botDetector.observeCommand(
+      session.botTrackingContext,
+      String(msg.cmd ?? ''),
+      receivedAtMs,
+      msg,
+    );
     switch (msg.cmd) {
-      case 'castSlot': sim.castAbilityBySlot(msg.slot | 0, pid); break;
-      case 'cast': if (typeof msg.ability === 'string') sim.castAbility(msg.ability, pid); break;
-      case 'target': sim.targetEntity(typeof msg.id === 'number' ? msg.id : null, pid); break;
-      case 'tab': sim.tabTarget(pid); break;
-      case 'targetNearest': sim.targetNearestEnemy(pid); break;
-      case 'tabFriendly': sim.friendlyTabTarget(pid); break;
-      case 'targetNearestFriendly': sim.targetNearestFriendly(pid); break;
-      case 'attack': sim.startAutoAttack(pid); break;
-      case 'stopattack': sim.stopAutoAttack(pid); break;
-      case 'interact': sim.interact(pid); break;
-      case 'loot': if (typeof msg.id === 'number') sim.lootCorpse(msg.id, pid); break;
+      case 'castSlot':
+        sim.castAbilityBySlot(msg.slot | 0, pid);
+        break;
+      case 'cast':
+        if (typeof msg.ability === 'string') sim.castAbility(msg.ability, pid);
+        break;
+      case 'target':
+        sim.targetEntity(typeof msg.id === 'number' ? msg.id : null, pid);
+        break;
+      case 'tab':
+        sim.tabTarget(pid);
+        break;
+      case 'targetNearest':
+        sim.targetNearestEnemy(pid);
+        break;
+      case 'tabFriendly':
+        sim.friendlyTabTarget(pid);
+        break;
+      case 'targetNearestFriendly':
+        sim.targetNearestFriendly(pid);
+        break;
+      case 'attack':
+        sim.startAutoAttack(pid);
+        break;
+      case 'stopattack':
+        sim.stopAutoAttack(pid);
+        break;
+      case 'interact':
+        sim.interact(pid);
+        break;
+      case 'loot':
+        if (typeof msg.id === 'number') sim.lootCorpse(msg.id, pid);
+        break;
       case 'lootRoll':
-        if (typeof msg.rollId === 'number' && (msg.choice === 'need' || msg.choice === 'greed' || msg.choice === 'pass')) {
+        if (
+          typeof msg.rollId === 'number' &&
+          (msg.choice === 'need' || msg.choice === 'greed' || msg.choice === 'pass')
+        ) {
           sim.submitLootRoll(msg.rollId, msg.choice, pid);
         }
         break;
-      case 'pickup': if (typeof msg.id === 'number') sim.pickUpObject(msg.id, pid); break;
-      case 'accept': if (typeof msg.quest === 'string') { sim.acceptQuest(msg.quest, pid); this.resyncQuests(session); } break;
+      case 'pickup':
+        if (typeof msg.id === 'number') sim.pickUpObject(msg.id, pid);
+        break;
+      case 'accept':
+        if (typeof msg.quest === 'string') {
+          sim.acceptQuest(msg.quest, pid);
+          this.resyncQuests(session);
+        }
+        break;
       case 'turnin':
         if (typeof msg.quest === 'string') {
           const beforeDone = sim.meta(pid)?.questsDone.has(msg.quest) ?? false;
@@ -1232,8 +1425,15 @@ export class GameServer {
           this.resyncQuests(session);
         }
         break;
-      case 'abandon': if (typeof msg.quest === 'string') { sim.abandonQuest(msg.quest, pid); this.resyncQuests(session); } break;
-      case 'equip': if (typeof msg.item === 'string') sim.equipItem(msg.item, pid); break;
+      case 'abandon':
+        if (typeof msg.quest === 'string') {
+          sim.abandonQuest(msg.quest, pid);
+          this.resyncQuests(session);
+        }
+        break;
+      case 'equip':
+        if (typeof msg.item === 'string') sim.equipItem(msg.item, pid);
+        break;
       case 'unequip_item':
         if (typeof msg.slot === 'string' && (EQUIP_SLOTS as readonly string[]).includes(msg.slot)) {
           sim.unequipItem(msg.slot as EquipSlot, pid);
@@ -1250,13 +1450,18 @@ export class GameServer {
           sim.discardItem(msg.item, typeof msg.count === 'number' ? msg.count : undefined, pid);
         }
         break;
-      case 'buy': if (typeof msg.npc === 'number' && typeof msg.item === 'string') sim.buyItem(msg.npc, msg.item, pid); break;
+      case 'buy':
+        if (typeof msg.npc === 'number' && typeof msg.item === 'string')
+          sim.buyItem(msg.npc, msg.item, pid);
+        break;
       case 'sell':
         if (typeof msg.item === 'string') {
           sim.sellItem(msg.item, typeof msg.count === 'number' ? msg.count : undefined, pid);
         }
         break;
-      case 'buyback': if (typeof msg.item === 'string') sim.buyBackItem(msg.item, pid); break;
+      case 'buyback':
+        if (typeof msg.item === 'string') sim.buyBackItem(msg.item, pid);
+        break;
       case 'change_skin':
         if (typeof msg.skin === 'number') {
           if (msg.catalog === 'mech') {
@@ -1283,7 +1488,9 @@ export class GameServer {
           }
         }
         break;
-      case 'release': sim.releaseSpirit(pid); break;
+      case 'release':
+        sim.releaseSpirit(pid);
+        break;
       case 'challengeResponse':
         if (typeof msg.n === 'string' && typeof msg.r === 'string' && typeof msg.sig === 'string') {
           if (!verifyChallenge(msg.n, msg.r, msg.sig, session.clientSeed)) break;
@@ -1311,23 +1518,32 @@ export class GameServer {
           const channel = gm ? 'guild' : 'officer';
           const body = (gm ?? om!)[1];
           session.rememberedChat = { channel };
-          const route = gm ? this.social.guildChat(this.actorFor(session), body)
+          const route = gm
+            ? this.social.guildChat(this.actorFor(session), body)
             : this.social.officerChat(this.actorFor(session), body);
-          void route.then((sent) => {
-            if (sent) {
-              this.chatLog.log({
-                accountId: session.accountId, characterId: session.characterId,
-                characterName: session.name, channel, message: body.trim().slice(0, 200),
-              });
-            }
-          }).catch((err) => console.error(`${channel} chat failed:`, err));
+          void route
+            .then((sent) => {
+              if (sent) {
+                this.chatLog.log({
+                  accountId: session.accountId,
+                  characterId: session.characterId,
+                  characterName: session.name,
+                  channel,
+                  message: body.trim().slice(0, MAX_CHAT_MESSAGE_LEN),
+                });
+              }
+            })
+            .catch((err) => console.error(`${channel} chat failed:`, err));
           break;
         }
         // /r: reply to whoever last whispered you
         const rm = /^\/(?:r|reply)\s+([\s\S]+)$/i.exec(text);
         if (rm) {
           if (!session.lastWhisperFrom) {
-            this.send(session, { t: 'events', list: [{ type: 'error', text: 'No one has whispered you recently.' }] });
+            this.send(session, {
+              t: 'events',
+              list: [{ type: 'error', text: 'No one has whispered you recently.' }],
+            });
             break;
           }
           session.rememberedChat = { channel: 'whisper', target: session.lastWhisperFrom };
@@ -1341,31 +1557,71 @@ export class GameServer {
         if (isOverheadEmoteId(msg.emote)) sim.playEmote(msg.emote, pid);
         break;
       // party
-      case 'pinvite': if (typeof msg.id === 'number') sim.partyInvite(msg.id, pid); break;
-      case 'paccept': sim.partyAccept(pid); break;
-      case 'pdecline': sim.partyDecline(pid); break;
-      case 'pleave': sim.partyLeave(pid); break;
-      case 'pkick': if (typeof msg.id === 'number') sim.partyKick(msg.id, pid); break;
-      case 'praid': sim.convertPartyToRaid(pid); break;
-      case 'pmoveRaid': if (typeof msg.id === 'number' && (msg.group === 1 || msg.group === 2)) sim.moveRaidMember(msg.id, msg.group, pid); break;
+      case 'pinvite':
+        if (typeof msg.id === 'number') sim.partyInvite(msg.id, pid);
+        break;
+      case 'paccept':
+        sim.partyAccept(pid);
+        break;
+      case 'pdecline':
+        sim.partyDecline(pid);
+        break;
+      case 'pleave':
+        sim.partyLeave(pid);
+        break;
+      case 'pkick':
+        if (typeof msg.id === 'number') sim.partyKick(msg.id, pid);
+        break;
+      case 'praid':
+        sim.convertPartyToRaid(pid);
+        break;
+      case 'punraid':
+        sim.convertRaidToParty(pid);
+        break;
+      case 'pmoveRaid':
+        if (typeof msg.id === 'number' && (msg.group === 1 || msg.group === 2))
+          sim.moveRaidMember(msg.id, msg.group, pid);
+        break;
       // raid/target markers
-      case 'setMarker': if (typeof msg.id === 'number' && typeof msg.marker === 'number') sim.setMarker(msg.id, msg.marker, pid); break;
-      case 'clearMarker': if (typeof msg.id === 'number') sim.clearMarker(msg.id, pid); break;
+      case 'setMarker':
+        if (typeof msg.id === 'number' && typeof msg.marker === 'number')
+          sim.setMarker(msg.id, msg.marker, pid);
+        break;
+      case 'clearMarker':
+        if (typeof msg.id === 'number') sim.clearMarker(msg.id, pid);
+        break;
       // hunter pets
-      case 'pet_abandon': sim.abandonPet(pid); break;
+      case 'pet_abandon':
+        sim.abandonPet(pid);
+        break;
       case 'pet_rename':
         if (typeof msg.name === 'string') {
-          if (offensiveName(msg.name)) this.send(session, { t: 'events', list: [{ type: 'error', text: 'Pet name is not allowed.' }] });
+          if (offensiveName(msg.name))
+            this.send(session, {
+              t: 'events',
+              list: [{ type: 'error', text: 'Pet name is not allowed.' }],
+            });
           else sim.renamePet(msg.name, pid);
         }
         break;
-      case 'pet_revive': sim.revivePet(pid); break;
-      case 'pet_attack': sim.petAttack(pid); break;
-      case 'pet_taunt': sim.petTaunt(pid); break;
-      case 'pet_feed': if (typeof msg.item === 'string') sim.feedPet(msg.item, pid); break;
-      case 'pet_heal': sim.healPet(pid); break;
+      case 'pet_revive':
+        sim.revivePet(pid);
+        break;
+      case 'pet_attack':
+        sim.petAttack(pid);
+        break;
+      case 'pet_taunt':
+        sim.petTaunt(pid);
+        break;
+      case 'pet_feed':
+        if (typeof msg.item === 'string') sim.feedPet(msg.item, pid);
+        break;
+      case 'pet_heal':
+        sim.healPet(pid);
+        break;
       case 'pet_mode':
-        if (msg.mode === 'passive' || msg.mode === 'defensive' || msg.mode === 'aggressive') sim.setPetMode(msg.mode, pid);
+        if (msg.mode === 'passive' || msg.mode === 'defensive' || msg.mode === 'aggressive')
+          sim.setPetMode(msg.mode, pid);
         break;
       // trade
       case 'trade_req':
@@ -1377,81 +1633,167 @@ export class GameServer {
       case 'trade_offer':
         if (Array.isArray(msg.items)) sim.tradeSetOffer(msg.items, Number(msg.copper) || 0, pid);
         break;
-      case 'trade_confirm': sim.tradeConfirm(pid); break;
-      case 'trade_cancel': sim.tradeCancel(pid); break;
+      case 'trade_confirm':
+        sim.tradeConfirm(pid);
+        break;
+      case 'trade_cancel':
+        sim.tradeCancel(pid);
+        break;
       // duels
-      case 'duel_req': if (typeof msg.id === 'number') sim.duelRequest(msg.id, pid); break;
-      case 'duel_accept': sim.duelAccept(pid); break;
-      case 'duel_decline': sim.duelDecline(pid); break;
+      case 'duel_req':
+        if (typeof msg.id === 'number') sim.duelRequest(msg.id, pid);
+        break;
+      case 'duel_accept':
+        sim.duelAccept(pid);
+        break;
+      case 'duel_decline':
+        sim.duelDecline(pid);
+        break;
       // social: friends / ignore / guild (persistent, account-scoped)
-      case 'friend_add': if (typeof msg.name === 'string') void this.social.friendAdd(this.actorFor(session), msg.name).catch(logSocialErr); break;
-      case 'friend_remove': if (typeof msg.name === 'string') void this.social.friendRemove(this.actorFor(session), msg.name).catch(logSocialErr); break;
-      case 'block_add': if (typeof msg.name === 'string') void this.social.blockAdd(this.actorFor(session), msg.name).catch(logSocialErr); break;
-      case 'block_remove': if (typeof msg.name === 'string') void this.social.blockRemove(this.actorFor(session), msg.name).catch(logSocialErr); break;
-      case 'social_refresh': void this.sendSocialSnapshot(session.characterId); break;
-      case 'guild_create': if (typeof msg.name === 'string') void this.social.guildCreate(this.actorFor(session), msg.name).catch(logSocialErr); break;
-      case 'guild_invite': if (typeof msg.name === 'string') void this.social.guildInvite(this.actorFor(session), msg.name).catch(logSocialErr); break;
-      case 'guild_accept': void this.social.guildAccept(this.actorFor(session)).catch(logSocialErr); break;
-      case 'guild_decline': this.social.guildDecline(this.actorFor(session)); break;
-      case 'guild_leave': void this.social.guildLeave(this.actorFor(session)).catch(logSocialErr); break;
-      case 'guild_kick': if (typeof msg.name === 'string') void this.social.guildKick(this.actorFor(session), msg.name).catch(logSocialErr); break;
-      case 'guild_promote': if (typeof msg.name === 'string') void this.social.guildSetRank(this.actorFor(session), msg.name, 'officer').catch(logSocialErr); break;
-      case 'guild_demote': if (typeof msg.name === 'string') void this.social.guildSetRank(this.actorFor(session), msg.name, 'member').catch(logSocialErr); break;
-      case 'guild_transfer': if (typeof msg.name === 'string') void this.social.guildTransferLeader(this.actorFor(session), msg.name).catch(logSocialErr); break;
-      case 'guild_disband': void this.social.guildDisband(this.actorFor(session)).catch(logSocialErr); break;
+      case 'friend_add':
+        if (typeof msg.name === 'string')
+          void this.social.friendAdd(this.actorFor(session), msg.name).catch(logSocialErr);
+        break;
+      case 'friend_remove':
+        if (typeof msg.name === 'string')
+          void this.social.friendRemove(this.actorFor(session), msg.name).catch(logSocialErr);
+        break;
+      case 'block_add':
+        if (typeof msg.name === 'string')
+          void this.social.blockAdd(this.actorFor(session), msg.name).catch(logSocialErr);
+        break;
+      case 'block_remove':
+        if (typeof msg.name === 'string')
+          void this.social.blockRemove(this.actorFor(session), msg.name).catch(logSocialErr);
+        break;
+      case 'social_refresh':
+        void this.sendSocialSnapshot(session.characterId);
+        break;
+      case 'guild_create':
+        if (typeof msg.name === 'string')
+          void this.social.guildCreate(this.actorFor(session), msg.name).catch(logSocialErr);
+        break;
+      case 'guild_invite':
+        if (typeof msg.name === 'string')
+          void this.social.guildInvite(this.actorFor(session), msg.name).catch(logSocialErr);
+        break;
+      case 'guild_accept':
+        void this.social.guildAccept(this.actorFor(session)).catch(logSocialErr);
+        break;
+      case 'guild_decline':
+        this.social.guildDecline(this.actorFor(session));
+        break;
+      case 'guild_leave':
+        void this.social.guildLeave(this.actorFor(session)).catch(logSocialErr);
+        break;
+      case 'guild_kick':
+        if (typeof msg.name === 'string')
+          void this.social.guildKick(this.actorFor(session), msg.name).catch(logSocialErr);
+        break;
+      case 'guild_promote':
+        if (typeof msg.name === 'string')
+          void this.social
+            .guildSetRank(this.actorFor(session), msg.name, 'officer')
+            .catch(logSocialErr);
+        break;
+      case 'guild_demote':
+        if (typeof msg.name === 'string')
+          void this.social
+            .guildSetRank(this.actorFor(session), msg.name, 'member')
+            .catch(logSocialErr);
+        break;
+      case 'guild_transfer':
+        if (typeof msg.name === 'string')
+          void this.social
+            .guildTransferLeader(this.actorFor(session), msg.name)
+            .catch(logSocialErr);
+        break;
+      case 'guild_disband':
+        void this.social.guildDisband(this.actorFor(session)).catch(logSocialErr);
+        break;
       // arena (Ashen Coliseum queue)
       case 'arena_queue': {
         const fmt = msg.format === '2v2' ? '2v2' : msg.format === 'fiesta' ? 'fiesta' : '1v1';
         sim.arenaQueueJoin(pid, fmt);
         break;
       }
-      case 'arena_leave': sim.arenaQueueLeave(pid); break;
+      case 'arena_leave':
+        sim.arenaQueueLeave(pid);
+        break;
       case 'arena_augment': {
-        if (typeof msg.augment === 'string' && msg.augment.length <= 64) sim.arenaAugmentPick(msg.augment, pid);
+        if (typeof msg.augment === 'string' && msg.augment.length <= 64)
+          sim.arenaAugmentPick(msg.augment, pid);
         break;
       }
 
       // post-cap cosmetic prestige (Max-Level XP Overflow)
-      case 'prestige': sim.prestige(pid); break;
+      case 'prestige':
+        sim.prestige(pid);
+        break;
 
       // Talents & Specializations — every allocation re-validated in the Sim.
       case 'applyTalents': {
         const a = msg.alloc;
         if (a && typeof a === 'object') {
-          sim.applyTalents({
-            spec: typeof a.spec === 'string' ? a.spec : null,
-            ranks: (a.ranks && typeof a.ranks === 'object') ? a.ranks : {},
-            choices: (a.choices && typeof a.choices === 'object') ? a.choices : {},
-          }, pid);
+          sim.applyTalents(
+            {
+              spec: typeof a.spec === 'string' ? a.spec : null,
+              ranks: a.ranks && typeof a.ranks === 'object' ? a.ranks : {},
+              choices: a.choices && typeof a.choices === 'object' ? a.choices : {},
+            },
+            pid,
+          );
         }
         break;
       }
-      case 'respec': sim.respec(pid); break;
-      case 'setSpec': sim.setSpec(typeof msg.spec === 'string' ? msg.spec : null, pid); break;
+      case 'respec':
+        sim.respec(pid);
+        break;
+      case 'setSpec':
+        sim.setSpec(typeof msg.spec === 'string' ? msg.spec : null, pid);
+        break;
       case 'saveLoadout': {
         const a = msg.alloc;
-        const alloc = a && typeof a === 'object'
-          ? {
-            spec: typeof a.spec === 'string' ? a.spec : null,
-            ranks: (a.ranks && typeof a.ranks === 'object') ? a.ranks : {},
-            choices: (a.choices && typeof a.choices === 'object') ? a.choices : {},
-          }
-          : undefined;
-        if (typeof msg.name === 'string') sim.saveLoadout(msg.name, Array.isArray(msg.bar) ? msg.bar : [], pid, alloc);
+        const alloc =
+          a && typeof a === 'object'
+            ? {
+                spec: typeof a.spec === 'string' ? a.spec : null,
+                ranks: a.ranks && typeof a.ranks === 'object' ? a.ranks : {},
+                choices: a.choices && typeof a.choices === 'object' ? a.choices : {},
+              }
+            : undefined;
+        if (typeof msg.name === 'string')
+          sim.saveLoadout(msg.name, Array.isArray(msg.bar) ? msg.bar : [], pid, alloc);
         break;
       }
-      case 'switchLoadout': if (typeof msg.index === 'number') sim.switchLoadout(msg.index | 0, pid); break;
-      case 'deleteLoadout': if (typeof msg.index === 'number') sim.deleteLoadout(msg.index | 0, pid); break;
+      case 'switchLoadout':
+        if (typeof msg.index === 'number') sim.switchLoadout(msg.index | 0, pid);
+        break;
+      case 'deleteLoadout':
+        if (typeof msg.index === 'number') sim.deleteLoadout(msg.index | 0, pid);
+        break;
       // World Market (the Merchant's auction house)
-      case 'market_search': if (typeof msg.q === 'string') sim.marketSearch(msg.q, pid); break;
+      case 'market_search':
+        if (typeof msg.q === 'string') sim.marketSearch(msg.q, pid);
+        break;
       case 'market_list':
-        if (typeof msg.item === 'string' && Number.isFinite(msg.count) && Number.isFinite(msg.price)) {
+        if (
+          typeof msg.item === 'string' &&
+          Number.isFinite(msg.count) &&
+          Number.isFinite(msg.price)
+        ) {
           sim.marketList(msg.item, msg.count, msg.price, pid);
         }
         break;
-      case 'market_buy': if (typeof msg.id === 'number') sim.marketBuy(msg.id, pid); break;
-      case 'market_cancel': if (typeof msg.id === 'number') sim.marketCancel(msg.id, pid); break;
-      case 'market_collect': sim.marketCollect(pid); break;
+      case 'market_buy':
+        if (typeof msg.id === 'number') sim.marketBuy(msg.id, pid);
+        break;
+      case 'market_cancel':
+        if (typeof msg.id === 'number') sim.marketCancel(msg.id, pid);
+        break;
+      case 'market_collect':
+        sim.marketCollect(pid);
+        break;
       // dev/ops commands, only when ALLOW_DEV_COMMANDS=1 (never in production)
       case 'dev_level': {
         if (process.env.ALLOW_DEV_COMMANDS === '1' && typeof msg.level === 'number') {
@@ -1460,7 +1802,11 @@ export class GameServer {
         break;
       }
       case 'dev_teleport': {
-        if (process.env.ALLOW_DEV_COMMANDS === '1' && typeof msg.x === 'number' && typeof msg.z === 'number') {
+        if (
+          process.env.ALLOW_DEV_COMMANDS === '1' &&
+          typeof msg.x === 'number' &&
+          typeof msg.z === 'number'
+        ) {
           const e = sim.entities.get(pid);
           if (e) {
             const p = sim.groundPos(msg.x, msg.z);
@@ -1485,14 +1831,23 @@ export class GameServer {
         const dungeonId = msg.cmd === 'enter_crypt' ? 'hollow_crypt' : msg.dungeon;
         if (typeof dungeonId !== 'string') break;
         const e = sim.entities.get(pid);
-        const door = [...sim.entities.values()].find((x) => x.templateId === 'dungeon_door' && x.dungeonId === dungeonId);
-        if (e && door && Math.hypot(e.pos.x - door.pos.x, e.pos.z - door.pos.z) < 8) sim.enterDungeon(dungeonId, pid);
+        const door = [...sim.entities.values()].find(
+          (x) => x.templateId === 'dungeon_door' && x.dungeonId === dungeonId,
+        );
+        if (e && door && Math.hypot(e.pos.x - door.pos.x, e.pos.z - door.pos.z) < 8)
+          sim.enterDungeon(dungeonId, pid);
         break;
       }
       case 'leave_crypt':
       case 'leave_dungeon': {
         const e = sim.entities.get(pid);
-        const exit = e ? [...sim.entities.values()].find((x) => x.templateId === 'dungeon_exit' && Math.hypot(e.pos.x - x.pos.x, e.pos.z - x.pos.z) < 8) : null;
+        const exit = e
+          ? [...sim.entities.values()].find(
+              (x) =>
+                x.templateId === 'dungeon_exit' &&
+                Math.hypot(e.pos.x - x.pos.x, e.pos.z - x.pos.z) < 8,
+            )
+          : null;
         if (exit) sim.leaveDungeon(pid);
         break;
       }
@@ -1500,7 +1855,12 @@ export class GameServer {
       case 'telemetry':
         break;
       default:
-        this.botDetector.observeProtocolAnomaly(session.botTrackingContext, 'unknown_command', raw, receivedAtMs);
+        this.botDetector.observeProtocolAnomaly(
+          session.botTrackingContext,
+          'unknown_command',
+          raw,
+          receivedAtMs,
+        );
     }
   }
 
@@ -1525,9 +1885,10 @@ export class GameServer {
         const known = session.sentEnts.get(e.id);
         // the viewer's current target stays in interest to the widest drop
         // radius so its unit frame doesn't vanish mid-chase
-        const limitSq = p.targetId === e.id
-          ? NPC_DROP_RADIUS * NPC_DROP_RADIUS
-          : interestLimitSq(e, known !== undefined);
+        const limitSq =
+          p.targetId === e.id
+            ? NPC_DROP_RADIUS * NPC_DROP_RADIUS
+            : interestLimitSq(e, known !== undefined);
         if (d2 > limitSq) return;
         present.add(e.id);
         const cache = this.wireCacheFor(e);
@@ -1535,7 +1896,12 @@ export class GameServer {
           // first sight carries the at-rest state exactly, so no settle
           // record is owed until it moves again
           ents.push(cache.fullJson);
-          session.sentEnts.set(e.id, { idVer: cache.idVer, dynVer: cache.dynVer, sentAtTick: tick, settled: true });
+          session.sentEnts.set(e.id, {
+            idVer: cache.idVer,
+            dynVer: cache.dynVer,
+            sentAtTick: tick,
+            settled: true,
+          });
           return;
         }
         if (known.idVer !== cache.idVer) {
@@ -1546,7 +1912,10 @@ export class GameServer {
           known.settled = false;
           return;
         }
-        if (!isUpdateDue(tick, e, d2, p, known.sentAtTick) || (known.dynVer === cache.dynVer && known.settled)) {
+        if (
+          !isUpdateDue(tick, e, d2, p, known.sentAtTick) ||
+          (known.dynVer === cache.dynVer && known.settled)
+        ) {
           // not due at this distance tier yet, or unchanged and already
           // settled: a bare id keeps it alive on the client
           keep.push(e.id);
@@ -1563,7 +1932,10 @@ export class GameServer {
         if (!present.has(id)) session.sentEnts.delete(id);
       }
       const keepJson = keep.length > 0 ? `,"keep":[${keep.join(',')}]` : '';
-      this.sendRaw(session, `${head},"self":${this.selfWireJson(session, p, meta)},"ents":[${ents.join(',')}]${keepJson}}`);
+      this.sendRaw(
+        session,
+        `${head},"self":${this.selfWireJson(session, p, meta)},"ents":[${ents.join(',')}]${keepJson}}`,
+      );
     }
     // >= rather than a modulo check: catch-up broadcasts can skip ticks
     if (tick - this.lastWireSweepTick >= WIRE_CACHE_SWEEP_TICKS) {
@@ -1589,7 +1961,15 @@ export class GameServer {
   private wireCacheFor(e: Entity): EntityWireCache {
     let cache = this.wireCache.get(e.id);
     if (!cache) {
-      cache = { tick: -1, idJson: '', dynJson: '', idVer: 0, dynVer: 0, fullJson: '', liteJson: '' };
+      cache = {
+        tick: -1,
+        idJson: '',
+        dynJson: '',
+        idVer: 0,
+        dynVer: 0,
+        fullJson: '',
+        liteJson: '',
+      };
       this.wireCache.set(e.id, cache);
     }
     if (cache.tick === this.sim.tickCount) return cache;
@@ -1665,6 +2045,14 @@ export class GameServer {
     maybe('cosmetics', session.accountCosmetics);
     maybe('qlog', [...meta.questLog.values()]);
     maybe('qdone', [...meta.questsDone]);
+    // Raid lockouts as {dungeonId: expiryEpochMs}, future-only. Absolute expiry
+    // (not a countdown) so the serialized form is stable between resets and the
+    // delta guard ships it only on grant / reset / expiry; the client derives the
+    // remaining time from its own clock.
+    maybe(
+      'lockouts',
+      Object.fromEntries([...meta.raidLockouts].filter(([, until]) => until > Date.now())),
+    );
     maybe('milestones', [...meta.unlockedMilestones]);
     maybe('cds', Object.fromEntries([...p.cooldowns.entries()].map(([k, v]) => [k, round2(v)])));
     maybe('stats', p.stats);
@@ -1677,10 +2065,19 @@ export class GameServer {
     // market info is null unless the player is standing at the Merchant, so it
     // only rides the wire for players actually browsing the World Market
     maybe('market', this.sim.marketInfoFor(session.pid));
+    // open need-greed rolls this player can still answer, so a client that
+    // missed the transient lootRoll event re-shows the prompt from state
+    maybe('lroll', this.sim.activeLootRolls(session.pid));
     // talents/spec/loadouts ride the wire only when they change (PR-5: never
     // every snapshot). The client recomputes its known abilities from this.
-    maybe('tal', { alloc: meta.talents, spec: meta.talentMods.spec, role: meta.talentMods.role, loadouts: meta.loadouts, activeLoadout: meta.activeLoadout });
-    return extra === '' ? json : json.slice(0, -1) + extra + '}';
+    maybe('tal', {
+      alloc: meta.talents,
+      spec: meta.talentMods.spec,
+      role: meta.talentMods.role,
+      loadouts: meta.loadouts,
+      activeLoadout: meta.activeLoadout,
+    });
+    return extra === '' ? json : `${json.slice(0, -1) + extra}}`;
   }
 
   private partyWire(pid: number): unknown {
@@ -1688,15 +2085,31 @@ export class GameServer {
     if (!party) return null;
     return {
       leader: party.leader,
-      members: party.members.map((mPid) => {
-        const meta = this.sim.meta(mPid);
-        const e = this.sim.entities.get(mPid);
-        return meta && e ? {
-          pid: mPid, name: meta.name, cls: meta.cls, level: e.level,
-          hp: e.hp, mhp: e.maxHp, res: Math.round(e.resource), mres: e.maxResource, rtype: e.resourceType,
-          x: round2(e.pos.x), z: round2(e.pos.z), dead: e.dead ? 1 : 0, inCombat: e.inCombat ? 1 : 0,
-        } : null;
-      }).filter(Boolean),
+      raid: party.raid,
+      members: party.members
+        .map((mPid) => {
+          const meta = this.sim.meta(mPid);
+          const e = this.sim.entities.get(mPid);
+          return meta && e
+            ? {
+                pid: mPid,
+                name: meta.name,
+                cls: meta.cls,
+                level: e.level,
+                hp: e.hp,
+                mhp: e.maxHp,
+                res: Math.round(e.resource),
+                mres: e.maxResource,
+                rtype: e.resourceType,
+                x: round2(e.pos.x),
+                z: round2(e.pos.z),
+                dead: e.dead ? 1 : 0,
+                inCombat: e.inCombat ? 1 : 0,
+                group: party.raidGroups.get(mPid) ?? 1,
+              }
+            : null;
+        })
+        .filter(Boolean),
     };
   }
 
@@ -1741,13 +2154,23 @@ export class GameServer {
       for (const ev of events) {
         // ignore list: drop chat originating from a character this player has
         // blocked, before it ever reaches their client
-        if (ev.type === 'chat' && session.blockedIds.size > 0 && this.isBlockedSender(session, ev.fromPid)) continue;
+        if (
+          ev.type === 'chat' &&
+          session.blockedIds.size > 0 &&
+          this.isBlockedSender(session, ev.fromPid)
+        )
+          continue;
         if (ev.pid !== undefined) {
           if (ev.pid === session.pid) {
             mine.push(ev);
             // remember the last person to whisper us, for /r reply (the
             // recipient copy of a whisper has no `to`; the sender echo does)
-            if (ev.type === 'chat' && ev.channel === 'whisper' && ev.to === undefined && ev.fromPid !== session.pid) {
+            if (
+              ev.type === 'chat' &&
+              ev.channel === 'whisper' &&
+              ev.to === undefined &&
+              ev.fromPid !== session.pid
+            ) {
               session.lastWhisperFrom = ev.from;
             }
             this.botDetector.observeEvent(session.botTrackingContext, ev, eventTime);
@@ -1781,7 +2204,11 @@ export class GameServer {
     return this.sim.entities.get(id)?.pos ?? null;
   }
 
-  private routeRememberedChat(session: ClientSession, rawText: string, pid: number): import('../src/sim/sim').SentChat | null {
+  private routeRememberedChat(
+    session: ClientSession,
+    rawText: string,
+    pid: number,
+  ): import('../src/sim/sim').SentChat | null {
     const text = rawText.trim();
     if (!text) return null;
     // Dev-only: force this character's $WOC holder-tier flair so the in-world
@@ -1807,17 +2234,23 @@ export class GameServer {
         case 'guild':
         case 'officer': {
           const channel = session.rememberedChat.channel;
-          const route = channel === 'guild'
-            ? this.social.guildChat(this.actorFor(session), body)
-            : this.social.officerChat(this.actorFor(session), body);
-          void route.then((sent) => {
-            if (sent) {
-              this.chatLog.log({
-                accountId: session.accountId, characterId: session.characterId,
-                characterName: session.name, channel, message: body.trim().slice(0, 200),
-              });
-            }
-          }).catch((err) => console.error(`${channel} chat failed:`, err));
+          const route =
+            channel === 'guild'
+              ? this.social.guildChat(this.actorFor(session), body)
+              : this.social.officerChat(this.actorFor(session), body);
+          void route
+            .then((sent) => {
+              if (sent) {
+                this.chatLog.log({
+                  accountId: session.accountId,
+                  characterId: session.characterId,
+                  characterName: session.name,
+                  channel,
+                  message: body.trim().slice(0, MAX_CHAT_MESSAGE_LEN),
+                });
+              }
+            })
+            .catch((err) => console.error(`${channel} chat failed:`, err));
           return null;
         }
         case 'whisper':
@@ -1931,7 +2364,10 @@ export class GameServer {
       if (now - session.chatLastRateError >= CHAT_RATE_ERROR_COOLDOWN_SECONDS) {
         session.chatLastRateError = now;
         const remaining = Math.ceil(session.chatCooldownUntil - now);
-        this.send(session, { t: 'events', list: [{ type: 'error', text: `Chat is on cooldown for ${remaining}s.` }] });
+        this.send(session, {
+          t: 'events',
+          list: [{ type: 'error', text: `Chat is on cooldown for ${remaining}s.` }],
+        });
       }
       return false;
     }
@@ -1941,7 +2377,10 @@ export class GameServer {
       session.chatTokens = CHAT_RATE_BURST;
     }
     const elapsed = Math.max(0, now - session.chatLastRefill);
-    session.chatTokens = Math.min(CHAT_RATE_BURST, session.chatTokens + elapsed * CHAT_RATE_REFILL_PER_SECOND);
+    session.chatTokens = Math.min(
+      CHAT_RATE_BURST,
+      session.chatTokens + elapsed * CHAT_RATE_REFILL_PER_SECOND,
+    );
     session.chatLastRefill = now;
     if (session.chatTokens >= 1) {
       session.chatTokens -= 1;
@@ -1953,12 +2392,23 @@ export class GameServer {
       session.chatCooldownUntil = now + CHAT_COOLDOWN_SECONDS;
       session.chatTokens = 0;
       session.chatLastRateError = now;
-      this.send(session, { t: 'events', list: [{ type: 'error', text: `Chat locked for ${CHAT_COOLDOWN_SECONDS}s because you are sending messages too quickly.` }] });
+      this.send(session, {
+        t: 'events',
+        list: [
+          {
+            type: 'error',
+            text: `Chat locked for ${CHAT_COOLDOWN_SECONDS}s because you are sending messages too quickly.`,
+          },
+        ],
+      });
       return false;
     }
     if (now - session.chatLastRateError >= CHAT_RATE_ERROR_COOLDOWN_SECONDS) {
       session.chatLastRateError = now;
-      this.send(session, { t: 'events', list: [{ type: 'error', text: 'You are sending messages too quickly. Slow down.' }] });
+      this.send(session, {
+        t: 'events',
+        list: [{ type: 'error', text: 'You are sending messages too quickly. Slow down.' }],
+      });
     }
     return false;
   }
@@ -1970,7 +2420,10 @@ export class GameServer {
       session.chatMuteReason = '';
       return false;
     }
-    this.send(session, { t: 'events', list: [{ type: 'error', text: this.chatMuteMessage(session) }] });
+    this.send(session, {
+      t: 'events',
+      list: [{ type: 'error', text: this.chatMuteMessage(session) }],
+    });
     return true;
   }
 
@@ -1983,16 +2436,23 @@ export class GameServer {
 
   private sendWhoRoster(session: ClientSession): void {
     if (!session.blockListLoaded) {
-      this.send(session, { t: 'events', list: [{ type: 'error', text: 'Your ignore list is still loading. Try /who again in a moment.' }] });
+      this.send(session, {
+        t: 'events',
+        list: [
+          { type: 'error', text: 'Your ignore list is still loading. Try /who again in a moment.' },
+        ],
+      });
       return;
     }
     const rows = this.whoRosterFor(session);
     const total = rows.length;
-    const list: { type: 'log'; text: string; color: string }[] = [{
-      type: 'log',
-      text: `Who: ${total} ${total === 1 ? 'player' : 'players'} online on ${REALM}.`,
-      color: '#7fd4ff',
-    }];
+    const list: { type: 'log'; text: string; color: string }[] = [
+      {
+        type: 'log',
+        text: `Who: ${total} ${total === 1 ? 'player' : 'players'} online on ${REALM}.`,
+        color: '#7fd4ff',
+      },
+    ];
     for (const row of rows.slice(0, WHO_RESULT_LIMIT)) {
       const status = row.status === 'online' ? '' : ` (${row.status})`;
       list.push({
@@ -2031,7 +2491,11 @@ export class GameServer {
   private canShowInWho(viewer: ClientSession, candidate: ClientSession): boolean {
     if (!candidate.blockListLoaded) return false;
     if (viewer.blockedIds.has(candidate.characterId)) return false;
-    if (candidate.characterId !== viewer.characterId && candidate.blockedIds.has(viewer.characterId)) return false;
+    if (
+      candidate.characterId !== viewer.characterId &&
+      candidate.blockedIds.has(viewer.characterId)
+    )
+      return false;
     return true;
   }
 

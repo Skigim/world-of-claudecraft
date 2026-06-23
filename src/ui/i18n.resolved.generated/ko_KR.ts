@@ -174,6 +174,28 @@ export const ko_KR: EnTranslations = {
       "title": "감정 표현",
       "done": "완료"
     },
+    "theme": {
+      "preset": "UI 테마",
+      "customColors": "사용자 지정 색상",
+      "reset": "초기화",
+      "presets": {
+        "classic": "클래식 골드",
+        "midnight": "미드나이트",
+        "parchment": "양피지",
+        "highContrast": "고대비"
+      },
+      "knob": {
+        "accent": "강조색",
+        "border": "테두리",
+        "panel": "프레임",
+        "text": "텍스트",
+        "textMuted": "보조 텍스트",
+        "hp": "체력",
+        "mana": "마나",
+        "rage": "분노",
+        "energy": "에너지"
+      }
+    },
     "questTracker": {
       "count": "({count})",
       "collapseHint": "퀘스트 추적기 접기",
@@ -209,12 +231,27 @@ export const ko_KR: EnTranslations = {
       "hapticsOff": "진동 꺼짐",
       "toggleHaptics": "진동 전환"
     },
+    "tutorial": {
+      "moveBodyTouch": "이동 스틱으로 이동하고 화면을 끌어 주위를 둘러보세요. 몇 걸음 움직여 시작하세요.",
+      "talkBodyTouch": "레드브룩 원수에게 다가가 사용 버튼을 눌러 대화한 뒤 임무를 수락하세요.",
+      "returnBodyTouch": "임무를 마쳤습니다. 레드브룩 원수에게 돌아가 사용 버튼을 눌러 완료하세요.",
+      "doneBodyTouch": "기본기를 익혔습니다, {name}. 이제 골짜기를 자유롭게 누비세요. 더보기를 누른 뒤 퀘스트 기록을 눌러 언제든 퀘스트를 확인할 수 있습니다. 좋은 사냥 되세요."
+    },
     "widgets": {
       "clockTitle": "현지 시각 - 클릭하면 12/24시간제 전환",
       "worldCoordinates": "세계 좌표",
       "coordinates": "좌표",
       "heading": "방향",
       "minimapZoom": "미니맵 확대/축소"
+    },
+    "raidLockout": {
+      "title": "공격대 잠금",
+      "allReady": "모든 공격대 준비됨",
+      "daysHours": "{d}일 {h}시간",
+      "hoursMinutes": "{h}시간 {m}분",
+      "minutes": "{m}분",
+      "lessThanMinute": "1분 미만",
+      "lockedToast": "{raid}에 잠겨 있습니다. {time} 후 해제됩니다."
     },
     "compass": {
       "N": "북",
@@ -253,6 +290,8 @@ export const ko_KR: EnTranslations = {
       "interfaceModeNote": "자동은 기기에 따라 데스크톱 또는 터치 조작을 선택합니다. 데스크톱을 선택하면 키보드와 마우스로 고정되며(키보드가 있는 태블릿 등에 유용), 터치를 선택하면 화면 조작이 됩니다.",
       "footstepSounds": "발소리",
       "clickFeedback": "클릭 표시",
+      "lockCursorOnRotate": "회전 중 커서 고정",
+      "keybindHelpLockCursorOnRotate": "드래그하여 카메라를 회전하는 동안 마우스 커서를 창 안에 유지하여 화면 가장자리에 닿거나 다른 모니터로 이동하지 않도록 합니다. 자유로운 커서를 원하면 끄세요.",
       "showWalletOnCharacterScreen": "캐릭터 화면에 지갑 표시",
       "showWalletOnPlayerCard": "플레이어 카드에 지갑 표시",
       "uiScale": "UI 배율",
@@ -476,7 +515,62 @@ export const ko_KR: EnTranslations = {
       "deactivateConfirm": "내 계정 비활성화",
       "deactivated": "계정이 비활성화되었습니다.",
       "logOut": "로그아웃",
-      "logOutSummary": "이 기기에서 로그아웃합니다."
+      "logOutSummary": "이 기기에서 로그아웃합니다.",
+      "sectionSecurity": "보안",
+      "changeEmailTitle": "이메일 변경",
+      "changeEmailHint": "새 주소로 확인 링크를, 기존 주소로 안내 메일을 보냅니다. 링크를 열어야만 이메일이 변경됩니다.",
+      "changeEmailNew": "새 이메일",
+      "changeEmailSubmit": "확인 링크 보내기",
+      "changeEmailSent": "받은 편지함을 확인하세요. 보내드린 링크를 열어 새 이메일을 확인하세요.",
+      "errEmailUnchanged": "이미 사용 중인 이메일 주소입니다.",
+      "twoFactorTitle": "2단계 인증",
+      "twoFactorStatusOn": "계정에 2단계 인증이 켜져 있습니다.",
+      "twoFactorStatusOff": "더 강력한 계정 보안을 위해 인증 앱을 추가하세요.",
+      "twoFactorSetupBtn": "2단계 인증 설정",
+      "twoFactorBeginHint": "설정을 시작하려면 비밀번호를 입력하세요.",
+      "twoFactorBegin": "설정 시작",
+      "twoFactorScanHint": "이 키를 인증 앱(Google Authenticator, Authy, 1Password 등)에 추가한 다음, 앱에 표시되는 6자리 코드를 입력하세요.",
+      "twoFactorSecretLabel": "설정 키",
+      "twoFactorOpenApp": "인증 앱에서 열기",
+      "twoFactorCodeLabel": "6자리 코드",
+      "twoFactorVerifyBtn": "확인 후 사용",
+      "twoFactorEnabledMsg": "이제 2단계 인증이 켜졌습니다.",
+      "twoFactorRecoveryTitle": "복구 코드를 저장하세요",
+      "twoFactorRecoveryHint": "각 코드는 한 번만 사용할 수 있습니다. 안전한 곳에 보관하세요. 인증 앱을 잃어버렸을 때 다시 로그인할 수 있는 유일한 방법입니다.",
+      "twoFactorDownloadCodes": "코드 다운로드",
+      "twoFactorDone": "완료",
+      "twoFactorDisableHint": "2단계 인증을 끄려면 비밀번호를 입력하세요. 복구 코드는 폐기됩니다.",
+      "twoFactorDisableBtn": "2단계 인증 끄기",
+      "twoFactorDisabledMsg": "2단계 인증이 꺼졌습니다.",
+      "errTwoFactorCode": "코드가 올바르지 않습니다. 다시 시도하세요.",
+      "errTwoFactorState": "2단계 인증 설정이 예상한 상태가 아닙니다. 새로고침 후 다시 시도하세요.",
+      "exportTitle": "내 데이터 내보내기",
+      "exportHint": "계정과 캐릭터 사본을 JSON 파일로 다운로드합니다. 확인 메일도 함께 보내드립니다.",
+      "exportBtn": "내 데이터 다운로드",
+      "exportDone": "데이터가 다운로드되었습니다. 확인 메일을 보내드렸습니다.",
+      "exportFailed": "데이터를 내보낼 수 없습니다. 잠시 후 다시 시도하세요."
+    },
+    "bags": {
+      "filterGroupAria": "가방을 분류별로 필터링",
+      "filterAll": "전체",
+      "filterWeapon": "무기",
+      "filterArmor": "방어구",
+      "filterConsumable": "소모품",
+      "filterMaterial": "재료",
+      "filterQuest": "퀘스트",
+      "sortAria": "가방 아이템 정렬",
+      "sortRecent": "최근",
+      "sortQuality": "품질",
+      "sortName": "이름",
+      "searchPlaceholder": "아이템 검색",
+      "searchAria": "이름으로 가방 아이템 검색",
+      "noMatch": "필터와 일치하는 아이템이 없습니다."
+    },
+    "raidConvert": {
+      "toPartyDone": "공격대가 파티로 다시 전환되었습니다.",
+      "notRaid": "현재 파티는 공격대가 아닙니다.",
+      "leaderOnly": "공격대장만 파티로 전환할 수 있습니다.",
+      "tooLarge": "인원이 5명을 초과하는 공격대는 파티로 다시 전환할 수 없습니다."
     }
   },
   "guide": {
@@ -879,7 +973,6 @@ export const ko_KR: EnTranslations = {
       "notedLabel": "특기 사항",
       "flavor": {
         "old_greyjaw": "어떤 덫도 가두지 못한, 상처투성이 늙은 늑대. 사냥개 셋과 마구간 소년의 팔이 이놈 탓으로 돌려졌습니다. 깊은 숲을 홀로 사냥하며, 싸움이 길어질수록 더욱 사나워집니다.",
-        "brightwood_stag": "뿔로 된 왕관을 낮추고 밀어붙이는 당당한 숲의 사슴으로, 몰아붙일수록 상대하기 더 까다로워집니다.",
         "grubjaw": "다른 트롤들조차 곁에서 땅을 파려 하지 않을 만큼 탐욕스러운 습지 트롤로, 한 상인의 마지막 짐말 두 마리를 멍에까지 통째로 삼켰다고 전해집니다.",
         "shardlord_kazzix": "어깨를 갖춘 폭풍의 정령으로, 스톰크래그 위 먼 바위산을 거닐며 번개를 무릅쓸 만한 가치가 있는 심장 파편을 지니고 있습니다.",
         "mirejaw_frenzy": "전투 도중 스스로를 광란으로 몰아넣어 마구 날뛰는 습지 멀록으로, 시끄럽고 영역 의식 강한 무리 가운데서도 가장 요란합니다.",
@@ -945,7 +1038,7 @@ export const ko_KR: EnTranslations = {
       "marshPlaceNotes": "펜브리지는 유일하게 마른 길을 지킵니다. 배회자 갈대밭과 깊은습지 얕은 물에는 습지 짐승과 멀록이 들끓고, 과부 덤불은 거미줄로 빽빽이 얽혀 있습니다. 익사한 예배당과 트롤 봉분은 한층 오래된 위험을 품고, 무덤부름 야영지는 교단이 자리를 틀고 박힌 곳이며, 가라앉은 요새는 습지의 인스턴스 심장부입니다.",
       "peaksPlaceNotes": "하이워치가 성벽을 지킵니다. 추적자 능선과 깊은바위 굴은 능선 들고양이와 코볼트의 차지이고, 오우거 산기슭과 드로그마르의 전쟁 야영지는 고용된 흉포한 자들의 것입니다. 스톰크래그는 정령들로 들끓고 그 아래에서 글리머미어가 빛나며, 고룡교단 천막과 망령의 들판이 교단의 높은 거점을 에워싸고, 그 정점에 무덤고룡 성소가 있습니다.",
       "gladeTitle": "고요한 한구석: 브라이트우드 숲",
-      "gladeBody": "골짜기의 모든 이야기가 죽은 자에 관한 것은 아닙니다. 북쪽에는 브라이트우드 숲이라 불리는 양지바른 숲이 한결 부드러운 제 가락을 지키며, 싸우기보다 보살피기를 택한 외로운 순찰자가 그곳을 지켜봅니다. 그녀의 일은 균형입니다. 지나치게 번식한 것을 솎아내고, 둥지가 너무 위험해져 그냥 둘 수 없게 되면 숲의 늙은 왕관 쓴 수사슴에게 정중한 마지막을 베푸는 것이지요. 당신이 좇는 자취에 대비되는 잔잔한 대목이며, 잠시 들를 만한 가치가 있습니다."
+      "gladeBody": "계곡의 모든 이야기가 죽은 자들에 관한 것은 아닙니다. 북쪽에는 브라이트우드라는 햇살 드는 숲이 있어 조용한 길, 풀을 뜯는 사슴, 가지 아래의 경계심 많은 짐승들과 함께 더 부드러운 고유한 리듬을 지킵니다. 당신이 따라가는 흔적에 대한 차분한 대비이며, 길이 잠시 여유를 줄 때 둘러볼 만한 곳입니다."
     },
     "questsPage": {
       "heading": "퀘스트",
@@ -993,9 +1086,7 @@ export const ko_KR: EnTranslations = {
       "aldricRole": "골짜기의 사제",
       "aldricBody": "동부개울에서 더럽혀진 무덤 앞에 서서 교단의 이름을 처음 밝혀낸 다음, 직접 그 자취를 좇아 습지를 지나 하이워치의 성벽까지 오르는 소박한 마을 사제. 온 원정의 굳건한 심장입니다.",
       "marenRole": "원수의 정찰병",
-      "marenBody": "마이어펜의 갈대밭에서 만나는, 말수 적은 추적자. 조용한 발걸음과 짧은 칼이 전부입니다. 그녀 역시 북쪽으로 자취를 좇으며, 당신을 봉우리로 보내는 그 말을 알아챈 것도 바로 그녀의 귀입니다.",
-      "elwynRole": "브라이트우드의 숲지기",
-      "elwynBody": "골짜기 북쪽 양지바른 숲을 홀로 지키는 이. 그녀의 일은 살육이 아니라 보살핌입니다. 지나치게 번식한 것을 솎아내고, 숲에서 가장 늙은 짐승에게 늑대들이 주는 것보다 한결 너그러운 마지막을 베풉니다."
+      "marenBody": "마이어펜의 갈대밭에서 만나는, 말수 적은 추적자. 조용한 발걸음과 짧은 칼이 전부입니다. 그녀 역시 북쪽으로 자취를 좇으며, 당신을 봉우리로 보내는 그 말을 알아챈 것도 바로 그녀의 귀입니다."
     },
     "dungeonsPage": {
       "heading": "던전과 공격대",
@@ -1388,7 +1479,10 @@ export const ko_KR: EnTranslations = {
     "characterNamePlaceholder": "캐릭터 이름",
     "enterWorld": "세계 입장",
     "offlineCharacter": "오프라인 캐릭터",
-    "create": "생성"
+    "create": "생성",
+    "twoFactorLabel": "인증 코드",
+    "twoFactorPlaceholder": "6자리 또는 복구 코드",
+    "twoFactorHint": "인증 앱에 표시된 코드 또는 복구 코드 중 하나를 입력하세요."
   },
   "wallet": {
     "label": "$WOC 지갑",
@@ -1788,7 +1882,9 @@ export const ko_KR: EnTranslations = {
     "genre": "MMORPG",
     "playMode": "멀티플레이어",
     "applicationCategory": "게임",
-    "operatingSystem": "웹 브라우저"
+    "operatingSystem": "웹 브라우저",
+    "officialLabel": "World of ClaudeCraft 공식 웹사이트",
+    "officialBody": "worldofclaudecraft.com은 Claudemoon 렐름의 공식 무료 브라우저 MMO입니다. 지속 캐릭터로 온라인 플레이를 하거나, 오프라인에서 혼자 탐험하고, wiki를 읽고, 이 사이트에서 검증된 커뮤니티 링크를 확인하세요."
   },
   "a11y": {
     "goHome": "홈으로 이동",
@@ -1857,6 +1953,11 @@ export const ko_KR: EnTranslations = {
     "high": "높음",
     "medium": "보통",
     "low": "낮음",
+    "popTipLow": "낮은 인구: 현재 접속자 15명 미만. 여유롭고 새로 시작하기에 좋습니다.",
+    "popTipMedium": "보통 인구: 현재 접속자 15~39명. 건강하고 활발한 렐름입니다.",
+    "popTipHigh": "높은 인구: 현재 접속자 40~79명. 붐비고 플레이어가 많습니다.",
+    "popTipFull": "포화 인구: 현재 접속자 80명 이상. 매우 붐비며 로그인 대기열이 있을 수 있습니다.",
+    "popTipOffline": "오프라인: 이 렐름은 현재 연결할 수 없어 입장할 수 없습니다.",
     "characterCountOne": "캐릭터 {count}개",
     "characterCountOther": "캐릭터 {count}개",
     "selectedRealm": "렐름: {name}",
@@ -2191,6 +2292,7 @@ export const ko_KR: EnTranslations = {
         "report": "플레이어 신고",
         "removeParty": "파티에서 제거",
         "convertToRaid": "공격대로 전환",
+        "convertToParty": "파티로 전환",
         "cancel": "취소"
       }
     },
@@ -2309,6 +2411,10 @@ export const ko_KR: EnTranslations = {
       "whisperAmbiguous": "'{name}'와 일치하는 플레이어가 여럿입니다. 정확한 대소문자를 사용하세요.",
       "whisperMissing": "'{name}'라는 플레이어는 온라인이 아닙니다.",
       "whisperSelf": "혼잣말을 중얼거립니다. 아무도 듣지 못합니다.",
+      "assistSelf": "자신을 지원할 수 없습니다.",
+      "assistNoTarget": "{name}님은 대상이 없습니다.",
+      "assistWhom": "누구를 지원할까요? 플레이어를 대상으로 지정하거나 /assist <name>를 사용하세요.",
+      "assisting": "{name}님을 지원합니다.",
       "notInParty": "파티에 속해 있지 않습니다.",
       "unknownCommand": "알 수 없는 명령어: {command}. /s /y /w /p /g를 사용해 보세요.",
       "chatCooldown": "채팅 재사용까지 {seconds}초 남았습니다.",
@@ -3768,6 +3874,9 @@ export const ko_KR: EnTranslations = {
       "ridge_stalker_pelt": {
         "name": "산등성이 추적자 가죽"
       },
+      "pristine_ridge_stalker_pelt": {
+        "name": "온전한 산등성이 추적자 가죽"
+      },
       "glowing_wax": {
         "name": "빛나는 밀랍"
       },
@@ -3987,9 +4096,6 @@ export const ko_KR: EnTranslations = {
       "milepost_boots": {
         "name": "이정표 장화"
       },
-      "glade_pelt": {
-        "name": "숲속 가죽"
-      },
       "soft_down": {
         "name": "부드러운 솜털 뭉치"
       },
@@ -4007,9 +4113,6 @@ export const ko_KR: EnTranslations = {
       },
       "monarch_crown_helm": {
         "name": "군주의 왕관"
-      },
-      "monarch_heart": {
-        "name": "군주의 심장"
       },
       "bristleback_maul": {
         "name": "뻣센등뼈 철퇴"
@@ -4208,6 +4311,9 @@ export const ko_KR: EnTranslations = {
       },
       "cragmaw_prowlboots": {
         "name": "크래그모의 잠행 장화"
+      },
+      "cragmaw_huntcord": {
+        "name": "크래그모의 사냥 허리끈"
       },
       "drowned_tide_scepter": {
         "name": "익사한 조수의 셉터"
@@ -4634,42 +4740,6 @@ export const ko_KR: EnTranslations = {
       "nythraxis_scourge_of_thornpeak": {
         "name": "나이트락시스, 손피크의 재앙"
       },
-      "brightwood_hare": {
-        "name": "브라이트우드 산토끼"
-      },
-      "glade_fox": {
-        "name": "숲속 여우"
-      },
-      "spotted_fawn": {
-        "name": "얼룩 새끼사슴"
-      },
-      "meadow_crane": {
-        "name": "초원 두루미"
-      },
-      "thornpelt_badger": {
-        "name": "가시털 오소리"
-      },
-      "dawnmane_doe": {
-        "name": "여명갈기 암사슴"
-      },
-      "bramble_lynx": {
-        "name": "가시덤불 살쾡이"
-      },
-      "brightwood_stag": {
-        "name": "브라이트우드 수사슴"
-      },
-      "grovetusk_boar": {
-        "name": "숲엄니 멧돼지"
-      },
-      "sunhide_bear": {
-        "name": "햇살가죽 곰"
-      },
-      "brightwood_monarch": {
-        "name": "브라이트우드의 군주"
-      },
-      "elder_bristleback": {
-        "name": "늙은 뻣센등뼈"
-      },
       "ironvein_foreman": {
         "name": "철맥 감독관"
       },
@@ -4693,12 +4763,6 @@ export const ko_KR: EnTranslations = {
       },
       "nhalia_mourner": {
         "name": "날리아 애도자"
-      },
-      "sableweb_hatchling": {
-        "name": "검은그물 새끼"
-      },
-      "sableweb_matriarch": {
-        "name": "검은그물 우두머리"
       },
       "sister_nhalia": {
         "name": "자매 날리아"
@@ -4880,11 +4944,6 @@ export const ko_KR: EnTranslations = {
         "name": "현자 캐디스",
         "title": "현자",
         "greeting": "느슨한 혈암을 조심하십시오, {className}. 산이 요즘 불안정해졌고, 나는 그 이유를 알고 싶습니다."
-      },
-      "ranger_elwyn": {
-        "name": "순찰병 엘윈",
-        "title": "숲의 수호인",
-        "greeting": "조용히 하게, {className} - 오늘 숲은 고요하고, 나는 그대로 지킬 생각이네."
       },
       "brother_aldric_raid": {
         "name": "알드릭 수사",
@@ -5637,145 +5696,6 @@ export const ko_KR: EnTranslations = {
         "objectives": {
           "0": {
             "label": "니트락시스 처치"
-          }
-        }
-      },
-      "q_brightwood_thinning": {
-        "title": "숲 솎아내기",
-        "text": "브라이트우드 숲이 들끓고 있네, {playerName}. 가시덤불 살쾡이는 내가 솎아내는 속도보다 빨리 번식하고, 무리는 얼마 남지 않은 풀밭마저 짓밟고 있어. 가시덤불 살쾡이 8마리를 처치하고 숲속 가죽 6장을 가져오게. 나머지 무리의 상태를 가늠해 보겠네.",
-        "completion": "좋아. 무리가 솎아졌고 이 가죽들도 멀쩡하군 - 숲은 한 철 더 버틸 걸세.",
-        "objectives": {
-          "0": {
-            "label": "처치한 가시덤불 살쾡이"
-          },
-          "1": {
-            "label": "숲속 가죽"
-          }
-        }
-      },
-      "q_brightwood_monarch": {
-        "title": "브라이트우드의 군주",
-        "text": "나 홀로 화살을 겨누지 않을 짐승이 하나 있네. 바로 브라이트우드의 군주, 깊은 숲을 다스리는 거대한 수사슴이지. 그는 늙고 사나워져, 자기 둥지에 다가오는 자는 누구든 뿔로 들이받는다네. 사냥꾼 하나로는 감당하기 벅차니 - 친구를 한둘 데려가게. 그를 잠재우고 심장을 가져오게, {playerName}.",
-        "completion": "그래, 늙은 왕이 쓰러졌군. 무거운 일이지 - 허나 늑대들의 손에 죽는 것보다는 자비로운 최후였네. 그의 뿔로 만든 이 왕관을 경의를 담아 쓰게, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "군주의 심장"
-          }
-        }
-      },
-      "q_ledger_first_duty": {
-        "title": "수호인의 첫 임무",
-        "text": "이스트브룩에서 밥값을 하고 싶은가, {playerName}? 그렇다면 모든 수호인이 시작하는 곳에서 시작하게. 가시털 오소리들이 늑대길을 지나 저 북쪽 끝, 브라이트우드 숲 한복판까지 굴을 파 놓아서, 숲 바닥이 그 굴 속으로 내려앉고 있네. 가시털 오소리 8마리를 솎아내면 장부가 자네의 이름을 기억할 걸세.",
-        "completion": "굴 여덟 개를 비우고 숲 바닥도 다시 가라앉았군. 좋아. 이 장부에 적힌 모든 이름이 바로 지금 자네가 선 자리에서 시작했다네.",
-        "objectives": {
-          "0": {
-            "label": "솎아낸 가시털 오소리"
-          }
-        }
-      },
-      "q_ledger_teeth": {
-        "title": "어둠 속의 송곳니",
-        "text": "숲속 빈터의 여우들이 늑대만큼이나 대담해졌네 - 황혼이면 닭장에 슬그머니 들어왔다가 등불을 켜기도 전에 사라지지. 굶주린 암여우는 닭은 물론이고 새끼 양까지 물어간다네. 그놈들의 수를 줄여주게, {playerName}. 숲속 빈터 여우 10마리를 처치해 나머지가 다시 빛을 두려워하도록 만들게.",
-        "completion": "여우 열 마리라, 황혼이 와도 닭장이 다시 조용하군. 장부가 자네에게 더 너그러워지네.",
-        "objectives": {
-          "0": {
-            "label": "처치한 숲속 빈터 여우"
-          }
-        }
-      },
-      "q_ledger_reedwater": {
-        "title": "갈대 물가 순찰",
-        "text": "레드브룩이 자네를 보냈나? 좋아 - 이 늙은 뼈로는 더 이상 얕은 물을 헤칠 수가 없네. 초원 두루미들이 내 그물을 발견하고는, 진흙지느러미가 그랬던 것보다도 더 많이 내 어획물을 부리로 꿰어가고 있어. 그놈들의 수를 줄여주게. 초원 두루미 8마리를, 그리고 깊은 물을 조심하게.",
-        "completion": "그 정도면 한 철은 그 긴 다리 도둑들을 내 그물에서 떼어놓겠지. 보안관께 얕은 물이 다시 내 것이 됐다고 전하게.",
-        "objectives": {
-          "0": {
-            "label": "쫓아낸 초원 두루미"
-          }
-        }
-      },
-      "q_ledger_silk": {
-        "title": "풀과 가시덤불",
-        "text": "장부는 동쪽 숲도 수호인의 땅으로 표시해 두었네 - 내 약초밭도 그 일부지. 점박이 새끼사슴들이 내 은빛잎과 핏빛엉겅퀴를 뿌리째 뜯어먹어버렸어. 그 약초들이 없으면 이스트브룩 절반이 약을 구하지 못한다네. 마음이 편치는 않지만, 가을 약초를 완전히 잃기 전에 점박이 새끼사슴 8마리를 솎아내게.",
-        "completion": "자네 덕분에 밭이 아직은 회복할 수 있겠군. 모진 자비지 - 허나 열에 시달리는 아이에게는 사슴이 숲을 필요로 하는 것보다 약초가 더 절실하다네. 장부가 정리됐네.",
-        "objectives": {
-          "0": {
-            "label": "솎아낸 점박이 새끼사슴"
-          }
-        }
-      },
-      "q_ledger_brood": {
-        "title": "들끓는 어둠",
-        "text": "잠복자들을 처치한 것이 오히려 새끼들에게 자리를 내주었군. 검은그물 새끼들이 깊은 둥지에서 쏟아져 나오고 있어, 작은 송곳니 백 개도 큰 것 하나만큼이나 여행자의 목숨을 앗아간다네. 검은그물 새끼 8마리를 다 자라기 전에 짓밟게.",
-        "completion": "둥지를 물에 잠기게 하는 건 참혹한 일이지. 허나 지금의 자비가 훗날 백 번의 장례를 면하게 하네. 장부는 청산되었네.",
-        "objectives": {
-          "0": {
-            "label": "짓밟은 검은그물 새끼"
-          }
-        }
-      },
-      "q_ledger_deepvermin": {
-        "title": "깊은 곳의 해충",
-        "text": "보안관 장부에 자네가 해충을 처리한다고 적혀 있더군. 그래, 내 갱도에 가장 지독한 놈들이 있네. 굴쥐들이 내 인부들이 곡괭이를 휘두르는 속도보다 빨리 번식하니 - 굴쥐 채굴꾼 12마리를 잡아주게. 그러면 겨울이 오기 전에 구리를 캘 수 있을지도 모르지.",
-        "completion": "촛불머리 해충 열두 마리가 사라졌군! 좋아, 친구들 - 갱도로 돌아가지. 자네가 보안관께 좋은 평을 얻게 했네, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "처치한 굴쥐 채굴꾼"
-          }
-        }
-      },
-      "q_ledger_toll": {
-        "title": "엄니의 길",
-        "text": "숲엄니 멧돼지들이 빛숲에서 내려와 남동쪽 교역로로 몰려들었네 - 엄니로 짐 끄는 황소를 들이받고, 쏟아진 곡식을 노리고 수레를 뒤엎는 거대한 짐승들이지. 장부에는 그놈들 하나하나에 현상금이 걸려 있네. 길을 다시 여게. 숲엄니 멧돼지 8마리를 쓰러뜨리게.",
-        "completion": "짐승 여덟이 길에서 사라지니 수레가 다시 굴러가는군. 교역로에 새 파수꾼이 생겼다는 소문이 벌써 퍼지고 있네. 장부가 자네에게 유리하게 올라가는군.",
-        "objectives": {
-          "0": {
-            "label": "처치한 숲엄니 멧돼지"
-          }
-        }
-      },
-      "q_ledger_vigil": {
-        "title": "예배당의 불침번",
-        "text": "보안관은 칼만으로는 닿지 못하는 곤경이 생기면 수호인들을 내게 보내네. 예배당의 죽은 자들이 가만히 누워 있지 않는데, 나는 너무 늙어 밤샘 불침번을 설 수가 없어. 나를 위해 그것을 지켜주게, {playerName} - 불안한 뼈무더기 10구를 다시 안식으로 돌려보내게.",
-        "completion": "열 영혼이 대지로 돌아가고, 예배당에 하룻밤의 평안을 사들였군. 장부가 잊더라도, 빛은 이런 불침번을 기억한다네.",
-        "objectives": {
-          "0": {
-            "label": "잠재운 불안한 뼈무더기"
-          }
-        }
-      },
-      "q_ledger_great_boar": {
-        "title": "거대한 뻣센등뼈",
-        "text": "서쪽 덤불에 늙은 황소 멧돼지가 한 마리 있네 - 늙은 뻣센등뼈라고, 가죽은 나무껍질 같고 성질도 그에 못지않지. 내 가죽 사냥꾼 둘을 뿔로 들이받았네. 그놈을 쓰러뜨리고 그 뒤에 숨은 하급 야생 멧돼지 6마리를 처리하면, 자네 이름을 장부 높은 곳에 새겨주겠네.",
-        "completion": "늙은 뻣센등뼈가 자네 손에 죽다니! 그 가죽 하나만으로도 한 철 장사 거리는 되지. 자네는 장부를 자랑스럽게 했네, {playerName}.",
-        "objectives": {
-          "0": {
-            "label": "처치한 늙은 뻣센등뼈"
-          },
-          "1": {
-            "label": "처치한 무리의 야생 멧돼지"
-          }
-        }
-      },
-      "q_ledger_outlaw_captain": {
-        "title": "무법자 대장",
-        "text": "장부의 마지막 이름은 내가 일 년 동안 지우고 싶었던 자라네. 골짜기의 절반을 산적질로 몰아넣은 베를란 대장이지. 그는 남동쪽 야영지에서 부관들 뒤에 숨어 있네. 계곡 도적 6명을 베고 그에게 다가가, 베를란을 끝장내게. 혼자 가지는 말게.",
-        "completion": "베를란 대장이 죽고, 그의 외투가 내 문 앞에 당도했군. 장부가 닫혔네, {playerName} - 그리고 골짜기는 그것을 닫은 자의 이름을 앞으로 올 수호인들에게 전할 걸세.",
-        "objectives": {
-          "0": {
-            "label": "처치한 계곡 도적"
-          },
-          "1": {
-            "label": "처치한 베를란 대장"
-          }
-        }
-      },
-      "q_mogger_tracks": {
-        "title": "모거의 흔적",
-        "text": "북쪽 길을 떠나기 전에 이스트브룩에는 마지막 골칫거리, 모거가 남았습니다. 그 짐승은 아래 초원을 짓밟고 멧돼지를 미치게 합니다. 흔적 주변의 초원을 정리해 은신처를 찾아내십시오.",
-        "completion": "그 발자국은 새롭고 비를 담을 만큼 깊습니다. 모거는 야영지 이야기가 아닙니다, {playerName}. 아주 가까이 있습니다.",
-        "objectives": {
-          "0": {
-            "label": "야생 멧돼지를 흔적에서 몰아냄"
           }
         }
       },

@@ -174,6 +174,28 @@ export const ja_JP: EnTranslations = {
       "title": "エモート",
       "done": "完了"
     },
+    "theme": {
+      "preset": "UIテーマ",
+      "customColors": "カスタムカラー",
+      "reset": "リセット",
+      "presets": {
+        "classic": "クラシックゴールド",
+        "midnight": "ミッドナイト",
+        "parchment": "羊皮紙",
+        "highContrast": "ハイコントラスト"
+      },
+      "knob": {
+        "accent": "アクセント",
+        "border": "枠線",
+        "panel": "フレーム",
+        "text": "テキスト",
+        "textMuted": "補助テキスト",
+        "hp": "体力",
+        "mana": "マナ",
+        "rage": "怒り",
+        "energy": "エネルギー"
+      }
+    },
     "questTracker": {
       "count": "（{count}）",
       "collapseHint": "クエストトラッカーを折りたたむ",
@@ -209,12 +231,27 @@ export const ja_JP: EnTranslations = {
       "hapticsOff": "振動オフ",
       "toggleHaptics": "振動を切り替え"
     },
+    "tutorial": {
+      "moveBodyTouch": "移動スティックで移動し、画面をドラッグして周囲を見回します。数歩進んで始めましょう。",
+      "talkBodyTouch": "レッドブルック元帥に近づき、「使用」ボタンをタップして話しかけ、依頼を受けましょう。",
+      "returnBodyTouch": "依頼は完了しました。レッドブルック元帥のもとへ戻り、「使用」ボタンをタップして納品しましょう。",
+      "doneBodyTouch": "基本は覚えましたね、{name}。イーストブルック渓谷はあなたのもの、自由に探索しましょう。いつでも「その他」から「クエストログ」をタップしてクエストログを確認できます。よい狩りを！"
+    },
     "widgets": {
       "clockTitle": "現地時刻 - クリックで12/24時間表記を切り替え",
       "worldCoordinates": "ワールド座標",
       "coordinates": "座標",
       "heading": "方角",
       "minimapZoom": "ミニマップのズーム"
+    },
+    "raidLockout": {
+      "title": "レイドロックアウト",
+      "allReady": "すべてのレイドが利用可能",
+      "daysHours": "{d}日{h}時間",
+      "hoursMinutes": "{h}時間{m}分",
+      "minutes": "{m}分",
+      "lessThanMinute": "1分未満",
+      "lockedToast": "{raid}にロックされています。解除まで{time}。"
     },
     "compass": {
       "N": "北",
@@ -253,6 +290,8 @@ export const ja_JP: EnTranslations = {
       "interfaceModeNote": "自動では、デバイスに応じてデスクトップ操作かタッチ操作を選びます。デスクトップを選ぶとキーボードとマウスに固定され（キーボード付きタブレットなどに便利）、タッチを選ぶと画面上の操作になります。",
       "footstepSounds": "足音",
       "clickFeedback": "クリックマーカー",
+      "lockCursorOnRotate": "回転中はカーソルを固定",
+      "keybindHelpLockCursorOnRotate": "ドラッグでカメラを回転させている間、マウスカーソルをウィンドウ内に固定し、画面の端や別のモニターに移動しないようにします。自由なカーソルを好む場合はオフにしてください。",
       "showWalletOnCharacterScreen": "キャラクター画面にウォレットを表示",
       "showWalletOnPlayerCard": "プレイヤーカードにウォレットを表示",
       "uiScale": "UIスケール",
@@ -476,7 +515,62 @@ export const ja_JP: EnTranslations = {
       "deactivateConfirm": "アカウントを無効化する",
       "deactivated": "アカウントが無効化されました。",
       "logOut": "ログアウト",
-      "logOutSummary": "このデバイスからログアウトします。"
+      "logOutSummary": "このデバイスからログアウトします。",
+      "sectionSecurity": "セキュリティ",
+      "changeEmailTitle": "メールアドレスの変更",
+      "changeEmailHint": "新しいアドレスに確認用リンクを、古いアドレスに通知をメールで送信します。メールアドレスはリンクを開いて初めて変更されます。",
+      "changeEmailNew": "新しいメールアドレス",
+      "changeEmailSubmit": "確認用リンクを送信",
+      "changeEmailSent": "受信トレイをご確認ください。送信したリンクを開いて新しいメールアドレスを確認してください。",
+      "errEmailUnchanged": "すでに現在のメールアドレスです。",
+      "twoFactorTitle": "二段階認証",
+      "twoFactorStatusOn": "お使いのアカウントの二段階認証は有効です。",
+      "twoFactorStatusOff": "認証アプリを追加して、アカウントのセキュリティを強化しましょう。",
+      "twoFactorSetupBtn": "二段階認証を設定",
+      "twoFactorBeginHint": "設定を開始するにはパスワードを入力してください。",
+      "twoFactorBegin": "設定を開始",
+      "twoFactorScanHint": "このキーを認証アプリ(Google Authenticator、Authy、1Passwordなど)に追加し、表示される6桁のコードを入力してください。",
+      "twoFactorSecretLabel": "設定キー",
+      "twoFactorOpenApp": "認証アプリで開く",
+      "twoFactorCodeLabel": "6桁のコード",
+      "twoFactorVerifyBtn": "確認して有効化",
+      "twoFactorEnabledMsg": "二段階認証が有効になりました。",
+      "twoFactorRecoveryTitle": "リカバリーコードを保存してください",
+      "twoFactorRecoveryHint": "各コードは一度だけ使用できます。安全な場所に保管してください。認証アプリを紛失した場合、これらが唯一の復旧手段です。",
+      "twoFactorDownloadCodes": "コードをダウンロード",
+      "twoFactorDone": "完了",
+      "twoFactorDisableHint": "二段階認証を無効にするにはパスワードを入力してください。リカバリーコードは破棄されます。",
+      "twoFactorDisableBtn": "二段階認証を無効にする",
+      "twoFactorDisabledMsg": "二段階認証は無効です。",
+      "errTwoFactorCode": "そのコードは無効です。もう一度お試しください。",
+      "errTwoFactorState": "二段階認証の設定が想定された状態ではありません。再読み込みしてやり直してください。",
+      "exportTitle": "データのエクスポート",
+      "exportHint": "アカウントとキャラクターのコピーをJSONファイルとしてダウンロードします。確認のメールもお送りします。",
+      "exportBtn": "データをダウンロード",
+      "exportDone": "データをダウンロードしました。確認のメールをお送りしました。",
+      "exportFailed": "データをエクスポートできませんでした。しばらくしてからやり直してください。"
+    },
+    "bags": {
+      "filterGroupAria": "バッグをカテゴリーで絞り込む",
+      "filterAll": "すべて",
+      "filterWeapon": "武器",
+      "filterArmor": "防具",
+      "filterConsumable": "消耗品",
+      "filterMaterial": "素材",
+      "filterQuest": "クエスト",
+      "sortAria": "バッグのアイテムを並べ替える",
+      "sortRecent": "最近",
+      "sortQuality": "品質",
+      "sortName": "名前",
+      "searchPlaceholder": "アイテムを検索",
+      "searchAria": "名前でバッグのアイテムを検索",
+      "noMatch": "条件に一致するアイテムはありません。"
+    },
+    "raidConvert": {
+      "toPartyDone": "レイドがパーティに戻りました。",
+      "notRaid": "パーティはレイドではありません。",
+      "leaderOnly": "パーティに変換できるのはレイドリーダーだけです。",
+      "tooLarge": "メンバーが5人を超えるレイドはパーティに戻せません。"
     }
   },
   "guide": {
@@ -879,7 +973,6 @@ export const ja_JP: EnTranslations = {
       "notedLabel": "特筆すべき点",
       "flavor": {
         "old_greyjaw": "どんな罠にも捕らえられたことのない、傷だらけの老いた狼。猟犬三頭と厩番の少年の腕を奪った咎を負わされています。深い森を独りで狩り、戦いが長引くほどに獰猛になります。",
-        "brightwood_stag": "誇り高い林間の牡鹿。角の冠を下げて突進し、追い詰められるほどに手強くなります。",
         "grubjaw": "あまりに強欲で、他のトロルが隣で掘ろうとしないほどの沼地のトロル。交易商の最後の駄馬二頭を、馬具ごと食ったと言われています。",
         "shardlord_kazzix": "肩を得た嵐のエレメンタル。ストームクラグの上方にそびえる遥かな岩場を歩き、稲妻を冒してでも手に入れたいハートシャードを抱えています。",
         "mirejaw_frenzy": "戦いの最中に自らを暴れ狂う狂乱へと駆り立てる沼地のマーロック。騒がしく縄張り意識の強い群れの中で、最もやかましい一匹です。",
@@ -945,7 +1038,7 @@ export const ja_JP: EnTranslations = {
       "marshPlaceNotes": "フェンブリッジは唯一の乾いた道を守っています。プラウラー葦原とディープフェン浅瀬は沼地の獣とマーロックでひしめき、ウィドウの茂みは蜘蛛の糸が厚く張られ、水没の礼拝堂とトロルの塚にはより古き危険が潜み、グレイブコーラーの野営地にはカルトが立てこもり、沈んだ砦は沼地のインスタンス化された中心地です。",
       "peaksPlaceNotes": "ハイウォッチは壁を守っています。ストーカー尾根とディープロックの巣穴は尾根猫とコボルドのもの、オーガの丘陵とドログマーの戦営は雇われの荒くれ者のもの。ストームクラグはエレメンタルで弾け、その下にはグリマーミアが輝きます。ワームカルトのテントとレヴェナントの野原がカルトの高所を囲み、その頂には墓守竜の聖域があります。",
       "gladeTitle": "静かな一角：ブライトウッド・グレード",
-      "gladeBody": "渓谷のすべての物語が死者についてのものというわけではありません。北部には、ブライトウッド・グレードと呼ばれる陽の差す林間が、それ自身の穏やかなリズムを保っています。戦うよりも管理することを選ぶ、独りのレンジャーに見守られています。その務めは均衡です。増えすぎたものを間引き、その隠れ家が放っておくには危険になりすぎたときには、林間の老いた冠をいただく牡鹿に敬意ある最期を与えます。あなたが追う足取りへの柔らかな対比であり、寄り道する価値があります。"
+      "gladeBody": "谷の物語がすべて死者について語るわけではありません。北にはブライトウッド・グレードと呼ばれる陽だまりの林があり、静かな小道、草を食む鹿、枝の下で警戒する獣たちとともに、穏やかな独自の調子を保っています。あなたが追う足跡への静かな対照であり、道に寄り道の余裕があるなら見る価値があります。"
     },
     "questsPage": {
       "heading": "クエスト",
@@ -993,9 +1086,7 @@ export const ja_JP: EnTranslations = {
       "aldricRole": "渓谷の司祭",
       "aldricBody": "つつましい村の司祭。イーストブルックの汚された墓の前で初めてカルトの名を口にし、その足取りを自ら湿地を抜け、ハイウォッチの壁まで追っていきます。彼はこの遠征全体の揺るがぬ心です。",
       "marenRole": "元帥の斥候",
-      "marenBody": "マイアフェンの葦の中で出会う、声を潜めた追跡者。静かな足取りと短い刃の持ち主です。彼女もまた北へと足取りを追い、あなたを高地へ送り出す言葉を聞き取るのは、彼女の耳です。",
-      "elwynRole": "ブライトウッドの林間の守り手",
-      "elwynBody": "渓谷北部の陽の差す林間を独りで守る者。その務めは殺戮ではなく管理です。増えすぎたものを間引き、林間の最も古い獣に、狼たちが与えるよりも優しい最期を授けます。"
+      "marenBody": "マイアフェンの葦の中で出会う、声を潜めた追跡者。静かな足取りと短い刃の持ち主です。彼女もまた北へと足取りを追い、あなたを高地へ送り出す言葉を聞き取るのは、彼女の耳です。"
     },
     "dungeonsPage": {
       "heading": "ダンジョンとレイド",
@@ -1388,7 +1479,10 @@ export const ja_JP: EnTranslations = {
     "characterNamePlaceholder": "キャラクター名",
     "enterWorld": "世界に入る",
     "offlineCharacter": "オフラインキャラクター",
-    "create": "作成"
+    "create": "作成",
+    "twoFactorLabel": "認証コード",
+    "twoFactorPlaceholder": "6桁のコードまたはリカバリーコード",
+    "twoFactorHint": "認証アプリに表示されたコード、またはリカバリーコードのいずれかを入力してください。"
   },
   "wallet": {
     "label": "$WOC ウォレット",
@@ -1788,7 +1882,9 @@ export const ja_JP: EnTranslations = {
     "genre": "MMORPG",
     "playMode": "マルチプレイヤー",
     "applicationCategory": "ゲーム",
-    "operatingSystem": "Webブラウザ"
+    "operatingSystem": "Webブラウザ",
+    "officialLabel": "World of ClaudeCraft 公式サイト",
+    "officialBody": "worldofclaudecraft.com は Claudemoon レルムの公式無料ブラウザMMOです。永続キャラクターでオンラインプレイし、オフラインでソロ探索し、wikiを読み、このサイトから確認済みのコミュニティリンクをたどれます。"
   },
   "a11y": {
     "goHome": "ホームへ移動",
@@ -1857,6 +1953,11 @@ export const ja_JP: EnTranslations = {
     "high": "高",
     "medium": "中",
     "low": "低",
+    "popTipLow": "低人口：現在オンラインのプレイヤーは15人未満。余裕があり、新規スタートに最適です。",
+    "popTipMedium": "中人口：現在オンラインのプレイヤーは15〜39人。健全で活発なレルムです。",
+    "popTipHigh": "高人口：現在オンラインのプレイヤーは40〜79人。混雑しており、多くのプレイヤーがいます。",
+    "popTipFull": "満員：現在オンラインのプレイヤーは80人以上。非常に混雑しており、ログイン待ちが発生する場合があります。",
+    "popTipOffline": "オフライン：このレルムは現在接続できず、参加できません。",
     "characterCountOne": "{count}キャラクター",
     "characterCountOther": "{count}キャラクター",
     "selectedRealm": "レルム: {name}",
@@ -2191,6 +2292,7 @@ export const ja_JP: EnTranslations = {
         "report": "プレイヤーを通報",
         "removeParty": "パーティから外す",
         "convertToRaid": "レイドに変換",
+        "convertToParty": "パーティに変換",
         "cancel": "キャンセル"
       }
     },
@@ -2309,6 +2411,10 @@ export const ja_JP: EnTranslations = {
       "whisperAmbiguous": "「{name}」に一致するプレイヤーが複数います。正確な大文字小文字を使ってください。",
       "whisperMissing": "「{name}」というオンラインプレイヤーはいません。",
       "whisperSelf": "自分に向かってつぶやきます。誰にも聞こえません。",
+      "assistSelf": "自分をアシストすることはできません。",
+      "assistNoTarget": "{name} はターゲットを持っていません。",
+      "assistWhom": "誰をアシストしますか？プレイヤーをターゲットするか、/assist <name> を使用してください。",
+      "assisting": "{name} をアシストします。",
       "notInParty": "パーティに入っていません。",
       "unknownCommand": "不明なコマンド: {command}。/s /y /w /p /g を試してください。",
       "chatCooldown": "チャットはあと{seconds}秒クールダウン中です。",
@@ -3768,6 +3874,9 @@ export const ja_JP: EnTranslations = {
       "ridge_stalker_pelt": {
         "name": "尾根の追跡者の毛皮"
       },
+      "pristine_ridge_stalker_pelt": {
+        "name": "極上の尾根の追跡者の毛皮"
+      },
       "glowing_wax": {
         "name": "光る蝋"
       },
@@ -3987,9 +4096,6 @@ export const ja_JP: EnTranslations = {
       "milepost_boots": {
         "name": "道標のブーツ"
       },
-      "glade_pelt": {
-        "name": "林間の毛皮"
-      },
       "soft_down": {
         "name": "柔らかな綿毛"
       },
@@ -4007,9 +4113,6 @@ export const ja_JP: EnTranslations = {
       },
       "monarch_crown_helm": {
         "name": "君主の王冠"
-      },
-      "monarch_heart": {
-        "name": "君主の心臓"
       },
       "bristleback_maul": {
         "name": "ブリストルバックの大槌"
@@ -4208,6 +4311,9 @@ export const ja_JP: EnTranslations = {
       },
       "cragmaw_prowlboots": {
         "name": "クラッグモウの忍び歩きブーツ"
+      },
+      "cragmaw_huntcord": {
+        "name": "クラッグモウの狩猟帯"
       },
       "drowned_tide_scepter": {
         "name": "溺れた潮の笏"
@@ -4634,42 +4740,6 @@ export const ja_JP: EnTranslations = {
       "nythraxis_scourge_of_thornpeak": {
         "name": "ナイスラクシス、ソーンピークの災厄"
       },
-      "brightwood_hare": {
-        "name": "ブライトウッドの野ウサギ"
-      },
-      "glade_fox": {
-        "name": "林間のキツネ"
-      },
-      "spotted_fawn": {
-        "name": "斑模様の子鹿"
-      },
-      "meadow_crane": {
-        "name": "草原のツル"
-      },
-      "thornpelt_badger": {
-        "name": "茨毛のアナグマ"
-      },
-      "dawnmane_doe": {
-        "name": "暁のたてがみの雌鹿"
-      },
-      "bramble_lynx": {
-        "name": "茨のオオヤマネコ"
-      },
-      "brightwood_stag": {
-        "name": "ブライトウッドの牡鹿"
-      },
-      "grovetusk_boar": {
-        "name": "木立牙の猪"
-      },
-      "sunhide_bear": {
-        "name": "陽光皮の熊"
-      },
-      "brightwood_monarch": {
-        "name": "ブライトウッドの君主"
-      },
-      "elder_bristleback": {
-        "name": "老ブリストルバック"
-      },
       "ironvein_foreman": {
         "name": "鉄脈の現場監督"
       },
@@ -4693,12 +4763,6 @@ export const ja_JP: EnTranslations = {
       },
       "nhalia_mourner": {
         "name": "ナリアの嘆き手"
-      },
-      "sableweb_hatchling": {
-        "name": "セーブルウェブの幼体"
-      },
-      "sableweb_matriarch": {
-        "name": "セーブルウェブの女家長"
       },
       "sister_nhalia": {
         "name": "シスター・ナリア"
@@ -4880,11 +4944,6 @@ export const ja_JP: EnTranslations = {
         "name": "博識者キャディス",
         "title": "博識者",
         "greeting": "崩れやすい頁岩に気をつけてください、{className}。山は近ごろ落ち着きがなく、その理由を知りたいのです。"
-      },
-      "ranger_elwyn": {
-        "name": "レンジャー・エルウィン",
-        "title": "林間の守り手",
-        "greeting": "静かに、{className}。今日の林間は穏やかだ。私はこのまま保つつもりでね。"
       },
       "brother_aldric_raid": {
         "name": "アルドリック修道士",
@@ -5637,145 +5696,6 @@ export const ja_JP: EnTranslations = {
         "objectives": {
           "0": {
             "label": "ニスラクシスを撃破"
-          }
-        }
-      },
-      "q_brightwood_thinning": {
-        "title": "林間を間引く",
-        "text": "ブライトウッドの林間はあふれかえっている、{playerName}。茨のオオヤマネコは私が間引くよりも速く増え、群れはわずかに残った牧草地を踏み荒らす。茨のオオヤマネコを8体倒し、林間の毛皮を6枚持ってきてくれ。残りの健康状態を見極められるように。",
-        "completion": "よし。群れは間引かれ、これらの毛皮も上等だ。林間はもう一季節もちこたえるだろう。",
-        "objectives": {
-          "0": {
-            "label": "茨のオオヤマネコを討伐"
-          },
-          "1": {
-            "label": "林間の毛皮"
-          }
-        }
-      },
-      "q_brightwood_monarch": {
-        "title": "ブライトウッドの君主",
-        "text": "ひとりでは矢を放たぬ獣が一頭いる。ブライトウッドの君主、深い林間を治める大牡鹿だ。年老いて獰猛になり、その隠れ家に近づく者は誰彼かまわず角で突く。ハンターひとりの手には余る。仲間を一人か二人連れていけ。あれを安らかに眠らせ、その心臓を持ち帰ってくれ、{playerName}。",
-        "completion": "では老いた王は倒れたか。重いことだ。だが狼に殺されるよりは安らかな最期だった。その角の王冠を敬意とともに身につけてくれ、{playerName}。",
-        "objectives": {
-          "0": {
-            "label": "君主の心臓"
-          }
-        }
-      },
-      "q_ledger_first_duty": {
-        "title": "番人の初仕事",
-        "text": "イーストブルックで一人前になりたいか、{playerName}？ならばどの番人も始める場所から始めよ。茨毛のアナグマどもが、狼の道を越えたはるか北のブライトウッドの林間を掘り抜いて巣穴を作りおった。林間の地面はやつらの巣穴に陥没しかけている。茨毛のアナグマを8体間引けば、記録はお前の名を覚えるだろう。",
-        "completion": "巣穴が八つ空になり、林間の地面も落ち着いた。よし。この記録のどの名前も、まさにお前が今立っているところから始まったのだ。",
-        "objectives": {
-          "0": {
-            "label": "茨毛のアナグマを間引く"
-          }
-        }
-      },
-      "q_ledger_teeth": {
-        "title": "闇の中の牙",
-        "text": "林間のキツネどもが狼のように図太くなってな。黄昏どきに鶏小屋へ忍び込み、ランタンに火が灯る前には姿を消す。腹を空かせた牝ギツネは、鶏と同じくらい気軽に子羊もさらっていく。あれを間引いてくれ、{playerName}。林間のキツネを10匹仕留め、残りに再び光を恐れることを覚えさせるのだ。",
-        "completion": "キツネが十匹、そして鶏小屋は黄昏どきにもまた静かになった。記録はお前に優しくなっていく。",
-        "objectives": {
-          "0": {
-            "label": "林間のキツネを討伐"
-          }
-        }
-      },
-      "q_ledger_reedwater": {
-        "title": "葦の水辺の巡回",
-        "text": "レッドブルックが寄こしたのか？よし。この老骨ではもう浅瀬を渡れぬ。草原のツルどもが私の網を見つけてな、泥ひれの連中などよりずっと多くの獲物をその嘴で突き刺していく。間引いてくれ。草原のツルを8羽、それと深みには気をつけろ。",
-        "completion": "これでひと季節は、あの脚長の盗っ人どもを私の網から遠ざけておける。元帥に、浅瀬はまた私のものになったと伝えてくれ。",
-        "objectives": {
-          "0": {
-            "label": "草原のツルを追い払う"
-          }
-        }
-      },
-      "q_ledger_silk": {
-        "title": "若葉と茨",
-        "text": "記録は東の森も番人の領分と記している。私の薬草畑もその一部だ。まだらの子鹿どもが私のシルバーリーフとブラッドシスルを根こそぎ食い尽くしてしまい、あの薬草がなければイーストブルックの半数が薬にありつけぬ。気は進まぬが、秋の薬草が完全に失われる前に、まだらの子鹿を8頭間引いてくれ。",
-        "completion": "お前のおかげで、畑はまだ立ち直れるかもしれぬ。つらい慈悲だ。だが熱に焼かれる子供には、森が鹿を必要とする以上に薬草が要る。記録は清算された。",
-        "objectives": {
-          "0": {
-            "label": "まだらの子鹿を間引く"
-          }
-        }
-      },
-      "q_ledger_brood": {
-        "title": "湧き出す闇",
-        "text": "潜伏者を殺したことが、かえって幼体に場所を空けてしまった。セーブルウェブの幼体が深い巣からあふれ出ている。小さな牙が百本あれば、大きな一本と同じく確実に旅人を殺す。育つ前にセーブルウェブの幼体を8体粉砕してくれ。",
-        "completion": "巣を水に沈めるとは陰惨な仕事だ。だが今の慈悲は、後に避けられる百の葬式だ。帳尻は合った。",
-        "objectives": {
-          "0": {
-            "label": "セーブルウェブの幼体を粉砕"
-          }
-        }
-      },
-      "q_ledger_deepvermin": {
-        "title": "深部の害獣",
-        "text": "元帥の記録には、お前が害獣を始末すると書いてある。さて、わしの採掘場のは中でも最悪だ。トンネルラットは掘り子がつるはしを振るうより速く増える。トンネルラット掘りを12体始末してくれ。そうすれば冬までに銅を掘り当てられるかもしれん。",
-        "completion": "ろうそく頭の害獣が十二匹も片付いた！よし、お前たち、坑道へ戻るぞ。元帥にお前のことを良く言っておくぞ、{playerName}。",
-        "objectives": {
-          "0": {
-            "label": "トンネルラット掘りを討伐"
-          }
-        }
-      },
-      "q_ledger_toll": {
-        "title": "牙の道",
-        "text": "牙森の猪どもがブライトウッドから下りてきて、南東の交易路に居ついてしまった。荷役の牛を牙で突き、こぼれた穀物欲しさに荷車をひっくり返す、大きな牙を持つ獰猛な獣どもだ。記録にはその一頭ごとに賞金がかかっている。道を再び開け。牙森の猪を8頭始末してくれ。",
-        "completion": "獣が八頭、道から消え、荷車はまた動き出した。交易路に新しい番人がついたという噂はもう広まっている。記録はお前に有利に傾いていく。",
-        "objectives": {
-          "0": {
-            "label": "牙森の猪を討伐"
-          }
-        }
-      },
-      "q_ledger_vigil": {
-        "title": "礼拝堂の夜伽",
-        "text": "元帥は、剣だけでは手に余る厄介事のとき、番人を私のもとへ寄こす。礼拝堂の死者たちはじっと横たわってくれず、私は夜伽を続けるには年を取りすぎた。私に代わって守ってくれ、{playerName}。安らがぬ骨を10体、ふたたび安らぎへと戻してくれ。",
-        "completion": "十の魂が大地に還り、礼拝堂に一夜の安らぎが買われた。たとえ記録が忘れても、聖なる光はこのような夜伽を覚えている。",
-        "objectives": {
-          "0": {
-            "label": "安らがぬ骨を安らかに眠らせる"
-          }
-        }
-      },
-      "q_ledger_great_boar": {
-        "title": "大いなるブリストルバック",
-        "text": "西の茂みに老いた牡の猪がいる。老ブリストルバックだ。樹皮のような皮と、それに見合う気性をしている。あれは私の皮運びを二人も角で突いた。あれを倒し、その後ろに身を寄せる下級の野生の猪を6頭片付けてくれ。そうすればお前の名を記録の上位に記そう。",
-        "completion": "老ブリストルバック、お前の手で討たれたか！あの皮一枚で一季節分の交易に値する。お前は記録の誇りとなった、{playerName}。",
-        "objectives": {
-          "0": {
-            "label": "老ブリストルバックを討伐"
-          },
-          "1": {
-            "label": "群れの野生の猪を討伐"
-          }
-        }
-      },
-      "q_ledger_outlaw_captain": {
-        "title": "無法者の隊長",
-        "text": "記録の最後の名は、一年も消したいと思っていた者だ。ヴァーラン隊長、谷の半分を盗賊稼業に堕とした男だ。南東の野営地で副官たちの陰に身を潜めている。あれに辿り着くまでに谷の盗賊を6人斬り倒し、それからヴァーラン本人を始末せよ。ひとりで行くな。",
-        "completion": "ヴァーラン隊長は死に、その外套は私の戸口に届けられた。記録は閉じられた、{playerName}。そして谷は、来たるべき番人たちに、それを閉じた者の名を語り継ぐだろう。",
-        "objectives": {
-          "0": {
-            "label": "谷の盗賊を斬り倒す"
-          },
-          "1": {
-            "label": "ヴァーラン隊長を討伐"
-          }
-        }
-      },
-      "q_mogger_tracks": {
-        "title": "モガーの足跡",
-        "text": "北への道を進む前に、イーストブルックには最後の厄介者がいます。モガーです。あの巨獣は低い草地を踏み荒らし、猪を狂わせています。足跡の周囲を片付け、巣を見つけられるようにしてください。",
-        "completion": "その足跡は新しく、雨を溜めるほど深い。モガーは焚き火話ではありません、{playerName}。近くにいます。",
-        "objectives": {
-          "0": {
-            "label": "野猪を足跡から追い払う"
           }
         }
       },
