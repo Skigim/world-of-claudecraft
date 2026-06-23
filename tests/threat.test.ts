@@ -236,6 +236,18 @@ describe("healing threat", () => {
 		expect(wolf.threat.get(healer.id)).toBeCloseTo(total / awareMobs, 5);
 	});
 
+	it("counts overheal toward healing threat from the total heal amount", () => {
+		const { sim, tank, healer } = partyOfTwo();
+		const wolf = nearestMob(sim, "forest_wolf", tank);
+		beefUp(wolf);
+		hit(sim, tank, wolf, 50);
+		tank.hp = tank.maxHp - 1;
+
+		(sim as any).applyHeal(healer, tank, 1000, "Heal");
+
+		expect(wolf.threat.get(healer.id)).toBeGreaterThanOrEqual(1000 * 0.5);
+	});
+
 	it("healing threat splits across every mob in combat with the party", () => {
 		const { sim, tank, healer } = partyOfTwo();
 		const wolfA = nearestMob(sim, "forest_wolf", tank);
