@@ -125,7 +125,6 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		minLevel: 4,
 		maxLevel: 4,
 		type: "beast",
-		aggression: "neutral",
 		willFlee: false,
 		rare: true,
 		hpBase: 110,
