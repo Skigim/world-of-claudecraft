@@ -24,7 +24,6 @@ describe("Eastbrook Vale mob behavior authoring", () => {
 	it("keeps starter wolves and boars neutral, non-fleeing, and unaffiliated", () => {
 		for (const id of [
 			"forest_wolf",
-			"old_greyjaw",
 			"wild_boar",
 			"elder_bristleback",
 		] as const) {
@@ -32,6 +31,12 @@ describe("Eastbrook Vale mob behavior authoring", () => {
 			expect(ZONE1_MOBS[id].willFlee).toBe(false);
 			expect(ZONE1_MOBS[id].allegiance).toBeUndefined();
 		}
+	});
+
+	it("keeps Old Greyjaw aggressive while preventing flee and social help", () => {
+		expect(ZONE1_MOBS.old_greyjaw.aggression).toBeUndefined();
+		expect(ZONE1_MOBS.old_greyjaw.willFlee).toBe(false);
+		expect(ZONE1_MOBS.old_greyjaw.allegiance).toBeUndefined();
 	});
 
 	it("makes starter humanoid camps hostile, fleeing, and socially allied", () => {
