@@ -1,9 +1,10 @@
 import { Sim } from './sim/sim';
 import { Renderer } from './render/renderer';
 import { Input } from './game/input';
+import { InputActivityMeter, installInputActivityTracking } from './game/input_activity';
 import { Keybinds } from './game/keybinds';
 import { Settings, GameSettings, SETTING_RANGES, normalizeClickMoveButton } from './game/settings';
-import { MobileControls, PHONE_TOUCH_QUERY, isPhoneTouchDevice } from './game/mobile_controls';
+import { MobileControls, PHONE_TOUCH_QUERY, isPhoneTouchDevice, useTouchInterface, setInterfaceMode, interfaceModeFromSetting } from './game/mobile_controls';
 import { readBrowserEnv, cssEffectsTier, browserBodyClasses, BROWSER_BODY_CLASSES } from './game/browser_env';
 import { GFX } from './render/gfx';
 import { GamepadManager } from './game/gamepad';
@@ -22,6 +23,7 @@ import { sfx } from './game/sfx';
 import { activePvpOpponentIds, handlePickedEntity, hoverCursorKind, isAttackableEntity } from './game/interactions';
 import { clickMoveShouldWalk, clickMoveStep, distance2d, latencyAdjustedStopDistance, resolveClickMoveAction, stepAngleToward } from './game/click_move';
 import { Api, isAuthError, ClientWorld, CharacterSummary, NATIVE_APP, type ReleaseEntry } from './net/online';
+import { createNativeAttestationProof } from './net/native_attestation';
 import { setWalletDisplayAvailable, setWocBalance, setWalletUiEnabled, resolveWocBalanceUpdate } from './ui/wallet_balance';
 import {
   accountPortalModel, validatePasswordChange, validateEmailShape, deactivateConfirmReady,
@@ -55,6 +57,7 @@ import { hydrateIcons } from './ui/ui_icons';
 import { portraitChipHtml, hydratePortraits } from './ui/portrait_chip';
 import { playerPortraitDataUrl } from './render/characters/portrait';
 import { createPerfMonitor } from './game/perf';
+import { getClientSeed } from './game/client_seed';
 import { startPerfReporter } from './game/perf_reporter';
 import { cameraFollowShouldSettle, updateFollowCameraYaw, wrapAngle } from './game/camera_follow';
 
@@ -278,7 +281,7 @@ function syncBuildInfo(): void {
 }
 
 function syncAppViewport(): void {
-  const useStableGameViewport = document.body.classList.contains('game-active') && isPhoneTouchDevice();
+  const useStableGameViewport = document.body.classList.contains('game-active') && useTouchInterface();
   const width = Math.max(1, Math.round(useStableGameViewport ? window.innerWidth : (window.visualViewport?.width ?? window.innerWidth)));
   const height = Math.max(1, Math.round(useStableGameViewport ? window.innerHeight : (window.visualViewport?.height ?? window.innerHeight)));
   document.documentElement.style.setProperty('--app-vw', `${width}px`);
@@ -304,16 +307,19 @@ function preventMobileZoom(): void {
 }
 
 function syncPhoneTouchClass(): void {
-  document.body.classList.toggle('mobile-touch', NATIVE_APP || isPhoneTouchDevice());
+  document.body.classList.toggle('mobile-touch', NATIVE_APP || useTouchInterface());
   syncCommunityMenuMode();
 }
 
 function syncCommunityMenuMode(): void {
   const communityMenu = document.getElementById('community-menu') as HTMLDetailsElement | null;
   if (!communityMenu) return;
-  communityMenu.open = !(NATIVE_APP || isPhoneTouchDevice());
+  communityMenu.open = !(NATIVE_APP || useTouchInterface());
 }
 
+// Honor a persisted Interface Mode override before the first layout paint, so a
+// tablet+keyboard player who chose Desktop never flashes the touch UI on load.
+setInterfaceMode(interfaceModeFromSetting(new Settings().get('interfaceMode')));
 syncAppViewport();
 syncBuildInfo();
 preventMobileZoom();
@@ -329,6 +335,9 @@ window.visualViewport?.addEventListener('resize', syncAppViewport);
 document.addEventListener('fullscreenchange', syncAppViewport);
 
 function requestMobileFullscreenLandscape(): void {
+  // Deliberately the device FACT (isPhoneTouchDevice), not the Interface Mode
+  // override: orientation-lock + fullscreen only make sense on real phone
+  // hardware, so a desktop forced to Touch correctly skips them.
   if (NATIVE_APP || !isPhoneTouchDevice()) return;
   const root = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void };
   try {
@@ -399,6 +408,9 @@ function mobilePreflightCopy(): { detail: string; steps: string[] } {
 let mobilePreflightPromptPromise: Promise<void> | null = null;
 
 function showMobilePreflightPrompt(): Promise<void> {
+  // Deliberately the device FACT (isPhoneTouchDevice), not the Interface Mode
+  // override: the "install to home screen" preflight is phone-hardware-only, so a
+  // desktop forced to Touch correctly skips it.
   if (!isPhoneTouchDevice()) return Promise.resolve();
   if (mobilePreflightPromptPromise) return mobilePreflightPromptPromise;
   const prompt = document.getElementById('mobile-preflight') as HTMLElement | null;
@@ -497,7 +509,7 @@ function exitBrowserFullscreen(): void {
 
 function requestPreferredFullscreen(): void {
   if (NATIVE_APP) return;
-  if (isPhoneTouchDevice()) {
+  if (useTouchInterface()) {
     requestMobileFullscreenLandscape();
     return;
   }
@@ -573,7 +585,7 @@ function enterLoadingState(statusText: string): void {
 
 async function prepareWorldEntry(): Promise<boolean> {
   if (hasBegunWorldEntry) return false;
-  if (isPhoneTouchDevice()) {
+  if (useTouchInterface()) {
     await showMobilePreflightPrompt();
   } else {
     requestPreferredFullscreen();
@@ -982,6 +994,15 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
         break;
       case 'actionButtonScale': document.getElementById('mobile-controls')?.style.setProperty('--btn-scale', String(v)); break;
       case 'joystickDeadzone': mobileControls.setMoveDeadzone(v); break;
+      case 'interfaceMode':
+        // Desktop/touch override: update the resolver, then re-apply the layout
+        // (body class, stable viewport) and the on-screen controls live so the
+        // switch takes effect without a reload.
+        setInterfaceMode(interfaceModeFromSetting(v));
+        syncPhoneTouchClass();
+        syncAppViewport();
+        mobileControls.refreshInterfaceMode();
+        break;
       case 'gamepadStickDeadzone': gamepad.setDeadzone(v); break;
       case 'gamepadCameraSpeed': gamepad.setCameraSpeed(v); break;
       case 'gamepadVibration': gamepad.setVibration(v); break;
@@ -1476,6 +1497,14 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
   // online-only and null offline; Chromium-only sources (heap, connection) report
   // null elsewhere so their rows simply hide. The pure assembly lives in
   // perf_metrics_sampler.ts; here we inject the live sources.
+  // Input-activity meter for the overlay APM readout
+  const inputMeter = new InputActivityMeter();
+  installInputActivityTracking(inputMeter, window, () => performance.now());
+  const APM_BEAT_MS = 10_000;
+  window.setInterval(() => {
+    world.reportTelemetry('apm', { count: inputMeter.drainCount(), periodMs: APM_BEAT_MS });
+  }, APM_BEAT_MS);
+
   const sampleMetrics = createMetricsSampler({
     renderer,
     meter: perfMeter,
@@ -1483,6 +1512,7 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
     getEntityCount: () => world.entities.size,
     getEchoMs: () => onlineInputEchoMs,
     getJitterMs: () => onlineJitterMs,
+    getApm: () => inputMeter.apm(performance.now()),
   });
 
   function frame(now: number): void {
@@ -1846,7 +1876,7 @@ const hoverTimeouts: Record<string, number | null> = {
 };
 
 function switchMainView(targetId: string): void {
-  const views = ['#hero-view', '#highscores-view', '#wiki-view', '#news-view', '#download-view', '#account-view'];
+  const views = ['#hero-view', '#highscores-view', '#news-view', '#download-view', '#account-view'];
   const currentViewId = views.find(id => {
     const el = $(id);
     return el && !el.hasAttribute('hidden');
@@ -1857,7 +1887,6 @@ function switchMainView(targetId: string): void {
   const navMap: Record<string, string> = {
     '#hero-view': 'nav-btn-play',
     '#highscores-view': 'nav-btn-highscores',
-    '#wiki-view': 'nav-btn-wiki',
     '#news-view': 'nav-btn-news',
     '#download-view': 'nav-btn-download',
     '#account-view': 'nav-btn-account'
@@ -2728,7 +2757,7 @@ async function enterWorld(c: CharacterSummary, button?: HTMLButtonElement): Prom
       button.textContent = t('auth.enterWorld');
     }
   }
-  const world = new ClientWorld(api.token!, c.id, c.class, api.base);
+  const world = new ClientWorld(api.token!, c.id, c.class, api.base, getClientSeed());
   // Wire shareable player cards for this online session: publishing uploads the
   // composited PNG to this realm and returns an absolute public page URL, and
   // the referral provider feeds the card footer. Both are cleared on disconnect.
@@ -4483,17 +4512,18 @@ function wireStartScreens(): void {
     const password = ($('#login-pass') as unknown as HTMLInputElement).value;
     loginError('');
     const token = turnstileToken();
-    if (TURNSTILE_SITEKEY && !token) {
+    if (!NATIVE_APP && TURNSTILE_SITEKEY && !token) {
       loginError(t('errors.api.verificationFailed'));
       return;
     }
     try {
+      const nativeAttestation = NATIVE_APP ? await createNativeAttestationProof(api.base, mode) : undefined;
       if (mode === 'login') {
         const twoFaField = $('#login-2fa-field') as HTMLElement;
         const twoFaInput = $('#login-2fa-code') as HTMLInputElement;
         const raw = twoFaField.hidden ? '' : twoFaInput.value;
         const factor = raw ? classifyAuthCode(raw) : { code: '', recoveryCode: '' };
-        const result = await api.login(username, password, token, factor.code, factor.recoveryCode);
+        const result = await api.login(username, password, token, factor.code, factor.recoveryCode, nativeAttestation);
         if (result.twoFactorRequired) {
           // Password accepted; the account needs a second factor. Reveal the code
           // field and mint a fresh Turnstile token for the follow-up submit (the
@@ -4505,7 +4535,7 @@ function wireStartScreens(): void {
           return;
         }
       } else {
-        await api.register(username, password, token, REFERRAL_SLUG);
+        await api.register(username, password, token, REFERRAL_SLUG, nativeAttestation);
       }
     } catch (err) {
       // Auth itself failed (bad credentials, taken username, Turnstile reject…).
@@ -4897,7 +4927,9 @@ function wireStartScreens(): void {
     switchMainView('#highscores-view');
     void loadHighscores();
   });
-  setupNavBtn(navBtnWiki, '#wiki-view');
+  // The wiki is the curated guide SPA at /wiki (its own page), so this nav item
+  // navigates there rather than switching an in-page view.
+  setupNavBtn(navBtnWiki, '', () => { window.location.href = '/wiki'; });
   setupNavBtn(navBtnNews, '#news-view', () => {
     switchMainView('#news-view');
     void loadNews();
