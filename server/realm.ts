@@ -85,6 +85,18 @@ export const REALM_DIRECTORY: RealmEntry[] = (() => {
 // client served by one realm can call another realm's API after switching.
 export const REALM_ORIGINS: ReadonlySet<string> = new Set(REALM_DIRECTORY.map((r) => r.url).filter(Boolean));
 
+// Public, unauthenticated read surfaces that any browser origin may call (CORS
+// `*`): the public character sheet and the deterministic avatar art. These carry
+// no credentials and expose only the public subset, so reflecting any origin is
+// safe and lets companion web apps / extensions / IDE webviews read them
+// client-side. Mutating and owner-scoped routes are NOT here — they keep the
+// narrow realm/native allowlist (cookieless bearer auth) in main.ts's maybeCors.
+const PUBLIC_CORS_PREFIXES = ['/api/public/', '/avatar/'];
+
+export function isPublicCorsPath(path: string): boolean {
+  return PUBLIC_CORS_PREFIXES.some((prefix) => path.startsWith(prefix));
+}
+
 export function publicOriginForRealm(realm: string, directory: readonly RealmEntry[]): string {
   return directory.find((entry) => entry.name === realm && entry.url)?.url ?? '';
 }

@@ -239,6 +239,23 @@ export function resetWocBalanceRateLimits(): void {
   wocBalanceIpAttempts.clear();
 }
 
+// Public, unauthenticated read endpoints (the public character sheet, the /c/
+// profile page) get a generous per-IP bucket on their OWN map — decoupled from
+// login/register — to deter scraping without ever spilling into the auth
+// limiter. Higher ceiling than auth since legitimate companion apps and crawlers
+// poll these far more often than anyone logs in.
+export const PUBLIC_READ_MAX_PER_MINUTE = 60;
+const publicReadIpAttempts = new Map<string, number[]>();
+
+export function publicReadRateLimited(req: http.IncomingMessage): boolean {
+  return recordSlidingWindowAttempt(publicReadIpAttempts, requestIp(req), PUBLIC_READ_MAX_PER_MINUTE);
+}
+
+/** Reset the public-read throttle. Test-only: keeps scoped buckets isolated. */
+export function resetPublicReadRateLimits(): void {
+  publicReadIpAttempts.clear();
+}
+
 // ---------------------------------------------------------------------------
 // Per-account failed-login throttle (#93)
 //

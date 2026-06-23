@@ -4,12 +4,15 @@ import * as path from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import {
   ensureSchema, pool, createAccount, findAccount, getAccountsCount, touchLogin, saveToken, accountForToken,
-  listCharacters, getCharacter, createCharacterCapped, deleteCharacter, closeOrphanSessions,
+  accountAndScopeForToken, scopeAllowsMutation, type TokenScope,
+  listCharacters, getCharacter, getCharacterById, createCharacterCapped, deleteCharacter, closeOrphanSessions,
   pruneChatLogs, pruneClientPerfReports, searchCharacters, characterCountsByRealm, moderationStatusForAccount, renameCharacter,
   findCharacterReportTargetByName, topArenaRatings, topLifetimeXp, chatMuteStatusForAccount, loadAccountCosmetics,
-  referralCountForAccount, primarySlugForAccount, lifetimeXpStanding, isAdminAccount,
+  referralCountForAccount, primarySlugForAccount, lifetimeXpStanding, lifetimeXpRankForCharacter, isAdminAccount,
   accountById, characterCountForAccount, updatePasswordHash, revokeTokensExcept, setAccountEmail, setAccountDeactivated,
+  guildNameForCharacter, createCompanionToken, listCompanionTokens, revokeCompanionToken,
 } from './db';
+import { characterSheet, type SheetRank } from './character_sheet';
 import { virtualLevel } from '../src/sim/types';
 import { Sim } from '../src/sim/sim';
 import type { PlayerClass } from '../src/sim/types';
@@ -22,7 +25,7 @@ import {
   hashPassword, verifyPassword, newToken, validUsernameShape, offensiveName, validPassword, normalizeCharName,
 } from './auth';
 import { json, readBody, isUniqueViolation } from './http_util';
-import { requestIp, rateLimited, authThrottled, recordAuthFailure, clearAuthFailures, cardUploadRateLimited, wocBalanceRateLimited } from './ratelimit';
+import { requestIp, rateLimited, authThrottled, recordAuthFailure, clearAuthFailures, cardUploadRateLimited, wocBalanceRateLimited, publicReadRateLimited } from './ratelimit';
 import { verifyTurnstile } from './turnstile';
 import { handleWalletChallenge, handleWalletLink, handleWalletGet, handleWalletUnlink } from './wallet';
 import { handleWocBalance, parseWocBalanceQuery } from './woc_balance';
@@ -36,7 +39,10 @@ import { isConnectionRefused } from './ip_block';
 import { handleInternalApi } from './internal';
 import { handlePerfReport } from './perf_report';
 import { GameServer } from './game';
-import { REALM, REALM_DIRECTORY, REALM_ORIGINS } from './realm';
+import { REALM, REALM_DIRECTORY, REALM_ORIGINS, REALM_PUBLIC_ORIGIN, isPublicCorsPath } from './realm';
+import { handleProfilePage, handleAvatar, handleCharacterSitemap } from './profile_page';
+import { handleOAuth, seedOAuthClients } from './oauth';
+import { pruneExpiredOAuthGrants } from './oauth_db';
 import { webLoginEnforced, isWebClientRequest, isNativeAppRequest, NATIVE_APP_ORIGINS } from './web_login_guard';
 import { createNativeAttestationChallenge, verifyNativeAttestation } from './native_attestation';
 import { cacheControlFor, etagFor, isNotModified } from './static_cache';
@@ -221,11 +227,25 @@ function normalizeDeleteConfirmation(name: unknown): string {
   return typeof name === 'string' ? name.trim().toLowerCase() : '';
 }
 
+// Shape a realm rank lookup into the character-sheet's rank field.
+function toSheetRank(rank: { rank: number; total: number } | null): SheetRank | null {
+  return rank ? { scope: 'realm', rank: rank.rank, total: rank.total } : null;
+}
+
 async function bearerAccount(req: http.IncomingMessage): Promise<number | null> {
   const auth = req.headers.authorization ?? '';
   const m = /^Bearer ([a-f0-9]{64})$/.exec(auth);
   if (!m) return null;
   return accountForToken(m[1]);
+}
+
+// Account + token scope for the bearer (or null when unauthenticated). The scope
+// is what lets read-only companion/OAuth tokens be accepted on read routes and
+// rejected on mutating ones.
+async function bearerScopeAccount(req: http.IncomingMessage): Promise<{ accountId: number; scope: TokenScope } | null> {
+  const m = /^Bearer ([a-f0-9]{64})$/.exec(req.headers.authorization ?? '');
+  if (!m) return null;
+  return accountAndScopeForToken(m[1]);
 }
 
 // Raw bearer token string (or null) — needed when an account action must keep
@@ -235,18 +255,42 @@ function bearerToken(req: http.IncomingMessage): string | null {
   return m ? m[1] : null;
 }
 
+// Mutating + owner-scoped routes funnel through here. HARDENED: a read-only
+// token (scope!=='full') is rejected with 403, so every existing mutating route
+// (which already calls this) automatically refuses companion/OAuth read tokens —
+// the single choke point that keeps read tokens harmless.
 async function bearerActiveAccount(req: http.IncomingMessage, res: http.ServerResponse): Promise<number | null> {
-  const accountId = await bearerAccount(req);
-  if (accountId === null) {
+  const info = await bearerScopeAccount(req);
+  if (info === null) {
     json(res, 401, { error: 'not authenticated' });
     return null;
   }
-  const status = await moderationStatusForAccount(accountId);
+  if (!scopeAllowsMutation(info.scope)) {
+    json(res, 403, { error: 'this token is read-only' });
+    return null;
+  }
+  const status = await moderationStatusForAccount(info.accountId);
   if (status.locked) {
     json(res, 403, { error: status.message });
     return null;
   }
-  return accountId;
+  return info.accountId;
+}
+
+// Read routes (the owner character sheet) accept both 'read' and 'full' tokens.
+// Moderation still applies — a banned account can't read through a read token.
+async function bearerReadAccount(req: http.IncomingMessage, res: http.ServerResponse): Promise<number | null> {
+  const info = await bearerScopeAccount(req);
+  if (info === null) {
+    json(res, 401, { error: 'not authenticated' });
+    return null;
+  }
+  const status = await moderationStatusForAccount(info.accountId);
+  if (status.locked) {
+    json(res, 403, { error: status.message });
+    return null;
+  }
+  return info.accountId;
 }
 
 function requestMetadata(req: http.IncomingMessage): { ip: string; userAgent: string } {
@@ -359,6 +403,28 @@ function maybeCors(req: http.IncomingMessage, res: http.ServerResponse): void {
     res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
     res.setHeader('Access-Control-Max-Age', '600');
   }
+}
+
+// Absolute public origin for building self-URLs (avatar/profile links) in JSON
+// and SSR pages. Prefer the configured/realm origin; fall back to the request's
+// own scheme+host so links work in local dev too. Mirrors player_card.ts.
+function publicOrigin(req: http.IncomingMessage): string {
+  if (REALM_PUBLIC_ORIGIN) return REALM_PUBLIC_ORIGIN;
+  const host = String(req.headers.host ?? '').trim();
+  if (!host) return '';
+  const proto = String(req.headers['x-forwarded-proto'] ?? '').split(',')[0].trim() || 'https';
+  return `${proto}://${host}`;
+}
+
+// Wide-open CORS for the public, unauthenticated read surfaces. These carry no
+// credentials and return only the public subset, so reflecting any origin (`*`)
+// is safe and lets browser-origin apps fetch them client-side.
+function publicCors(res: http.ServerResponse): void {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+  res.setHeader('Access-Control-Max-Age', '600');
 }
 
 // Anti-bot: when enabled, /api/login + /api/register require a same-origin browser
@@ -476,6 +542,41 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
           throw err;
         }
       }
+    }
+    // Public, unauthenticated character sheet (read-only safe subset). Resolved
+    // by name, rate-limited to deter scraping, CORS-open to any origin. MUST
+    // come before generic /api routes; it never touches a bearer token.
+    const publicSheetMatch = /^\/api\/public\/characters\/(.+)\/sheet$/.exec(url);
+    if (req.method === 'GET' && publicSheetMatch) {
+      if (publicReadRateLimited(req)) return json(res, 429, { error: 'rate limited' });
+      const rawName = decodeURIComponent(publicSheetMatch[1]);
+      const target = await findCharacterReportTargetByName(rawName);
+      if (!target) return json(res, 404, { error: 'character not found' });
+      const row = await getCharacterById(target.characterId);
+      if (!row) return json(res, 404, { error: 'character not found' });
+      const [guild, rank] = await Promise.all([
+        guildNameForCharacter(row.id),
+        lifetimeXpRankForCharacter(row.id),
+      ]);
+      return json(res, 200, characterSheet({
+        row, visibility: 'public', realm: REALM, origin: publicOrigin(req),
+        guild, rank: toSheetRank(rank),
+      }));
+    }
+    const ownerSheetMatch = /^\/api\/characters\/(\d+)\/sheet$/.exec(url);
+    if (req.method === 'GET' && ownerSheetMatch) {
+      const accountId = await bearerReadAccount(req, res);
+      if (accountId === null) return;
+      const row = await getCharacter(accountId, Number(ownerSheetMatch[1]));
+      if (!row) return json(res, 404, { error: 'character not found' });
+      const [guild, rank] = await Promise.all([
+        guildNameForCharacter(row.id),
+        lifetimeXpRankForCharacter(row.id),
+      ]);
+      return json(res, 200, characterSheet({
+        row, visibility: 'owner', realm: REALM, origin: publicOrigin(req),
+        guild, rank: toSheetRank(rank),
+      }));
     }
     const delMatch = /^\/api\/characters\/(\d+)$/.exec(url);
     const renameMatch = /^\/api\/characters\/(\d+)\/rename$/.exec(url);
@@ -736,6 +837,33 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
         disconnectAccount: (id, reason) => game.disconnectAccount(id, reason),
       });
     }
+    // Companion read-only tokens: a 90-day scope='read' token a user can paste
+    // into a companion app instead of running OAuth. Managed from a full web
+    // session only (bearerActiveAccount rejects read tokens, so a read token can
+    // never mint or list more — no privilege escalation).
+    if (url === '/api/account/companion-token') {
+      const accountId = await bearerActiveAccount(req, res);
+      if (accountId === null) return;
+      if (req.method === 'POST') {
+        const body = await readBody(req);
+        const rawLabel = typeof body.label === 'string' ? body.label.trim().slice(0, 64) : '';
+        const label = rawLabel || null;
+        const token = newToken();
+        const COMPANION_TOKEN_TTL_HOURS = 24 * 90;
+        await createCompanionToken(token, accountId, label, COMPANION_TOKEN_TTL_HOURS);
+        // The full secret is returned ONCE, on creation; it is never listed again.
+        return json(res, 200, { token, label, scope: 'read', expiresInDays: 90 });
+      }
+      if (req.method === 'GET') {
+        return json(res, 200, { tokens: await listCompanionTokens(accountId) });
+      }
+      if (req.method === 'DELETE') {
+        const body = await readBody(req);
+        const prefix = typeof body.prefix === 'string' ? body.prefix.trim().toLowerCase() : '';
+        const ok = await revokeCompanionToken(accountId, prefix);
+        return json(res, ok ? 200 : 404, ok ? { ok: true } : { error: 'token not found' });
+      }
+    }
     // Non-custodial Solana wallet linking — all account-scoped.
     if (req.method === 'POST' && url === '/api/wallet/link/challenge') {
       const accountId = await bearerActiveAccount(req, res);
@@ -819,6 +947,7 @@ async function main(): Promise<void> {
     }
   }
   await ensureSchema();
+  await seedOAuthClients();
   const orphans = await closeOrphanSessions();
   if (orphans > 0) console.log(`closed ${orphans} orphaned play session(s) from a previous run`);
   const pruned = await pruneChatLogs(CHAT_LOG_RETENTION_DAYS);
@@ -831,6 +960,7 @@ async function main(): Promise<void> {
   setInterval(() => {
     void pruneChatLogs(CHAT_LOG_RETENTION_DAYS).catch((err) => console.error('chat log prune failed:', err));
     void pruneClientPerfReports(PERF_REPORT_RETENTION_DAYS).catch((err) => console.error('perf report prune failed:', err));
+    void pruneExpiredOAuthGrants(pool).catch((err) => console.error('oauth grant prune failed:', err));
   }, 24 * 3600 * 1000).unref();
   setInterval(() => {
     void pruneExpiredBlockedIps().catch((err) => console.error('blocked IP prune failed:', err));
@@ -850,13 +980,23 @@ async function main(): Promise<void> {
 
   const server = http.createServer((req, res) => {
     const url = req.url ?? '';
+    const path = url.split('?')[0];
     const isApi = url.startsWith('/api/') || url.startsWith('/admin/api/');
-    if (isApi) maybeCors(req, res);
-    if (req.method === 'OPTIONS' && isApi) { res.writeHead(204); res.end(); return; }
+    // Public read surfaces (/api/public/..., /avatar/...) are CORS-open to any
+    // origin so browser-origin companion apps can call them client-side; every
+    // other /api route keeps the narrow realm/native allowlist.
+    const publicCorsPath = isPublicCorsPath(path);
+    if (publicCorsPath) publicCors(res);
+    else if (isApi) maybeCors(req, res);
+    if (req.method === 'OPTIONS' && (isApi || publicCorsPath)) { res.writeHead(204); res.end(); return; }
     if (url.startsWith('/internal/')) void handleInternalApi(req, res, game);
     else if (url.startsWith('/admin/api/')) void handleAdminApi(req, res, game);
     else if (url.startsWith('/api/')) void handleApi(req, res);
+    else if (url.startsWith('/oauth/')) void handleOAuth(req, res);
     else if (req.method === 'GET' && url.startsWith('/p/')) void handleCardRoutes(req, res);
+    else if (req.method === 'GET' && path.startsWith('/avatar/')) void handleAvatar(req, res);
+    else if (req.method === 'GET' && path.startsWith('/c/')) void handleProfilePage(req, res);
+    else if (req.method === 'GET' && path === '/sitemap-characters.xml') void handleCharacterSitemap(req, res);
     else serveStatic(req, res);
   });
 

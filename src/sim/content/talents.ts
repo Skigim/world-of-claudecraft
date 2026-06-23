@@ -189,6 +189,30 @@ function pointsSpentInTree(ct: ClassTalents, alloc: TalentAllocation, tree: Tale
   return n;
 }
 
+// Human-readable specialization label for a saved allocation. Uses the chosen
+// spec's display name when one is set, otherwise derives the dominant spec tree
+// (the spec with the most points spent). Returns null when no spec points are
+// spent and none is chosen. Shared by the character sheet / public profile so
+// spec display matches the in-game /talents readout.
+export function specLabel(cls: PlayerClass, alloc: TalentAllocation | undefined | null): string | null {
+  const ct = talentsFor(cls);
+  if (!ct || !alloc) return null;
+  if (alloc.spec) return ct.specs.find((s) => s.id === alloc.spec)?.name ?? null;
+  const byId = nodeIndex(ct);
+  const pointsBySpec = new Map<string, number>();
+  for (const id in alloc.ranks) {
+    const node = byId.get(id);
+    if (!node || node.tree === 'class' || !node.specId) continue;
+    pointsBySpec.set(node.specId, (pointsBySpec.get(node.specId) ?? 0) + alloc.ranks[id]);
+  }
+  let bestId: string | null = null;
+  let best = 0;
+  for (const [specId, pts] of pointsBySpec) {
+    if (pts > best) { best = pts; bestId = specId; }
+  }
+  return bestId ? (ct.specs.find((s) => s.id === bestId)?.name ?? null) : null;
+}
+
 // Points spent in `node`'s tree on nodes strictly above its row — what a
 // pointsGate is measured against (avoids the self-reference paradox).
 function pointsAboveRow(ct: ClassTalents, alloc: TalentAllocation, node: TalentNode): number {

@@ -4,6 +4,7 @@ import type { CharacterState, MarketSave } from '../src/sim/sim';
 import type { ArenaFormat, PlayerClass } from '../src/sim/types';
 import type { ChatLogRow } from './chat_log';
 import { SOCIAL_SCHEMA } from './social_db';
+import { OAUTH_SCHEMA } from './oauth_db';
 import { seedChatFilterDefaults } from './chat_filter_db';
 import { REALM } from './realm';
 
@@ -47,6 +48,13 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
   expires_at TIMESTAMPTZ NOT NULL
 );
 CREATE INDEX IF NOT EXISTS auth_tokens_account ON auth_tokens(account_id);
+-- Token scope: 'full' sessions can do anything; 'read' tokens (companion apps,
+-- OAuth character:read) are accepted only on read routes and rejected on every
+-- mutating route. Defaulting to 'full' means every pre-existing session keeps
+-- full power with no behavior change. The label column names a companion/OAuth
+-- token in the account portal so a user can revoke a specific one.
+ALTER TABLE auth_tokens ADD COLUMN IF NOT EXISTS scope TEXT NOT NULL DEFAULT 'full';
+ALTER TABLE auth_tokens ADD COLUMN IF NOT EXISTS label TEXT;
 CREATE TABLE IF NOT EXISTS characters (
   id SERIAL PRIMARY KEY,
   account_id INT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -322,6 +330,7 @@ export async function ensureSchema(): Promise<void> {
     await client.query('SELECT pg_advisory_xact_lock($1)', [0x57_4f_43_01]); // "WOC\x01"
     await client.query(SCHEMA);
     await client.query(SOCIAL_SCHEMA);
+    await client.query(OAUTH_SCHEMA);
     // Seed the chat-filter word lists + config on first boot only (idempotent).
     // Runs under the same advisory lock so concurrent realm boots don't race.
     await seedChatFilterDefaults(client);
@@ -458,10 +467,30 @@ export async function touchLogin(accountId: number, meta: RequestMetadata = {}):
   );
 }
 
-export async function saveToken(token: string, accountId: number, ttlHours = 24 * 7): Promise<void> {
+// A bearer token's authority. 'full' is a normal web session; 'read' is a
+// companion-app / OAuth character:read token, accepted only on read routes.
+export type TokenScope = 'full' | 'read';
+
+// The single scope policy, named so it is testable and can't drift: only a full
+// token may hit a mutating/owner-action route; read and full may hit read routes.
+export function scopeAllowsMutation(scope: TokenScope): boolean {
+  return scope === 'full';
+}
+export function scopeAllowsRead(scope: TokenScope): boolean {
+  return scope === 'read' || scope === 'full';
+}
+
+export async function saveToken(
+  token: string,
+  accountId: number,
+  ttlHours = 24 * 7,
+  scope: TokenScope = 'full',
+  label: string | null = null,
+): Promise<void> {
   await pool.query(
-    `INSERT INTO auth_tokens (token, account_id, expires_at) VALUES ($1, $2, now() + ($3 || ' hours')::interval)`,
-    [token, accountId, String(ttlHours)],
+    `INSERT INTO auth_tokens (token, account_id, expires_at, scope, label)
+     VALUES ($1, $2, now() + ($3 || ' hours')::interval, $4, $5)`,
+    [token, accountId, String(ttlHours), scope, label],
   );
 }
 
@@ -471,6 +500,22 @@ export async function accountForToken(token: string): Promise<number | null> {
     [token],
   );
   return res.rows[0]?.account_id ?? null;
+}
+
+// Account + scope for a live token. Mirrors accountForToken but also returns the
+// token's scope so read routes can accept 'read'|'full' while mutating routes
+// (via bearerActiveAccount) reject anything that is not 'full'. Old tokens
+// predating the scope column read as 'full' via the column default.
+export async function accountAndScopeForToken(
+  token: string,
+): Promise<{ accountId: number; scope: TokenScope } | null> {
+  const res = await pool.query(
+    'SELECT account_id, scope FROM auth_tokens WHERE token = $1 AND expires_at > now()',
+    [token],
+  );
+  const row = res.rows[0];
+  if (!row) return null;
+  return { accountId: row.account_id, scope: row.scope === 'read' ? 'read' : 'full' };
 }
 
 export interface AccountInfoRow {
@@ -521,6 +566,59 @@ export async function revokeTokensExcept(accountId: number, keepToken: string | 
 
 export async function revokeToken(token: string): Promise<void> {
   await pool.query('DELETE FROM auth_tokens WHERE token = $1', [token]);
+}
+
+// ── Companion read-only tokens (scope='read') ──────────────────────────────
+// Long-lived (default 90-day) read tokens a user can paste into a companion app
+// instead of running the OAuth flow. They are ordinary auth_tokens rows with
+// scope='read', so they work on /sheet and are rejected on every mutation.
+
+export interface CompanionTokenRow {
+  prefix: string;
+  label: string | null;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export async function createCompanionToken(
+  token: string,
+  accountId: number,
+  label: string | null,
+  ttlHours = 24 * 90,
+): Promise<void> {
+  await saveToken(token, accountId, ttlHours, 'read', label);
+}
+
+// Live (unexpired) read tokens for an account. Never returns the full secret —
+// only an 8-char prefix for display — so a leaked portal response can't be
+// replayed as a bearer token.
+export async function listCompanionTokens(accountId: number): Promise<CompanionTokenRow[]> {
+  const res = await pool.query(
+    `SELECT token, label, created_at, expires_at
+       FROM auth_tokens
+      WHERE account_id = $1 AND scope = 'read' AND expires_at > now()
+      ORDER BY created_at DESC`,
+    [accountId],
+  );
+  return res.rows.map((r) => ({
+    prefix: String(r.token).slice(0, 8),
+    label: r.label ?? null,
+    createdAt: r.created_at,
+    expiresAt: r.expires_at,
+  }));
+}
+
+// Revoke one of the account's read tokens, addressed by its 8-char prefix (what
+// the portal lists). Scoped to scope='read' so this can never delete the
+// caller's own full web session. Returns true if a row was removed.
+export async function revokeCompanionToken(accountId: number, prefix: string): Promise<boolean> {
+  if (!/^[a-f0-9]{8}$/.test(prefix)) return false;
+  const res = await pool.query(
+    `DELETE FROM auth_tokens
+      WHERE account_id = $1 AND scope = 'read' AND left(token, 8) = $2`,
+    [accountId, prefix],
+  );
+  return (res.rowCount ?? 0) > 0;
 }
 
 export async function setAccountEmail(accountId: number, email: string | null): Promise<void> {
@@ -741,6 +839,26 @@ export async function lifetimeXpStanding(
   return { rank: (res.rows[0]?.ahead ?? 0) + 1, total: res.rows[0]?.total ?? 0 };
 }
 
+// Realm-scoped lifetime-XP rank for a character addressed by id, WITHOUT an
+// ownership check — for the public character sheet / profile page, where rank is
+// shown for any player. Same expression-index predicate as lifetimeXpStanding.
+// Returns null when no such character exists on this realm.
+export async function lifetimeXpRankForCharacter(
+  characterId: number,
+): Promise<{ rank: number; total: number } | null> {
+  const res = await pool.query(
+    `SELECT
+       (SELECT count(*) FROM characters
+         WHERE realm = $1 AND ${LIFETIME_XP_EXPR} > own.xp)::int AS ahead,
+       (SELECT count(*) FROM characters WHERE realm = $1)::int AS total
+     FROM (SELECT COALESCE(${LIFETIME_XP_EXPR}, 0) AS xp
+             FROM characters WHERE id = $2 AND realm = $1) own`,
+    [REALM, characterId],
+  );
+  if ((res.rowCount ?? 0) === 0) return null;
+  return { rank: (res.rows[0]?.ahead ?? 0) + 1, total: res.rows[0]?.total ?? 0 };
+}
+
 export async function moderationStatusForAccount(accountId: number): Promise<AccountModerationStatus> {
   const res = await pool.query(
     `SELECT banned_at, suspended_until, moderation_reason, chat_muted_until, chat_strikes, deactivated_at
@@ -843,6 +961,28 @@ export async function getCharacter(accountId: number, characterId: number): Prom
   return res.rows[0] ?? null;
 }
 
+// Active character names on this realm for the public character sitemap, ranked
+// by lifetime XP so the most significant players lead the file. Capped by the
+// caller (sitemap protocol allows 50k URLs/file).
+export async function listCharacterNamesForSitemap(limit = 50000): Promise<string[]> {
+  const res = await pool.query(
+    `SELECT name FROM characters WHERE realm = $1 ORDER BY ${LIFETIME_XP_EXPR} DESC NULLS LAST LIMIT $2`,
+    [REALM, Math.max(0, Math.min(50000, Math.floor(limit)))],
+  );
+  return res.rows.map((r) => r.name as string);
+}
+
+// Realm-scoped character read by id WITHOUT an ownership check — for the public
+// character sheet / profile page, which serve any character on the realm. Returns
+// the same shape as getCharacter so the sheet normalizer treats both alike.
+export async function getCharacterById(characterId: number): Promise<CharacterRow | null> {
+  const res = await pool.query(
+    'SELECT id, account_id, name, class, level, state, is_gm, force_rename FROM characters WHERE id = $1 AND realm = $2',
+    [characterId, REALM],
+  );
+  return res.rows[0] ?? null;
+}
+
 export async function findCharacterReportTargetByName(name: string): Promise<{ accountId: number; characterId: number; characterName: string } | null> {
   const term = name.trim();
   if (!term) return null;
@@ -855,6 +995,22 @@ export async function findCharacterReportTargetByName(name: string): Promise<{ a
   );
   const row = res.rows[0];
   return row ? { accountId: Number(row.account_id), characterId: Number(row.id), characterName: row.name } : null;
+}
+
+// Guild display name for a character (realm-scoped), or null when unguilded.
+// Read here rather than via PgSocialDb so the character-sheet/profile routes can
+// fetch it without constructing a SocialService, and to avoid a db↔social_db
+// import cycle. Mirrors the guilds/guild_members join in social_db.ts.
+export async function guildNameForCharacter(characterId: number): Promise<string | null> {
+  const res = await pool.query(
+    `SELECT g.name
+       FROM guild_members gm
+       JOIN guilds g ON g.id = gm.guild_id
+      WHERE gm.character_id = $1 AND g.realm = $2
+      LIMIT 1`,
+    [characterId, REALM],
+  );
+  return res.rows[0]?.name ?? null;
 }
 
 export async function createCharacter(accountId: number, name: string, cls: PlayerClass, state: CharacterState | null = null): Promise<CharacterRow> {

@@ -30,9 +30,9 @@ export interface AccountPortalModel {
   email: string;
 }
 
-export type AccountPortalSection = 'settings' | 'wallet' | 'characters' | 'logout';
+export type AccountPortalSection = 'settings' | 'wallet' | 'characters' | 'companion' | 'logout';
 
-const SECTION_ORDER: AccountPortalSection[] = ['settings', 'wallet', 'characters', 'logout'];
+const SECTION_ORDER: AccountPortalSection[] = ['settings', 'wallet', 'characters', 'companion', 'logout'];
 
 // Password length bounds — mirror the server's validPassword (6..128 chars) so
 // the client gate matches what the server will accept byte-for-byte.
@@ -100,4 +100,45 @@ export function validateEmailShape(email: string): boolean {
  */
 export function deactivateConfirmReady(expectedUsername: string, typedUsername: string, password: string): boolean {
   return typedUsername === expectedUsername && password.length > 0;
+}
+
+// ── Companion read-only tokens ──────────────────────────────────────────────
+// A read-only token a player can paste into a companion app (an alternative to
+// the OAuth flow). The portal section lets them name, create, and revoke tokens.
+
+export const COMPANION_TOKEN_LABEL_MAX = 64;
+
+/** A label is optional; when present it must be within the server's 64-char cap. */
+export function validateCompanionTokenLabel(label: string): boolean {
+  return label.trim().length <= COMPANION_TOKEN_LABEL_MAX;
+}
+
+export interface CompanionTokenSummary {
+  prefix: string;
+  label: string | null;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface CompanionTokenRowView {
+  /** 8-char prefix (the revoke handle); never the full secret. */
+  prefix: string;
+  /** Display label, or a sensible fallback when unnamed. */
+  label: string;
+  createdAtIso: string;
+  expiresAtIso: string;
+}
+
+/**
+ * Render model for the companion-token list: normalizes timestamps and supplies
+ * a fallback label so the DOM consumer stays dumb. The full token secret is
+ * never part of this model — it is shown once, at creation, by the create call.
+ */
+export function companionTokenRows(tokens: CompanionTokenSummary[]): CompanionTokenRowView[] {
+  return tokens.map((t) => ({
+    prefix: t.prefix,
+    label: t.label && t.label.trim() ? t.label.trim() : 'Unnamed token',
+    createdAtIso: normalizeIso(t.createdAt),
+    expiresAtIso: normalizeIso(t.expiresAt),
+  }));
 }

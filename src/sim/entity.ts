@@ -184,6 +184,32 @@ export function recalcPlayerStats(e: Entity, cls: PlayerClass, equipment: Player
   }
 }
 
+// Derived stats + max vitals for an OFFLINE character (a stored CharacterState),
+// computed by reusing recalcPlayerStats on a throwaway entity rather than
+// re-deriving the numbers. With no auras and no active form, recalcPlayerStats
+// yields exactly the class/level/gear/talent stat block — the same numbers a
+// live player shows — so the character sheet stays in lockstep with the engine.
+// Resource max is the full pool for the class (mana from intellect, or 100 for
+// rage/energy); the sheet pairs it with the stored current value.
+export interface DerivedCharacterStats {
+  stats: Stats;
+  maxHp: number;
+  maxResource: number;
+  resourceType: Entity['resourceType'];
+}
+
+export function characterDerivedStats(
+  cls: PlayerClass,
+  level: number,
+  equipment: PlayerEquipment,
+  mods?: TalentModifiers,
+): DerivedCharacterStats {
+  const e = createPlayer(0, cls, { x: 0, y: 0, z: 0 }, '');
+  e.level = Math.max(1, Math.floor(level));
+  recalcPlayerStats(e, cls, equipment, mods);
+  return { stats: e.stats, maxHp: e.maxHp, maxResource: e.maxResource, resourceType: e.resourceType };
+}
+
 export function createMob(id: number, template: MobTemplate, level: number, pos: Vec3): Entity {
   const e = baseEntity(id, pos);
   e.kind = 'mob';

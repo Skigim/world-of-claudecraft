@@ -5,6 +5,9 @@ import {
   validatePasswordChange,
   validateEmailShape,
   deactivateConfirmReady,
+  validateCompanionTokenLabel,
+  companionTokenRows,
+  COMPANION_TOKEN_LABEL_MAX,
   MIN_PASSWORD_LENGTH,
   MAX_PASSWORD_LENGTH,
   type AccountPortalState,
@@ -22,7 +25,7 @@ describe('accountPortalModel', () => {
   it('exposes all sections in order when logged in', () => {
     const m = accountPortalModel(base);
     expect(m.loggedIn).toBe(true);
-    expect(m.sections).toEqual(['settings', 'wallet', 'characters', 'logout']);
+    expect(m.sections).toEqual(['settings', 'wallet', 'characters', 'companion', 'logout']);
     expect(m.header.username).toBe('Aelwyn');
   });
 
@@ -96,6 +99,30 @@ describe('validateEmailShape', () => {
     const local = (n: number) => `${'a'.repeat(n)}@example.com`; // tail is 12 chars
     expect(validateEmailShape(local(254 - 12))).toBe(true); // length 254 → ok
     expect(validateEmailShape(local(255 - 12))).toBe(false); // length 255 → too long
+  });
+});
+
+describe('companion tokens', () => {
+  it('accepts an empty or in-bound label and rejects an over-long one', () => {
+    expect(validateCompanionTokenLabel('')).toBe(true);
+    expect(validateCompanionTokenLabel('My phone app')).toBe(true);
+    expect(validateCompanionTokenLabel('a'.repeat(COMPANION_TOKEN_LABEL_MAX))).toBe(true);
+    expect(validateCompanionTokenLabel('a'.repeat(COMPANION_TOKEN_LABEL_MAX + 1))).toBe(false);
+  });
+
+  it('builds a row view with a fallback label and normalized timestamps, never the full secret', () => {
+    const rows = companionTokenRows([
+      { prefix: 'deadbeef', label: 'Tracker', createdAt: '2026-06-01T00:00:00.000Z', expiresAt: '2026-09-01T00:00:00.000Z' },
+      { prefix: 'cafe1234', label: null, createdAt: 'junk', expiresAt: '2026-09-01T00:00:00.000Z' },
+    ]);
+    expect(rows[0]).toEqual({
+      prefix: 'deadbeef', label: 'Tracker',
+      createdAtIso: '2026-06-01T00:00:00.000Z', expiresAtIso: '2026-09-01T00:00:00.000Z',
+    });
+    expect(rows[1].label).toBe('Unnamed token');
+    expect(rows[1].createdAtIso).toBe(''); // junk normalizes to empty
+    // No field carries a 64-hex secret.
+    for (const r of rows) for (const v of Object.values(r)) expect(String(v)).not.toMatch(/[a-f0-9]{64}/);
   });
 });
 
