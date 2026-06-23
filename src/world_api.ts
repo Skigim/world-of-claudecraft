@@ -1,24 +1,7 @@
-import type { Role, SavedLoadout, TalentAllocation } from './sim/content/talents';
-import type { LeaderboardPage } from './sim/leaderboard_page';
+import { OVERHEAD_EMOTE_IDS, type ArenaCombatant, type ArenaFormat, type ArenaStanding, type Entity, type EquipSlot, type InvSlot, type LootRollChoice, type LootRollPrompt, type MoveInput, type OverheadEmoteId, type PetMode, type PlayerClass, type QuestProgress, type QuestState, type ResourceType } from './sim/types';
 import type { ResolvedAbility } from './sim/sim';
-import {
-  type ArenaCombatant,
-  type ArenaFormat,
-  type ArenaStanding,
-  type Entity,
-  type EquipSlot,
-  type InvSlot,
-  type LootRollChoice,
-  type LootRollPrompt,
-  type MoveInput,
-  OVERHEAD_EMOTE_IDS,
-  type OverheadEmoteId,
-  type PetMode,
-  type PlayerClass,
-  type QuestProgress,
-  type QuestState,
-  type ResourceType,
-} from './sim/types';
+import type { TalentAllocation, SavedLoadout, Role } from './sim/content/talents';
+import type { LeaderboardPage } from './sim/leaderboard_page';
 
 export type { LeaderboardPage } from './sim/leaderboard_page';
 
@@ -142,7 +125,7 @@ export interface LeaderboardEntry {
   realm?: string; // present on the global (cross-realm) home-page board
 }
 
-export type { ArenaCombatant, ArenaFormat, ArenaStanding };
+export type { ArenaFormat, ArenaCombatant, ArenaStanding };
 
 export interface ArenaLadderEntry {
   pid: number;
@@ -350,7 +333,6 @@ export interface IWorld {
   partyLeave(): void;
   partyKick(targetPid: number): void;
   convertPartyToRaid(): void;
-  convertRaidToParty(): void;
   moveRaidMember(targetPid: number, group: 1 | 2): void;
   // raid/target markers (party-scoped): markerId 0..7, null = no mark
   markerFor(entityId: number): number | null;

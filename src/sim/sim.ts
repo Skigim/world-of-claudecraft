@@ -5979,13 +5979,7 @@ export class Sim {
     const out: LootRollPrompt[] = [];
     for (const roll of this.pendingLootRolls.values()) {
       if (!roll.candidates.includes(pid) || roll.choices.has(pid)) continue;
-      out.push({
-        rollId: roll.id,
-        itemId: roll.itemId,
-        itemName: roll.itemName,
-        quality: roll.quality,
-        expiresAt: roll.expiresAt,
-      });
+      out.push({ rollId: roll.id, itemId: roll.itemId, itemName: roll.itemName, quality: roll.quality, expiresAt: roll.expiresAt });
     }
     return out;
   }
@@ -11692,42 +11686,6 @@ export class Sim {
       this.emit({
         type: 'log',
         text: 'Your party has converted to a raid group.',
-        color: '#aaf',
-        pid: mPid,
-      });
-    }
-  }
-
-  convertRaidToParty(pid?: number): void {
-    const r = this.resolve(pid);
-    if (!r) return;
-    const party = this.partyOf(r.meta.entityId);
-    if (!party) {
-      this.error(r.meta.entityId, 'You are not in a raid group.');
-      return;
-    }
-    if (party.leader !== r.meta.entityId) {
-      this.error(r.meta.entityId, 'Only the raid leader may convert to a party.');
-      return;
-    }
-    if (!party.raid) {
-      this.error(r.meta.entityId, 'Your group is not a raid.');
-      return;
-    }
-    // A raid can hold up to two subgroups; only one party's worth can fold back.
-    if (party.members.length > PARTY_MAX) {
-      this.error(
-        r.meta.entityId,
-        'A raid with more than five members cannot convert back to a party.',
-      );
-      return;
-    }
-    party.raid = false;
-    party.raidGroups.clear();
-    for (const mPid of party.members) {
-      this.emit({
-        type: 'log',
-        text: 'Your raid has converted back to a party.',
         color: '#aaf',
         pid: mPid,
       });
