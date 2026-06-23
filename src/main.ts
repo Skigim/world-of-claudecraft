@@ -932,6 +932,11 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
       input.setMouseCameraEnabled(v);
       return;
     }
+    if (key === 'lockCursorOnRotate') {
+      const v = settings.set('lockCursorOnRotate', !!value);
+      input.setLockCursorOnRotate(v);
+      return;
+    }
     if (key === 'leftHandedTouch') {
       const v = settings.set('leftHandedTouch', !!value);
       document.body.classList.toggle('mobile-left-handed', v);

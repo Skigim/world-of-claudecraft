@@ -136,6 +136,11 @@ export const hudChromeStrings = {
     // Toggle for the OSRS-style click-feedback marker: entity targets and
     // click-to-move destinations (on by default).
     clickFeedback: "Click Marker",
+    // Keybind panel toggle: pointer-lock the canvas during a camera drag so the
+    // cursor cannot leave the window (hit the screen edge or slip to a second
+    // monitor) while rotating. On by default.
+    lockCursorOnRotate: "Lock Cursor While Rotating",
+    keybindHelpLockCursorOnRotate: "Keeps the mouse cursor inside the window while you drag to rotate the camera, so it cannot reach the screen edge or move to another monitor. Turn off if you prefer a free cursor.",
     showWalletOnCharacterScreen: "Show Wallet on Character Screen",
     showWalletOnPlayerCard: "Show Wallet on Player Card",
     // Interface panel: global HUD zoom slider, and the mirror of the landing

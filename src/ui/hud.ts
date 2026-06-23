@@ -9726,7 +9726,7 @@ export class Hud {
   // Toggle row styled for the Key Bindings panel. Handles the bool Mouse Camera
   // setting and the numeric (0/1) Click to Move setting, which both live here
   // alongside the rebindable keys.
-  private settingToggleKeybind(parent: HTMLElement, label: string, key: BoolSettingKey | 'clickToMove'): void {
+  private settingToggleKeybind(parent: HTMLElement, label: string, key: BoolSettingKey | 'clickToMove', help?: string): void {
     const hooks = this.optionsHooks;
     if (!hooks) return;
     const isOn = () => (key === 'clickToMove' ? hooks.settings.get(key) >= 0.5 : hooks.settings.get(key));
@@ -9757,6 +9757,12 @@ export class Hud {
     });
     row.append(name, toggle);
     parent.appendChild(row);
+    if (help) {
+      const hint = document.createElement('div');
+      hint.className = 'kb-note kb-toggle-help';
+      hint.textContent = help;
+      parent.appendChild(hint);
+    }
   }
 
   private clickMoveMouseButtonRow(parent: HTMLElement): void {
@@ -9853,6 +9859,7 @@ export class Hud {
     el.classList.add('kb-wide');
     el.innerHTML = `<div class="panel-title"><span>${esc(t('hud.options.keyBindings'))}</span><button type="button" class="x-btn" data-close aria-label="${esc(t('hud.options.returnToGame'))}">${svgIcon('close')}</button></div>`;
     this.settingToggleKeybind(el, t('hud.options.mouseCamera'), 'mouseCamera');
+    this.settingToggleKeybind(el, t('hudChrome.options.lockCursorOnRotate'), 'lockCursorOnRotate', t('hudChrome.options.keybindHelpLockCursorOnRotate'));
     this.settingToggleKeybind(el, t('hud.options.clickToMove'), 'clickToMove');
     this.clickMoveMouseButtonRow(el);
     this.settingToggleKeybind(el, t('hud.keybinds.actions.attackMove'), 'attackMove');

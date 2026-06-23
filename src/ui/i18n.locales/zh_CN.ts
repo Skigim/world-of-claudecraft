@@ -132,6 +132,8 @@ export const zh_CN: Partial<Record<TranslationKey, string>> = {
   "hudChrome.options.browserEffectsNote": "自动模式会根据你的浏览器和设备调低高开销的 CSS 特效（模糊、光晕、背景动画）。如果界面感觉卡顿，可手动降低。",
   "hudChrome.options.footstepSounds": "脚步声",
   "hudChrome.options.clickFeedback": "点击标记",
+  "hudChrome.options.lockCursorOnRotate": "旋转时锁定光标",
+  "hudChrome.options.keybindHelpLockCursorOnRotate": "拖动旋转镜头时将鼠标光标保持在窗口内，使其无法到达屏幕边缘或移动到另一台显示器。如果你喜欢自由光标，请关闭此选项。",
   "hudChrome.options.showWalletOnCharacterScreen": "在角色界面显示钱包",
   "hudChrome.options.showWalletOnPlayerCard": "在玩家卡片显示钱包",
   "hudChrome.playerCard.showWalletBadge": "显示钱包徽章",

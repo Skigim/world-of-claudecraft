@@ -132,6 +132,8 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   "hudChrome.options.browserEffectsNote": "Авто снижает тяжёлые CSS-эффекты (размытие, свечение, движение фона) в зависимости от браузера и устройства. Если интерфейс тормозит, понизьте вручную.",
   "hudChrome.options.footstepSounds": "Звуки шагов",
   "hudChrome.options.clickFeedback": "Метка клика",
+  "hudChrome.options.lockCursorOnRotate": "Блокировать курсор при вращении",
+  "hudChrome.options.keybindHelpLockCursorOnRotate": "Удерживает курсор мыши внутри окна, пока вы вращаете камеру перетаскиванием, чтобы он не достигал края экрана и не переходил на другой монитор. Отключите, если предпочитаете свободный курсор.",
   "hudChrome.options.showWalletOnCharacterScreen": "Показывать кошелек на экране персонажей",
   "hudChrome.options.showWalletOnPlayerCard": "Показывать кошелек на карточке игрока",
   "hudChrome.playerCard.showWalletBadge": "Показывать значок кошелька",
