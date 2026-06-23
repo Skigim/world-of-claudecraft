@@ -7505,7 +7505,7 @@ export class Sim {
   // actor). `from` carries the actor's name so the client can render it as a
   // clickable name; `text` is the action predicate (e.g. "waves at Bet.").
   private broadcastEmote(actor: PlayerMeta, actorEntity: Entity, text: string): void {
-    const body = text.slice(0, 200);
+    const body = text.slice(0, MAX_CHAT_MESSAGE_LEN);
     for (const meta of this.players.values()) {
       const e = this.entities.get(meta.entityId);
       if (!e || dist2d(actorEntity.pos, e.pos) > SAY_RANGE) continue;

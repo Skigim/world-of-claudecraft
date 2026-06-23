@@ -668,7 +668,7 @@ async function startGame(world: IWorld, offlineSim: Sim | null, online: ClientWo
   });
   chatInput.addEventListener('keydown', (e) => {
     e.stopPropagation();
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.isComposing) {
       // single-message semantics (like classic chat): Enter always sends,
       // never inserts a newline into the textarea.
       e.preventDefault();
