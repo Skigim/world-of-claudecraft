@@ -107,7 +107,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 1.6,
 		attackSpeed: 2.0,
 		armorPerLevel: 10,
-		moveSpeed: 8,
+		moveSpeed: 6.8,
 		aggroRadius: 10,
 		loot: [
 			{ copper: 8, chance: 1 },
@@ -131,7 +131,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 2.0,
 		attackSpeed: 1.8,
 		armorPerLevel: 16,
-		moveSpeed: 8.5,
+		moveSpeed: 6.9,
 		aggroRadius: 12,
 		// The old wolf turns savage as the fight wears on: each wound it takes can
 		// send it into a blood frenzy, swinging 30% faster for 8s.
@@ -161,7 +161,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 1.8,
 		attackSpeed: 2.2,
 		armorPerLevel: 14,
-		moveSpeed: 7.5,
+		moveSpeed: 6.6,
 		aggroRadius: 9,
 		// Stiff bristles prick anyone who melees the boar.
 		thorns: { value: 2, name: "Bristled Hide" },
@@ -191,7 +191,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 3.3,
 		attackSpeed: 2.4,
 		armorPerLevel: 30,
-		moveSpeed: 7.2,
+		moveSpeed: 6.8,
 		aggroRadius: 12,
 		aoePulse: {
 			min: 12,
@@ -241,7 +241,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 1.7,
 		attackSpeed: 1.8,
 		armorPerLevel: 8,
-		moveSpeed: 8,
+		moveSpeed: 6.7,
 		aggroRadius: 10,
 		venom: {
 			chance: 0.35,
@@ -282,7 +282,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 3.3,
 		attackSpeed: 1.7,
 		armorPerLevel: 20,
-		moveSpeed: 8,
+		moveSpeed: 6.8,
 		aggroRadius: 12,
 		aoePulse: {
 			min: 10,
@@ -330,7 +330,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 1.8,
 		attackSpeed: 1.6,
 		armorPerLevel: 8,
-		moveSpeed: 8.5,
+		moveSpeed: 6.8,
 		aggroRadius: 12,
 		loot: [],
 		scale: 0.65,
@@ -353,7 +353,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 3.5,
 		attackSpeed: 2.2,
 		armorPerLevel: 34,
-		moveSpeed: 7.4,
+		moveSpeed: 7,
 		aggroRadius: 14,
 		aoePulse: {
 			min: 14,
@@ -399,7 +399,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 2.0,
 		attackSpeed: 2.0,
 		armorPerLevel: 18,
-		moveSpeed: 7.5,
+		moveSpeed: 6.8,
 		aggroRadius: 12,
 		stunOnHit: {
 			chance: 0.12,
@@ -423,7 +423,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 1.9,
 		attackSpeed: 1.9,
 		armorPerLevel: 12,
-		moveSpeed: 8,
+		moveSpeed: 6.8,
 		aggroRadius: 13, // murlocs aggro from far and bring friends
 		loot: [
 			{ copper: 18, chance: 1 },
@@ -455,7 +455,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 2.0,
 		attackSpeed: 2.1,
 		armorPerLevel: 16,
-		moveSpeed: 7,
+		moveSpeed: 6.6,
 		aggroRadius: 10,
 		loot: [
 			{ copper: 22, chance: 1 },
@@ -484,7 +484,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 3.3,
 		attackSpeed: 2.0,
 		armorPerLevel: 24,
-		moveSpeed: 7,
+		moveSpeed: 6.8,
 		aggroRadius: 13,
 		aoePulse: {
 			min: 12,
@@ -528,7 +528,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 2.0,
 		attackSpeed: 2.0,
 		armorPerLevel: 20,
-		moveSpeed: 7,
+		moveSpeed: 6.8,
 		aggroRadius: 11,
 		loot: [
 			{ copper: 25, chance: 1 },
@@ -599,7 +599,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 3.4,
 		attackSpeed: 2.6,
 		armorPerLevel: 32,
-		moveSpeed: 7.4,
+		moveSpeed: 6.9,
 		aggroRadius: 13,
 		aoePulse: {
 			min: 13,
@@ -693,7 +693,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 1.2,
 		attackSpeed: 1.8,
 		armorPerLevel: 6,
-		moveSpeed: 9.5,
+		moveSpeed: 6.8,
 		aggroRadius: 0,
 		loot: [
 			{ copper: 4, chance: 1 },
@@ -714,7 +714,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 1.5,
 		attackSpeed: 1.7,
 		armorPerLevel: 8,
-		moveSpeed: 9,
+		moveSpeed: 6.8,
 		aggroRadius: 8,
 		loot: [
 			{ copper: 8, chance: 1 },
@@ -735,7 +735,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 1.3,
 		attackSpeed: 2.0,
 		armorPerLevel: 7,
-		moveSpeed: 8.5,
+		moveSpeed: 6.8,
 		aggroRadius: 0,
 		loot: [
 			{ copper: 6, chance: 1 },
@@ -757,7 +757,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 1.6,
 		attackSpeed: 1.9,
 		armorPerLevel: 9,
-		moveSpeed: 8.5,
+		moveSpeed: 6.8,
 		aggroRadius: 9,
 		loot: [
 			{ copper: 10, chance: 1 },
@@ -778,7 +778,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 1.8,
 		attackSpeed: 2.1,
 		armorPerLevel: 14,
-		moveSpeed: 7,
+		moveSpeed: 6.6,
 		aggroRadius: 10,
 		// A stubborn digger — its coarse coat pricks anyone who melees it.
 		thorns: { value: 3, name: "Coarse Pelt" },
@@ -801,7 +801,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 1.7,
 		attackSpeed: 2.0,
 		armorPerLevel: 10,
-		moveSpeed: 8.5,
+		moveSpeed: 6.8,
 		aggroRadius: 8,
 		loot: [
 			{ copper: 12, chance: 1 },
@@ -823,7 +823,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 2.0,
 		attackSpeed: 1.7,
 		armorPerLevel: 12,
-		moveSpeed: 8.5,
+		moveSpeed: 6.9,
 		aggroRadius: 11,
 		// Hunts in loose prides — a wounded lynx yowls and the pride goes savage.
 		packFrenzy: { radius: 12, hasteMult: 1.3, duration: 8 },
@@ -846,7 +846,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 2.2,
 		attackSpeed: 2.3,
 		armorPerLevel: 14,
-		moveSpeed: 8,
+		moveSpeed: 6.8,
 		aggroRadius: 9,
 		// Lowers its antlers and bulls forward, swinging harder as the fight drags on.
 		frenzyOnHit: {
@@ -875,7 +875,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 2.4,
 		attackSpeed: 2.2,
 		armorPerLevel: 16,
-		moveSpeed: 7.5,
+		moveSpeed: 6.7,
 		aggroRadius: 10,
 		thorns: { value: 4, name: "Bristled Hide" },
 		loot: [
@@ -898,7 +898,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 2.6,
 		attackSpeed: 2.5,
 		armorPerLevel: 20,
-		moveSpeed: 7.2,
+		moveSpeed: 6.6,
 		aggroRadius: 11,
 		// A heavy bruiser that turns furious when cornered.
 		enrage: { belowHpPct: 0.35, dmgMult: 1.35, hasteMult: 1.2 },
@@ -926,7 +926,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 3.2,
 		attackSpeed: 2.4,
 		armorPerLevel: 26,
-		moveSpeed: 8,
+		moveSpeed: 6.9,
 		aggroRadius: 12,
 		// The great stag of the glade. It sweeps a wide arc with its crown of antlers
 		// and grows wild with fury as it is brought low.
@@ -961,7 +961,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
 		dmgPerLevel: 2.4,
 		attackSpeed: 2.4,
 		armorPerLevel: 30,
-		moveSpeed: 7,
+		moveSpeed: 6.8,
 		aggroRadius: 13,
 		boss: true,
 		loot: [
