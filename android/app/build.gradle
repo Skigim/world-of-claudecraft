@@ -1,14 +1,24 @@
 apply plugin: 'com.android.application'
 
+def playIntegrityCloudProjectNumber = providers
+    .environmentVariable("PLAY_INTEGRITY_CLOUD_PROJECT_NUMBER")
+    .orElse("865860061593")
+    .get()
+    .trim()
+
 android {
     namespace = "com.worldofclaudecraft"
     compileSdk = rootProject.ext.compileSdkVersion
+    buildFeatures {
+        buildConfig true
+    }
     defaultConfig {
         applicationId "com.worldofclaudecraft"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "0.14.0"
+        versionCode 5
+        versionName "0.14.1"
+        buildConfigField "long", "PLAY_INTEGRITY_CLOUD_PROJECT_NUMBER", "${playIntegrityCloudProjectNumber}L"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

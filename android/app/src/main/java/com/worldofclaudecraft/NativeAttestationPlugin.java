@@ -22,6 +22,7 @@ public class NativeAttestationPlugin extends Plugin {
         IntegrityManager integrityManager = IntegrityManagerFactory.create(getContext());
         IntegrityTokenRequest request = IntegrityTokenRequest.builder()
             .setNonce(nonce)
+            .setCloudProjectNumber(BuildConfig.PLAY_INTEGRITY_CLOUD_PROJECT_NUMBER)
             .build();
 
         integrityManager.requestIntegrityToken(request)

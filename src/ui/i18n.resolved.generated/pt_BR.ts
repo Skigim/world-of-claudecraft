@@ -231,12 +231,27 @@ export const pt_BR: EnTranslations = {
       "hapticsOff": "Vibração desligada",
       "toggleHaptics": "Alternar vibração"
     },
+    "tutorial": {
+      "moveBodyTouch": "Use o analógico de movimento para se mover e arraste a tela para olhar ao redor. Dê alguns passos para começar.",
+      "talkBodyTouch": "Aproxime-se do marechal Redbrook e toque no botão Usar para falar, então aceite a tarefa dele.",
+      "returnBodyTouch": "Sua tarefa está concluída. Volte ao marechal Redbrook e toque no botão Usar para entregá-la.",
+      "doneBodyTouch": "Você já domina o básico, {name}. O Vale é seu para explorar. Toque em Mais e depois em Registro de missões para ver seu registro de missões a qualquer momento. Boa caçada!"
+    },
     "widgets": {
       "clockTitle": "Horário local - clique para alternar entre 12/24 horas",
       "worldCoordinates": "Coordenadas do mundo",
       "coordinates": "Coordenadas",
       "heading": "Direção",
       "minimapZoom": "Zoom do minimapa"
+    },
+    "raidLockout": {
+      "title": "Bloqueios de raide",
+      "allReady": "Todas as raides prontas",
+      "daysHours": "{d}d {h}h",
+      "hoursMinutes": "{h}h {m}min",
+      "minutes": "{m}min",
+      "lessThanMinute": "<1min",
+      "lockedToast": "Você está bloqueado em {raid}. Desbloqueia em {time}."
     },
     "compass": {
       "N": "N",
@@ -550,6 +565,12 @@ export const pt_BR: EnTranslations = {
       "searchPlaceholder": "Pesquisar itens",
       "searchAria": "Pesquisar itens da bolsa por nome",
       "noMatch": "Nenhum item corresponde aos seus filtros."
+    },
+    "raidConvert": {
+      "toPartyDone": "Sua raide foi convertida de volta em um grupo.",
+      "notRaid": "Seu grupo não é uma raide.",
+      "leaderOnly": "Só o líder da raide pode converter em um grupo.",
+      "tooLarge": "Uma raide com mais de cinco membros não pode ser convertida de volta em um grupo."
     }
   },
   "guide": {
@@ -2270,6 +2291,7 @@ export const pt_BR: EnTranslations = {
         "report": "Denunciar jogador",
         "removeParty": "Remover do grupo",
         "convertToRaid": "Converter em raide",
+        "convertToParty": "Converter em grupo",
         "cancel": "Cancelar"
       }
     },

@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import {
+  abilitiesKnownAt,
+  CLASSES,
+  CRYPT_SPAWNS,
+  DUNGEON_X_THRESHOLD,
+  dungeonAt,
+  instanceOrigin,
+  MOBS,
+} from '../src/sim/data';
 import { Sim } from '../src/sim/sim';
-import { ALL_CLASSES, MAX_LEVEL, dist2d } from '../src/sim/types';
-import { CLASSES, MOBS, abilitiesKnownAt, instanceOrigin, CRYPT_SPAWNS, DUNGEON_X_THRESHOLD, dungeonAt } from '../src/sim/data';
+import { ALL_CLASSES, dist2d, MAX_LEVEL } from '../src/sim/types';
 import { groundHeight } from '../src/sim/world';
 
 function makeWorld() {
@@ -10,7 +18,8 @@ function makeWorld() {
 
 function teleport(sim: Sim, pid: number, x: number, z: number) {
   const e = sim.entities.get(pid)!;
-  e.pos.x = x; e.pos.z = z;
+  e.pos.x = x;
+  e.pos.z = z;
   e.pos.y = groundHeight(x, z, sim.cfg.seed);
   e.prevPos = { ...e.pos };
 }
@@ -33,11 +42,15 @@ function fillPartyToFive(sim: Sim, leader: number): number[] {
 }
 
 function nearestMob(sim: Sim, templateId: string, from: { x: number; z: number } = { x: 0, z: 0 }) {
-  let best: any = null, bestD = Infinity;
+  let best: any = null,
+    bestD = Infinity;
   for (const e of sim.entities.values()) {
     if (e.kind !== 'mob' || e.dead || e.templateId !== templateId) continue;
     const d = Math.hypot(e.pos.x - from.x, e.pos.z - from.z);
-    if (d < bestD) { bestD = d; best = e; }
+    if (d < bestD) {
+      bestD = d;
+      best = e;
+    }
   }
   return best;
 }
@@ -134,7 +147,10 @@ describe('nine classes', () => {
     // rather than a lucky roll — robust to RNG-stream shifts from new content.
     let landed = false;
     for (let attempt = 0; attempt < 25 && !landed; attempt++) {
-      if (!p.auras.some((a) => a.kind === 'imbue')) { sim.castAbility('seal_of_righteousness'); sim.tick(); }
+      if (!p.auras.some((a) => a.kind === 'imbue')) {
+        sim.castAbility('seal_of_righteousness');
+        sim.tick();
+      }
       p.gcdRemaining = 0;
       p.cooldowns.delete('judgement');
       p.resource = p.maxResource;
@@ -389,6 +405,46 @@ describe('parties', () => {
     expect(sim.partyInfo?.members.find((m) => m.pid === c)?.group).toBe(2);
   });
 
+  it('lets the raid leader convert a small raid (<= 5) back to a party', () => {
+    const { sim, a, b } = makeDuo();
+    const members = fillPartyToFive(sim, a);
+    sim.convertPartyToRaid(a);
+    expect(sim.partyOf(a)?.raid).toBe(true);
+
+    // only the leader may demote
+    sim.convertRaidToParty(b);
+    expect(sim.partyOf(a)?.raid).toBe(true);
+
+    sim.convertRaidToParty(a);
+    const party = sim.partyOf(a)!;
+    expect(party.raid).toBe(false);
+    expect(party.raidGroups.size).toBe(0);
+    // membership is preserved; the group is intact, just no longer a raid
+    expect(party.members).toHaveLength(5);
+    expect(sim.partyInfo?.raid).toBe(false);
+
+    // converting again when it is no longer a raid is a no-op (already a party)
+    sim.convertRaidToParty(a);
+    expect(sim.partyOf(a)?.raid).toBe(false);
+    void members;
+  });
+
+  it('refuses to demote a raid larger than one party (> 5 members)', () => {
+    const sim = makeWorld();
+    const leader = sim.addPlayer('warrior', 'BigLeader');
+    const pids = Array.from({ length: 9 }, (_, i) => sim.addPlayer('priest', `Big${i}`));
+    fillPartyToFive(sim, leader);
+    sim.convertPartyToRaid(leader);
+    for (const pid of pids.slice(0, 5)) {
+      sim.partyInvite(pid, leader);
+      sim.partyAccept(pid);
+    }
+    const party = sim.partyOf(leader)!;
+    expect(party.members.length).toBeGreaterThan(5);
+    sim.convertRaidToParty(leader);
+    expect(party.raid).toBe(true);
+  });
+
   it('blocks raid groups from standard dungeons while requiring raid groups for Nythraxis entry', () => {
     const sim = makeWorld();
     const leader = sim.addPlayer('warrior', 'Leader');
@@ -434,7 +490,7 @@ describe('parties', () => {
     expect(metaB.questLog.get('q_wolves')!.counts[0]).toBe(1);
   });
 
-  it('party members may loot each other\'s tapped kills and split copper', () => {
+  it("party members may loot each other's tapped kills and split copper", () => {
     const { sim, a, b } = makeDuo();
     const wolf = nearestMob(sim, 'forest_wolf');
     wolf.hp = 1;
@@ -443,7 +499,10 @@ describe('parties', () => {
     sim.targetEntity(wolf.id, a);
     face(sim, a, wolf.id);
     sim.startAutoAttack(a);
-    for (let i = 0; i < 20 * 20 && !wolf.dead; i++) { face(sim, a, wolf.id); sim.tick(); }
+    for (let i = 0; i < 20 * 20 && !wolf.dead; i++) {
+      face(sim, a, wolf.id);
+      sim.tick();
+    }
     expect(wolf.lootable).toBe(true);
     const copper = wolf.loot!.copper;
     const aBefore = sim.meta(a)!.copper;
@@ -466,7 +525,10 @@ describe('parties', () => {
     sim.targetEntity(wolf.id, a);
     face(sim, a, wolf.id);
     sim.startAutoAttack(a);
-    for (let i = 0; i < 20 * 20 && !wolf.dead; i++) { face(sim, a, wolf.id); sim.tick(); }
+    for (let i = 0; i < 20 * 20 && !wolf.dead; i++) {
+      face(sim, a, wolf.id);
+      sim.tick();
+    }
     sim.lootCorpse(wolf.id, c);
     expect(sim.meta(c)!.copper).toBe(0);
     expect(wolf.lootable).toBe(true);
@@ -501,7 +563,10 @@ describe('duels', () => {
       face(sim, a, b);
       const events = sim.tick();
       const end = events.find((e) => e.type === 'duelEnd');
-      if (end) { ended = true; winnerEvent = end; }
+      if (end) {
+        ended = true;
+        winnerEvent = end;
+      }
     }
     expect(ended).toBe(true);
     expect(winnerEvent.winnerName).toBe('Aleph');
@@ -675,7 +740,14 @@ describe('trading', () => {
     sim.tradeRequest(b, a);
     sim.tradeAccept(b);
     // two slots of 2 totals 4, within the 5 held — merged into one slot of 4
-    sim.tradeSetOffer([{ itemId: 'wolf_fang', count: 2 }, { itemId: 'wolf_fang', count: 2 }], 0, a);
+    sim.tradeSetOffer(
+      [
+        { itemId: 'wolf_fang', count: 2 },
+        { itemId: 'wolf_fang', count: 2 },
+      ],
+      0,
+      a,
+    );
     expect(sim.tradeFor(a)!.offerA.items).toEqual([{ itemId: 'wolf_fang', count: 4 }]);
     sim.tradeConfirm(a);
     sim.tradeConfirm(b);
@@ -754,7 +826,10 @@ describe('the Hollow Crypt', () => {
     const slot = sim.instanceSlotAt(sim.entities.get(a)!.pos)!;
     const origin = instanceOrigin(0, slot);
     const cryptMobs = [...sim.entities.values()].filter(
-      (e) => e.kind === 'mob' && Math.abs(e.pos.x - origin.x) < 120 && Math.abs(e.pos.z - origin.z) < 250,
+      (e) =>
+        e.kind === 'mob' &&
+        Math.abs(e.pos.x - origin.x) < 120 &&
+        Math.abs(e.pos.z - origin.z) < 250,
     );
     expect(cryptMobs.length).toBe(CRYPT_SPAWNS.length);
     // walk the player onto the boss: pulse should hit within ~12s
@@ -770,7 +845,10 @@ describe('the Hollow Crypt', () => {
     for (let i = 0; i < 20 * 25 && !pulsed; i++) {
       face(sim, a, boss.id);
       const events = sim.tick();
-      if (events.some((e) => e.type === 'damage' && e.ability === 'Shadow Pulse' && e.targetId === a)) pulsed = true;
+      if (
+        events.some((e) => e.type === 'damage' && e.ability === 'Shadow Pulse' && e.targetId === a)
+      )
+        pulsed = true;
       if (ea.dead) break;
     }
     expect(pulsed).toBe(true);
@@ -828,10 +906,14 @@ describe('the new dungeons', () => {
     // Velkhar: drop below 66% then 33% -> two waves of 3 raised_bonewalker
     const velkhar = nearestMob(sim, 'grand_necromancer_velkhar', origin);
     expect(velkhar).toBeTruthy();
-    const addsNear = () => [...sim.entities.values()].filter(
-      (e) => e.kind === 'mob' && !e.dead && e.templateId === 'raised_bonewalker'
-        && Math.abs(e.pos.x - origin.x) < 120,
-    ).length;
+    const addsNear = () =>
+      [...sim.entities.values()].filter(
+        (e) =>
+          e.kind === 'mob' &&
+          !e.dead &&
+          e.templateId === 'raised_bonewalker' &&
+          Math.abs(e.pos.x - origin.x) < 120,
+      ).length;
     expect(addsNear()).toBe(0);
     velkhar.inCombat = true;
     velkhar.hp = Math.floor(velkhar.maxHp * 0.6);

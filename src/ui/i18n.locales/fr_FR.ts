@@ -14,6 +14,18 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const fr_FR: Partial<Record<TranslationKey, string>> = {
+  'hudChrome.tutorial.moveBodyTouch': "Utilise le joystick de déplacement pour te déplacer et fais glisser l'écran pour regarder autour de toi. Fais quelques pas pour commencer.",
+  'hudChrome.tutorial.talkBodyTouch': 'Tiens-toi près du maréchal Redbrook et touche le bouton Utiliser pour lui parler, puis accepte sa mission.',
+  'hudChrome.tutorial.returnBodyTouch': 'Ta mission est accomplie. Retourne voir le maréchal Redbrook et touche le bouton Utiliser pour la rendre.',
+  'hudChrome.tutorial.doneBodyTouch': 'Tu maîtrises les bases, {name}. Le Val est à toi : touche Plus, puis Journal de quêtes, pour consulter ton journal de quêtes à tout moment. Bonne chasse !',
+  'hudChrome.raidLockout.title': 'Verrous de raid',
+  'hudChrome.raidLockout.allReady': 'Tous les raids prêts',
+  'hudChrome.raidLockout.daysHours': '{d}j {h}h',
+  'hudChrome.raidLockout.hoursMinutes': '{h}h {m}min',
+  'hudChrome.raidLockout.minutes': '{m}min',
+  'hudChrome.raidLockout.lessThanMinute': '<1min',
+  'hudChrome.raidLockout.lockedToast':
+    'Vous êtes verrouillé sur {raid}. Déverrouillage dans {time}.',
   'hudChrome.options.interfaceMode': "Mode d'interface",
   'hudChrome.options.interfaceModeAuto': 'Auto',
   'hudChrome.options.interfaceModeDesktop': 'Desktop',
@@ -3308,6 +3320,12 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
   'entities.items.stormcallers_crown.name': "Couronne d'Appel-tempête",
   'entities.items.stormcallers_spaulders.name': "Spallières d'Appel-tempête",
   'hud.chat.context.convertToRaid': 'Convertir en raid',
+  'hud.chat.context.convertToParty': 'Convertir en groupe',
+  'hudChrome.raidConvert.leaderOnly': 'Seul le chef de raid peut convertir en groupe.',
+  'hudChrome.raidConvert.notRaid': "Votre groupe n'est pas un raid.",
+  'hudChrome.raidConvert.toPartyDone': 'Votre raid a été reconverti en groupe.',
+  'hudChrome.raidConvert.tooLarge':
+    'Un raid de plus de cinq membres ne peut pas être reconverti en groupe.',
   'hud.social.raidTab': 'Raid',
   'hud.social.raidEmpty': 'Convertissez un groupe en raid pour gérer les groupes de raid ici.',
   'hud.social.raidGroupEmpty': 'Aucun joueur dans ce groupe.',

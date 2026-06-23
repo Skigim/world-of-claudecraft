@@ -100,7 +100,7 @@ import { questFallbackGrants } from './quest_fallback';
 import { sanitizeRemovedZone1Content } from './removed_zone1_content';
 import { Rng } from './rng';
 import { SpatialGrid } from './spatial';
-import { orderTabTargets } from './tab_target';
+import { orderTabTargets, TAB_QUERY_RADIUS } from './tab_target';
 import {
   addThreat,
   clearThreat,
@@ -1649,6 +1649,15 @@ export class Sim {
   }
   get questsDone(): Set<string> {
     return this.primary.questsDone;
+  }
+  raidLockouts(): import('../world_api').RaidLockout[] {
+    const now = this.lockoutNowMs();
+    const out: import('../world_api').RaidLockout[] = [];
+    for (const [id, until] of this.primary.raidLockouts) {
+      const msRemaining = until - now;
+      if (msRemaining > 0) out.push({ id, msRemaining });
+    }
+    return out;
   }
   get counters(): RewardCounters {
     return this.primary.counters;
@@ -5970,7 +5979,13 @@ export class Sim {
     const out: LootRollPrompt[] = [];
     for (const roll of this.pendingLootRolls.values()) {
       if (!roll.candidates.includes(pid) || roll.choices.has(pid)) continue;
-      out.push({ rollId: roll.id, itemId: roll.itemId, itemName: roll.itemName, quality: roll.quality, expiresAt: roll.expiresAt });
+      out.push({
+        rollId: roll.id,
+        itemId: roll.itemId,
+        itemName: roll.itemName,
+        quality: roll.quality,
+        expiresAt: roll.expiresAt,
+      });
     }
     return out;
   }
@@ -6200,15 +6215,14 @@ export class Sim {
     return combatProfileForMob(mob.templateId, mob.scale);
   }
 
-  private mobEffectiveMeleeRange(mob: Entity, target: Entity): number {
+  private mobEffectiveMeleeRange(mob: Entity): number {
     const profile = this.mobCombatProfile(mob);
-    const targetMoved = dist2d(target.pos, target.prevPos) > 0.05;
     const mobMoved = dist2d(mob.pos, mob.prevPos) > 0.05;
-    return effectiveMobMeleeRange(profile, targetMoved, mobMoved);
+    return effectiveMobMeleeRange(profile, mobMoved);
   }
 
   private tryMobMeleeSwingInRange(mob: Entity, target: Entity): boolean {
-    if (dist2d(mob.pos, target.pos) > this.mobEffectiveMeleeRange(mob, target)) return false;
+    if (dist2d(mob.pos, target.pos) > this.mobEffectiveMeleeRange(mob)) return false;
     mob.aiState = 'attack';
     mob.facing = angleTo(mob.pos, target.pos);
     if (mob.swingTimer <= 0) {
@@ -6584,10 +6598,7 @@ export class Sim {
           this.updateRangedPetAttack(mob, target, spell);
           break;
         }
-        if (d > this.mobEffectiveMeleeRange(mob, target)) {
-          mob.aiState = 'chase';
-          break;
-        }
+        if (d > this.mobEffectiveMeleeRange(mob)) { mob.aiState = 'chase'; break; }
         mob.facing = angleTo(mob.pos, target.pos);
         mob.swingTimer -= DT;
         if (mob.swingTimer <= 0) {
@@ -9377,7 +9388,7 @@ export class Sim {
     if (candidates.length === 0) return;
     // Cycle the enemies the player can see / is fighting first; off-screen ones
     // stay reachable but never steal the selection (see tab_target.ts).
-    const ordered = orderTabTargets(
+    const { ids, primaryCount } = orderTabTargets(
       candidates.map((c) => ({
         id: c.e.id,
         dx: c.e.pos.x - p.pos.x,
@@ -9387,8 +9398,20 @@ export class Sim {
       })),
       p.facing,
     );
-    const curIdx = ordered.indexOf(p.targetId ?? -1);
-    p.targetId = ordered[(curIdx + 1) % ordered.length];
+    const curIdx = ids.indexOf(p.targetId ?? -1);
+    if (curIdx === -1) {
+      // No (or no longer valid) target: grab the priority enemy, cluster first.
+      p.targetId = ids[0];
+    } else if (curIdx < primaryCount) {
+      // Cycling the near fight cluster: wrap back to its first (priority) mob
+      // instead of stepping out to a distant idle enemy still in range.
+      p.targetId = ids[(curIdx + 1) % primaryCount];
+    } else {
+      // Sitting on a distant fallback target: walk the rest of the fallback,
+      // then wrap back into the near cluster.
+      const next = curIdx + 1;
+      p.targetId = next < ids.length ? ids[next] : ids[0];
+    }
   }
 
   targetNearestEnemy(pid?: number): void {
@@ -9396,8 +9419,8 @@ export class Sim {
     if (!r) return;
     const p = r.e;
     let best: Entity | null = null;
-    let bestD2 = 40 * 40;
-    this.grid.forEachInRadius(p.pos.x, p.pos.z, 40, (e, d2) => {
+    let bestD2 = TAB_QUERY_RADIUS * TAB_QUERY_RADIUS;
+    this.grid.forEachInRadius(p.pos.x, p.pos.z, TAB_QUERY_RADIUS, (e, d2) => {
       if (!this.isEnemyTargetCandidate(p, e)) return;
       if (d2 < bestD2) {
         bestD2 = d2;
@@ -9410,7 +9433,7 @@ export class Sim {
   private enemyCandidates(p: Entity): { e: Entity; d: number }[] {
     const out: { e: Entity; d: number }[] = [];
     if (p.dead) return out;
-    this.grid.forEachInRadius(p.pos.x, p.pos.z, 40, (e, d2) => {
+    this.grid.forEachInRadius(p.pos.x, p.pos.z, TAB_QUERY_RADIUS, (e, d2) => {
       if (!this.isEnemyTargetCandidate(p, e)) return;
       out.push({ e, d: Math.sqrt(d2) });
     });
@@ -11669,6 +11692,42 @@ export class Sim {
       this.emit({
         type: 'log',
         text: 'Your party has converted to a raid group.',
+        color: '#aaf',
+        pid: mPid,
+      });
+    }
+  }
+
+  convertRaidToParty(pid?: number): void {
+    const r = this.resolve(pid);
+    if (!r) return;
+    const party = this.partyOf(r.meta.entityId);
+    if (!party) {
+      this.error(r.meta.entityId, 'You are not in a raid group.');
+      return;
+    }
+    if (party.leader !== r.meta.entityId) {
+      this.error(r.meta.entityId, 'Only the raid leader may convert to a party.');
+      return;
+    }
+    if (!party.raid) {
+      this.error(r.meta.entityId, 'Your group is not a raid.');
+      return;
+    }
+    // A raid can hold up to two subgroups; only one party's worth can fold back.
+    if (party.members.length > PARTY_MAX) {
+      this.error(
+        r.meta.entityId,
+        'A raid with more than five members cannot convert back to a party.',
+      );
+      return;
+    }
+    party.raid = false;
+    party.raidGroups.clear();
+    for (const mPid of party.members) {
+      this.emit({
+        type: 'log',
+        text: 'Your raid has converted back to a party.',
         color: '#aaf',
         pid: mPid,
       });

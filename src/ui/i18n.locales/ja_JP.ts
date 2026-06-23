@@ -14,6 +14,17 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const ja_JP: Partial<Record<TranslationKey, string>> = {
+  'hudChrome.tutorial.moveBodyTouch': '移動スティックで移動し、画面をドラッグして周囲を見回します。数歩進んで始めましょう。',
+  'hudChrome.tutorial.talkBodyTouch': 'レッドブルック元帥に近づき、「使用」ボタンをタップして話しかけ、依頼を受けましょう。',
+  'hudChrome.tutorial.returnBodyTouch': '依頼は完了しました。レッドブルック元帥のもとへ戻り、「使用」ボタンをタップして納品しましょう。',
+  'hudChrome.tutorial.doneBodyTouch': '基本は覚えましたね、{name}。イーストブルック渓谷はあなたのもの、自由に探索しましょう。いつでも「その他」から「クエストログ」をタップしてクエストログを確認できます。よい狩りを！',
+  'hudChrome.raidLockout.title': 'レイドロックアウト',
+  'hudChrome.raidLockout.allReady': 'すべてのレイドが利用可能',
+  'hudChrome.raidLockout.daysHours': '{d}日{h}時間',
+  'hudChrome.raidLockout.hoursMinutes': '{h}時間{m}分',
+  'hudChrome.raidLockout.minutes': '{m}分',
+  'hudChrome.raidLockout.lessThanMinute': '1分未満',
+  'hudChrome.raidLockout.lockedToast': '{raid}にロックされています。解除まで{time}。',
   'hudChrome.theme.preset': 'UIテーマ',
   'hudChrome.theme.customColors': 'カスタムカラー',
   'hudChrome.theme.reset': 'リセット',
@@ -632,12 +643,12 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'realm.low': '低',
   'realm.popTipLow':
     '低人口：現在オンラインのプレイヤーは15人未満。余裕があり、新規スタートに最適です。',
-  'realm.popTipMedium': '中人口：現在オンラインのプレイヤーは15〜39人。健全で活発なサーバーです。',
+  'realm.popTipMedium': '中人口：現在オンラインのプレイヤーは15〜39人。健全で活発なレルムです。',
   'realm.popTipHigh':
     '高人口：現在オンラインのプレイヤーは40〜79人。混雑しており、多くのプレイヤーがいます。',
   'realm.popTipFull':
     '満員：現在オンラインのプレイヤーは80人以上。非常に混雑しており、ログイン待ちが発生する場合があります。',
-  'realm.popTipOffline': 'オフライン：このサーバーは現在接続できず、参加できません。',
+  'realm.popTipOffline': 'オフライン：このレルムは現在接続できず、参加できません。',
   'realm.characterCountOne': '{count}キャラクター',
   'realm.characterCountOther': '{count}キャラクター',
   'realm.selectedRealm': 'レルム: {name}',
@@ -3259,6 +3270,11 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'entities.items.stormcallers_crown.name': '嵐呼びの冠',
   'entities.items.stormcallers_spaulders.name': '嵐呼びの肩当て',
   'hud.chat.context.convertToRaid': 'レイドに変換',
+  'hud.chat.context.convertToParty': 'パーティに変換',
+  'hudChrome.raidConvert.leaderOnly': 'パーティに変換できるのはレイドリーダーだけです。',
+  'hudChrome.raidConvert.notRaid': 'パーティはレイドではありません。',
+  'hudChrome.raidConvert.toPartyDone': 'レイドがパーティに戻りました。',
+  'hudChrome.raidConvert.tooLarge': 'メンバーが5人を超えるレイドはパーティに戻せません。',
   'hud.social.raidTab': 'レイド',
   'hud.social.raidEmpty': 'パーティをレイドに変換すると、ここでレイドグループを管理できます。',
   'hud.social.raidGroupEmpty': 'このグループにプレイヤーはいません。',

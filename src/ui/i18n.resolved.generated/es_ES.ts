@@ -231,12 +231,27 @@ export const es_ES: EnTranslations = {
       "hapticsOff": "Vibración desactivada",
       "toggleHaptics": "Alternar vibración"
     },
+    "tutorial": {
+      "moveBodyTouch": "Usa el joystick de movimiento para moverte y arrastra la pantalla para mirar alrededor. Da unos pasos para empezar.",
+      "talkBodyTouch": "Acércate al mariscal Redbrook y toca el botón Usar para hablar; luego acepta su tarea.",
+      "returnBodyTouch": "Tu tarea está hecha. Vuelve con el mariscal Redbrook y toca el botón Usar para entregarla.",
+      "doneBodyTouch": "Ya dominas lo básico, {name}. El Valle es tuyo para explorar: toca Más y luego Diario de misiones para revisar tu diario de misiones en cualquier momento. ¡Buena caza!"
+    },
     "widgets": {
       "clockTitle": "Hora local: haz clic para alternar 12/24 horas",
       "worldCoordinates": "Coordenadas del mundo",
       "coordinates": "Coordenadas",
       "heading": "Rumbo",
       "minimapZoom": "Zoom del minimapa"
+    },
+    "raidLockout": {
+      "title": "Bloqueos de banda",
+      "allReady": "Todas las bandas listas",
+      "daysHours": "{d}d {h}h",
+      "hoursMinutes": "{h}h {m}min",
+      "minutes": "{m}min",
+      "lessThanMinute": "<1min",
+      "lockedToast": "Estás bloqueado en {raid}. Se desbloquea en {time}."
     },
     "compass": {
       "N": "N",
@@ -550,6 +565,12 @@ export const es_ES: EnTranslations = {
       "searchPlaceholder": "Buscar objetos",
       "searchAria": "Buscar objetos de la bolsa por nombre",
       "noMatch": "Ningún objeto coincide con tus filtros."
+    },
+    "raidConvert": {
+      "toPartyDone": "Tu banda ha vuelto a convertirse en grupo.",
+      "notRaid": "Tu grupo no es una banda.",
+      "leaderOnly": "Solo el líder de la banda puede convertir la banda en grupo.",
+      "tooLarge": "Una banda con más de cinco miembros no puede volver a convertirse en grupo."
     }
   },
   "guide": {
@@ -2270,6 +2291,7 @@ export const es_ES: EnTranslations = {
         "report": "Reportar jugador",
         "removeParty": "Expulsar del grupo",
         "convertToRaid": "Convertir en banda",
+        "convertToParty": "Convertir en grupo",
         "cancel": "Cancelar"
       }
     },

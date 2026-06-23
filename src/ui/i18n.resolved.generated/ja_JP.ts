@@ -231,12 +231,27 @@ export const ja_JP: EnTranslations = {
       "hapticsOff": "振動オフ",
       "toggleHaptics": "振動を切り替え"
     },
+    "tutorial": {
+      "moveBodyTouch": "移動スティックで移動し、画面をドラッグして周囲を見回します。数歩進んで始めましょう。",
+      "talkBodyTouch": "レッドブルック元帥に近づき、「使用」ボタンをタップして話しかけ、依頼を受けましょう。",
+      "returnBodyTouch": "依頼は完了しました。レッドブルック元帥のもとへ戻り、「使用」ボタンをタップして納品しましょう。",
+      "doneBodyTouch": "基本は覚えましたね、{name}。イーストブルック渓谷はあなたのもの、自由に探索しましょう。いつでも「その他」から「クエストログ」をタップしてクエストログを確認できます。よい狩りを！"
+    },
     "widgets": {
       "clockTitle": "現地時刻 - クリックで12/24時間表記を切り替え",
       "worldCoordinates": "ワールド座標",
       "coordinates": "座標",
       "heading": "方角",
       "minimapZoom": "ミニマップのズーム"
+    },
+    "raidLockout": {
+      "title": "レイドロックアウト",
+      "allReady": "すべてのレイドが利用可能",
+      "daysHours": "{d}日{h}時間",
+      "hoursMinutes": "{h}時間{m}分",
+      "minutes": "{m}分",
+      "lessThanMinute": "1分未満",
+      "lockedToast": "{raid}にロックされています。解除まで{time}。"
     },
     "compass": {
       "N": "北",
@@ -550,6 +565,12 @@ export const ja_JP: EnTranslations = {
       "searchPlaceholder": "アイテムを検索",
       "searchAria": "名前でバッグのアイテムを検索",
       "noMatch": "条件に一致するアイテムはありません。"
+    },
+    "raidConvert": {
+      "toPartyDone": "レイドがパーティに戻りました。",
+      "notRaid": "パーティはレイドではありません。",
+      "leaderOnly": "パーティに変換できるのはレイドリーダーだけです。",
+      "tooLarge": "メンバーが5人を超えるレイドはパーティに戻せません。"
     }
   },
   "guide": {
@@ -1932,10 +1953,10 @@ export const ja_JP: EnTranslations = {
     "medium": "中",
     "low": "低",
     "popTipLow": "低人口：現在オンラインのプレイヤーは15人未満。余裕があり、新規スタートに最適です。",
-    "popTipMedium": "中人口：現在オンラインのプレイヤーは15〜39人。健全で活発なサーバーです。",
+    "popTipMedium": "中人口：現在オンラインのプレイヤーは15〜39人。健全で活発なレルムです。",
     "popTipHigh": "高人口：現在オンラインのプレイヤーは40〜79人。混雑しており、多くのプレイヤーがいます。",
     "popTipFull": "満員：現在オンラインのプレイヤーは80人以上。非常に混雑しており、ログイン待ちが発生する場合があります。",
-    "popTipOffline": "オフライン：このサーバーは現在接続できず、参加できません。",
+    "popTipOffline": "オフライン：このレルムは現在接続できず、参加できません。",
     "characterCountOne": "{count}キャラクター",
     "characterCountOther": "{count}キャラクター",
     "selectedRealm": "レルム: {name}",
@@ -2270,6 +2291,7 @@ export const ja_JP: EnTranslations = {
         "report": "プレイヤーを通報",
         "removeParty": "パーティから外す",
         "convertToRaid": "レイドに変換",
+        "convertToParty": "パーティに変換",
         "cancel": "キャンセル"
       }
     },

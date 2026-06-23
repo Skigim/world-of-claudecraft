@@ -7,6 +7,7 @@ import { seedChatFilterDefaults } from './chat_filter_db';
 import type { ChatLogRow } from './chat_log';
 import { isUniqueViolation } from './http_util';
 import { REALM } from './realm';
+import { chooseArchiveName } from './reclaim_name';
 import { SOCIAL_SCHEMA } from './social_db';
 
 try {
@@ -1335,6 +1336,61 @@ export async function createCharacterCapped(
     );
     await client.query('COMMIT');
     return res.rows[0];
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// Reclaim a character name abandoned by a deactivated ("invalid") account.
+// Character names are unique per (realm, lower(name)), and deactivation is a
+// soft delete (accounts.deactivated_at) that leaves the account's characters in
+// place — so an abandoned name stays reserved forever, blocking the original
+// player from recreating it on a new account. Classic MMOs free the names of
+// deactivated/deleted accounts; this releases such a name by archiving the
+// orphaned character (a suffixed placeholder name + force_rename) so its row
+// stays valid and the original owner is prompted to pick a new name if they
+// ever reactivate. A name held by a live account, or by a banned account (a
+// moderation hold we must not undo), is left reserved. Returns whether a name
+// was released; the caller then retries the create. Race-safe: the holder row
+// is locked FOR UPDATE and the (realm, lower(name)) unique index is the real
+// guard on the subsequent insert.
+export async function reclaimDeactivatedName(name: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const holder = await client.query(
+      `SELECT c.id, c.name, a.deactivated_at, a.banned_at
+         FROM characters c JOIN accounts a ON a.id = c.account_id
+        WHERE c.realm = $1 AND lower(c.name) = lower($2)
+        FOR UPDATE OF c`,
+      [REALM, name],
+    );
+    const row = holder.rows[0];
+    // Free already, held by a live account, or under a moderation ban: nothing to reclaim.
+    if (!row || row.deactivated_at == null || row.banned_at != null) {
+      await client.query('ROLLBACK');
+      return false;
+    }
+    // Find an archival placeholder for the orphaned character that collides with
+    // no other name in this realm (case-insensitive), mirroring the dedupe scheme.
+    // The scan/increment/fallback decision lives in the pure chooseArchiveName;
+    // here we just supply the SQL-backed "is this candidate already taken?" probe.
+    const freed = await chooseArchiveName(row.name, row.id, async (candidate) => {
+      const clash = await client.query(
+        `SELECT 1 FROM characters WHERE realm = $1 AND lower(name) = lower($2) AND id <> $3 LIMIT 1`,
+        [REALM, candidate, row.id],
+      );
+      return (clash.rowCount ?? 0) > 0;
+    });
+    await client.query(
+      `UPDATE characters SET name = $2, force_rename = TRUE, updated_at = now() WHERE id = $1`,
+      [row.id, freed],
+    );
+    await client.query('COMMIT');
+    return true;
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     throw err;

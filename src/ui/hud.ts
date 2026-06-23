@@ -217,6 +217,8 @@ import {
   minimapZoomValue,
   nextMinimapZoom,
 } from './minimap_zoom';
+import { lockoutParts, lockoutShape } from './raid_lockout';
+import { raidLockoutPanelHtml, type RaidLockoutI18n } from './raid_lockout_view';
 import {
   type PerfOverlayHooks,
   PerfOverlaySettingsPanel,
@@ -764,6 +766,8 @@ export class Hud {
   private minimapCtx: CanvasRenderingContext2D;
   private minimapBg: HTMLCanvasElement;
   private clockEl: HTMLElement | null = null;
+  private raidLockoutEl: HTMLElement | null = null;
+  private raidLockoutLocked = false;
   private clock24 = false; // 24-hour vs 12-hour AM/PM display
   private lastClockText = ''; // avoid redundant DOM writes each frame
   private lastCoordsText = ''; // cache so we only touch the DOM when coords change
@@ -1060,6 +1064,16 @@ export class Hud {
     // UI-only concern, so `new Date()` here is fine (the sim-only time ban
     // doesn't apply — cf. meters.ts using performance.now()).
     this.clockEl = $('#minimap-clock');
+    // raid-lockout badge on the minimap rim: a lock icon whose hover/tap panel
+    // lists the player's raid lockouts (the unlock countdown). Always visible;
+    // it lights up (.locked) while any raid is on cooldown. attachTooltip already
+    // handles desktop hover, mobile tap, and keyboard focus uniformly.
+    this.raidLockoutEl = document.getElementById('raid-lockout');
+    if (this.raidLockoutEl) {
+      this.raidLockoutEl.innerHTML = svgIcon('lock');
+      this.raidLockoutEl.hidden = false;
+      this.attachTooltip(this.raidLockoutEl, () => this.raidLockoutPanelView());
+    }
     this.clock24 = (() => {
       try {
         return localStorage.getItem('clock24h') === '1';
@@ -3388,6 +3402,7 @@ export class Hud {
     this.tutorial.update(sim, this.renderer, this.keybinds);
     this.reconcileLootRolls();
     this.updateLootRollTimers(now);
+    if (slowHud) this.updateRaidLockoutBadge();
     this.syncActiveHotbarForm();
     this.syncSlotMap(); // picks up newly learned abilities mid-session
 
@@ -3871,6 +3886,41 @@ export class Hud {
       label.style.display = 'block';
     } else {
       label.style.display = 'none';
+    }
+  }
+
+  // Light the minimap raid-lockout badge while any raid is on cooldown (state
+  // only flips on lock/unlock, so this runs on the slow HUD tick).
+  private updateRaidLockoutBadge(): void {
+    if (!this.raidLockoutEl) return;
+    const locked = this.sim.raidLockouts().length > 0;
+    if (locked === this.raidLockoutLocked) return;
+    this.raidLockoutLocked = locked;
+    this.raidLockoutEl.classList.toggle('locked', locked);
+  }
+
+  // Tooltip/panel HTML for the raid-lockout badge: localized title + a row per
+  // still-locked raid (name + unlock countdown), or an "all ready" line.
+  private raidLockoutPanelView(): string {
+    const i18n: RaidLockoutI18n = {
+      title: t('hudChrome.raidLockout.title'),
+      allReady: t('hudChrome.raidLockout.allReady'),
+      raidName: (id) => dungeonDisplayName(id),
+      duration: (ms) => this.formatLockoutDuration(ms),
+    };
+    return raidLockoutPanelHtml(this.sim.raidLockouts(), i18n);
+  }
+
+  // Localized "Xd Yh" / "Xh Ym" / "Xm" / "<1m" for a remaining-ms span; the
+  // digits run through formatNumber and the units reorder via the t() template.
+  private formatLockoutDuration(ms: number): string {
+    const { days, hours, minutes } = lockoutParts(ms);
+    const n = (v: number) => formatNumber(v, { maximumFractionDigits: 0, useGrouping: false });
+    switch (lockoutShape(ms)) {
+      case 'daysHours': return t('hudChrome.raidLockout.daysHours', { d: n(days), h: n(hours) });
+      case 'hoursMinutes': return t('hudChrome.raidLockout.hoursMinutes', { h: n(hours), m: n(minutes) });
+      case 'minutes': return t('hudChrome.raidLockout.minutes', { m: n(minutes) });
+      default: return t('hudChrome.raidLockout.lessThanMinute');
     }
   }
 
@@ -5788,6 +5838,18 @@ export class Hud {
   }
 
   private localizeErrorText(text: string): string {
+    // Raid entry while locked: enrich the toast with the live unlock countdown
+    // from the mirrored lockout state. Falls through to the base sim_i18n message
+    // (still recognized there) if the lockout already cleared client-side.
+    if (text === 'You are locked to Nythraxis Raid Arena.') {
+      const lock = this.sim.raidLockouts().find((l) => l.id === 'nythraxis_boss_arena');
+      if (lock) {
+        return t('hudChrome.raidLockout.lockedToast', {
+          raid: dungeonDisplayName('nythraxis_boss_arena'),
+          time: this.formatLockoutDuration(lock.msRemaining),
+        });
+      }
+    }
     const exact: Record<string, TranslationKey> = {
       'You are stunned!': 'hud.errors.stunned',
       'You are silenced!': 'hud.errors.silenced',
@@ -6754,7 +6816,11 @@ export class Hud {
     for (const id of decision.toShow) {
       const p = promptById.get(id);
       if (!p) continue;
-      this.activeLootRolls.set(id, { event: { type: 'lootRoll', ...p }, receivedAt: performance.now(), durationMs: 30_000 });
+      this.activeLootRolls.set(id, {
+        event: { type: 'lootRoll', ...p },
+        receivedAt: performance.now(),
+        durationMs: 30_000,
+      });
       changed = true;
     }
     if (changed) this.renderLootRolls();
@@ -10316,9 +10382,13 @@ export class Hud {
     const party = this.sim.partyInfo;
     const canConvert =
       !!party && party.leader === this.sim.playerId && !party.raid && party.members.length >= 5;
+    const canUnconvert =
+      !!party && party.leader === this.sim.playerId && party.raid && party.members.length <= 5;
     let html = `<div class="ctx-title ctx-title-player">${portraitChipHtml({ cls: this.sim.cfg.playerClass, skin: this.sim.player.skin ?? 0, name: this.sim.player.name, variant: 'sm' })}<span class="ctx-title-name">${esc(this.sim.player.name)}</span></div>`;
     if (canConvert)
       html += `<div class="ctx-item" data-act="convert-raid">${esc(t('hud.chat.context.convertToRaid'))}</div>`;
+    if (canUnconvert)
+      html += `<div class="ctx-item" data-act="convert-party">${esc(t('hud.chat.context.convertToParty'))}</div>`;
     html += `<div class="ctx-item" data-act="close">${esc(t('hud.chat.context.cancel'))}</div>`;
     el.innerHTML = html;
     hydratePortraits(el);
@@ -10328,6 +10398,10 @@ export class Hud {
     this.bindContextMenuActions((act) => {
       if (act === 'convert-raid') {
         this.sim.convertPartyToRaid();
+        this.socialTab = 'raid';
+        if ($('#social-window').classList.contains('open')) this.renderSocial();
+      } else if (act === 'convert-party') {
+        this.sim.convertRaidToParty();
         this.socialTab = 'raid';
         if ($('#social-window').classList.contains('open')) this.renderSocial();
       }
@@ -10930,7 +11004,13 @@ export class Hud {
           .join('') || `<div class="soc-empty">${esc(t('hud.social.raidGroupEmpty'))}</div>`;
       return `<div class="raid-group"><div class="soc-guild-head">${esc(t('hud.social.raidGroupTitle', { position: formatNumber(group, { maximumFractionDigits: 0 }), count: formatNumber(groups[group].length, { maximumFractionDigits: 0 }) }))}</div>${rows}</div>`;
     };
-    return `<div class="raid-groups">${groupHtml(1)}${groupHtml(2)}</div>`;
+    // Raid groups cannot enter standard instances; let the leader fold a small raid
+    // (<= one party's worth) back into a normal party. Larger raids must shed members first.
+    const canUnconvert = leader && party.members.length <= 5;
+    const footer = canUnconvert
+      ? `<div class="soc-empty soc-empty-action"><button type="button" class="soc-x" data-act="convert-party">${esc(t('hud.chat.context.convertToParty'))}</button></div>`
+      : '';
+    return `<div class="raid-groups">${groupHtml(1)}${groupHtml(2)}</div>${footer}`;
   }
 
   // The add/action row changes with the tab (and guild membership). Inputs
@@ -11083,6 +11163,10 @@ export class Hud {
             this.sim.moveRaidMember(pid, group);
         } else if (act === 'convert-raid') {
           this.sim.convertPartyToRaid();
+          this.socialTab = 'raid';
+          this.renderSocial();
+        } else if (act === 'convert-party') {
+          this.sim.convertRaidToParty();
           this.socialTab = 'raid';
           this.renderSocial();
         }

@@ -14,6 +14,17 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const pt_BR: Partial<Record<TranslationKey, string>> = {
+  'hudChrome.tutorial.moveBodyTouch': 'Use o analógico de movimento para se mover e arraste a tela para olhar ao redor. Dê alguns passos para começar.',
+  'hudChrome.tutorial.talkBodyTouch': 'Aproxime-se do marechal Redbrook e toque no botão Usar para falar, então aceite a tarefa dele.',
+  'hudChrome.tutorial.returnBodyTouch': 'Sua tarefa está concluída. Volte ao marechal Redbrook e toque no botão Usar para entregá-la.',
+  'hudChrome.tutorial.doneBodyTouch': 'Você já domina o básico, {name}. O Vale é seu para explorar. Toque em Mais e depois em Registro de missões para ver seu registro de missões a qualquer momento. Boa caçada!',
+  'hudChrome.raidLockout.title': 'Bloqueios de raide',
+  'hudChrome.raidLockout.allReady': 'Todas as raides prontas',
+  'hudChrome.raidLockout.daysHours': '{d}d {h}h',
+  'hudChrome.raidLockout.hoursMinutes': '{h}h {m}min',
+  'hudChrome.raidLockout.minutes': '{m}min',
+  'hudChrome.raidLockout.lessThanMinute': '<1min',
+  'hudChrome.raidLockout.lockedToast': 'Você está bloqueado em {raid}. Desbloqueia em {time}.',
   'hudChrome.options.interfaceMode': 'Modo de interface',
   'hudChrome.options.interfaceModeAuto': 'Auto',
   'hudChrome.options.interfaceModeDesktop': 'Desktop',
@@ -3271,6 +3282,12 @@ export const pt_BR: Partial<Record<TranslationKey, string>> = {
   'entities.items.stormcallers_crown.name': 'Coroa do Chamatormenta',
   'entities.items.stormcallers_spaulders.name': 'Espaldares do Chamatormenta',
   'hud.chat.context.convertToRaid': 'Converter em raide',
+  'hud.chat.context.convertToParty': 'Converter em grupo',
+  'hudChrome.raidConvert.leaderOnly': 'Só o líder da raide pode converter em um grupo.',
+  'hudChrome.raidConvert.notRaid': 'Seu grupo não é uma raide.',
+  'hudChrome.raidConvert.toPartyDone': 'Sua raide foi convertida de volta em um grupo.',
+  'hudChrome.raidConvert.tooLarge':
+    'Uma raide com mais de cinco membros não pode ser convertida de volta em um grupo.',
   'hud.social.raidTab': 'Raide',
   'hud.social.raidEmpty': 'Converta um grupo em raide para gerenciar os grupos de raide aqui.',
   'hud.social.raidGroupEmpty': 'Nenhum jogador neste grupo.',

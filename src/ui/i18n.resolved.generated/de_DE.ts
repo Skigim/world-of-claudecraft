@@ -231,12 +231,27 @@ export const de_DE: EnTranslations = {
       "hapticsOff": "Haptik aus",
       "toggleHaptics": "Haptik umschalten"
     },
+    "tutorial": {
+      "moveBodyTouch": "Nutze den Bewegungsstick zum Bewegen und zieh über den Bildschirm, um dich umzusehen. Mach ein paar Schritte, um zu beginnen.",
+      "talkBodyTouch": "Stell dich nah an Marschall Redbrook und tippe auf die Schaltfläche Benutzen, um mit ihm zu sprechen, und nimm dann seine Aufgabe an.",
+      "returnBodyTouch": "Deine Aufgabe ist erledigt. Kehre zu Marschall Redbrook zurück und tippe auf die Schaltfläche Benutzen, um sie abzugeben.",
+      "doneBodyTouch": "Du beherrschst die Grundlagen, {name}. Das Eastbrook-Tal liegt bereit, von dir erkundet zu werden. Tippe auf Mehr und dann auf Questlog, um jederzeit dein Questlog einzusehen. Gute Jagd."
+    },
     "widgets": {
       "clockTitle": "Ortszeit - klicken, um zwischen 12-/24-Stunden zu wechseln",
       "worldCoordinates": "Weltkoordinaten",
       "coordinates": "Koordinaten",
       "heading": "Blickrichtung",
       "minimapZoom": "Minikarten-Zoom"
+    },
+    "raidLockout": {
+      "title": "Schlachtzug-Sperren",
+      "allReady": "Alle Schlachtzüge bereit",
+      "daysHours": "{d}T {h}Std",
+      "hoursMinutes": "{h}Std {m}Min",
+      "minutes": "{m}Min",
+      "lessThanMinute": "<1Min",
+      "lockedToast": "Du bist für {raid} gesperrt. Freischaltung in {time}."
     },
     "compass": {
       "N": "N",
@@ -550,6 +565,12 @@ export const de_DE: EnTranslations = {
       "searchPlaceholder": "Gegenstände durchsuchen",
       "searchAria": "Taschengegenstände nach Namen durchsuchen",
       "noMatch": "Keine Gegenstände entsprechen Euren Filtern."
+    },
+    "raidConvert": {
+      "toPartyDone": "Euer Schlachtzug wurde wieder in eine Gruppe umgewandelt.",
+      "notRaid": "Eure Gruppe ist kein Schlachtzug.",
+      "leaderOnly": "Nur der Schlachtzugsleiter darf in eine Gruppe umwandeln.",
+      "tooLarge": "Ein Schlachtzug mit mehr als fünf Mitgliedern kann nicht wieder in eine Gruppe umgewandelt werden."
     }
   },
   "guide": {
@@ -2270,6 +2291,7 @@ export const de_DE: EnTranslations = {
         "report": "Spieler melden",
         "removeParty": "Aus Gruppe entfernen",
         "convertToRaid": "In Schlachtzug umwandeln",
+        "convertToParty": "In Gruppe umwandeln",
         "cancel": "Abbrechen"
       }
     },

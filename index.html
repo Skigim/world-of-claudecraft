@@ -1066,6 +1066,28 @@
   #minimap-zoom-label { min-width: 24px; font-size: 11px; color: var(--gold); font-family: var(--title-font);
     text-shadow: 1px 1px 2px #000; letter-spacing: 0.3px; }
 
+  /* wraps the round minimap canvas so the raid-lockout badge can anchor to the
+     canvas box (not the taller wrap that also holds coords/compass/zoom). */
+  #minimap-disc { position: relative; display: inline-block; line-height: 0; }
+  /* raid-lockout badge: a small satellite button hugging the bottom-left rim of
+     the round minimap (classic-WoW tracking-button placement). Dim when every
+     raid is ready, gold + glow while a lockout is active. Hover/tap shows the panel. */
+  #raid-lockout { position: absolute; left: 10px; bottom: 10px; z-index: 3;
+    width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+    padding: 0; cursor: pointer; border-radius: 50%;
+    background: radial-gradient(circle at 50% 30%, #2c2c3a, #15151f); border: 1px solid #4a3d1d;
+    box-shadow: 0 1px 3px #000a; color: #8c8472; transition: color 0.2s, border-color 0.2s, box-shadow 0.2s; }
+  #raid-lockout svg { width: 15px; height: 15px; display: block; }
+  #raid-lockout:hover, #raid-lockout:focus-visible { color: #d8c89a; border-color: #c9a86a; outline: none; }
+  #raid-lockout:focus-visible { box-shadow: 0 0 0 2px var(--gold); }
+  #raid-lockout.locked { color: var(--gold); border-color: #c9a86a; box-shadow: 0 0 8px #c9a86a66, 0 1px 3px #000a; }
+  /* the lockout panel rows inside the shared tooltip box */
+  .rl-panel-title { margin-bottom: 4px; }
+  .rl-row { display: flex; justify-content: space-between; gap: 14px; font-size: 12px; line-height: 1.5; }
+  .rl-row .rl-name { color: #e8dcc0; }
+  .rl-row .rl-time { color: var(--gold); font-variant-numeric: tabular-nums; }
+  .rl-empty { font-size: 12px; color: #b8c8a0; }
+
   /* ---------- community HUD ---------- */
   /* Discord/GitHub: bottom-right, directly below the micro-menu, right-aligned with it. */
   /* Discord/GitHub: standalone square buttons matching the micro-menu (no panel
@@ -6209,6 +6231,11 @@
   body.mobile-touch #char-window {
     left: 10px;
     top: 10px;
+    /* Reset the base `.window` centering transform: this rule re-pins the
+       window to the left edge, and a leftover translateX(-50%) would shift it
+       half its own width off-screen (the off-screen-left clipping bug). */
+    right: auto;
+    transform: none;
     width: min(360px, calc(100vw - 20px));
     max-height: calc(100vh - 20px);
     box-sizing: border-box;
@@ -8070,7 +8097,10 @@
 
     <div id="minimap-wrap">
       <div id="zone-label" data-i18n="entities.zones.eastbrook_vale.name">Eastbrook Vale</div>
-      <canvas id="minimap" width="162" height="162"></canvas>
+      <div id="minimap-disc">
+        <canvas id="minimap" width="162" height="162"></canvas>
+        <button id="raid-lockout" type="button" hidden data-i18n-title="hudChrome.raidLockout.title" data-i18n-aria="hudChrome.raidLockout.title" title="Raid Lockouts" aria-label="Raid Lockouts"></button>
+      </div>
       <div id="minimap-clock" data-i18n-title="hudChrome.widgets.clockTitle" title="Local time — click to toggle 12/24-hour">--:--</div>
       <div id="minimap-coords" data-i18n-title="hudChrome.widgets.worldCoordinates" data-i18n-aria="hudChrome.widgets.coordinates" title="Your current world coordinates" aria-label="Coordinates">0, 0</div>
       <div id="compass" data-i18n-aria="hudChrome.widgets.heading" aria-label="Heading">

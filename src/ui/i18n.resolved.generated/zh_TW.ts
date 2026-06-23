@@ -231,12 +231,27 @@ export const zh_TW: EnTranslations = {
       "hapticsOff": "觸覺回饋已關閉",
       "toggleHaptics": "切換觸覺回饋"
     },
+    "tutorial": {
+      "moveBodyTouch": "使用搖桿移動，拖曳螢幕環顧四周。先走幾步開始吧。",
+      "talkBodyTouch": "靠近雷德布魯克元帥並點按「使用」按鈕與他交談，然後接受他的任務。",
+      "returnBodyTouch": "任務已完成。返回雷德布魯克元帥處並點按「使用」按鈕繳交任務。",
+      "doneBodyTouch": "你已掌握基礎，{name}。東溪谷任你探索。點按「更多」再選「任務日誌」即可隨時查看任務。祝你狩獵順利。"
+    },
     "widgets": {
       "clockTitle": "本地時間 - 點擊切換 12／24 小時制",
       "worldCoordinates": "世界座標",
       "coordinates": "座標",
       "heading": "方位",
       "minimapZoom": "小地圖縮放"
+    },
+    "raidLockout": {
+      "title": "團隊副本鎖定",
+      "allReady": "所有團隊副本就緒",
+      "daysHours": "{d}天{h}小時",
+      "hoursMinutes": "{h}小時{m}分",
+      "minutes": "{m}分",
+      "lessThanMinute": "<1分",
+      "lockedToast": "你已鎖定到{raid}。{time}後解鎖。"
     },
     "compass": {
       "N": "北",
@@ -550,6 +565,12 @@ export const zh_TW: EnTranslations = {
       "searchPlaceholder": "搜尋物品",
       "searchAria": "依名稱搜尋背包物品",
       "noMatch": "沒有符合篩選條件的物品。"
+    },
+    "raidConvert": {
+      "toPartyDone": "你的團隊已轉換回隊伍。",
+      "notRaid": "你的隊伍並非團隊。",
+      "leaderOnly": "只有團隊領袖可以轉換為隊伍。",
+      "tooLarge": "超過五名成員的團隊無法轉換回隊伍。"
     }
   },
   "guide": {
@@ -2270,6 +2291,7 @@ export const zh_TW: EnTranslations = {
         "report": "檢舉玩家",
         "removeParty": "移出隊伍",
         "convertToRaid": "轉換為團隊",
+        "convertToParty": "轉換為隊伍",
         "cancel": "取消"
       }
     },

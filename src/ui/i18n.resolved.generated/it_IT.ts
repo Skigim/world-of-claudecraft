@@ -231,12 +231,27 @@ export const it_IT: EnTranslations = {
       "hapticsOff": "Vibrazione disattivata",
       "toggleHaptics": "Attiva/disattiva vibrazione"
     },
+    "tutorial": {
+      "moveBodyTouch": "Usa il joystick di movimento per muoverti e trascina lo schermo per guardarti intorno. Fai qualche passo per iniziare.",
+      "talkBodyTouch": "Avvicinati al maresciallo Redbrook e tocca il pulsante Usa per parlargli, poi accetta il suo incarico.",
+      "returnBodyTouch": "Il tuo incarico è compiuto. Torna dal maresciallo Redbrook e tocca il pulsante Usa per consegnarlo.",
+      "doneBodyTouch": "Hai imparato le basi, {name}. La Valle è tutta da esplorare: tocca Altro, poi Registro missioni, per rivedere il tuo registro missioni in qualsiasi momento. Buona caccia!"
+    },
     "widgets": {
       "clockTitle": "Ora locale - clicca per alternare 12/24 ore",
       "worldCoordinates": "Coordinate del mondo",
       "coordinates": "Coordinate",
       "heading": "Direzione",
       "minimapZoom": "Zoom minimappa"
+    },
+    "raidLockout": {
+      "title": "Blocchi incursione",
+      "allReady": "Tutte le incursioni pronte",
+      "daysHours": "{d}g {h}h",
+      "hoursMinutes": "{h}h {m}m",
+      "minutes": "{m}m",
+      "lessThanMinute": "<1m",
+      "lockedToast": "Sei bloccato in {raid}. Si sblocca tra {time}."
     },
     "compass": {
       "N": "N",
@@ -550,6 +565,12 @@ export const it_IT: EnTranslations = {
       "searchPlaceholder": "Cerca oggetti",
       "searchAria": "Cerca gli oggetti della borsa per nome",
       "noMatch": "Nessun oggetto corrisponde ai tuoi filtri."
+    },
+    "raidConvert": {
+      "toPartyDone": "La tua incursione è tornata a essere un gruppo.",
+      "notRaid": "Il tuo gruppo non è un'incursione.",
+      "leaderOnly": "Solo il capo incursione può convertire in un gruppo.",
+      "tooLarge": "Un'incursione con più di cinque membri non può tornare a essere un gruppo."
     }
   },
   "guide": {
@@ -2270,6 +2291,7 @@ export const it_IT: EnTranslations = {
         "report": "Segnala giocatore",
         "removeParty": "Rimuovi dal gruppo",
         "convertToRaid": "Converti in incursione",
+        "convertToParty": "Converti in gruppo",
         "cancel": "Annulla"
       }
     },

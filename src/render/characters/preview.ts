@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { CharacterVisual } from './visual';
 import { PlayerClass } from '../../sim/types';
+import { trackWebGLContext } from '../context_release';
 
 const PREVIEW_ANIM_STATE = {
   speed: 0,
@@ -44,6 +45,8 @@ export class CharacterPreview {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight, false);
     this.renderer.shadowMap.enabled = false; // Preview doesn't need heavy shadows
+    // Hand this context back on page teardown (see context_release.ts).
+    trackWebGLContext(this.renderer);
 
     // 2. Initialize Scene
     this.scene = new THREE.Scene();
