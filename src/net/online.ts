@@ -12,8 +12,9 @@ import {
   type TalentAllocation,
   talentPointsAtLevel,
 } from '../sim/content/talents';
-import { abilitiesKnownAt, NPCS } from '../sim/data';
+import { abilitiesKnownAt, NPCS, resolveDelveShopOffers } from '../sim/data';
 import { LEADERBOARD_PAGE_SIZE } from '../sim/leaderboard_page';
+import type { Ante, PickAction } from '../sim/lockpick';
 import { normalizeMoveFacing, sanitizeMoveInput } from '../sim/move_input';
 import { computeQuestState, type ResolvedAbility } from '../sim/sim';
 import {
@@ -33,12 +34,17 @@ import {
   type AccountCosmetics,
   type ArenaInfo,
   type CharacterSearchResult,
+  type DelveCompanionInfo,
+  type DelveDailyInfo,
+  type DelveRunInfo,
+  type DelveShopOfferView,
   type DuelInfo,
   type FriendInfo,
   type IWorld,
   isOverheadEmoteId,
   type LeaderboardEntry,
   type LeaderboardPage,
+  type LockpickView,
   type MarketInfo,
   type OverheadEmoteId,
   type PartyInfo,
@@ -738,6 +744,17 @@ export class ClientWorld implements IWorld {
   socialInfo: SocialInfo | null = null;
   arenaInfo: ArenaInfo | null = null;
   marketInfo: MarketInfo | null = null;
+  delveRun: DelveRunInfo | null = null;
+  companionState: DelveCompanionInfo | null = null;
+  // Lockpicking: rebuilt from the lockpick* events (there is no snapshot field).
+  // Holds only the fog-windowed cells the server discloses.
+  lockpickState: LockpickView | null = null;
+  delveMarks = 0;
+  companionUpgrades: Record<string, number> = {};
+  // Per-delve clears (key `${delveId}:${tierId}`), mirrored from the self-wire so
+  // delveShopOffers can resolve the shop lock badge client-side.
+  delveClears: Record<string, number> = {};
+  delveDaily: DelveDailyInfo = { date: '', firstClearXp: [], markClears: 0 };
   markers: Record<number, number> = {}; // entityId -> markerId, mirrored from the self-wire
   private lootRollPrompts: LootRollPrompt[] = []; // open need-greed rolls, mirrored from the self-wire
   realm = '';
@@ -942,7 +959,10 @@ export class ClientWorld implements IWorld {
       return;
     }
     if (msg.t === 'events') {
-      for (const ev of msg.list) this.eventQueue.push(ev as SimEvent);
+      for (const ev of msg.list) {
+        this.applyLockpickEvent(ev as SimEvent);
+        this.eventQueue.push(ev as SimEvent);
+      }
       return;
     }
     if (msg.t === 'social') {
@@ -1246,6 +1266,12 @@ export class ClientWorld implements IWorld {
       if (s.arena !== undefined) this.arenaInfo = s.arena;
       if (s.market !== undefined) this.marketInfo = s.market;
       if (s.lroll !== undefined) this.lootRollPrompts = s.lroll ?? [];
+      if (s.drun !== undefined) this.delveRun = s.drun;
+      if (s.dcompanion !== undefined) this.companionState = s.dcompanion;
+      if (s.dmarks !== undefined) this.delveMarks = s.dmarks ?? 0;
+      if (s.dcomp !== undefined) this.companionUpgrades = s.dcomp ?? {};
+      if (s.dclears !== undefined) this.delveClears = s.dclears ?? {};
+      if (s.delveDaily !== undefined) this.delveDaily = s.delveDaily;
       // camera follows server-side facing changes when not mouselooking
       if (prevSelfFacing !== undefined && this.mouselookFacing === null) {
         let d = e.facing - prevSelfFacing;
@@ -1323,7 +1349,7 @@ export class ClientWorld implements IWorld {
   // self-heals on the next GCD. (Mob respawn clears attackers' targetId, so it
   // has no such window.)
   private deadTargetCast(def: ResolvedAbility['def'] | undefined): boolean {
-    if (!def || !def.requiresTarget || def.targetType === 'friendly') return false;
+    if (!def?.requiresTarget || def.targetType === 'friendly') return false;
     const tid = this.player.targetId;
     const target = tid !== null ? this.entities.get(tid) : undefined;
     return !!target && target.dead;
@@ -1665,6 +1691,71 @@ export class ClientWorld implements IWorld {
   }
   leaveDungeon(): void {
     this.cmd({ cmd: 'leave_dungeon' });
+  }
+  enterDelve(delveId: string, tierId: string): void {
+    this.cmd({ cmd: 'enter_delve', delveId, tierId });
+  }
+  leaveDelve(): void {
+    this.cmd({ cmd: 'leave_delve' });
+  }
+  delveInteract(objectId: number): void {
+    this.cmd({ cmd: 'delve_interact', objectId });
+  }
+  companionUpgrade(companionId: string): void {
+    this.cmd({ cmd: 'companion_upgrade', companionId });
+  }
+  delveBuyShopItem(delveId: string, itemId: string): void {
+    this.cmd({ cmd: 'delve_buy', delveId, itemId });
+  }
+  delveShopOffers(delveId: string): DelveShopOfferView[] {
+    return resolveDelveShopOffers(delveId, this.delveClears);
+  }
+  lockpickEngage(objectId: number, ante: Ante): void {
+    this.cmd({ cmd: 'lockpick_engage', objectId, ante });
+  }
+  lockpickAction(action: PickAction): void {
+    this.cmd({ cmd: 'lockpick_action', sid: this.lockpickState?.sessionId, action });
+  }
+  lockpickAbort(): void {
+    this.cmd({ cmd: 'lockpick_abort', sid: this.lockpickState?.sessionId });
+  }
+  collectDelveChestLoot(chestId: number): void {
+    this.cmd({ cmd: 'collect_delve_chest_loot', objectId: chestId });
+  }
+  // Mirror the authoritative lockpick lifecycle into lockpickState. The events
+  // still flow to the HUD (drainEvents) for transient feedback (juice/sounds).
+  private applyLockpickEvent(ev: SimEvent): void {
+    if (ev.type === 'lockpickSession') {
+      this.lockpickState = {
+        sessionId: ev.sessionId,
+        objectId: ev.objectId,
+        w: ev.w,
+        h: ev.h,
+        col: ev.col,
+        row: ev.row,
+        page: ev.page,
+        pageCount: ev.pageCount,
+        tries: ev.tries,
+        triesTotal: ev.triesTotal,
+        lootTier: ev.lootTier,
+        allowed: ev.allowed,
+        visible: ev.visible,
+        stepTimeoutMs: ev.stepTimeoutMs,
+      };
+    } else if (ev.type === 'lockpickStep') {
+      const s = this.lockpickState;
+      if (s && s.sessionId === ev.sessionId) {
+        s.col = ev.col;
+        s.row = ev.row;
+        s.page = ev.page;
+        s.pageCount = ev.pageCount;
+        s.tries = ev.tries;
+        s.triesTotal = ev.triesTotal;
+        s.visible = ev.visible;
+      }
+    } else if (ev.type === 'lockpickEnd') {
+      if (this.lockpickState?.sessionId === ev.sessionId) this.lockpickState = null;
+    }
   }
   // Raid lockouts mirrored from snapshot self as {dungeonId: expiryEpochMs}; the
   // remaining time is derived locally so the countdown ticks down without traffic.

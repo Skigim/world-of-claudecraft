@@ -5,12 +5,20 @@ import {
   ARENA_SLOT_COUNT,
   arenaOrigin,
   CLASSES,
+  DELVE_MODULE_Z_START,
   DUNGEON_LIST,
   DUNGEON_X_THRESHOLD,
+  defaultDelveModules,
+  delveAt,
+  delveModuleStackEndRelZ,
+  delveModuleZOffset,
+  delveOrigin,
+  delveSlotAt,
   dungeonAt,
   INSTANCE_SLOT_COUNT,
   instanceOrigin,
   isArenaPos,
+  isDelvePos,
   MOBS,
   NPCS,
   QUESTS,
@@ -18,8 +26,15 @@ import {
   WORLD_MIN_Z,
   ZONES,
 } from '../sim/data';
+import type { DelveModuleId } from '../sim/delve_layout';
 import type { BiomeId } from '../sim/types';
-import { ALL_CLASSES, type Entity, isQuestTurnInNpc, type SimEvent } from '../sim/types';
+import {
+  ALL_CLASSES,
+  type Entity,
+  INTERACT_RANGE,
+  isQuestTurnInNpc,
+  type SimEvent,
+} from '../sim/types';
 import { groundHeight, WATER_LEVEL, zoneBiomeAt } from '../sim/world';
 import { tEntity } from '../ui/entity_i18n';
 import {
@@ -42,6 +57,8 @@ import { skinCount, visualKeyFor } from './characters/manifest';
 import { CLICK_MARKER_LIFETIME, clickMarkerAnim, clickMarkerColor } from './click_marker';
 import { trackWebGLContext } from './context_release';
 import { buildCritters, type CritterField } from './critters';
+import { buildDelveModule } from './delve_interiors';
+import { buildDelveInteractable } from './delve_props';
 import { DungeonInteriors, ensureDungeonAssets } from './dungeon';
 import { releaseSelfFacing, stepSelfFacing } from './facing_smooth';
 import { buildFish, type FishView } from './fish';
@@ -54,10 +71,10 @@ import {
   SUN_ANCHOR,
   SUN_DIR,
   sharedUniforms,
-  surfaceMat,
   urlForcedTier,
 } from './gfx';
 import { buildImpactSite, type ImpactSiteView } from './impact_site';
+import { ensureDelveInteriorKit } from './interior_kit';
 import { type LocoTrack, newLocoTrack, updateLocomotion } from './locomotion';
 import { buildMotes, type MotesView } from './motes';
 import { COMBO_PIP_MAX, comboPipsFor } from './nameplate_combo';
@@ -77,7 +94,7 @@ import { buildClouds, buildSky, type SkyView } from './sky';
 import { shouldRenderStealthGhost } from './stealth';
 import { buildFlaredConeFan, buildRingXZ, drapeConeWorld } from './target_cone_debug';
 import { buildTerrain, type TerrainView } from './terrain';
-import { plankTexture, sparkleTexture } from './textures';
+import { sparkleTexture } from './textures';
 import { targetIntensity } from './travel_speed_fx';
 import { TravelSpeedFxPainter } from './travel_speed_fx_painter';
 import { Vfx } from './vfx';
@@ -645,6 +662,15 @@ function dungeonDisplayName(dungeonId: string): string {
 }
 
 function objectDisplayName(entity: Entity): string {
+  if (entity.templateId === 'delve_locked_chest') {
+    return t('worldContent.delveLockedChestInteract');
+  }
+  if (entity.templateId === 'delve_reward_chest') {
+    return t('worldContent.delveRewardChestInteract');
+  }
+  if (entity.templateId === 'delve_surface_exit') {
+    return t('worldContent.delveSurfaceExitInteract');
+  }
   if (
     (entity.templateId === 'dungeon_door' || entity.templateId === 'dungeon_exit') &&
     entity.dungeonId
@@ -718,8 +744,8 @@ export class Renderer {
   private frameMsEma = 16.7;
   private adaptiveGrace = 2.0;
   private adaptiveCooldown = 0;
-  private viewCreateBackoff = 0;
   private stableFrameTime = 0;
+  private viewCreateBackoff = 0;
   private renderBudgetGovernor!: RenderBudgetGovernor;
   private baseExposure = 1.12; // tone-mapping exposure at brightness 1.0
   private tmpV = new THREE.Vector3();
@@ -930,7 +956,7 @@ export class Renderer {
       }
       if (this.envRTs.size > 0) {
         this.envOutdoorIntensity = ENV_INTENSITY * IBL_RAW_SCALE;
-        this.scene.environment = this.envRTs.get('vale')!.texture;
+        this.scene.environment = this.envRTs.get('vale')?.texture ?? null;
         this.scene.environmentRotation.y = this.skyView.envRotationY('vale');
       } else {
         // fallback: prefilter the dome itself (gain/clamp already applied)
@@ -1088,7 +1114,9 @@ export class Renderer {
     this.scene.add(this.birds.group);
     this.impactSite = buildImpactSite(this.sim.cfg.seed);
     this.scene.add(this.impactSite.group);
-    const props = buildProps(this.sim.cfg.seed);
+    const props = buildProps(this.sim.cfg.seed, (delveId) =>
+      tEntity({ kind: 'delve', id: delveId, field: 'name' }),
+    );
     setRenderCategory(props.group, 'props');
     this.scene.add(props.group);
     this.flames = props.flames;
@@ -2571,6 +2599,9 @@ export class Renderer {
       case 'levelup':
         this.vfx.levelUpPillar(this.sim.playerId);
         break;
+      case 'delveEntered':
+        this.prebuildDelveInteriors(ev.delveId);
+        break;
       case 'fiestaPowerup':
         // Big celebratory pop on grab, plus a lingering coloured glow.
         this.vfx.levelUpPillar(ev.entityId);
@@ -2870,6 +2901,34 @@ export class Renderer {
       portal = built.portal;
       height = 4.6;
       objectMesh = body!;
+    } else if (e.kind === 'object' && e.templateId?.startsWith('delve_')) {
+      // Delve interactables: skip the object pool (each is unique/stateful) and
+      // build a dedicated procedural mesh that matches the crypt aesthetic.
+      objectPoolKey = null;
+      const built = buildDelveInteractable(e.templateId, e.id);
+      body = built.group;
+      height = built.height;
+      objectMesh = body!;
+      // Pressure plates are flush to the floor, no sparkle clutter overhead.
+      if (
+        e.templateId !== 'delve_pressure_plate' &&
+        e.templateId !== 'delve_pressure_plate_triggered' &&
+        e.templateId !== 'delve_locked_door' &&
+        e.templateId !== 'delve_destructible_wall'
+      ) {
+        if (!this.sparkleMat) {
+          this.sparkleMat = new THREE.SpriteMaterial({
+            map: sparkleTexture(),
+            transparent: true,
+            depthWrite: false,
+          });
+          if (!this.lowGfx) this.sparkleMat.color.setScalar(SPARKLE_BOOST);
+        }
+        sparkle = new THREE.Sprite(this.sparkleMat);
+        sparkle.scale.set(0.9, 0.9, 1);
+        sparkle.position.y = 1.35;
+        group.add(sparkle);
+      }
     } else if (e.kind === 'object') {
       objectPoolKey = this.objectPoolKeyFor(e);
       const pooled = objectPoolKey ? this.takePooledObject(objectPoolKey) : null;
@@ -2924,7 +2983,7 @@ export class Renderer {
       clickTarget = visual.clickProxy;
     } else {
       group.add(body!);
-      body!.traverse((o) => {
+      body?.traverse((o) => {
         o.userData.entityId = e.id;
       });
       clickTarget = body!;
@@ -3129,7 +3188,11 @@ export class Renderer {
   // ---------------------------------------------------------------------
 
   private builtInteriors = new Set<string>();
-  private fogState: 'outdoor' | 'dungeon' | 'temple' | 'nythraxis' | 'underwater' = 'outdoor';
+  // Delve module interiors build asynchronously; track in-flight keys so a
+  // per-frame ensureDelveInteriorsNear does not re-schedule a build mid-load.
+  private pendingInteriors = new Set<string>();
+  private fogState: 'outdoor' | 'dungeon' | 'temple' | 'nythraxis' | 'delve' | 'underwater' =
+    'outdoor';
 
   private buildInterior(interior: string, ox: number, oz: number): void {
     this.dungeons ??= new DungeonInteriors(this.scene, this.lowGfx, this.flames, this.fireLights);
@@ -3152,12 +3215,77 @@ export class Renderer {
     return Renderer.BIOME_FOG[zoneBiomeAt(this.sim.player.pos.z)];
   }
 
+  private scheduleDelveModuleBuild(
+    key: string,
+    moduleId: DelveModuleId,
+    ox: number,
+    oz: number,
+  ): void {
+    if (this.builtInteriors.has(key) || this.pendingInteriors.has(key)) return;
+    this.pendingInteriors.add(key);
+    this.dungeons ??= new DungeonInteriors(this.scene, this.lowGfx, this.flames, this.fireLights);
+    void buildDelveModule(this.dungeons, moduleId, ox, oz)
+      .then(() => {
+        this.builtInteriors.add(key);
+        this.pendingInteriors.delete(key);
+      })
+      .catch((err) => {
+        this.pendingInteriors.delete(key);
+        if (import.meta.env?.DEV) {
+          console.warn('Failed to build delve interior:', moduleId, 'at', ox, oz, err);
+        }
+      });
+  }
+
+  /** Build every module in a delve run at its stacked z offset (parallel async). */
+  private buildAllDelveModules(
+    delveId: string,
+    slot: number,
+    origin: { x: number; z: number },
+    modules: readonly DelveModuleId[],
+  ): void {
+    void ensureDelveInteriorKit().catch(() => undefined);
+    for (let mi = 0; mi < modules.length; mi++) {
+      const moduleId = modules[mi];
+      const key = `delve:${delveId}:${slot}:${moduleId}`;
+      if (this.builtInteriors.has(key) || this.pendingInteriors.has(key)) continue;
+      const zOff = delveModuleZOffset(modules, mi);
+      this.scheduleDelveModuleBuild(key, moduleId, origin.x, origin.z + zOff);
+    }
+  }
+
+  /** Prebuild the full module stack when a delve run starts (offline + online). */
+  private prebuildDelveInteriors(delveId: string): void {
+    const run = this.sim.delveRun;
+    if (!run || run.delveId !== delveId || !run.modules.length) return;
+    this.buildAllDelveModules(delveId, run.slot, run.origin, run.modules as DelveModuleId[]);
+  }
+
+  private ensureDelveInteriorsNear(px: number, pz: number): void {
+    const delve = delveAt(px);
+    if (!delve) return;
+    const run = this.sim.delveRun;
+    const modules = (
+      run?.delveId === delve.id && run.modules.length ? run.modules : defaultDelveModules(delve.id)
+    ) as DelveModuleId[];
+    const slot = run?.delveId === delve.id ? run.slot : delveSlotAt(delve.index, pz, modules);
+    const origin = run?.delveId === delve.id ? run.origin : delveOrigin(delve.index, slot);
+    // Slot origins are 500u apart on z; nearest-slot heuristics mis-pick slot 1+
+    // once the player advances past module 1 (interiors build at the wrong oz).
+    if (Math.abs(px - origin.x) >= 120) return;
+    const stackEndZ = origin.z + delveModuleStackEndRelZ(modules);
+    if (pz < origin.z + DELVE_MODULE_Z_START - 30 || pz > stackEndZ) return;
+    this.buildAllDelveModules(delve.id, slot, origin, modules);
+  }
+
   private updateAmbience(px: number, camY: number, dt: number): void {
     const inside = px > DUNGEON_X_THRESHOLD;
-    if (inside && isArenaPos(px)) {
+    const pz = this.sim.player.pos.z;
+    if (isDelvePos(px)) {
+      this.ensureDelveInteriorsNear(px, pz);
+    } else if (inside && isArenaPos(px)) {
       void ensureDungeonAssets().catch(() => undefined);
       // build the Ashen Coliseum copy the player was matched into
-      const pz = this.sim.player.pos.z;
       for (let i = 0; i < ARENA_SLOT_COUNT; i++) {
         const key = `arena:${i}`;
         if (this.builtInteriors.has(key)) continue;
@@ -3184,18 +3312,21 @@ export class Renderer {
     }
     // the Drowned Temple reads as submerged: a teal murk instead of the
     // crypt's near-black, so its flooded halls feel underwater, not just dark
-    const interior = inside && !isArenaPos(px) ? dungeonAt(px)?.interior : null;
+    const inDelve = inside && isDelvePos(px);
+    const interior = inside && !inDelve && !isArenaPos(px) ? dungeonAt(px)?.interior : null;
     const inTemple = interior === 'temple';
     const inNythraxis = interior === 'nythraxis';
-    const desired = inTemple
-      ? 'temple'
-      : inNythraxis
-        ? 'nythraxis'
-        : inside
-          ? 'dungeon'
-          : camY < WATER_LEVEL - 0.05
-            ? 'underwater'
-            : 'outdoor';
+    const desired = inDelve
+      ? 'delve'
+      : inTemple
+        ? 'temple'
+        : inNythraxis
+          ? 'nythraxis'
+          : inside
+            ? 'dungeon'
+            : camY < WATER_LEVEL - 0.05
+              ? 'underwater'
+              : 'outdoor';
     const fog = this.scene.fog as THREE.Fog;
     if (desired !== this.fogState) {
       this.fogState = desired;
@@ -3213,6 +3344,13 @@ export class Renderer {
         fog.color.setHex(0x020106);
         fog.near = 20;
         fog.far = 80;
+      } else if (desired === 'delve') {
+        // the collapsed reliquary breathes a warm ember murk, dried-blood
+        // charcoal, tighter than the overworld crypt's cold near-black, so the
+        // delve reads as its own claustrophobic place under the red torches
+        fog.color.setHex(0x0e0705);
+        fog.near = 14;
+        fog.far = 74;
       } else if (desired === 'underwater') {
         fog.color.setHex(0x17506e);
         fog.near = 2;
@@ -3228,7 +3366,10 @@ export class Renderer {
       // The rim glow cranks up instead — silhouettes must split from the murk.
       if (!this.lowGfx) {
         const underground =
-          desired === 'dungeon' || desired === 'temple' || desired === 'nythraxis';
+          desired === 'dungeon' ||
+          desired === 'temple' ||
+          desired === 'nythraxis' ||
+          desired === 'delve';
         this.sun.intensity = underground ? DUNGEON_SUN_INTENSITY : SUN_INTENSITY;
         this.hemi.intensity = underground ? DUNGEON_HEMI_INTENSITY : HEMI_INTENSITY;
         this.scene.environmentIntensity = underground
@@ -3257,7 +3398,7 @@ export class Renderer {
     const dominant = blend.t < 0.5 ? blend.from : blend.to;
     if (dominant !== this.envBiome && this.envRTs.has(dominant)) {
       this.envBiome = dominant;
-      this.scene.environment = this.envRTs.get(dominant)!.texture;
+      this.scene.environment = this.envRTs.get(dominant)?.texture ?? null;
       this.scene.environmentRotation.y = this.skyView.envRotationY(dominant);
       this.scene.environmentIntensity = this.envOutdoorIntensity * 0.4;
     }
@@ -3453,7 +3594,7 @@ export class Renderer {
       const ghostWolf = !polyed && !bear && e.auras.some((a) => a.id === 'ghost_wolf');
       const cat = !polyed && !bear && (ghostWolf || e.auras.some((a) => a.kind === 'form_cat'));
       const travel = !polyed && !bear && !cat && e.auras.some((a) => a.kind === 'form_travel');
-      const stealthed = e.auras.some((a) => a.kind === 'stealth');
+      const _stealthed = e.auras.some((a) => a.kind === 'stealth');
       // distance cull: far rigs are invisible specks but cost real draw calls
       const cdx = e.pos.x - p.pos.x,
         cdz = e.pos.z - p.pos.z;
@@ -4194,8 +4335,21 @@ export class Renderer {
     } else {
       // Camera collision for non-hideable blockers. Camera-ghost props are left
       // at the requested zoom and hidden in props.ts while keeping their shadows.
-      let hardT = cameraOcclusion(seed, px, eyeY, pz, cx, cy, cz, CAMERA_COLLIDER_PAD);
-      let softT = cameraOcclusion(seed, px, eyeY, pz, cx, cy, cz, CAMERA_SOFT_COLLIDER_PAD);
+      // Thread the active run's module chain so camera collision matches the
+      // delve's actual (possibly Heroic/varied) layout, not just the default.
+      const delveMods = this.sim.delveRun?.modules;
+      let hardT = cameraOcclusion(seed, px, eyeY, pz, cx, cy, cz, CAMERA_COLLIDER_PAD, delveMods);
+      let softT = cameraOcclusion(
+        seed,
+        px,
+        eyeY,
+        pz,
+        cx,
+        cy,
+        cz,
+        CAMERA_SOFT_COLLIDER_PAD,
+        delveMods,
+      );
       const segLen = Math.hypot(cx - px, cy - eyeY, cz - pz);
       if (segLen > 1e-3) {
         const minT = CAMERA_MIN_DIST / segLen;
@@ -4270,11 +4424,17 @@ export class Renderer {
       const isSelf = id === p.id;
       const hasOverheadEmote = !!(e.kind === 'player' && e.overheadEmoteId && !e.dead);
       const isDoor = e.templateId === 'dungeon_door' || e.templateId === 'dungeon_exit';
+      const isDelveInteract =
+        e.templateId === 'delve_locked_chest' ||
+        e.templateId === 'delve_reward_chest' ||
+        e.templateId === 'delve_surface_exit';
+      const delveInteractNear =
+        isDelveInteract && d2 <= (INTERACT_RANGE + 1) * (INTERACT_RANGE + 1);
       const hidden =
         (isSelf && !hasOverheadEmote) ||
         d2 > NAMEPLATE_RANGE_SQ ||
         (e.dead && !e.lootable && e.kind === 'mob') ||
-        (e.kind === 'object' && !isDoor) ||
+        (e.kind === 'object' && !isDoor && !delveInteractNear) ||
         // the sealed royal door inside the crypt carries no floating label —
         // it reads as part of the back wall, not a portal billboard
         (isDoor && e.dungeonId === 'nythraxis_boss_arena') ||

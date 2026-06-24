@@ -224,6 +224,8 @@ export const MEDIA_ASSETS: Record<string, string> =
   "models/dungeon/crate_small.glb": "/media/models/dungeon/crate_small.bf2e0ec8c06d.glb",
   "models/dungeon/crates_stacked.glb": "/media/models/dungeon/crates_stacked.e00e9265a381.glb",
   "models/dungeon/crypt.glb": "/media/models/dungeon/crypt.07e1e25ad2b9.glb",
+  "models/dungeon/delve_entrance_2.glb": "/media/models/dungeon/delve_entrance_2.8a3cce3727b7.glb",
+  "models/dungeon/delve_entrance_2_base_color.png": "/media/models/dungeon/delve_entrance_2_base_color.b5ec29b0c03b.png",
   "models/dungeon/fence.glb": "/media/models/dungeon/fence.54905df55cd7.glb",
   "models/dungeon/fence_broken.glb": "/media/models/dungeon/fence_broken.e941db9f7376.glb",
   "models/dungeon/fence_gate.glb": "/media/models/dungeon/fence_gate.342ba2281625.glb",

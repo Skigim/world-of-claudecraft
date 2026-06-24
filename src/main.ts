@@ -1478,13 +1478,25 @@ async function startGame(
       bestObjD = INTERACT_RANGE;
     let bestNpc: number | null = null,
       bestNpcD = INTERACT_RANGE + 1;
+    // Delve interactables (warded chest, cracked grave, sealed/tombstone passage,
+    // surface stairs) are driven through delveInteract, not the generic pickup
+    // path, the sim owns their per-object proximity + state gating and the
+    // lockpick offer. Selected a touch wider than INTERACT_RANGE so the sim can
+    // emit its precise "move closer to the chest/passage" hint.
+    let bestDelve: number | null = null,
+      bestDelveD = INTERACT_RANGE + 1;
     for (const e of world.entities.values()) {
       const d = dist2d(p.pos, e.pos);
       if (e.kind === 'mob' && e.lootable && d < bestCorpseD) {
         bestCorpse = e.id;
         bestCorpseD = d;
       }
-      if (e.kind === 'object' && e.lootable && d < bestObjD) {
+      if (e.kind === 'object' && e.templateId?.startsWith('delve_')) {
+        if (d < bestDelveD) {
+          bestDelve = e.id;
+          bestDelveD = d;
+        }
+      } else if (e.kind === 'object' && e.lootable && d < bestObjD) {
         bestObj = e.id;
         bestObjD = d;
       }
@@ -1495,6 +1507,10 @@ async function startGame(
     }
     if (bestCorpse !== null) {
       world.lootCorpse(bestCorpse);
+      return;
+    }
+    if (bestDelve !== null) {
+      world.delveInteract(bestDelve);
       return;
     }
     if (bestObj !== null) {
@@ -1511,7 +1527,9 @@ async function startGame(
       return;
     }
     if (bestNpc !== null) {
-      hud.openQuestDialog(bestNpc);
+      const npc = world.entities.get(bestNpc);
+      if (npc?.kind === 'npc' && npc.templateId === 'brother_halven') hud.openDelveBoard(bestNpc);
+      else hud.openQuestDialog(bestNpc);
       return;
     }
     hud.showError(t('errors.nothingInteract'));
@@ -2010,6 +2028,9 @@ async function startGame(
 
     if (offlineSim) {
       acc += frameDt;
+      // Supply the UTC day for the delve daily reset (the sim never reads the wall
+      // clock itself, to stay deterministic).
+      offlineSim.utcDay = new Date().toISOString().slice(0, 10);
       while (acc >= DT) {
         const { mi, facing } = resolveMove(
           mouselook,
@@ -2195,6 +2216,13 @@ async function startGame(
           controller,
           perf,
           gamepad,
+          /** Opens the board and drains queued sim events. Do not call sim.lockpickEngage directly offline. */
+          lockpickEngage: (objectId: number, ante: number) =>
+            hud.submitLockpickEngage(objectId, ante as 1 | 2 | 3),
+          /** Syncs HUD col/row from sim before acting; always drains step events. Use instead of sim.lockpickAction. */
+          lockpickAction: (action: string) =>
+            hud.submitLockpickAction(action as import('./sim/lockpick').PickAction),
+          flushLockpickEvents: () => hud.flushLockpickEvents(),
         };
       }, LOADING_FADE_MS);
     }),
@@ -2221,7 +2249,12 @@ function sanitizeOfflineName(raw: string): string {
 async function startOffline(playerClass: PlayerClass, name: string, skin = 0): Promise<void> {
   if (!(await prepareWorldEntry())) return;
   enterLoadingState(t('loading.world'));
-  const sim = new Sim({ seed: WORLD_SEED, playerClass, playerName: name });
+  const sim = new Sim({
+    seed: WORLD_SEED,
+    playerClass,
+    playerName: name,
+    devCommands: import.meta.env.DEV,
+  });
   sim.setPlayerSkin(sim.playerId, skin);
   // Offline characters are not persisted (a fresh name is typed each session),
   // so the only stable handle is class + name. Keybinds scope to that pair.
@@ -3158,7 +3191,7 @@ function selectRealm(entry: import('./net/online').RealmEntry): void {
 }
 
 // --- Inline realm switcher (dropdown on the character-select screen) ----------
-const REALM_TYPE_KEYS = {
+const _REALM_TYPE_KEYS = {
   Normal: 'realmTypes.normal',
   PvP: 'realmTypes.pvp',
   RP: 'realmTypes.rp',
@@ -3381,14 +3414,14 @@ async function refreshCharacters(): Promise<void> {
               : `<span class="char-actions"><button class="btn btn-danger delete-char-btn">${escapeHtml(t('character.delete'))}</button><button class="btn enter-world-btn">${escapeHtml(t('auth.enterWorld'))}</button></span>`
         }`;
 
-      row.querySelector('.delete-char-btn')!.addEventListener('click', (e) => {
+      row.querySelector('.delete-char-btn')?.addEventListener('click', (e) => {
         e.stopPropagation();
         openDeleteCharacterDialog(c);
       });
 
       if (c.forceRename) {
         const input = row.querySelector('.rename-input') as HTMLInputElement;
-        row.querySelector('.rename-btn')!.addEventListener('click', async (e) => {
+        row.querySelector('.rename-btn')?.addEventListener('click', async (e) => {
           e.stopPropagation();
           $('#charselect-error').textContent = '';
           try {
@@ -3399,7 +3432,7 @@ async function refreshCharacters(): Promise<void> {
           }
         });
       } else if (c.online) {
-        row.querySelector('.take-over-btn')!.addEventListener('click', async (e) => {
+        row.querySelector('.take-over-btn')?.addEventListener('click', async (e) => {
           e.stopPropagation();
           const btn = e.currentTarget as HTMLButtonElement;
           // Taking over disconnects the other live session with no undo, so guard a
@@ -3424,7 +3457,7 @@ async function refreshCharacters(): Promise<void> {
           }
         });
       } else {
-        row.querySelector('.enter-world-btn')!.addEventListener('click', (e) => {
+        row.querySelector('.enter-world-btn')?.addEventListener('click', (e) => {
           e.stopPropagation();
           void enterWorld(c, e.currentTarget as HTMLButtonElement);
         });
@@ -5113,7 +5146,7 @@ function wireStartScreens(): void {
   const bootLang = getLanguage();
   const startScreen = document.getElementById('start-screen');
   const gated = !!startScreen && !isLocaleResident(bootLang);
-  if (gated) startScreen!.style.visibility = 'hidden';
+  if (gated && startScreen) startScreen.style.visibility = 'hidden';
   const revealLocalized = () => {
     // Restore visibility even if translatePage() throws (e.g. a dev-build untracked-key
     // throw or any mid-translate DOM error), so a translation failure can never strand the
@@ -5121,7 +5154,7 @@ function wireStartScreens(): void {
     try {
       translatePage();
     } finally {
-      if (gated) startScreen!.style.visibility = '';
+      if (gated && startScreen) startScreen.style.visibility = '';
     }
   };
   void ensureLocaleLoaded(bootLang).then(revealLocalized, revealLocalized);

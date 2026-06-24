@@ -2,7 +2,7 @@ import type { WebSocket } from 'ws';
 import { createBotDetector } from '#bot-detector';
 import { verifyChallenge } from '../src/sim/client_challenge';
 import { MECH_CHROMAS, mechChromaItemId, mechChromaSkinIndex } from '../src/sim/content/skins';
-import { DUNGEONS, zoneAt } from '../src/sim/data';
+import { DELVES, DUNGEONS, zoneAt } from '../src/sim/data';
 import { parseMoveInputFrame } from '../src/sim/move_input';
 import type { PlayerMeta } from '../src/sim/sim';
 import { MAX_CHAT_MESSAGE_LEN, Sim } from '../src/sim/sim';
@@ -72,6 +72,9 @@ const WIRE_CACHE_SWEEP_TICKS = 1200;
 const EVENT_RADIUS = 90;
 const AUTOSAVE_SECONDS = 30;
 const SAVE_CONCURRENCY = 4;
+// Valid lockpicking action enums accepted from the client (anti-cheat: reject
+// anything else before it reaches the Sim).
+const LOCKPICK_ACTIONS = new Set(['hardSet', 'set', 'steady', 'ease', 'drop', 'abort']);
 const LEAVE_SAVE_MAX_ATTEMPTS = 5;
 const LEAVE_SAVE_RETRY_BASE_MS = 250;
 const LEAVE_SAVE_RETRY_MAX_MS = 4000;
@@ -568,6 +571,9 @@ export class GameServer {
       last = now;
       if (dt > 0.5) dt = 0.5;
       acc += dt;
+      // Feed the authoritative UTC day to the sim so the delve daily reset (FR-5.1)
+      // works without the sim reading the wall clock itself (determinism invariant).
+      this.sim.utcDay = new Date().toISOString().slice(0, 10);
       while (acc >= DT) {
         this.clearStaleInputs();
         const events = this.sim.tick();
@@ -1889,6 +1895,72 @@ export class GameServer {
         if (exit) sim.leaveDungeon(pid);
         break;
       }
+      case 'enter_delve': {
+        if (typeof msg.delveId !== 'string' || typeof msg.tierId !== 'string') break;
+        const e = sim.entities.get(pid);
+        const delve = DELVES[msg.delveId];
+        if (!e || !delve || e.dead) break;
+        if (Math.hypot(e.pos.x - delve.doorPos.x, e.pos.z - delve.doorPos.z) > 12) break;
+        sim.enterDelve(msg.delveId, msg.tierId, pid);
+        this.resyncDelves(session);
+        break;
+      }
+      case 'leave_delve': {
+        const e = sim.entities.get(pid);
+        if (!e || !sim.delveRunForPlayer(pid)) break;
+        sim.leaveDelve(pid);
+        this.resyncDelves(session);
+        break;
+      }
+      case 'delve_interact': {
+        if (typeof msg.objectId !== 'number') break;
+        sim.delveInteract(msg.objectId, pid);
+        break;
+      }
+      case 'companion_upgrade': {
+        if (typeof msg.companionId !== 'string') break;
+        const e = sim.entities.get(pid);
+        if (!e || e.dead) break;
+        // Geo-gate to the board NPC (at the delve door), like enter_delve / delve_buy:
+        // the companion is ranked up at Brother Halven, not from anywhere in the world.
+        const delve = Object.values(DELVES).find((d) => d.autoCompanionId === msg.companionId);
+        if (!delve || Math.hypot(e.pos.x - delve.doorPos.x, e.pos.z - delve.doorPos.z) > 12) break;
+        sim.companionUpgrade(msg.companionId, pid);
+        break;
+      }
+      case 'delve_buy': {
+        if (typeof msg.delveId !== 'string' || typeof msg.itemId !== 'string') break;
+        const e = sim.entities.get(pid);
+        const delve = DELVES[msg.delveId];
+        if (!e || !delve || e.dead) break;
+        // Geo-gate to the board NPC (at the delve door), like enter_delve.
+        if (Math.hypot(e.pos.x - delve.doorPos.x, e.pos.z - delve.doorPos.z) > 12) break;
+        sim.delveBuyShopItem(msg.delveId, msg.itemId, pid);
+        this.resyncDelves(session);
+        break;
+      }
+      case 'lockpick_engage': {
+        if (typeof msg.objectId !== 'number') break;
+        if (msg.ante !== 1 && msg.ante !== 2 && msg.ante !== 3) break;
+        sim.lockpickEngage(msg.objectId, msg.ante, pid);
+        break;
+      }
+      case 'lockpick_action': {
+        if (!LOCKPICK_ACTIONS.has(msg.action)) break;
+        const sid = typeof msg.sid === 'string' ? msg.sid : undefined;
+        sim.lockpickAction(msg.action, pid, sid);
+        break;
+      }
+      case 'lockpick_abort': {
+        const sid = typeof msg.sid === 'string' ? msg.sid : undefined;
+        sim.lockpickAbort(pid, sid);
+        break;
+      }
+      case 'collect_delve_chest_loot': {
+        if (typeof msg.objectId !== 'number') break;
+        sim.collectDelveChestLoot(msg.objectId, pid);
+        break;
+      }
       // client telemetry should not be considered as unknown command. Used for offline stats computing.
       case 'telemetry':
         break;
@@ -2106,6 +2178,12 @@ export class GameServer {
     // open need-greed rolls this player can still answer, so a client that
     // missed the transient lootRoll event re-shows the prompt from state
     maybe('lroll', this.sim.activeLootRolls(session.pid));
+    maybe('drun', this.sim.delveRunWire(session.pid));
+    maybe('dcompanion', this.sim.delveCompanionWire(session.pid));
+    maybe('dmarks', this.sim.delveMarksFor(session.pid));
+    maybe('dcomp', this.sim.companionUpgradesFor(session.pid));
+    maybe('dclears', this.sim.delveClearsFor(session.pid));
+    maybe('delveDaily', this.sim.delveDailyWire(session.pid));
     // talents/spec/loadouts ride the wire only when they change (PR-5: never
     // every snapshot). The client recomputes its known abilities from this.
     maybe('tal', {
@@ -2548,6 +2626,15 @@ export class GameServer {
   private resyncQuests(session: ClientSession): void {
     delete session.lastSent.qlog;
     delete session.lastSent.qdone;
+  }
+
+  private resyncDelves(session: ClientSession): void {
+    delete session.lastSent.drun;
+    delete session.lastSent.dcompanion;
+    delete session.lastSent.dmarks;
+    delete session.lastSent.dcomp;
+    delete session.lastSent.dclears;
+    delete session.lastSent.delveDaily;
   }
 
   private send(session: ClientSession, obj: unknown): void {
