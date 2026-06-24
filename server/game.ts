@@ -806,7 +806,7 @@ export class GameServer {
         return { error: 'too many characters on this account are already in the world' };
       }
     }
-    const pid = this.sim.addPlayer(cls, name, { state: state ?? undefined });
+    const pid = this.sim.addPlayer(cls, name, { state: state ?? undefined, characterId });
     if (isGm) {
       // GM characters: invulnerable, and always at the level cap (the row is
       // created without state, so the first join levels them up)
@@ -1058,6 +1058,10 @@ export class GameServer {
     } catch (err) {
       console.error('failed to save world market:', err);
     }
+  }
+
+  rekeyMarketSeller(characterId: number, oldName: string, newName: string): boolean {
+    return this.sim.rekeyMarketSeller(characterId, oldName, newName);
   }
 
   // Close every open play_sessions row; called on graceful shutdown so the

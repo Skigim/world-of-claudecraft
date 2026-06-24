@@ -908,6 +908,9 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
           }
           return json(res, 404, { error: 'character not found' });
         }
+        if (game.rekeyMarketSeller(characterId, character.name, c.name)) {
+          await game.saveMarket();
+        }
         return json(res, 200, {
           id: c.id,
           name: c.name,
