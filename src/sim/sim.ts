@@ -678,6 +678,9 @@ export type JoinableChannel = (typeof JOINABLE_CHANNELS)[number];
 // everything that belongs to the character sheet.
 export interface PlayerMeta {
   entityId: number;
+  // Stable database character id when running on the server. Offline/sim-only
+  // callers fall back to entityId for systems that need a rename-proof owner key.
+  characterId?: number;
   cls: PlayerClass;
   name: string;
   skin: number; // appearance index into the render SKINS[player_<cls>]; persisted, synced
@@ -769,13 +772,13 @@ export interface AwayStatus {
 // The World Market — a single shared, server-authoritative auction house run
 // by the Merchant NPC. Listings live in the sim (so offline play has a market
 // too and the rules are testable); the server persists them to Postgres.
-// Sellers are keyed by character name, which is globally unique, so proceeds
-// and returns reach the right player even while they are offline.
+// Sellers are keyed by stable character id where available, so proceeds and
+// returns still reach the right player after a character rename.
 // ---------------------------------------------------------------------------
 
 export interface MarketListing {
   id: number;
-  sellerKey: string; // stable seller identity (character name); '' for house stock
+  sellerKey: string; // stable seller identity (character id string); '' for house stock
   sellerName: string; // display name
   itemId: string;
   count: number;
@@ -785,7 +788,7 @@ export interface MarketListing {
 }
 
 // Gold + items awaiting pickup at the Merchant (sale proceeds, expired
-// listings), keyed by seller name so an offline seller can collect later.
+// listings), keyed by sellerKey so an offline seller can collect later.
 export interface MarketCollection {
   copper: number;
   items: InvSlot[];
@@ -1012,7 +1015,7 @@ export class Sim {
   // dungeon instances
   instances: InstanceSlot[] = [];
   // the World Market: one shared listing book, per-seller collections keyed by
-  // character name, and the Merchant entity these are anchored to
+  // stable character identity, and the Merchant entity these are anchored to
   marketListings: MarketListing[] = [];
   private marketCollections = new Map<string, MarketCollection>();
   private nextListingId = 1;
@@ -1183,7 +1186,7 @@ export class Sim {
   addPlayer(
     cls: PlayerClass,
     name: string,
-    opts?: { autoEquip?: boolean; state?: CharacterState },
+    opts?: { autoEquip?: boolean; state?: CharacterState; characterId?: number },
   ): number {
     const savedState = opts?.state ? sanitizeRemovedZone1Content(opts.state).state : undefined;
     // Characters saved inside a dungeon instance rejoin at its entrance —
@@ -1211,6 +1214,7 @@ export class Sim {
     const classDef = CLASSES[cls];
     const meta: PlayerMeta = {
       entityId: player.id,
+      characterId: opts?.characterId,
       cls,
       name,
       skin: savedState?.skin ?? 0,
@@ -13922,9 +13926,20 @@ export class Sim {
     return !!m && dist2d(e.pos, m.pos) <= MARKET_RANGE;
   }
 
-  private metaByName(name: string): PlayerMeta | null {
-    if (!name) return null;
-    for (const m of this.players.values()) if (m.name === name) return m;
+  private marketSellerKey(meta: PlayerMeta): string {
+    return String(meta.characterId ?? meta.entityId);
+  }
+
+  private marketListingBelongsTo(listing: MarketListing, meta: PlayerMeta): boolean {
+    if (listing.house) return false;
+    return listing.sellerKey === this.marketSellerKey(meta) || listing.sellerKey === meta.name;
+  }
+
+  private metaByMarketSellerKey(key: string): PlayerMeta | null {
+    if (!key) return null;
+    for (const m of this.players.values()) {
+      if (this.marketSellerKey(m) === key || m.name === key) return m;
+    }
     return null;
   }
 
@@ -13935,6 +13950,43 @@ export class Sim {
       this.marketCollections.set(key, c);
     }
     return c;
+  }
+
+  private mergeMarketCollections(fromKey: string, toKey: string): boolean {
+    if (!fromKey || fromKey === toKey) return false;
+    const from = this.marketCollections.get(fromKey);
+    if (!from) return false;
+    const to = this.collectionFor(toKey);
+    to.copper += from.copper;
+    to.items.push(...from.items.map((s) => ({ ...s })));
+    this.marketCollections.delete(fromKey);
+    return true;
+  }
+
+  private collectionForSeller(meta: PlayerMeta): MarketCollection | undefined {
+    const key = this.marketSellerKey(meta);
+    this.mergeMarketCollections(meta.name, key);
+    return this.marketCollections.get(key);
+  }
+
+  rekeyMarketSeller(characterId: number, oldName: string, newName: string): boolean {
+    if (!Number.isFinite(characterId)) return false;
+    const key = String(characterId);
+    let changed = this.mergeMarketCollections(oldName, key);
+    changed = this.mergeMarketCollections(newName, key) || changed;
+    for (const listing of this.marketListings) {
+      if (listing.house) continue;
+      if (
+        listing.sellerKey === key ||
+        listing.sellerKey === oldName ||
+        listing.sellerKey === newName
+      ) {
+        if (listing.sellerKey !== key || listing.sellerName !== newName) changed = true;
+        listing.sellerKey = key;
+        listing.sellerName = newName;
+      }
+    }
+    return changed;
   }
 
   // The Merchant always keeps a little stock so the market is never empty —
@@ -14028,8 +14080,9 @@ export class Sim {
       this.error(meta.entityId, 'That price is beyond what the Merchant will broker.');
       return;
     }
+    const sellerKey = this.marketSellerKey(meta);
     const mine = this.marketListings.reduce(
-      (n, l) => n + (!l.house && l.sellerKey === meta.name ? 1 : 0),
+      (n, l) => n + (this.marketListingBelongsTo(l, meta) ? 1 : 0),
       0,
     );
     if (mine >= MARKET_MAX_LISTINGS) {
@@ -14042,7 +14095,7 @@ export class Sim {
     this.removeItem(itemId, want, meta.entityId); // escrow
     this.marketListings.push({
       id: this.nextListingId++,
-      sellerKey: meta.name,
+      sellerKey,
       sellerName: meta.name,
       itemId,
       count: want,
@@ -14080,7 +14133,7 @@ export class Sim {
       this.marketListings.splice(idx, 1);
       return;
     }
-    if (!listing.house && listing.sellerKey === meta.name) {
+    if (this.marketListingBelongsTo(listing, meta)) {
       this.error(meta.entityId, 'That is your own listing — cancel it to reclaim it.');
       return;
     }
@@ -14094,7 +14147,7 @@ export class Sim {
       const proceeds = Math.max(0, Math.floor(listing.price * (1 - MARKET_CUT)));
       this.collectionFor(listing.sellerKey).copper += proceeds;
       this.marketListings.splice(idx, 1);
-      const sellerMeta = this.metaByName(listing.sellerKey);
+      const sellerMeta = this.metaByMarketSellerKey(listing.sellerKey);
       if (sellerMeta) {
         this.emit({
           type: 'loot',
@@ -14123,7 +14176,7 @@ export class Sim {
     const idx = this.marketListings.findIndex((l) => l.id === listingId);
     if (idx < 0) return;
     const listing = this.marketListings[idx];
-    if (listing.house || listing.sellerKey !== meta.name) {
+    if (!this.marketListingBelongsTo(listing, meta)) {
       this.error(meta.entityId, 'That is not your listing.');
       return;
     }
@@ -14148,7 +14201,7 @@ export class Sim {
       this.error(meta.entityId, 'You are too far from the Merchant.');
       return;
     }
-    const col = this.marketCollections.get(meta.name);
+    const col = this.collectionForSeller(meta);
     if (!col || (col.copper <= 0 && col.items.length === 0)) {
       this.error(meta.entityId, 'You have nothing to collect.');
       return;
@@ -14162,7 +14215,7 @@ export class Sim {
       });
     }
     for (const s of col.items) this.addItem(s.itemId, s.count, meta.entityId);
-    this.marketCollections.delete(meta.name);
+    this.marketCollections.delete(this.marketSellerKey(meta));
   }
 
   // Once a second: return expired player listings to their seller's collection.
@@ -14173,7 +14226,7 @@ export class Sim {
       if (l.house || this.time < l.expiresAt) continue;
       this.marketListings.splice(i, 1);
       this.collectionFor(l.sellerKey).items.push({ itemId: l.itemId, count: l.count });
-      const sellerMeta = this.metaByName(l.sellerKey);
+      const sellerMeta = this.metaByMarketSellerKey(l.sellerKey);
       if (sellerMeta) {
         const def = ITEMS[l.itemId];
         this.emit({
@@ -14213,7 +14266,7 @@ export class Sim {
     // SELL tab would then read "12/12" while only a handful of their listings
     // are visible. MARKET_MAX_LISTINGS (12) ≪ MARKET_WIRE_LIMIT (120), so a
     // seller's own goods always fit alongside a healthy slice of the market.
-    const isMine = (l: MarketListing) => !l.house && l.sellerKey === meta.name;
+    const isMine = (l: MarketListing) => this.marketListingBelongsTo(l, meta);
     const mineSorted = sorted.filter(isMine);
     const others = sorted.filter((l) => !isMine(l));
     const wired = [
@@ -14222,16 +14275,16 @@ export class Sim {
     ];
     const listings = wired.map((l) => ({
       id: l.id,
-      sellerName: l.sellerName,
+      sellerName: isMine(l) ? meta.name : l.sellerName,
       itemId: l.itemId,
       count: l.count,
       price: l.price,
       mine: isMine(l),
       house: l.house,
     }));
-    const col = this.marketCollections.get(meta.name);
+    const col = this.collectionForSeller(meta);
     const myListingCount = this.marketListings.reduce(
-      (n, l) => n + (!l.house && l.sellerKey === meta.name ? 1 : 0),
+      (n, l) => n + (this.marketListingBelongsTo(l, meta) ? 1 : 0),
       0,
     );
     return {
@@ -14819,7 +14872,7 @@ export class Sim {
   // and this.time (no new fields); the count is shown against MARKET_MAX_LISTINGS
   // so you know how much room you have left, mirroring the cap in marketList.
   private listingsReadout(meta: PlayerMeta): string {
-    const mine = this.marketListings.filter((l) => !l.house && l.sellerKey === meta.name);
+    const mine = this.marketListings.filter((l) => this.marketListingBelongsTo(l, meta));
     if (mine.length === 0) return 'You have no goods on the World Market.';
     const parts = mine.map((l) => {
       const name = ITEMS[l.itemId]?.name ?? l.itemId;
