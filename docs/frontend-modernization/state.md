@@ -173,6 +173,21 @@ the packet's final QA.
     baseline and P4a/P4b wire the EXISTING V16 mobile E2E scripts (`mobile_input_zoom_check`,
     `mobile_button_size`, `mobile_joystick_size`, `mobile_chat_safe_area`, `mobile_minimap_safe_area`,
     `mobile_community_hud_safe_area`) as a blocking RESPONSIVE row.
+    - 16a ORIENTATION: the IN-GAME view is LANDSCAPE-ONLY on web mobile, NEVER portrait. V16 already
+      implements this and the extraction MUST preserve it intact: the `#rotate-device` overlay shows
+      under `body.mobile-touch.game-active` + `@media (orientation: portrait)` (play.html ~4920 +
+      5934-5953, index.html ~5761 + 6837-6866), backed by `requestMobileFullscreenLandscape()`
+      (`screen.orientation.lock('landscape')` + fullscreen, `main.ts:482`), the `orientationchange`
+      listener (`main.ts:474`), and the `mobilePreflight.baseLandscape` "Rotate your device to
+      landscape" copy. There is NO in-game portrait layout by design; portrait shows the rotate
+      overlay. The PRE-GAME SHELL (start/login/char-select), the `/wiki` guide, and the admin
+      dashboard stay PORTRAIT-CAPABLE / normally responsive (the overlay is gated on `game-active`).
+      This is exactly why P4a (shell, portrait-OK) and P4b (in-game mobile, landscape-only) are split.
+      HAZARD: the `#rotate-device` orientation rules DIFFER between index.html and play.html (index
+      sets `display:none` under portrait in one block; play sets `display:flex`); P4b must
+      preserve-both-exactly into the per-entry `.extra`, never merge them. The mobile E2E row (16)
+      runs the IN-GAME profile in LANDSCAPE, and adds a portrait-in-game assertion that `#rotate-device`
+      is shown (not a broken portrait HUD); the shell profile is tested in both orientations.
 17. PERSISTENT-MONOLITH OUTCOME (owned, not a defect). `hud.ts` stays the per-frame wiring hub and
     cold-window dispatcher after the packet; the win is that every behavior now lives in a tested
     core + thin painter that `hud.ts` composes, not that `hud.ts` shrinks to nothing. Reviewers

@@ -87,5 +87,7 @@ a Sim-shaped and a ClientWorld-mirror-shaped `IWorld` stub. Graphics-tier UI is 
 static preset, never the FPS governor. WCAG 2.2 AA chrome + the no-magic-values painter guard are
 built IN per window/element phase (not deferred to P15); canvas painters resolve tokens via
 `getComputedStyle` once per redraw. Responsive/mobile is gated by the V16 `mobile_*` E2E scripts,
-not just preserved. New control labels go in the English-only `hud_chrome.ts`. Commit with explicit
+not just preserved; the IN-GAME view is landscape-only (the `#rotate-device` overlay handles portrait,
+decision 16a) while the shell/guide/admin stay portrait-capable. New control labels go in the
+English-only `hud_chrome.ts`. Commit with explicit
 paths (shared worktree). No em dashes, en dashes, or emojis anywhere.

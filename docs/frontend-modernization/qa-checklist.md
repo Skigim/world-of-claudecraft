@@ -120,6 +120,14 @@ node count under a scripted AoE burst.
 - [ ] Mobile-landscape layout, the breakpoint system, dynamic-viewport units, notch/safe-area, and
       orientation handling render unchanged after the CSS move (P4a/P4b), proven on a real-CDP
       mobile profile, not a CSS-text assertion.
+- [ ] ORIENTATION (decision 16a): the IN-GAME view is landscape-only. The `#rotate-device` overlay
+      shows under `body.mobile-touch.game-active` in portrait (the rotate-to-landscape copy from
+      `mobilePreflight.baseLandscape`); `requestMobileFullscreenLandscape()` + the orientationchange
+      listener survive the extraction. The in-game E2E runs in landscape AND asserts the portrait
+      overlay (not a broken portrait HUD). The index-vs-play `#rotate-device` rule delta is
+      preserved-both-exactly (never merged).
+- [ ] The pre-game shell (start/login/char-select), the `/wiki` guide, and the admin dashboard stay
+      portrait-capable / normally responsive; the landscape lock is in-game only.
 - [ ] The iOS real-device pass (manual, cannot run in CI) is recorded as done or explicitly deferred
       with an owner.
 
