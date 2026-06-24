@@ -1355,7 +1355,9 @@ export type SimEvent = { pid?: number } & (
   | { type: 'comboPoint'; points: number }
   | { type: 'playerDeath' }
   | { type: 'respawn' }
-  | { type: 'vendor'; action: 'buy' | 'sell' | 'buyback'; itemId: string }
+  // itemId names the single item for buy/sell/buyback; it is omitted for the
+  // bulk "sell all junk" sweep, which the client treats as a plain refresh signal.
+  | { type: 'vendor'; action: 'buy' | 'sell' | 'buyback'; itemId?: string }
   // say/yell are delivered only to players in range and carry the speaker's
   // entity id so the client can hang a chat bubble over their head; whisper
   // goes to the target (and echoes to the sender with `to` set); general is

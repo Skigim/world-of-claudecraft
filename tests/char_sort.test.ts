@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import {
+  CHAR_SORT_MODES,
+  DEFAULT_CHAR_SORT,
+  normalizeCharSortMode,
+  sortCharacters,
+} from '../src/net/char_sort';
 import type { CharacterSummary } from '../src/net/online';
-import { CHAR_SORT_MODES, DEFAULT_CHAR_SORT, normalizeCharSortMode, sortCharacters } from '../src/net/char_sort';
 
 function char(over: Partial<CharacterSummary> & { id: number }): CharacterSummary {
   return {
@@ -21,12 +26,20 @@ const ids = (chars: CharacterSummary[]) => chars.map((c) => c.id);
 describe('sortCharacters', () => {
   it('defaults to level descending', () => {
     expect(DEFAULT_CHAR_SORT).toBe('level');
-    const chars = [char({ id: 1, level: 5 }), char({ id: 2, level: 20 }), char({ id: 3, level: 12 })];
+    const chars = [
+      char({ id: 1, level: 5 }),
+      char({ id: 2, level: 20 }),
+      char({ id: 3, level: 12 }),
+    ];
     expect(ids(sortCharacters(chars, 'level'))).toEqual([2, 3, 1]);
   });
 
   it('sorts by name ascending (case-insensitive locale compare)', () => {
-    const chars = [char({ id: 1, name: 'Zara' }), char({ id: 2, name: 'aldwin' }), char({ id: 3, name: 'Mira' })];
+    const chars = [
+      char({ id: 1, name: 'Zara' }),
+      char({ id: 2, name: 'aldwin' }),
+      char({ id: 3, name: 'Mira' }),
+    ];
     expect(ids(sortCharacters(chars, 'name'))).toEqual([2, 3, 1]);
   });
 

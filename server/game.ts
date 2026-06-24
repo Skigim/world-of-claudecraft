@@ -1462,6 +1462,9 @@ export class GameServer {
       case 'buyback':
         if (typeof msg.item === 'string') sim.buyBackItem(msg.item, pid);
         break;
+      case 'sell_all_junk':
+        sim.sellAllJunk(pid);
+        break;
       case 'change_skin':
         if (typeof msg.skin === 'number') {
           if (msg.catalog === 'mech') {

@@ -2466,6 +2466,8 @@ export const ko_KR: EnTranslations = {
       "lootReceiveMoney": "{money}을(를) 받았습니다.",
       "lootMoney": "{money}을(를) 전리품으로 획득했습니다.",
       "soldItem": "{item}을(를) {money}에 팔았습니다.",
+      "soldJunkOne": "잡동사니 아이템 {count}개를 {money}에 팔았습니다.",
+      "soldJunkMany": "잡동사니 아이템 {count}개를 {money}에 팔았습니다.",
       "friendOnline": "{name}님이 접속했습니다.",
       "friendOffline": "{name}님이 접속을 종료했습니다."
     },
@@ -2869,7 +2871,10 @@ export const ko_KR: EnTranslations = {
       "sellQuantityTitle": "{item} 판매",
       "sellQuantityInput": "판매할 수량",
       "sellQuantityConfirm": "판매",
-      "sellQuantityCancel": "취소"
+      "sellQuantityCancel": "취소",
+      "sellJunk": "잡동사니 판매",
+      "sellJunkAria": "모든 잡동사니를 {price}에 판매",
+      "sellJunkHint": "퀘스트 아이템을 제외한 가방의 모든 회색 아이템을 판매합니다."
     },
     "market": {
       "title": "세계 시장",

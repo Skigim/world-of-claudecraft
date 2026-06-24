@@ -2466,6 +2466,8 @@ export const fr_CA: EnTranslations = {
       "lootReceiveMoney": "Vous recevez {money}.",
       "lootMoney": "Vous ramassez {money}.",
       "soldItem": "Vous avez vendu {item} pour {money}.",
+      "soldJunkOne": "Vous avez vendu {count} objet gris pour {money}.",
+      "soldJunkMany": "Vous avez vendu {count} objets gris pour {money}.",
       "friendOnline": "{name} vient de se connecter.",
       "friendOffline": "{name} vient de se déconnecter."
     },
@@ -2869,7 +2871,10 @@ export const fr_CA: EnTranslations = {
       "sellQuantityTitle": "Vendre {item}",
       "sellQuantityInput": "Quantité à vendre",
       "sellQuantityConfirm": "Vendre",
-      "sellQuantityCancel": "Annuler"
+      "sellQuantityCancel": "Annuler",
+      "sellJunk": "Vendre les rebuts",
+      "sellJunkAria": "Vendre tous les rebuts pour {price}",
+      "sellJunkHint": "Vend tous les objets gris dans vos sacs, sauf les objets de quête."
     },
     "market": {
       "title": "Marché mondial",

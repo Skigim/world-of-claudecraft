@@ -46,7 +46,12 @@ import {
 } from './game/settings';
 import { sfx } from './game/sfx';
 import { voice } from './game/voice';
-import { CHAR_SORT_MODES, normalizeCharSortMode, sortCharacters, type CharSortMode } from './net/char_sort';
+import {
+  CHAR_SORT_MODES,
+  type CharSortMode,
+  normalizeCharSortMode,
+  sortCharacters,
+} from './net/char_sort';
 import { createNativeAttestationProof } from './net/native_attestation';
 import {
   Api,
@@ -3288,13 +3293,18 @@ function renderSortDropdown(): void {
         <div class="realm-name">${escapeHtml(t(CHAR_SORT_LABEL_KEYS[m]))}</div>
       </div>`;
   }).join('');
-  menu.querySelectorAll('.cs-sort-row').forEach((row) => row.addEventListener('click', () => {
-    setCharSort(normalizeCharSortMode((row as HTMLElement).dataset.mode));
-  }));
+  menu.querySelectorAll('.cs-sort-row').forEach((row) => {
+    row.addEventListener('click', () => {
+      setCharSort(normalizeCharSortMode((row as HTMLElement).dataset.mode));
+    });
+  });
 }
 
 function toggleSortDropdown(): void {
-  if (sortDropdownOpen) { closeSortDropdown(); return; }
+  if (sortDropdownOpen) {
+    closeSortDropdown();
+    return;
+  }
   $('#cs-sort-btn').setAttribute('aria-expanded', 'true');
   $('#cs-sort-menu').removeAttribute('hidden');
   sortDropdownOpen = true;

@@ -6078,6 +6078,14 @@ export class Hud {
     match = /^Everyone passed on (.+)\.$/.exec(text);
     if (match)
       return t('itemUi.lootRoll.everyonePassed', { item: itemDisplayNameFromSource(match[1]) });
+    match = /^Sold (\d+) junk items? for (.+)\.$/.exec(text);
+    if (match) {
+      const n = Number(match[1]);
+      return t(n === 1 ? 'hud.logs.soldJunkOne' : 'hud.logs.soldJunkMany', {
+        count: formatNumber(n, { maximumFractionDigits: 0 }),
+        money: this.localizeSimMoney(match[2]),
+      });
+    }
     match = /^Sold (.+) for (.+)\.$/.exec(text);
     if (match)
       return t('hud.logs.soldItem', {
@@ -6956,6 +6964,20 @@ export class Hud {
     if (this.openVendorNpcId === null) return;
     const npc = this.sim.entities.get(this.openVendorNpcId);
     if (!npc) return;
+    const junk = this.sim.inventory.filter((slot) => {
+      const item = ITEMS[slot.itemId];
+      return (
+        !!item &&
+        item.quality === 'poor' &&
+        item.kind !== 'quest' &&
+        !item.noVendorSell &&
+        slot.count > 0
+      );
+    });
+    const junkProceeds = junk.reduce(
+      (sum, slot) => sum + ITEMS[slot.itemId]!.sellValue * slot.count,
+      0,
+    );
     const buyAndRefresh = (buy: () => void) => {
       buy();
       if ($('#bags').style.display !== 'none') this.renderBags();
@@ -6973,7 +6995,12 @@ export class Hud {
         hideTooltip: () => this.hideTooltip(),
         onBuy: (itemId) => buyAndRefresh(() => this.sim.buyItem(npc.id, itemId)),
         onBuyBack: (itemId) => buyAndRefresh(() => this.sim.buyBackItem(itemId)),
+        onSellJunk: () => buyAndRefresh(() => this.sim.sellAllJunk()),
         onClose: () => this.closeVendor(),
+        sellJunk: {
+          enabled: junk.length > 0,
+          proceeds: junkProceeds,
+        },
       },
     );
   }
@@ -12743,7 +12770,13 @@ export class Hud {
       if (code === null) {
         this.keybindNote = t('hud.options.keybindCancelled');
       } else if (this.keybinds.bind(actionId, index, code)) {
-        this.keybindNote = t('hud.options.keybindBound', { action: name, key: keyLabel(code) });
+        // Label what was actually stored: bind() strips modifiers from held
+        // (movement) actions, so a captured "Shift+KeyW" is saved bare as "KeyW".
+        // Reading it back keeps the confirmation in sync with the action-bar keycap.
+        this.keybindNote = t('hud.options.keybindBound', {
+          action: name,
+          key: keyLabel(this.keybinds.codeAt(actionId, index)),
+        });
         this.refreshKeybindLabels();
       } else if (isReservedCode(code)) {
         this.keybindNote = t('hud.options.keybindReserved', { key: keyLabel(code) });

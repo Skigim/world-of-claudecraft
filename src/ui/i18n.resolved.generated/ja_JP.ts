@@ -2466,6 +2466,8 @@ export const ja_JP: EnTranslations = {
       "lootReceiveMoney": "{money}を受け取りました。",
       "lootMoney": "{money}を拾いました。",
       "soldItem": "{item}を{money}で売却しました。",
+      "soldJunkOne": "不要品{count}個を{money}で売却しました。",
+      "soldJunkMany": "不要品{count}個を{money}で売却しました。",
       "friendOnline": "{name}がオンラインになりました。",
       "friendOffline": "{name}がオフラインになりました。"
     },
@@ -2869,7 +2871,10 @@ export const ja_JP: EnTranslations = {
       "sellQuantityTitle": "{item}を売却",
       "sellQuantityInput": "売却する数量",
       "sellQuantityConfirm": "売却",
-      "sellQuantityCancel": "キャンセル"
+      "sellQuantityCancel": "キャンセル",
+      "sellJunk": "不要品を売却",
+      "sellJunkAria": "{price}ですべての不要品を売却",
+      "sellJunkHint": "クエストアイテムを除くバッグ内のすべての灰色アイテムを売却します。"
     },
     "market": {
       "title": "ワールドマーケット",

@@ -606,6 +606,7 @@
   .micro-btn:focus-visible,
   .mobile-btn:focus-visible,
   .vendor-item:focus-visible,
+  .vendor-sell-junk:focus-visible,
   .bag-item:focus-visible,
   .mkt-tab:focus-visible,
   .mkt-btn:focus-visible,
@@ -1562,6 +1563,10 @@
   .vendor-item:hover { background: #ffffff10; }
   .vendor-item .vi-name { font-size: 12px; flex: 1; }
   .vendor-item .vi-price { font-size: 11px; color: #ddd; }
+  .vendor-sell-junk { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 40px; margin-top: 8px; padding: 8px; border: 1px solid #6a5320; border-radius: 4px; cursor: var(--cursor-point); background: linear-gradient(#8a6a26, #5a4413 55%, #473409); color: #ffe6a8; font-family: var(--title-font); font-size: 12px; }
+  .vendor-sell-junk .vi-name { flex: 0 1 auto; }
+  .vendor-sell-junk:hover:not(:disabled) { filter: brightness(1.12); }
+  .vendor-sell-junk:disabled { opacity: .5; cursor: default; }
   .vendor-section-title { margin-top: 8px; padding-top: 7px; border-top: 1px solid #463a1c; color: var(--gold); font-family: var(--title-font); font-size: 12px; }
   .vendor-empty { padding: 5px; font-size: 11px; color: #887c5c; }
   .vendor-hint { font-size: 11px; color: #c8b888; margin-top: 8px; border-top: 1px solid #463a1c; padding-top: 6px; }

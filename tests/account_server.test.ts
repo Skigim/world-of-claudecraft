@@ -68,7 +68,9 @@ function routeQuery(sql: string, params: any[]) {
   if (sql.includes('unsubscribe_token')) return { rows: [{ unsubscribe_token: params[1] ?? 'unsub-token' }] };
   if (sql.includes('FROM accounts WHERE id')) return { rows: accountRow ? [accountRow] : [] };
   if (sql.includes('COUNT(*)')) return { rows: [{ count: charCount }] };
-  if (sql.includes('FROM characters WHERE account_id')) return { rows: characters };
+  if (sql.includes('FROM characters WHERE account_id') || sql.includes('FROM characters c')) {
+    return { rows: characters };
+  }
   return { rows: [] }; // UPDATE / DELETE / INSERT writes
 }
 

@@ -18,15 +18,26 @@ function lastPlayedMs(c: CharacterSummary): number {
   return Number.isFinite(ms) ? ms : 0;
 }
 
-export function sortCharacters(chars: readonly CharacterSummary[], mode: CharSortMode): CharacterSummary[] {
+export function sortCharacters(
+  chars: readonly CharacterSummary[],
+  mode: CharSortMode,
+): CharacterSummary[] {
   const byName = (a: CharacterSummary, b: CharacterSummary) => a.name.localeCompare(b.name);
   return chars.slice().sort((a, b) => {
     let primary = 0;
     switch (mode) {
-      case 'level': primary = b.level - a.level; break;
-      case 'name': primary = byName(a, b); break;
-      case 'recent': primary = lastPlayedMs(b) - lastPlayedMs(a); break;
-      case 'playtime': primary = (b.playtimeSeconds ?? 0) - (a.playtimeSeconds ?? 0); break;
+      case 'level':
+        primary = b.level - a.level;
+        break;
+      case 'name':
+        primary = byName(a, b);
+        break;
+      case 'recent':
+        primary = lastPlayedMs(b) - lastPlayedMs(a);
+        break;
+      case 'playtime':
+        primary = (b.playtimeSeconds ?? 0) - (a.playtimeSeconds ?? 0);
+        break;
     }
     if (primary !== 0) return primary;
     const n = byName(a, b);
