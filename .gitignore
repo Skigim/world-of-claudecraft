@@ -23,6 +23,7 @@ private/*
 # test artifacts & screenshots
 tmp/
 .codex-research/
+.codex/
 .playwright-mcp/
 
 # i18n release-fill worklist (generated; regenerate via `npm run i18n:worklist`)
