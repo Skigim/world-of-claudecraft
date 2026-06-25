@@ -228,6 +228,8 @@ import { TOOLTIP_PEEK_MS, TouchPeekGuard } from './touch_peek';
 import { TutorialOverlay } from './tutorial';
 import { svgIcon } from './ui_icons';
 import { getUiScale } from './ui_scale';
+import { unitFrameView } from './unit_frame';
+import { UnitFramePainter } from './unit_frame_painter';
 import { crestIdForEntity } from './unit_portrait';
 import { UnitPortraitPainter } from './unit_portrait_painter';
 import { buildVendorView } from './vendor_view';
@@ -307,6 +309,11 @@ export interface BugReportHooks {
 }
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T => document.querySelector(sel) as T;
+// The player frame's stable portrait-identity key. The player portrait is drawn at
+// character setup (drawPlayerFramePortrait), not by the unit_frame painter, so the
+// painter's repaint gate never fires for it; the constant just pins the key so the
+// gate stays a no-op (target/party pass a per-unit key in P11).
+const PLAYER_PORTRAIT_KEY = 'player';
 const trackMetaPixel = (eventName: string, data?: Record<string, unknown>): void => {
   const fbq = (window as Window & { fbq?: (...args: unknown[]) => void }).fbq;
   if (typeof fbq !== 'function') return;
@@ -622,6 +629,7 @@ export class Hud {
   private pfResEl = $('#pf-res');
   private pfResTextEl = $('#pf-res-text');
   private pfResourceEl = $('#pf-resource');
+  private pfAbsorbEl = $('#pf-absorb');
   private buffBarEl = $('#buff-bar');
   private targetFrameEl = $('#target-frame');
   private targetEliteTagEl = $('#tf-elite-tag');
@@ -2241,6 +2249,22 @@ export class Hud {
     this.swingFillEl,
     this.swingLabelEl,
   );
+  // The player frame is the FIRST instance of the unit_frame family (P10b). It owns
+  // its own element set; target/party become further instances of this exact
+  // painter in P11. The element set + options deliberately mirror the inline block
+  // exactly, so the player path stays byte-faithful: no `name` (the player name is
+  // static, set once at login, not on the hot path); no `stateClasses` (the player
+  // frame never carries dead/out-of-range, those are party-only); no `shownDisplay`
+  // (the frame is always visible via CSS, never toggled); no `repaintPortrait` (its
+  // portrait is drawn at character setup, drawPlayerFramePortrait, not per frame).
+  private readonly playerFramePainter = new UnitFramePainter(this.writerFacet, {
+    frame: this.playerFrameEl,
+    level: this.pfLevelEl,
+    hpFill: this.pfHpEl,
+    hpText: this.pfHpTextEl,
+    absorb: this.pfAbsorbEl,
+    resource: { container: this.pfResourceEl, fill: this.pfResEl, text: this.pfResTextEl },
+  });
   // Overworld world-map painter (the delve branch stays with delvePainter). Owns
   // the cached whole-world decorations; redraws from the mediumHud band while open.
   private readonly mapPainter = new MapWindowPainter();
@@ -3813,17 +3837,29 @@ export class Hud {
     document.getElementById('mm-talents')?.classList.toggle('has-points', talGlow);
     document.getElementById('mobile-talents')?.classList.toggle('has-points', talGlow);
 
-    // player frame
-    this.setText(this.pfLevelEl, String(p.level));
-    this.setTransform(this.pfHpEl, `scaleX(${p.hp / Math.max(1, p.maxHp)})`);
-    this.updateAbsorb('#pf-absorb', p);
-    this.setText(this.pfHpTextEl, `${p.hp} / ${p.maxHp}`);
+    // player frame: the first instance of the unit_frame family (P10b). Build a
+    // player-shaped descriptor and paint it. The absorb overlay + the resource-type
+    // class fold into the painter's elided writers (no more raw updateAbsorb /
+    // className swap on the player hot path). updateLowHealthVignette +
+    // updateLowResource are player-only side effects with their own cores and stay
+    // here, OUT of the shared family (target/party must not inherit them).
+    this.playerFramePainter.paint(
+      unitFrameView({
+        present: true,
+        hpFrac: p.hp / Math.max(1, p.maxHp),
+        hpText: `${p.hp} / ${p.maxHp}`,
+        resourceKind: p.resourceType,
+        resFrac: p.resource / Math.max(1, p.maxResource),
+        resText: `${Math.round(p.resource)} / ${p.maxResource}`,
+        levelText: String(p.level),
+        name: p.name,
+        portraitKey: PLAYER_PORTRAIT_KEY,
+        absorb: p,
+        dead: false,
+        outOfRange: false,
+      }),
+    );
     this.updateLowHealthVignette(p.hp, p.maxHp);
-    const resFrac = p.resource / Math.max(1, p.maxResource);
-    this.setTransform(this.pfResEl, `scaleX(${resFrac})`);
-    this.setText(this.pfResTextEl, `${Math.round(p.resource)} / ${p.maxResource}`);
-    const resClass = `bar ${p.resourceType === 'rage' ? 'rage' : p.resourceType === 'energy' ? 'energy' : 'mana'}`;
-    if (this.pfResourceEl.className !== resClass) this.pfResourceEl.className = resClass;
     this.updateLowResource(p);
 
     // buff bar (player buffs + debuffs)
@@ -4246,9 +4282,10 @@ export class Hud {
       resourceType: p.resourceType,
     });
     const bar = $('#pf-resource') as HTMLElement;
-    // The resource className is rebuilt every frame just above this call, so the
-    // `.low` flag must be re-applied every frame too. Only the expensive style /
-    // label writes are diffed against the cached signature.
+    // `.low` is this method's own class (the unit_frame painter toggles only the
+    // mutually-exclusive power-type classes, never `low`), so toggling it each frame
+    // is cheap and idempotent. Only the expensive style / label writes below are
+    // diffed against the cached signature.
     bar.classList.toggle('low', v.active);
     const sig = v.active ? `${v.opacity.toFixed(2)}|${v.pulseSeconds.toFixed(2)}|${v.label}` : '';
     if (sig === this.lastLowResourceSig) return;
