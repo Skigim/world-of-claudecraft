@@ -395,8 +395,16 @@ export class OptionsWindow {
     const val = document.createElement('span');
     val.className = 'set-val';
     const fmt = this.sliderFormatter(c.fmt);
-    const readout = () => fmt(hooks.settings.get(key));
-    val.textContent = readout();
+    // Mirror the formatted readout into the visible value AND aria-valuetext, so a
+    // screen reader announces the human-meaningful value (50%, 90 degrees) instead
+    // of the raw stored number. The native range already exposes role=slider plus
+    // aria-valuenow/min/max from value/min/max, so only valuetext needs setting.
+    const syncReadout = () => {
+      const text = fmt(hooks.settings.get(key));
+      val.textContent = text;
+      slider.setAttribute('aria-valuetext', text);
+    };
+    syncReadout();
     // Paint a gold fill up to the current value on every engine (CSS alone can't
     // read the value; --range-fill drives the webkit track gradient and Firefox's
     // native progress is recolored to match). Set initially + on every input.
@@ -413,7 +421,7 @@ export class OptionsWindow {
     paintFill();
     slider.addEventListener('input', () => {
       hooks.onSettingChange(key, sliderDispatchValue(slider.value));
-      val.textContent = readout();
+      syncReadout();
       paintFill();
     });
     row.append(name, slider, val);
@@ -1137,8 +1145,22 @@ export class OptionsWindow {
         row.className = 'set-row';
         const name = document.createElement('span');
         name.className = 'set-name';
-        name.textContent = GAMEPAD_BUTTON_LABELS[button] ?? `#${button}`;
-        const dd = this.deps.buildDropdown(opts, action, (v) => hooks.gamepad.bind(button, v));
+        const buttonLabel = GAMEPAD_BUTTON_LABELS[button] ?? `#${button}`;
+        name.textContent = buttonLabel;
+        // Name the remap listbox after the physical button it rebinds (WCAG 4.1.2):
+        // the visible set-name span is not programmatically linked, so the dropdown
+        // would otherwise be an unnamed listbox. The button labels are physical
+        // hardware names (gamepad_map.ts), intentionally non-localized, like the
+        // language picker's ariaLabel above.
+        const dd = this.deps.buildDropdown(
+          opts,
+          action,
+          (v) => hooks.gamepad.bind(button, v),
+          undefined,
+          {
+            ariaLabel: buttonLabel,
+          },
+        );
         row.append(name, dd);
         body.appendChild(row);
       }
