@@ -80,7 +80,6 @@ import {
   GROUP_XP_BONUS,
   INSTANCE_SLOT_COUNT,
   ITEMS,
-  instanceOrigin,
   isArenaPos,
   isDelvePos,
   MOBS,
@@ -158,6 +157,17 @@ import {
   tickGroundAoEs,
 } from './entity_roster';
 import { createSimContext, type SimContext, type SimContextHost } from './sim_context';
+import {
+  enterCrypt as enterCryptImpl,
+  enterDungeon as enterDungeonImpl,
+  instanceKeyFor as instanceKeyForImpl,
+  instanceOriginOf as instanceOriginOfImpl,
+  instanceSlotAt as instanceSlotAtImpl,
+  leaveCrypt as leaveCryptImpl,
+  leaveDungeon as leaveDungeonImpl,
+  updateDoorTriggers as updateDoorTriggersImpl,
+  updateInstances as updateInstancesImpl,
+} from './instances/dungeons';
 import { checkQuestReady, onInventoryChangedForQuests, onMobKilledForQuests } from './quests/quest_credit';
 import { SpatialGrid } from './spatial';
 import { orderTabTargets, TAB_QUERY_RADIUS } from './tab_target';
@@ -205,6 +215,7 @@ import {
   FISHING_CAST_ID,
   FISHING_CAST_TIME,
   GCD,
+  INSTANCE_EMPTY_TIMEOUT,
   INTERACT_RANGE,
   type InvSlot,
   type ItemDef,
@@ -225,6 +236,7 @@ import {
   meleeMissChance,
   mobXpValue,
   normAngle,
+  NYTHRAXIS_BOSS_ID,
   type OverheadEmoteId,
   type PetMode,
   type PlayerClass,
@@ -290,7 +302,8 @@ const NYTHRAXIS_RELIC_SUMMONS: Record<string, string> = {
   royal_seal: 'deathstalker_voss',
 };
 const _NYTHRAXIS_CRYPT_QUESTS = new Set(['q_nythraxis_sealed_crypt', 'q_nythraxis_bound_guardian']);
-const NYTHRAXIS_BOSS_ID = 'nythraxis_scourge_of_thornpeak';
+// NYTHRAXIS_BOSS_ID relocated to types.ts (I1: shared by the dungeon raid-door seal);
+// imported above. The Nythraxis encounter sites here still read it.
 const NYTHRAXIS_ADD_ID = 'nythraxis_skeleton_warrior';
 const NYTHRAXIS_ALDRIC_ID = 'brother_aldric_raid';
 const _NYTHRAXIS_FINAL_QUEST_ID = 'q_nythraxis_scourges_end';
@@ -331,8 +344,8 @@ const RAID_MAX = 10;
 const RAID_GROUP_MAX = 5;
 // DAMAGE_IDLE_DESPAWN_SECONDS / DAMAGE_IDLE_DESPAWN_MOB_IDS moved to entity_roster.ts
 // (the despawn prologue's home); imported above for the damage-path timer reset.
-const RAID_ALLOWED_DUNGEON_IDS = new Set(['nythraxis_crypt', 'nythraxis_boss_arena']);
-const RAID_REQUIRED_DUNGEON_IDS = new Set(['nythraxis_boss_arena']);
+// RAID_ALLOWED_DUNGEON_IDS / RAID_REQUIRED_DUNGEON_IDS moved to instances/dungeons.ts
+// (I1: read only by enterDungeon's raid gate).
 const PARTY_XP_RANGE = 80; // yards: members this close share kill xp/credit
 // Rested XP (classic inn-rested bonus). Resting inside an inn footprint accrues a
 // pool that doubles KILL xp (200%) until spent — vanilla's signature casual-pacing
@@ -485,7 +498,8 @@ const MARKET_CUT = 0.05; // the Merchant's cut on a completed sale (a gold sink)
 const MARKET_LISTING_DURATION = 48 * 3600; // sim-seconds an unsold listing lingers before returning
 const MARKET_WIRE_LIMIT = 120; // most listings shipped to one client at a time
 const VENDOR_BUYBACK_LIMIT = 12;
-const INSTANCE_EMPTY_TIMEOUT = 300; // seconds before an empty instance resets
+// INSTANCE_EMPTY_TIMEOUT relocated to types.ts (I1: shared with the delve reaper below);
+// imported above.
 const DELVE_PLATE_RADIUS = 2.5;
 // Push-out radii (yards) for solid delve props, kept under the chest/grave interact
 // range (DELVE_PLATE_RADIUS + 2 = 4.5) so you can still loot from adjacent. Pressure
@@ -554,7 +568,7 @@ const FISHING_SAMPLE_DISTANCES = [4, 8, 12, 16, 20, 24];
 const DEEPFEN_FISHING_SHORE_MARGIN = 10;
 const THE_CODFATHER_ITEM_ID = 'the_codfather';
 const THE_CODFATHER_QUEST_ID = 'q_the_codfather';
-const DOOR_TRIGGER_RADIUS = 2.0; // walking this close to a dungeon door teleports you
+// DOOR_TRIGGER_RADIUS moved to instances/dungeons.ts (I1: read only by updateDoorTriggers).
 const NYTHRAXIS_PARTY_INTERACT_RANGE = 30;
 const NYTHRAXIS_VISION_LINE_DELAY = 5;
 const BODY_RADIUS = PLAYER_BODY_RADIUS;
@@ -1958,6 +1972,15 @@ export class Sim {
       get entities() {
         return sim.entities;
       },
+      get players() {
+        return sim.players;
+      },
+      get nextId() {
+        return sim.nextId;
+      },
+      set nextId(v) {
+        sim.nextId = v;
+      },
       get grid() {
         return sim.grid;
       },
@@ -1976,10 +1999,17 @@ export class Sim {
       get dungeonDoorIds() {
         return sim.dungeonDoorIds;
       },
+      set dungeonDoorIds(v) {
+        sim.dungeonDoorIds = v;
+      },
+      get instances() {
+        return sim.instances;
+      },
       get arenaMatches() {
         return sim.arenaMatches;
       },
       emit: sim.emit.bind(sim),
+      error: sim.error.bind(sim),
       dealDamage: sim.dealDamage.bind(sim),
       handleDeath: sim.handleDeath.bind(sim),
       cancelCast: sim.cancelCast.bind(sim),
@@ -2014,6 +2044,14 @@ export class Sim {
       onInventoryChangedForQuests: (meta) => onInventoryChangedForQuests(sim.ctx, meta),
       checkQuestReady: (qp, meta) => checkQuestReady(sim.ctx, qp, meta),
       countItem: sim.countItem.bind(sim),
+      // I1 dungeon instancing now lives in instances/dungeons.ts; these route through
+      // the same-named Sim delegates (foreign callers use this.X). lockoutNowMs is the
+      // shared raid-lockout clock that stays on Sim (N1 also writes through it).
+      lockoutNowMs: sim.lockoutNowMs.bind(sim),
+      instanceKeyFor: sim.instanceKeyFor.bind(sim),
+      instanceOriginOf: sim.instanceOriginOf.bind(sim),
+      enterDungeon: sim.enterDungeon.bind(sim),
+      leaveDungeon: sim.leaveDungeon.bind(sim),
       addEntity: sim.addEntity.bind(sim),
       dropEntity: sim.dropEntity.bind(sim),
       rebucket: sim.rebucket.bind(sim),
@@ -14596,268 +14634,48 @@ export class Sim {
   // Dungeons: party-instanced elite content (the Hollow Crypt and friends)
   // -------------------------------------------------------------------------
 
+  // The dungeon-instancing slice now lives in instances/dungeons.ts (I1, moved behind
+  // SimContext). These are same-named thin delegates so every foreign `this.X` call
+  // site + the tick loop resolve unchanged; the in-module helpers (canEnterNythraxisRaid/
+  // isRaidLocked/nythraxisInstanceSealed/claimInstance/freeInstance) have no Sim caller
+  // and live only in the module. The instance pool (`this.instances`) and door-id cache
+  // (`dungeonDoorIds`) stay Sim-owned fields, exposed to the module as live SimContext views.
+
   private instanceKeyFor(pid: number): string {
-    const party = this.partyOf(pid);
-    return party ? `party:${party.id}` : `solo:${pid}`;
+    return instanceKeyForImpl(this.ctx, pid);
   }
 
   private instanceOriginOf(inst: InstanceSlot): { x: number; z: number } {
-    return instanceOrigin(DUNGEONS[inst.dungeonId].index, inst.slot);
+    return instanceOriginOfImpl(inst);
   }
 
-  // Walking into a dungeon door teleports you through it (no click needed).
-  // Party members who walk in land in the same instance via instanceKeyFor.
+  // Lazily built on first updateDoorTriggers, then appended on dungeon_door spawn
+  // (entity_roster.addEntityToRoster). Stays Sim-owned; reached via ctx.dungeonDoorIds.
   private dungeonDoorIds: number[] | null = null;
 
   private updateDoorTriggers(p: Entity): void {
-    if (p.kind !== 'player') return;
-    if (p.pos.x > DUNGEON_X_THRESHOLD) {
-      // inside: walking into the exit portal climbs back out
-      for (const inst of this.instances) {
-        if (inst.exitId === null) continue;
-        const exit = this.entities.get(inst.exitId);
-        if (exit && dist2d(p.pos, exit.pos) < DOOR_TRIGGER_RADIUS) {
-          this.leaveDungeon(p.id);
-          return;
-        }
-      }
-    }
-    if (this.dungeonDoorIds === null) {
-      this.dungeonDoorIds = [];
-      for (const e of this.entities.values()) {
-        if (e.templateId === 'dungeon_door') this.dungeonDoorIds.push(e.id);
-      }
-    }
-    for (const doorId of this.dungeonDoorIds) {
-      const door = this.entities.get(doorId);
-      if (door?.dungeonId && dist2d(p.pos, door.pos) < DOOR_TRIGGER_RADIUS) {
-        this.enterDungeon(door.dungeonId, p.id);
-        return;
-      }
-    }
+    updateDoorTriggersImpl(this.ctx, p);
   }
 
   enterDungeon(dungeonId: string, pid?: number): void {
-    const r = this.resolve(pid);
-    const dungeon = DUNGEONS[dungeonId];
-    if (!r || !dungeon || r.e.dead) return;
-    const party = this.partyOf(r.meta.entityId);
-    const raidAllowed = RAID_ALLOWED_DUNGEON_IDS.has(dungeonId);
-    const raidRequired = RAID_REQUIRED_DUNGEON_IDS.has(dungeonId);
-    if (party?.raid && !raidAllowed) {
-      this.error(r.meta.entityId, 'Raid groups cannot enter standard dungeons.');
-      return;
-    }
-    if (!party?.raid && raidRequired) {
-      this.error(r.meta.entityId, 'You must convert your party to a raid group first.');
-      return;
-    }
-    if (dungeonId === 'nythraxis_boss_arena' && !this.canEnterNythraxisRaid(r.meta)) {
-      this.error(r.meta.entityId, 'The royal door is sealed to you.');
-      return;
-    }
-    if (dungeonId === 'nythraxis_boss_arena' && this.isRaidLocked(r.meta, dungeonId)) {
-      this.error(r.meta.entityId, 'You are locked to Nythraxis Raid Arena.');
-      return;
-    }
-    if (dungeonId === 'nythraxis_boss_arena') {
-      const engaged = this.instances.find(
-        (i) => i.dungeonId === dungeonId && i.partyKey === this.instanceKeyFor(r.meta.entityId),
-      );
-      if (engaged && this.nythraxisInstanceSealed(engaged)) {
-        this.error(r.meta.entityId, 'Nythraxis is engaged — the royal door has sealed shut.');
-        return;
-      }
-    }
-    const key = this.instanceKeyFor(r.meta.entityId);
-    let inst = this.instances.find((i) => i.dungeonId === dungeonId && i.partyKey === key);
-    if (!inst) {
-      inst = this.instances.find((i) => i.dungeonId === dungeonId && i.partyKey === null);
-      if (!inst) {
-        this.error(r.meta.entityId, `All instances of ${dungeon.name} are busy. Try again soon.`);
-        return;
-      }
-      this.claimInstance(inst, key);
-    }
-    if (!party || party.members.length < dungeon.suggestedPlayers) {
-      this.emit({
-        type: 'log',
-        text: `${dungeon.name} is meant for a full party of ${dungeon.suggestedPlayers}. Tread carefully.`,
-        color: '#f96',
-        pid: r.meta.entityId,
-      });
-    }
-    const origin = this.instanceOriginOf(inst);
-    const p = r.e;
-    p.pos = this.groundPos(origin.x + dungeon.entry.x, origin.z + dungeon.entry.z);
-    p.prevPos = { ...p.pos };
-    this.rebucket(p);
-    p.facing = 0;
-    p.targetId = null;
-    p.autoAttack = false;
-    inst.emptyFor = 0;
-    this.emit({ type: 'log', text: dungeon.enterText, color: '#b9f', pid: r.meta.entityId });
-  }
-
-  private canEnterNythraxisRaid(meta: PlayerMeta): boolean {
-    return meta.questsDone.has('q_nythraxis_bound_guardian');
-  }
-
-  private isRaidLocked(meta: PlayerMeta, dungeonId: string): boolean {
-    const until = meta.raidLockouts.get(dungeonId) ?? 0;
-    if (until <= this.lockoutNowMs()) {
-      meta.raidLockouts.delete(dungeonId);
-      return false;
-    }
-    return true;
-  }
-
-  // The royal door seals once Nythraxis is engaged (pulled, alive, pre-death).
-  // It reopens on his death or a full raid wipe (handled in the encounter loop).
-  private nythraxisInstanceSealed(inst: InstanceSlot): boolean {
-    for (const id of inst.mobIds) {
-      const e = this.entities.get(id);
-      if (
-        e &&
-        e.templateId === NYTHRAXIS_BOSS_ID &&
-        !e.dead &&
-        e.inCombat &&
-        e.nythraxis &&
-        e.nythraxis.phase !== 'dead'
-      )
-        return true;
-    }
-    return false;
+    enterDungeonImpl(this.ctx, dungeonId, pid);
   }
 
   leaveDungeon(pid?: number): void {
-    const r = this.resolve(pid);
-    if (!r || r.e.dead) return;
-    const p = r.e;
-    // not inside any instance: nothing to leave (no DUNGEON_LIST[0] fallback —
-    // that silently teleported outdoor callers to the Hollow Crypt door)
-    const dungeon = dungeonAt(p.pos.x);
-    if (!dungeon) return;
-    if (dungeon.id === 'nythraxis_boss_arena') {
-      const inst = this.instances.find(
-        (i) => i.dungeonId === dungeon.id && i.partyKey === this.instanceKeyFor(p.id),
-      );
-      if (inst && this.nythraxisInstanceSealed(inst)) {
-        this.error(r.meta.entityId, 'The royal door is sealed — Nythraxis must fall first.');
-        return;
-      }
-    }
-    p.pos = this.groundPos(dungeon.doorPos.x, dungeon.doorPos.z - 4);
-    p.prevPos = { ...p.pos };
-    this.rebucket(p);
-    p.targetId = null;
-    p.autoAttack = false;
-    this.emit({ type: 'log', text: dungeon.leaveText, color: '#b9f', pid: r.meta.entityId });
+    leaveDungeonImpl(this.ctx, pid);
   }
 
   // Legacy single-dungeon entry points (tests + scripts use these).
   enterCrypt(pid?: number): void {
-    this.enterDungeon('hollow_crypt', pid);
+    enterCryptImpl(this.ctx, pid);
   }
 
   leaveCrypt(pid?: number): void {
-    this.leaveDungeon(pid);
-  }
-
-  private claimInstance(inst: InstanceSlot, key: string): void {
-    const dungeon = DUNGEONS[inst.dungeonId];
-    inst.partyKey = key;
-    inst.emptyFor = 0;
-    const origin = this.instanceOriginOf(inst);
-    for (const spawn of dungeon.spawns) {
-      const template = MOBS[spawn.mobId];
-      const level = this.rng.int(template.minLevel, template.maxLevel);
-      const mob = createMob(
-        this.nextId++,
-        template,
-        level,
-        this.groundPos(origin.x + spawn.x, origin.z + spawn.z),
-      );
-      mob.facing = Math.PI; // face the entrance
-      mob.prevFacing = mob.facing;
-      this.addEntity(mob);
-      inst.mobIds.push(mob.id);
-    }
-    for (const objDef of dungeon.objects ?? []) {
-      const obj = createGroundObject(
-        this.nextId++,
-        objDef.itemId,
-        objDef.name,
-        this.groundPos(origin.x + objDef.x, origin.z + objDef.z),
-      );
-      if (objDef.templateId) {
-        obj.templateId = objDef.templateId;
-        obj.dungeonId = objDef.dungeonId ?? null;
-        obj.objectItemId = null;
-        obj.lootable = true;
-      }
-      this.addEntity(obj);
-      inst.objectIds.push(obj.id);
-    }
-    const exit = createGroundObject(
-      this.nextId++,
-      '',
-      `${dungeon.name} Exit`,
-      this.groundPos(origin.x + dungeon.exitOffset.x, origin.z + dungeon.exitOffset.z),
-    );
-    exit.templateId = 'dungeon_exit';
-    exit.dungeonId = dungeon.id;
-    exit.objectItemId = null;
-    exit.lootable = true;
-    this.addEntity(exit);
-    inst.exitId = exit.id;
-  }
-
-  private freeInstance(inst: InstanceSlot): void {
-    for (const id of inst.mobIds) {
-      if (!this.entities.has(id)) continue;
-      // drop any player targets on the despawning mob so the delete is clean
-      for (const meta of this.players.values()) {
-        const e = this.entities.get(meta.entityId);
-        if (e?.targetId === id) e.targetId = null;
-        if (e?.comboTargetId === id) {
-          e.comboTargetId = null;
-          e.comboPoints = 0;
-        }
-      }
-      this.dropEntity(id);
-    }
-    for (const id of inst.objectIds) {
-      if (this.entities.has(id)) this.dropEntity(id);
-    }
-    if (inst.exitId !== null) this.dropEntity(inst.exitId);
-    inst.partyKey = null;
-    inst.mobIds = [];
-    inst.objectIds = [];
-    inst.exitId = null;
-    inst.emptyFor = 0;
+    leaveCryptImpl(this.ctx, pid);
   }
 
   private updateInstances(): void {
-    if (this.tickCount % 20 !== 0) return; // once a second
-    for (const inst of this.instances) {
-      if (inst.partyKey === null) continue;
-      const origin = this.instanceOriginOf(inst);
-      let occupied = false;
-      for (const meta of this.players.values()) {
-        const e = this.entities.get(meta.entityId);
-        if (e && Math.abs(e.pos.x - origin.x) < 120 && Math.abs(e.pos.z - origin.z) < 250) {
-          occupied = true;
-          break;
-        }
-      }
-      if (occupied) {
-        inst.emptyFor = 0;
-      } else {
-        inst.emptyFor += 1;
-        if (inst.emptyFor >= INSTANCE_EMPTY_TIMEOUT) this.freeInstance(inst);
-      }
-    }
+    updateInstancesImpl(this.ctx);
   }
 
   // UI-facing info objects (the same shapes the server sends over the wire)
@@ -14925,11 +14743,7 @@ export class Sim {
   }
 
   instanceSlotAt(pos: Vec3): number | null {
-    for (const inst of this.instances) {
-      const origin = this.instanceOriginOf(inst);
-      if (Math.abs(pos.x - origin.x) < 120 && Math.abs(pos.z - origin.z) < 250) return inst.slot;
-    }
-    return null;
+    return instanceSlotAtImpl(this.ctx, pos);
   }
 
   // Builds the self-only "/stats" readout line from live entity state. The

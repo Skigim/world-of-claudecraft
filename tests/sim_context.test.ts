@@ -18,6 +18,7 @@ import type { Entity, SimEvent } from '../src/sim/types';
 // name). Keep in sync with SimContextCallbacks.
 const CALLBACK_KEYS = [
   'emit',
+  'error',
   'dealDamage',
   'handleDeath',
   'cancelCast',
@@ -61,6 +62,12 @@ const CALLBACK_KEYS = [
   'delveModuleEntry',
   'failDelveRun',
   'pulseGroundAoE',
+  // I1 dungeon instancing + the shared raid-lockout clock.
+  'lockoutNowMs',
+  'instanceKeyFor',
+  'instanceOriginOf',
+  'enterDungeon',
+  'leaveDungeon',
 ] as const;
 
 // A fully-spied fake host. `clock` is mutable so a test can prove the context reads
@@ -82,13 +89,17 @@ function makeFakeHost() {
     get entities() {
       return entities;
     },
+    players: new Map(),
+    nextId: 1,
     grid: new SpatialGrid(),
     playerGrid: new SpatialGrid(),
     delayedEvents: [],
     groundAoEs: [],
     dungeonDoorIds: null,
+    instances: [],
     arenaMatches: new Map(),
     emit: vi.fn(),
+    error: vi.fn(),
     dealDamage: vi.fn(),
     handleDeath: vi.fn(),
     cancelCast: vi.fn(),
@@ -120,6 +131,11 @@ function makeFakeHost() {
     onInventoryChangedForQuests: vi.fn(),
     checkQuestReady: vi.fn(),
     countItem: vi.fn(() => 0),
+    lockoutNowMs: vi.fn(() => 0),
+    instanceKeyFor: vi.fn(() => 'solo:0'),
+    instanceOriginOf: vi.fn(() => ({ x: 0, z: 0 })),
+    enterDungeon: vi.fn(),
+    leaveDungeon: vi.fn(),
     addEntity: vi.fn(),
     dropEntity: vi.fn(),
     rebucket: vi.fn(),

@@ -695,17 +695,19 @@ function scanEmitCandidates(simSrc: string, serverSrc: string): Cand[] {
     cands.push({ type: m[1] as Cand['type'], tmpl: unq(m[2]) });
     cands.push({ type: m[1] as Cand['type'], tmpl: unq(m[3]) });
   }
-  const er = new RegExp(`this\\.error\\([^,]+,\\s*${lit}\\s*\\)`, 'g');
+  // `(?:this|ctx)\.` matches BOTH the Sim class form (this.error) and the extracted
+  // free-function modules' form (ctx.error in instances/dungeons.ts etc.).
+  const er = new RegExp(`(?:this|ctx)\\.error\\([^,]+,\\s*${lit}\\s*\\)`, 'g');
   for (const m of simSrc.matchAll(er)) cands.push({ type: 'error', tmpl: unq(m[1]) });
   // Variable-routed sim emits: this.notice(pid, '<lit>') (emits 'log') and
   // this.stopFollow(p, '<lit>') (arg2 routes through this.error) — blind spots.
   // The first-arg class excludes ),(,newline so a single-arg call (e.g.
   // `this.stopFollow(p);`) cannot span into the NEXT call's literal.
-  const nr = new RegExp(`this\\.(?:notice|stopFollow)\\([^,()\\n]+,\\s*${lit}`, 'g');
+  const nr = new RegExp(`(?:this|ctx)\\.(?:notice|stopFollow)\\([^,()\\n]+,\\s*${lit}`, 'g');
   for (const m of simSrc.matchAll(nr)) cands.push({ type: 'log', tmpl: unq(m[1]) });
   // Ternary args to error/notice/stopFollow (both branches).
   const ert = new RegExp(
-    `this\\.(?:error|notice|stopFollow)\\([^,()\\n]+,\\s*${cond}\\?\\s*${lit}\\s*:\\s*${lit}`,
+    `(?:this|ctx)\\.(?:error|notice|stopFollow)\\([^,()\\n]+,\\s*${cond}\\?\\s*${lit}\\s*:\\s*${lit}`,
     'g',
   );
   for (const m of simSrc.matchAll(ert)) {
@@ -748,7 +750,12 @@ function scanEmitCandidates(simSrc: string, serverSrc: string): Cand[] {
 // hud.ts source) + the real localizeServerText/localizeSimText fallbacks. ---
 describe('S3: every sim.ts emit is recognized (drift guard)', () => {
   const hudSrc = fs.readFileSync(path.resolve(process.cwd(), 'src/ui/hud.ts'), 'utf8');
-  const simSrc = fs.readFileSync(path.resolve(process.cwd(), 'src/sim/sim.ts'), 'utf8');
+  // I1 moved the dungeon-instancing player emits (raid-door seals, lockout, "instances
+  // busy") from sim.ts into instances/dungeons.ts; concat it so those moved literals stay
+  // drift-guarded. (Same pattern other extractions use for their modules.)
+  const simSrc =
+    fs.readFileSync(path.resolve(process.cwd(), 'src/sim/sim.ts'), 'utf8') +
+    fs.readFileSync(path.resolve(process.cwd(), 'src/sim/instances/dungeons.ts'), 'utf8');
   // Hardened S3: also scan the authoritative server's player-facing emits. The
   // server (server/game.ts) is language-agnostic like the sim and re-localized
   // client-side by localizeServerText; previously the guard read only sim.ts, so

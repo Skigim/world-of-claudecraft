@@ -15,9 +15,18 @@
 import type { TalentModifiers } from './content/talents';
 import type { DelayedEvent, GroundAoE } from './entity_roster';
 import type { Rng } from './rng';
-import type { ArenaMatch, DuelState, Party, PlayerMeta } from './sim';
+import type { ArenaMatch, DuelState, InstanceSlot, Party, PlayerMeta } from './sim';
 import type { SpatialGrid } from './spatial';
-import type { Aura, CrowdControlDrCategory, DelveRun, Entity, QuestProgress, SimEvent, Vec3 } from './types';
+import type {
+  Aura,
+  CrowdControlDrCategory,
+  DelveRun,
+  Entity,
+  ErrorReason,
+  QuestProgress,
+  SimEvent,
+  Vec3,
+} from './types';
 
 // Live primitive views onto the running Sim. These are GETTERS, not snapshots:
 // `time`/`tickCount` advance every tick, and the `rng`/`entities` identities are
@@ -28,6 +37,13 @@ export interface SimContextPrimitives {
   readonly time: number;
   readonly tickCount: number;
   readonly entities: Map<number, Entity>;
+  // Live player roster (keyed by pid). Read-write entity state lives on the entity;
+  // this view is the metadata map the systems iterate. (Also added by A1/C1 with the
+  // same signature; dedupe to one declaration at integration.)
+  readonly players: Map<number, PlayerMeta>;
+  // The monotonically increasing entity-id counter. Read-write so spawners (I1's
+  // claimInstance) allocate ids exactly as `this.nextId++` did on Sim.
+  nextId: number;
   // Spatial indexes kept roster-exact alongside `entities` (E1). Stay public on Sim
   // too (server/game.ts queries them); exposed here as live views for the roster ops.
   readonly grid: SpatialGrid;
@@ -40,7 +56,12 @@ export interface SimContextPrimitives {
   delayedEvents: DelayedEvent[];
   readonly groundAoEs: GroundAoE[];
   // dungeon-door registry (I1) appended to on dungeon_door spawn; null until built.
-  readonly dungeonDoorIds: number[] | null;
+  // Read-write: I1's updateDoorTriggers lazily assigns the array on first build.
+  dungeonDoorIds: number[] | null;
+  // The dungeon-instance slot pool (I1), seeded in the Sim ctor. The dungeons module
+  // reads/finds/iterates it and mutates slot fields in place; the array identity
+  // stays Sim-owned (like delayedEvents/groundAoEs), so this is a live read-only view.
+  readonly instances: InstanceSlot[];
   // live arena bouts keyed by every participant pid (A2); release-spirit early-bails
   // when the dead player is mid-bout.
   readonly arenaMatches: Map<number, ArenaMatch>;
@@ -52,6 +73,21 @@ export interface SimContextPrimitives {
 export interface SimContextCallbacks {
   // Event sink (core). Routes to `Sim.emit`.
   emit(ev: SimEvent): void;
+  // Player-facing error notice (core; also added by A1/G1a with the same signature,
+  // dedupe at integration). Routes to `Sim.error`.
+  error(pid: number, text: string, reason?: ErrorReason): void;
+
+  // I1 dungeon instancing. `lockoutNowMs` is the shared raid-lockout clock (stays on
+  // Sim; N1 also writes lockouts through it). instanceKeyFor/instanceOriginOf/
+  // enterDungeon/leaveDungeon are exposed so foreign spawn/interaction/party code
+  // (N1, the delve slice, quest spawns, the interaction dispatchers) reaches them
+  // through the seam; implemented in instances/dungeons, Sim keeps thin delegates so
+  // existing `this.enterDungeon` etc. call sites resolve unchanged.
+  lockoutNowMs(): number;
+  instanceKeyFor(pid: number): string;
+  instanceOriginOf(inst: InstanceSlot): { x: number; z: number };
+  enterDungeon(dungeonId: string, pid?: number): void;
+  leaveDungeon(pid?: number): void;
 
   // C1 damage/death hub + the casting/leash/arena/duel/fiesta/loot teardown it
   // drives mid-tick. `dealDamage` is the post-mitigation entry (crit/dodge/miss and
@@ -173,6 +209,15 @@ export function createSimContext(host: SimContextHost): SimContext {
     get entities() {
       return host.entities;
     },
+    get players() {
+      return host.players;
+    },
+    get nextId() {
+      return host.nextId;
+    },
+    set nextId(v) {
+      host.nextId = v;
+    },
     get grid() {
       return host.grid;
     },
@@ -191,10 +236,22 @@ export function createSimContext(host: SimContextHost): SimContext {
     get dungeonDoorIds() {
       return host.dungeonDoorIds;
     },
+    set dungeonDoorIds(v) {
+      host.dungeonDoorIds = v;
+    },
+    get instances() {
+      return host.instances;
+    },
     get arenaMatches() {
       return host.arenaMatches;
     },
     emit: host.emit,
+    error: host.error,
+    lockoutNowMs: host.lockoutNowMs,
+    instanceKeyFor: host.instanceKeyFor,
+    instanceOriginOf: host.instanceOriginOf,
+    enterDungeon: host.enterDungeon,
+    leaveDungeon: host.leaveDungeon,
     dealDamage: host.dealDamage,
     handleDeath: host.handleDeath,
     cancelCast: host.cancelCast,

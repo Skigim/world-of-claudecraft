@@ -17,6 +17,13 @@ export const CAST_COMPLETE_EPS = 1e-9;
 export const FISHING_CAST_ID = 'fishing';
 export const FISHING_CAST_NAME = 'Fishing';
 export const FISHING_CAST_TIME = 5;
+// Nythraxis raid-boss template id. Shared: the Nythraxis encounter loop (sim.ts)
+// and the dungeon raid-door seal (instances/dungeons.ts) both key off it.
+// (Also relocated here by C1 with the same value; dedupe to one at integration.)
+export const NYTHRAXIS_BOSS_ID = 'nythraxis_scourge_of_thornpeak';
+// Seconds an empty instance idles before it resets. Shared by the dungeon instance
+// reaper (instances/dungeons.ts) and the delve reaper (sim.ts).
+export const INSTANCE_EMPTY_TIMEOUT = 300;
 
 export type PlayerClass =
   | 'warrior'
