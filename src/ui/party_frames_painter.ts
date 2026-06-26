@@ -68,10 +68,10 @@ export class PartyFramesPainter {
     private readonly writers: PainterHostWriters,
     private readonly container: HTMLElement,
     private readonly deps: PartyFramesPainterDeps,
-    private readonly doc: Document = document,
     // Injectable so a Node test can drive the pool without a DOM (the default builds
-    // real rows in the browser).
-    private readonly buildRow: typeof createPartyRow = createPartyRow,
+    // real rows in the browser); createPartyRow takes this doc, so injecting it is
+    // enough to make row construction Node-safe.
+    private readonly doc: Document = document,
   ) {
     this.rowDeps = { onTarget: deps.onTarget, onContextMenu: deps.onContextMenu };
   }
@@ -97,22 +97,51 @@ export class PartyFramesPainter {
       }
     }
     // Create / reuse a row per member and update it in place, in member order.
+    const ordered: PartyRow[] = [];
     for (const m of members) {
       let row = this.pool.get(m.pid);
       if (!row) {
-        row = this.free.pop() ?? this.buildRow(this.doc, this.writers, this.rowDeps, m);
+        row = this.free.pop() ?? createPartyRow(this.doc, this.writers, this.rowDeps, m);
         this.pool.set(m.pid, row);
       }
       // Update the LIVE slot BEFORE painting so the crest gate + listeners read the
       // current member, never a stale captured one (top-risk 3).
       row.slot.member = m;
       this.paintRow(row, m, leader);
-      this.container.appendChild(row.el);
+      ordered.push(row);
     }
-    // Keep the leave button last and re-localize its label (elided).
+    // Reconcile the DOM order with the MINIMUM number of node moves, then keep the
+    // leave button last and re-localize its label (elided). A steady-state rebuild
+    // (same members + order, only stats changed: the dominant raid-combat case)
+    // performs ZERO node moves, so the keyed pool costs no per-rebuild DOM
+    // relocation and a focused row keeps its focus. (Moving a node via
+    // insertBefore/appendChild blurs it when it is the active element, which is why
+    // the quest tracker re-focuses manually after a rebuild; re-appending every row
+    // each frame would yank focus off a party row on every combat tick.)
     const leave = this.ensureLeaveButton();
-    this.container.appendChild(leave);
+    this.reconcileOrder(ordered, leave);
     this.writers.setText(leave, this.deps.leaveLabel());
+  }
+
+  // Walk the desired child sequence (the member rows in order, then the leave
+  // button) against the container's current children, moving a node into place ONLY
+  // when it is not already there. The standard keyed-list reconcile: O(N) compares
+  // and exactly as many insertBefore moves as nodes that actually changed position
+  // (zero when nothing moved). Departed rows were already detached in sync() and
+  // new / recycled rows are detached, so every move here is a deliberate (re)insert
+  // that restores member order; an unchanged order touches the DOM not at all. This
+  // is the pooled-node ordering discipline the P12 auras / P13 FCT pools reuse.
+  private reconcileOrder(rows: PartyRow[], leave: HTMLButtonElement): void {
+    let ref: ChildNode | null = this.container.firstChild;
+    const place = (node: ChildNode): void => {
+      if (node === ref) {
+        ref = ref.nextSibling;
+      } else {
+        this.container.insertBefore(node, ref);
+      }
+    };
+    for (const row of rows) place(row.el);
+    place(leave);
   }
 
   /** Re-localize every pooled and free row (the badge tooltips) plus the leave label
