@@ -116,6 +116,16 @@ export class ArenaWindow {
     this.openerFocus = null;
   }
 
+  // Re-localize the open window after an in-game language switch. The render-skip
+  // signature is text-independent (the offline sentinel, or a JSON of ids/numbers), so a
+  // language change never moves it on its own; clearing it forces exactly one rebuild with
+  // fresh t(). Self-gated on isOpen so the language fan-out can call it unconditionally.
+  relocalize(): void {
+    if (!this.isOpen) return;
+    this.lastSig = '';
+    this.render();
+  }
+
   // Best-effort all-time ladder pull. Throttled; silently no-ops offline (no
   // server) so the panel still shows the live online ladder either way.
   private fetchLeaderboard(format: ArenaFormat): void {

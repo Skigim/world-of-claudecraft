@@ -357,6 +357,16 @@ describe('client HTML shell', () => {
     ).toBe(true);
   });
 
+  it('drives the arena window relocalize from refreshLocalizedDynamicUi (live language switch)', () => {
+    // The arena window's render-skip signature is text-independent (the offline sentinel,
+    // or a JSON of ids/numbers), so a language switch never moves it on its own; the
+    // localized-UI fan-out must call its relocalize() to force one rebuild with fresh t().
+    const refresh = hudTs.slice(hudTs.indexOf('private refreshLocalizedDynamicUi(): void {'));
+    expect(
+      refresh.slice(0, refresh.indexOf('\n  }')).includes('this.arenaWindow.relocalize();'),
+    ).toBe(true);
+  });
+
   it('routes the cold-window closeManagedWindow cases through their painter close() for focus-return (P18b item 8)', () => {
     // closeManagedWindow must hand each cold window to its own painter close() so focus
     // returns to the opener (WCAG 2.4.3), not an inline el.style.display='none' that drops

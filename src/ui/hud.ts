@@ -380,29 +380,6 @@ const castDisplayName = (id: string): string => {
   return ability ? abilityDisplayName(ability) : id;
 };
 
-const _FAMILY_GLYPH: Record<string, string> = {
-  beast: '🐾',
-  humanoid: '🗡️',
-  murloc: '🐟',
-  spider: '🕷️',
-  kobold: '⛏️',
-  undead: '💀',
-  troll: '🦴',
-  ogre: '👊',
-  elemental: '🌀',
-  dragonkin: '🐉',
-};
-const _CLASS_GLYPH: Record<string, string> = {
-  warrior: '⚔️',
-  paladin: '🔨',
-  hunter: '🏹',
-  rogue: '🗡️',
-  priest: '✝️',
-  shaman: '🌩️',
-  mage: '🔮',
-  warlock: '🕯️',
-  druid: '🐻',
-};
 const RESOURCE_LABEL_KEYS: Record<ResourceType, TranslationKey> = {
   mana: 'abilityUi.resources.mana',
   rage: 'abilityUi.resources.rage',
@@ -3051,6 +3028,10 @@ export class Hud {
       this.renderVendor();
     if (this.marketWindow.isOpen) this.marketWindow.render();
     this.charWindow.renderIfOpen();
+    // The arena window's render-skip signature is text-independent (offline sentinel or a
+    // JSON of ids/numbers), so a language switch alone never moves it; relocalize() forces
+    // one rebuild with fresh t() (self-gated on isOpen).
+    this.arenaWindow.relocalize();
     const dialog = $('#quest-dialog');
     if (dialog.style.display !== 'block' || this.openGossipNpcId === null) return;
     const npc = this.sim.entities.get(this.openGossipNpcId);
@@ -4419,7 +4400,6 @@ export class Hud {
       // Combat = a mob is on us, or we traded blows in the last few seconds
       // (the wire protocol doesn't ship the inCombat flag).
       let aggroed = false;
-      let _nythraxisAlive = false;
       let bossEngaged = false; // the Nythraxis raid boss is pulled -> its own track
       const dungeon = dungeonAt(p.pos.x);
       const inNythraxisArena = dungeon?.id === 'nythraxis_boss_arena';
@@ -4427,7 +4407,6 @@ export class Hud {
         if (e.kind !== 'mob' || e.dead) continue;
         if (e.aggroTargetId === sim.playerId) aggroed = true;
         if (e.templateId === 'nythraxis_scourge_of_thornpeak') {
-          _nythraxisAlive = true;
           if (e.aggroTargetId !== null) bossEngaged = true;
         }
       }
@@ -9091,14 +9070,14 @@ export class Hud {
     el.id = 'confirm-dialog';
     el.className = 'window panel';
     el.style.display = 'block';
-    // Left inline (NOT markDialogRoot): this prompt sets no tabindex and carries no
-    // accessible name today, so folding it through the helper would ADD tabindex=-1 and
-    // change behavior (P18a is byte-preserving). Naming + tabindex for this dialog is a
-    // later per-window a11y task, not this extraction.
+    // Kept inline rather than folded onto markDialogRoot: that helper would also set
+    // tabindex=-1 on the root, which this focusManager-trapped prompt does not use
+    // (P18a is byte-preserving on the trap). The dialog is named via aria-labelledby.
     el.setAttribute('role', 'dialog');
     el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-labelledby', 'confirm-dialog-title');
     el.innerHTML =
-      `<div class="panel-title"><span>${esc(title)}</span><button type="button" class="x-btn" data-cancel aria-label="${esc(cancelText)}">${svgIcon('close')}</button></div>` +
+      `<div class="panel-title"><span id="confirm-dialog-title">${esc(title)}</span><button type="button" class="x-btn" data-cancel aria-label="${esc(cancelText)}">${svgIcon('close')}</button></div>` +
       `<div class="cd-body">${esc(body)}</div>` +
       `<div class="cd-actions"><button type="button" class="btn" data-cancel>${esc(cancelText)}</button><button type="button" class="btn cd-ok" data-ok>${esc(okText)}</button></div>`;
     document.body.appendChild(el);
@@ -9145,11 +9124,16 @@ export class Hud {
     el.id = 'confirm-dialog';
     el.className = 'window panel';
     el.style.display = 'block';
+    // Same named, modal dialog semantics as confirmDialog (this reuses the #confirm-dialog
+    // chrome and is focus-trapped below); without them it announces as a bare unlabelled div.
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-labelledby', 'confirm-dialog-title');
     const field = opts.multiline
       ? `<textarea class="cd-input" rows="3" ${opts.readOnly ? 'readonly' : ''} placeholder="${esc(opts.placeholder ?? '')}">${esc(opts.value ?? '')}</textarea>`
       : `<input class="cd-input" type="text" ${opts.readOnly ? 'readonly' : ''} placeholder="${esc(opts.placeholder ?? '')}" value="${esc(opts.value ?? '')}">`;
     el.innerHTML =
-      `<div class="panel-title"><span>${esc(opts.title)}</span><span class="x-btn" data-cancel>${svgIcon('close')}</span></div>` +
+      `<div class="panel-title"><span id="confirm-dialog-title">${esc(opts.title)}</span><span class="x-btn" data-cancel>${svgIcon('close')}</span></div>` +
       (opts.label ? `<div class="cd-body">${esc(opts.label)}</div>` : '') +
       `<div class="cd-field">${field}</div>` +
       `<div class="cd-actions"><button class="btn" data-cancel>${esc(opts.cancelText ?? t('game.talents.cancel'))}</button>` +
