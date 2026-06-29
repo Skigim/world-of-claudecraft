@@ -3523,7 +3523,7 @@ export const sv_SE: EnTranslations = {
       },
       "stealth": {
         "name": "Smyg",
-        "description": "Döljer dig i skuggorna: fiender lägger knappt märke till dig, men du rör dig 30 % långsammare. Att anfalla eller ta skada bryter Smyg. Kasta igen för att kliva fram."
+        "description": "Döljer dig i skuggorna: fiender lägger knappt märke till dig, men du rör dig 50 % långsammare. Att anfalla eller ta skada bryter Smyg. Kasta igen för att kliva fram."
       },
       "adrenaline_rush": {
         "name": "Adrenalinrus",
@@ -3555,7 +3555,7 @@ export const sv_SE: EnTranslations = {
       },
       "vanish": {
         "name": "Försvinn",
-        "description": "Försvinn ur sikte och gå in i Smyg även i strid. Du rör dig 30 % långsammare medan du är dold. Varar i upp till 10 sek."
+        "description": "Försvinn ur sikte och gå in i Smyg även i strid. Du rör dig 50 % långsammare medan du är dold. Varar i upp till 10 sek."
       },
       "instant_poison": {
         "name": "Snabbverkande gift",
@@ -3963,7 +3963,7 @@ export const sv_SE: EnTranslations = {
       },
       "prowl": {
         "name": "Smyga",
-        "description": "Gå i smyg medan du är i vargform. Kan inte användas i strid."
+        "description": "Gå i smyg medan du är i vargform och rör dig 50 % långsammare. Kan inte användas i strid."
       },
       "rake": {
         "name": "Krafsa",
