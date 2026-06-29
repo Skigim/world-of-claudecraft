@@ -179,7 +179,7 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     id: 'greyjaw_pelt_cloak',
     name: "Greyjaw's Pelt Leggings",
     kind: 'armor',
-    armorType: 'leather',
+    armorType: 'cloth',
     slot: 'legs',
     quality: 'uncommon',
     stats: { armor: 35, sta: 1, agi: 1 },

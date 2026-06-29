@@ -803,11 +803,11 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
     stats: { armor: 80, agi: 5 }, sellValue: 350, requiredClass: ROG,
   },
   trollhide_leggings: {
-    id: 'trollhide_leggings', name: 'Trollhide Leggings', kind: 'armor', armorType: 'leather', slot: 'legs', quality: 'uncommon',
+    id: 'trollhide_leggings', name: 'Trollhide Leggings', kind: 'armor', armorType: 'cloth', slot: 'legs', quality: 'uncommon',
     stats: { armor: 55, sta: 3, str: 2 }, sellValue: 280,
   },
   marshstrider_boots: {
-    id: 'marshstrider_boots', name: 'Marshstrider Boots', kind: 'armor', armorType: 'leather', slot: 'feet', quality: 'uncommon',
+    id: 'marshstrider_boots', name: 'Marshstrider Boots', kind: 'armor', armorType: 'cloth', slot: 'feet', quality: 'uncommon',
     stats: { armor: 40, agi: 2, sta: 2 }, sellValue: 250,
   },
   broodmother_silk_robe: {
@@ -869,7 +869,7 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
     weapon: { min: 9, max: 15, speed: 1.7, dagger: true }, stats: { agi: 5, sta: 2 }, sellValue: 1200, requiredClass: ROG,
   },
   knight_commanders_greaves: {
-    id: 'knight_commanders_greaves', name: "Knight-Commander's Greaves", kind: 'armor', armorType: 'mail', slot: 'legs', quality: 'rare',
+    id: 'knight_commanders_greaves', name: "Knight-Commander's Greaves", kind: 'armor', armorType: 'cloth', slot: 'legs', quality: 'rare',
     stats: { armor: 95, sta: 4 }, sellValue: 1000,
   },
   tidescale_vest: {
