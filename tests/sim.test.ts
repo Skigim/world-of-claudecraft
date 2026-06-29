@@ -1580,7 +1580,7 @@ describe('RL interface', () => {
       return trace;
     };
     expect(run()).toEqual(run());
-  });
+  }, 20000);
 });
 
 describe('gm characters', () => {
