@@ -12,8 +12,8 @@ import { iconDataUrl } from '../src/ui/icons';
 // the early-return image branch of iconDataUrl. Ids without an image fall through to
 // the procedural canvas path, which needs a DOM and is covered by the renderer E2E.
 
-// A representative DoT (debuff) per applicable class plus a few persistent buffs —
-// every id below is in ABILITY_IMAGE_IDS, so it has a shipped PNG.
+// A representative DoT (debuff) per applicable class plus a few persistent buffs,
+// every id below is in ABILITY_IMAGE_IDS, so it has a shipped WebP icon.
 const IMAGE_AURA_IDS = [
   'corruption',
   'curse_of_agony',
