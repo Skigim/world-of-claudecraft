@@ -20,7 +20,8 @@ const root = process.cwd();
 const skillsDir = path.join(root, 'public/ui/skills');
 
 // Foreign (non-webp) raster inputs we know how to convert. mapping.json and any .webp
-// are left alone.
+// are left alone. Multi-frame inputs (animated .gif, multi-page .tif/.tiff) convert
+// first-frame-only; the ability icon set is static, so that is the intended behavior.
 const SOURCE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tif', '.tiff', '.avif']);
 
 const qFlag = process.argv.indexOf('--quality');
@@ -63,6 +64,26 @@ async function main() {
     return;
   }
 
+  // Refuse the whole batch on a destination collision before touching disk: two foreign
+  // sources sharing a basename in one dir (foo.png + foo.jpg) both map to foo.webp, so the
+  // second encode would overwrite the first and both originals would be unlinked (silent data
+  // loss). Hard-fail with the conflicting pair instead.
+  const byDst = new Map();
+  for (const src of sources) {
+    const dst = `${src.slice(0, -path.extname(src).length)}.webp`;
+    const list = byDst.get(dst) ?? [];
+    list.push(src);
+    byDst.set(dst, list);
+  }
+  const collisions = [...byDst.entries()].filter(([, list]) => list.length > 1);
+  if (collisions.length > 0) {
+    console.error('[assets:skills] refusing to convert: multiple sources map to the same .webp');
+    for (const [dst, list] of collisions) {
+      console.error(`  ${rel(dst)} <- ${list.map(rel).join(', ')}`);
+    }
+    process.exit(1);
+  }
+
   let converted = 0;
   let srcBytes = 0;
   let webpBytes = 0;
@@ -70,8 +91,11 @@ async function main() {
     const dst = `${src.slice(0, -path.extname(src).length)}.webp`;
     const before = statSync(src).size;
     // Encode FIRST, then delete the original only after a successful write, so a failed
-    // encode never loses the source. .rotate() auto-orients from EXIF; .toColorspace('srgb')
-    // normalizes any wide-gamut source instead of misreading it once metadata is stripped.
+    // encode never loses the source. .rotate() auto-orients from EXIF. .toColorspace('srgb')
+    // flattens the working buffer to 8-bit sRGB; note it is NOT an ICC-managed conversion and
+    // the source profile is stripped, so a profiled wide-gamut (Display-P3) input would be
+    // reinterpreted, not color-converted. Inputs are expected to already be sRGB (the icon
+    // packs are).
     await sharp(src).rotate().toColorspace('srgb').webp(webpOptions).toFile(dst);
     unlinkSync(src);
     const after = statSync(dst).size;
