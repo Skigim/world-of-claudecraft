@@ -267,7 +267,7 @@ export const TEMPLE_ITEMS: Record<string, ItemDef> = {
 
   // --- quest greens (uncommon) ---
   tidewatchers_wraps: {
-    id: 'tidewatchers_wraps', name: "Tidewatcher's Wraps", kind: 'armor', slot: 'legs', quality: 'uncommon',
+    id: 'tidewatchers_wraps', name: "Tidewatcher's Wraps", kind: 'armor', armorType: 'cloth', slot: 'legs', quality: 'uncommon',
     stats: { armor: 65, sta: 3, spi: 2 }, sellValue: 600,
   },
   moonscale_saber: {
@@ -285,15 +285,15 @@ export const TEMPLE_ITEMS: Record<string, ItemDef> = {
 
   // --- quest & dungeon blues (rare) ---
   drownstep_sabatons: {
-    id: 'drownstep_sabatons', name: 'Drownstep Sabatons', kind: 'armor', slot: 'feet', quality: 'rare',
+    id: 'drownstep_sabatons', name: 'Drownstep Sabatons', kind: 'armor', armorType: 'mail', slot: 'feet', quality: 'rare',
     stats: { armor: 90, sta: 4, str: 2 }, sellValue: 1400, requiredClass: WAR,
   },
   drownstep_slippers: {
-    id: 'drownstep_slippers', name: 'Drownstep Slippers', kind: 'armor', slot: 'feet', quality: 'rare',
+    id: 'drownstep_slippers', name: 'Drownstep Slippers', kind: 'armor', armorType: 'cloth', slot: 'feet', quality: 'rare',
     stats: { armor: 35, int: 5, spi: 3 }, sellValue: 1400, requiredClass: MAG,
   },
   drownstep_treads: {
-    id: 'drownstep_treads', name: 'Drownstep Treads', kind: 'armor', slot: 'feet', quality: 'rare',
+    id: 'drownstep_treads', name: 'Drownstep Treads', kind: 'armor', armorType: 'leather', slot: 'feet', quality: 'rare',
     stats: { armor: 60, agi: 6, sta: 2 }, sellValue: 1400, requiredClass: ROG,
   },
   drownedmoon_maul: {
@@ -309,23 +309,23 @@ export const TEMPLE_ITEMS: Record<string, ItemDef> = {
     weapon: { min: 16, max: 25, speed: 1.7, dagger: true }, stats: { agi: 9, sta: 3 }, sellValue: 2200, requiredClass: ROG,
   },
   moonshroud_breastplate: {
-    id: 'moonshroud_breastplate', name: 'Moonshroud Breastplate', kind: 'armor', slot: 'chest', quality: 'rare',
+    id: 'moonshroud_breastplate', name: 'Moonshroud Breastplate', kind: 'armor', armorType: 'mail', slot: 'chest', quality: 'rare',
     stats: { armor: 200, sta: 7, str: 4 }, sellValue: 2400, requiredClass: WAR,
   },
   moonshroud_robe: {
-    id: 'moonshroud_robe', name: 'Moonshroud Robe', kind: 'armor', slot: 'chest', quality: 'rare',
+    id: 'moonshroud_robe', name: 'Moonshroud Robe', kind: 'armor', armorType: 'cloth', slot: 'chest', quality: 'rare',
     stats: { armor: 70, int: 10, spi: 5 }, sellValue: 2400, requiredClass: MAG,
   },
   moonshroud_tunic: {
-    id: 'moonshroud_tunic', name: 'Moonshroud Tunic', kind: 'armor', slot: 'chest', quality: 'rare',
+    id: 'moonshroud_tunic', name: 'Moonshroud Tunic', kind: 'armor', armorType: 'leather', slot: 'chest', quality: 'rare',
     stats: { armor: 125, agi: 9, sta: 4 }, sellValue: 2400, requiredClass: ROG,
   },
   ysols_pearl_greaves: {
-    id: 'ysols_pearl_greaves', name: "Ysolei's Pearl Greaves", kind: 'armor', slot: 'legs', quality: 'rare',
+    id: 'ysols_pearl_greaves', name: "Ysolei's Pearl Greaves", kind: 'armor', armorType: 'mail', slot: 'legs', quality: 'rare',
     stats: { armor: 130, sta: 6, spi: 3 }, sellValue: 2000,
   },
   selthes_seastriders: {
-    id: 'selthes_seastriders', name: "Selthe's Sea-Striders", kind: 'armor', slot: 'feet', quality: 'rare',
+    id: 'selthes_seastriders', name: "Selthe's Sea-Striders", kind: 'armor', armorType: 'leather', slot: 'feet', quality: 'rare',
     stats: { armor: 75, agi: 4, sta: 3 }, sellValue: 1200,
   },
 

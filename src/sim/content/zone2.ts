@@ -791,27 +791,27 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
     weapon: { min: 7, max: 12, speed: 1.7, dagger: true }, stats: { agi: 4 }, sellValue: 300, requiredClass: ROG,
   },
   drownedguard_breastplate: {
-    id: 'drownedguard_breastplate', name: 'Drownedguard Breastplate', kind: 'armor', slot: 'chest', quality: 'uncommon',
+    id: 'drownedguard_breastplate', name: 'Drownedguard Breastplate', kind: 'armor', armorType: 'mail', slot: 'chest', quality: 'uncommon',
     stats: { armor: 130, sta: 4 }, sellValue: 350, requiredClass: WAR,
   },
   fenmist_robe: {
-    id: 'fenmist_robe', name: 'Fenmist Robe', kind: 'armor', slot: 'chest', quality: 'uncommon',
+    id: 'fenmist_robe', name: 'Fenmist Robe', kind: 'armor', armorType: 'cloth', slot: 'chest', quality: 'uncommon',
     stats: { armor: 45, int: 5, spi: 3 }, sellValue: 350, requiredClass: MAG,
   },
   eelskin_tunic: {
-    id: 'eelskin_tunic', name: 'Eelskin Tunic', kind: 'armor', slot: 'chest', quality: 'uncommon',
+    id: 'eelskin_tunic', name: 'Eelskin Tunic', kind: 'armor', armorType: 'leather', slot: 'chest', quality: 'uncommon',
     stats: { armor: 80, agi: 5 }, sellValue: 350, requiredClass: ROG,
   },
   trollhide_leggings: {
-    id: 'trollhide_leggings', name: 'Trollhide Leggings', kind: 'armor', slot: 'legs', quality: 'uncommon',
+    id: 'trollhide_leggings', name: 'Trollhide Leggings', kind: 'armor', armorType: 'leather', slot: 'legs', quality: 'uncommon',
     stats: { armor: 55, sta: 3, str: 2 }, sellValue: 280,
   },
   marshstrider_boots: {
-    id: 'marshstrider_boots', name: 'Marshstrider Boots', kind: 'armor', slot: 'feet', quality: 'uncommon',
+    id: 'marshstrider_boots', name: 'Marshstrider Boots', kind: 'armor', armorType: 'leather', slot: 'feet', quality: 'uncommon',
     stats: { armor: 40, agi: 2, sta: 2 }, sellValue: 250,
   },
   broodmother_silk_robe: {
-    id: 'broodmother_silk_robe', name: "Broodmother's Silk Robe", kind: 'armor', slot: 'chest', quality: 'uncommon',
+    id: 'broodmother_silk_robe', name: "Broodmother's Silk Robe", kind: 'armor', armorType: 'cloth', slot: 'chest', quality: 'uncommon',
     stats: { armor: 42, int: 4, spi: 2 }, sellValue: 300, requiredClass: MAG,
   },
   voss_sanctified_mace: {
@@ -823,7 +823,7 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
     weapon: { min: 8, max: 14, speed: 1.7, dagger: true }, stats: { agi: 5, sta: 2 }, sellValue: 480, requiredClass: ROG,
   },
   mirejaw_scale_vest: {
-    id: 'mirejaw_scale_vest', name: 'Mirejaw Scale Vest', kind: 'armor', slot: 'chest', quality: 'uncommon',
+    id: 'mirejaw_scale_vest', name: 'Mirejaw Scale Vest', kind: 'armor', armorType: 'mail', slot: 'chest', quality: 'uncommon',
     stats: { armor: 115, str: 2, sta: 3 }, sellValue: 480, requiredClass: WAR,
   },
   // --- Sloomtooth the Drowned chase drops (rare) ---
@@ -840,7 +840,7 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
     weapon: { min: 16, max: 28, speed: 3.0 }, stats: { int: 6, spi: 3 }, sellValue: 1400, requiredClass: MAG,
   },
   nhalias_funeral_wraps: {
-    id: 'nhalias_funeral_wraps', name: "Nhalia's Funeral Wraps", kind: 'armor', slot: 'legs', quality: 'uncommon',
+    id: 'nhalias_funeral_wraps', name: "Nhalia's Funeral Wraps", kind: 'armor', armorType: 'cloth', slot: 'legs', quality: 'uncommon',
     stats: { armor: 48, int: 5, spi: 2 }, sellValue: 480, requiredClass: MAG,
   },
   fen_reaver_glaive: {
@@ -869,35 +869,35 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
     weapon: { min: 9, max: 15, speed: 1.7, dagger: true }, stats: { agi: 5, sta: 2 }, sellValue: 1200, requiredClass: ROG,
   },
   knight_commanders_greaves: {
-    id: 'knight_commanders_greaves', name: "Knight-Commander's Greaves", kind: 'armor', slot: 'legs', quality: 'rare',
+    id: 'knight_commanders_greaves', name: "Knight-Commander's Greaves", kind: 'armor', armorType: 'mail', slot: 'legs', quality: 'rare',
     stats: { armor: 95, sta: 4 }, sellValue: 1000,
   },
   tidescale_vest: {
-    id: 'tidescale_vest', name: 'Tidescale Vest', kind: 'armor', slot: 'chest', quality: 'rare',
+    id: 'tidescale_vest', name: 'Tidescale Vest', kind: 'armor', armorType: 'mail', slot: 'chest', quality: 'rare',
     stats: { armor: 90, sta: 3, agi: 2 }, sellValue: 1100,
   },
   tideguard_greaves: {
-    id: 'tideguard_greaves', name: 'Tideguard Greaves', kind: 'armor', slot: 'legs', quality: 'rare',
+    id: 'tideguard_greaves', name: 'Tideguard Greaves', kind: 'armor', armorType: 'mail', slot: 'legs', quality: 'rare',
     stats: { armor: 125, str: 3, sta: 5 }, sellValue: 1100, requiredClass: WAR,
   },
   tideguard_sabatons: {
-    id: 'tideguard_sabatons', name: 'Tideguard Sabatons', kind: 'armor', slot: 'feet', quality: 'rare',
+    id: 'tideguard_sabatons', name: 'Tideguard Sabatons', kind: 'armor', armorType: 'mail', slot: 'feet', quality: 'rare',
     stats: { armor: 105, str: 2, sta: 4 }, sellValue: 1100, requiredClass: WAR,
   },
   drowned_prayer_leggings: {
-    id: 'drowned_prayer_leggings', name: 'Drowned Prayer Leggings', kind: 'armor', slot: 'legs', quality: 'rare',
+    id: 'drowned_prayer_leggings', name: 'Drowned Prayer Leggings', kind: 'armor', armorType: 'cloth', slot: 'legs', quality: 'rare',
     stats: { armor: 48, int: 6, spi: 4 }, sellValue: 1100, requiredClass: MAG,
   },
   drowned_prayer_sandals: {
-    id: 'drowned_prayer_sandals', name: 'Drowned Prayer Sandals', kind: 'armor', slot: 'feet', quality: 'rare',
+    id: 'drowned_prayer_sandals', name: 'Drowned Prayer Sandals', kind: 'armor', armorType: 'cloth', slot: 'feet', quality: 'rare',
     stats: { armor: 42, int: 5, spi: 3 }, sellValue: 1100, requiredClass: MAG,
   },
   eelscale_leggings: {
-    id: 'eelscale_leggings', name: 'Eelscale Leggings', kind: 'armor', slot: 'legs', quality: 'rare',
+    id: 'eelscale_leggings', name: 'Eelscale Leggings', kind: 'armor', armorType: 'leather', slot: 'legs', quality: 'rare',
     stats: { armor: 86, agi: 6, sta: 3 }, sellValue: 1100, requiredClass: ROG,
   },
   eelscale_treads: {
-    id: 'eelscale_treads', name: 'Eelscale Treads', kind: 'armor', slot: 'feet', quality: 'rare',
+    id: 'eelscale_treads', name: 'Eelscale Treads', kind: 'armor', armorType: 'leather', slot: 'feet', quality: 'rare',
     stats: { armor: 72, agi: 5, sta: 3 }, sellValue: 1100, requiredClass: ROG,
   },
   // --- vendor food & drink (Provisioner Hale) ---
@@ -931,23 +931,23 @@ export const ZONE2_ITEMS: Record<string, ItemDef> = {
     weapon: { min: 6, max: 10, speed: 1.8, dagger: true }, sellValue: 250, buyValue: 2500,
   },
   bogiron_hauberk: {
-    id: 'bogiron_hauberk', name: 'Bogiron Hauberk', kind: 'armor', slot: 'chest', quality: 'common',
+    id: 'bogiron_hauberk', name: 'Bogiron Hauberk', kind: 'armor', armorType: 'mail', slot: 'chest', quality: 'common',
     stats: { armor: 100 }, sellValue: 300, buyValue: 3000,
   },
   marshcloth_robe: {
-    id: 'marshcloth_robe', name: 'Marshcloth Robe', kind: 'armor', slot: 'chest', quality: 'common',
+    id: 'marshcloth_robe', name: 'Marshcloth Robe', kind: 'armor', armorType: 'cloth', slot: 'chest', quality: 'common',
     stats: { armor: 32 }, sellValue: 200, buyValue: 2000,
   },
   reedwoven_jerkin: {
-    id: 'reedwoven_jerkin', name: 'Reedwoven Jerkin', kind: 'armor', slot: 'chest', quality: 'common',
+    id: 'reedwoven_jerkin', name: 'Reedwoven Jerkin', kind: 'armor', armorType: 'leather', slot: 'chest', quality: 'common',
     stats: { armor: 62 }, sellValue: 250, buyValue: 2500,
   },
   fenwalker_boots: {
-    id: 'fenwalker_boots', name: 'Fenwalker Boots', kind: 'armor', slot: 'feet', quality: 'common',
+    id: 'fenwalker_boots', name: 'Fenwalker Boots', kind: 'armor', armorType: 'leather', slot: 'feet', quality: 'common',
     stats: { armor: 30 }, sellValue: 150, buyValue: 1500,
   },
   reedwoven_trousers: {
-    id: 'reedwoven_trousers', name: 'Reedwoven Trousers', kind: 'armor', slot: 'legs', quality: 'common',
+    id: 'reedwoven_trousers', name: 'Reedwoven Trousers', kind: 'armor', armorType: 'leather', slot: 'legs', quality: 'common',
     stats: { armor: 40 }, sellValue: 180, buyValue: 1800,
   },
   // --- junk (gray) ---
