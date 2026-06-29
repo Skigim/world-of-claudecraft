@@ -292,7 +292,9 @@ tint with vector `PRIMITIVES` and optional `FX`. Unknown ids fall back via
   `quality: 82, alphaQuality: 100, smartSubsample: true, effort: 6`) and deletes the original. Then
   list its id in `ABILITY_IMAGE_IDS`. Nothing converts at BUILD time (the script is a pre-commit
   step, not wired into `npm run build`); `tests/skill_icons.test.ts` fails if a wired id lacks its
-  webp or any non-webp image is committed. Any new raster UI art is WebP, never PNG/JPG.
+  webp or any non-webp image is committed. Only `ui/skills/` is auto-converted by `assets:skills`
+  and gated by `tests/skill_icons.test.ts`; the existing weapon JPGs and cursor/emote PNGs are
+  grandfathered. Prefer WebP for any new ability/skill art.
 
 ## Small modules (pure-core + thin-consumer pointers)
 Presentation/domain logic lifted out of `hud.ts` into a host-agnostic core a Vitest imports
