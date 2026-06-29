@@ -1,0 +1,202 @@
+import { describe, expect, it } from 'vitest';
+import {
+  GATEWAY_INTENTS,
+  NICK_MAX,
+  allTierRoleNames,
+  buildLevelNick,
+  levelNickSuffix,
+  buildLinkContent,
+  buildRelayMessage,
+  buildWelcomeMessage,
+  buildWhoamiContent,
+  computeRoleSync,
+  heartbeatIntervalMs,
+  identifyPayload,
+  isSlashCommand,
+  relayAvatarUrl,
+  relayRespondUrl,
+  tierRoleName,
+  voiceMembersForChannel,
+  type RelayItem,
+} from '../bot/logic';
+
+describe('gateway protocol helpers', () => {
+  it('requests the privileged member + presence intents', () => {
+    // GUILDS(1) | GUILD_MEMBERS(2) | GUILD_VOICE_STATES(128) | GUILD_PRESENCES(256)
+    expect(GATEWAY_INTENTS).toBe(1 | 2 | 128 | 256 | 512); // + GUILD_MESSAGES (512)
+    expect(identifyPayload('tok').d).toMatchObject({ token: 'tok', intents: GATEWAY_INTENTS });
+  });
+
+  it('reads the heartbeat interval with a sane floor + default', () => {
+    expect(heartbeatIntervalMs({ d: { heartbeat_interval: 41250 } })).toBe(41250);
+    expect(heartbeatIntervalMs({ d: { heartbeat_interval: 10 } })).toBe(1000); // floored
+    expect(heartbeatIntervalMs({})).toBe(41250); // default
+  });
+});
+
+describe('status-tier roles', () => {
+  it('names roles "WoC <Tier>" per rung', () => {
+    expect(tierRoleName(1)).toBe('WoC Initiate');
+    expect(tierRoleName(8)).toBe('WoC Mythic');
+    expect(tierRoleName(0)).toBeNull();
+    expect(allTierRoleNames()).toHaveLength(8);
+  });
+
+  it('assigns the current rung role and removes other rung roles', () => {
+    const tierRoleIds = new Map<number, string>([
+      [1, 'r1'],
+      [4, 'r4'],
+      [5, 'r5'],
+    ]);
+    // Member is champion (5) but currently holds the knight (r4) role + a non-WoC role.
+    const { toAdd, toRemove } = computeRoleSync({
+      tier: 5,
+      memberRoleIds: ['r4', 'other'],
+      tierRoleIds,
+    });
+    expect(toAdd).toEqual(['r5']);
+    expect(toRemove).toEqual(['r4']); // sheds the stale rung role, keeps 'other'
+  });
+
+  it('removes all rung roles when the member is unranked (tier 0)', () => {
+    const tierRoleIds = new Map<number, string>([[1, 'r1'], [4, 'r4']]);
+    const { toAdd, toRemove } = computeRoleSync({ tier: 0, memberRoleIds: ['r4'], tierRoleIds });
+    expect(toAdd).toEqual([]);
+    expect(toRemove).toEqual(['r4']);
+  });
+
+  it('is a no-op when the member already holds exactly the right role', () => {
+    const tierRoleIds = new Map<number, string>([[5, 'r5']]);
+    expect(computeRoleSync({ tier: 5, memberRoleIds: ['r5', 'x'], tierRoleIds })).toEqual({
+      toAdd: [],
+      toRemove: [],
+    });
+  });
+});
+
+describe('slash commands + messages', () => {
+  it('recognizes its slash commands', () => {
+    expect(isSlashCommand('whoami')).toBe(true);
+    expect(isSlashCommand('link')).toBe(true);
+    expect(isSlashCommand('flex')).toBe(false); // removed
+    expect(isSlashCommand('nuke')).toBe(false);
+  });
+
+  it('builds whoami + link + welcome text', () => {
+    expect(buildWhoamiContent({ linked: false, statusTier: 0, points: 0, lifetimePoints: 0 })).toContain('/link');
+    expect(buildWhoamiContent({ linked: true, statusTier: 5, points: 100, lifetimePoints: 5000 })).toContain('Champion');
+    expect(buildLinkContent('https://woc')).toContain('https://woc');
+    expect(buildWelcomeMessage({ userMention: '<@1>', gameUrl: 'https://woc' })).toContain('<@1>');
+  });
+});
+
+describe('level-on-name nickname', () => {
+  it('appends a class icon + level to the base name', () => {
+    expect(buildLevelNick('Aldric', 20, 'warrior')).toBe('Aldric ⚔20');
+    expect(buildLevelNick('Mira', 7, 'mage')).toBe('Mira 🔮7');
+    expect(levelNickSuffix(12, 'hunter')).toBe(' 🏹12');
+  });
+
+  it('handles an unknown class with no emoji', () => {
+    expect(buildLevelNick('Bob', 5, 'unknown')).toBe('Bob 5');
+  });
+
+  it('caps at the Discord 32-char nickname limit without splitting an emoji', () => {
+    const nick = buildLevelNick('A'.repeat(40), 20, 'warrior');
+    expect([...nick].length).toBeLessThanOrEqual(NICK_MAX);
+    expect(nick.endsWith('⚔20')).toBe(true);
+  });
+
+  it('is idempotent when built from the same stable base', () => {
+    expect(buildLevelNick('Aldric', 20, 'warrior')).toBe(buildLevelNick('Aldric', 20, 'warrior'));
+  });
+});
+
+describe('voice presence shaping', () => {
+  it('keeps only members in the featured channel and resolves names', () => {
+    const states = [
+      { userId: 'a', channelId: 'voice1', selfMute: false },
+      { userId: 'b', channelId: 'voice2', selfMute: true },
+      { userId: 'c', channelId: 'voice1', selfMute: true },
+    ];
+    const names: Record<string, string> = { a: 'Aldric', c: 'Mira' };
+    const out = voiceMembersForChannel(states, 'voice1', (id) => names[id] ?? '?');
+    expect(out).toEqual([
+      { id: 'a', name: 'Aldric', speaking: false, selfMute: false },
+      { id: 'c', name: 'Mira', speaking: false, selfMute: true },
+    ]);
+  });
+});
+
+describe('relay (in-game "!" community posts)', () => {
+  const baseItem: RelayItem = {
+    commandId: 'lfg',
+    tag: 'LFG',
+    label: 'Looking for Group',
+    color: 0x5865f2,
+    characterName: 'Aldric',
+    level: 12,
+    className: 'Hunter',
+    realm: 'Claudemoon',
+    zone: 'Eastbrook Vale',
+    message: 'need a healer for Cragmaw Crypt',
+    profileUrl: 'https://woc.test/c/Aldric',
+    discordUserId: '123',
+    discordUsername: 'zj',
+    discordAvatar: 'abc',
+  };
+
+  it('builds the game deep-link respond url with the command', () => {
+    expect(relayRespondUrl('https://woc.test', 'Aldric', 'lfg')).toBe(
+      'https://woc.test/?lfg=Aldric&c=lfg',
+    );
+    expect(relayRespondUrl('https://woc.test/', 'Al Dric', 'wts')).toBe(
+      'https://woc.test/?lfg=Al%20Dric&c=wts',
+    );
+  });
+
+  it('builds the avatar CDN url, or null without an avatar', () => {
+    expect(relayAvatarUrl('123', 'abc')).toBe(
+      'https://cdn.discordapp.com/avatars/123/abc.png?size=128',
+    );
+    expect(relayAvatarUrl('123', 'a_anim')).toContain('.gif');
+    expect(relayAvatarUrl('123', null)).toBeNull();
+    expect(relayAvatarUrl(null, 'abc')).toBeNull();
+  });
+
+  it('mentions the issuer, shows identity/location, and adds a deep-link button', () => {
+    const msg = buildRelayMessage(baseItem, 'https://woc.test') as {
+      content: string;
+      allowed_mentions: { users: string[] };
+      embeds: Array<Record<string, any>>;
+      components: Array<Record<string, any>>;
+    };
+    expect(msg.content).toBe('<@123>');
+    expect(msg.allowed_mentions).toEqual({ users: ['123'] });
+    const embed = msg.embeds[0];
+    expect(embed.author.name).toBe('zj - LFG');
+    expect(embed.author.icon_url).toContain('/avatars/123/abc');
+    expect(embed.thumbnail.url).toContain('/avatars/123/abc');
+    expect(embed.description).toBe('need a healer for Cragmaw Crypt');
+    expect(embed.fields).toEqual([
+      { name: 'Character', value: 'Aldric - Level 12 Hunter', inline: true },
+      { name: 'Location', value: 'Eastbrook Vale (Claudemoon)', inline: true },
+    ]);
+    const button = msg.components[0].components[0];
+    expect(button.style).toBe(5); // link button
+    expect(button.url).toBe('https://woc.test/?lfg=Aldric&c=lfg');
+    expect(button.label).toBe('Respond to Aldric');
+  });
+
+  it('falls back to no ping + character name when Discord is not linked', () => {
+    const msg = buildRelayMessage(
+      { ...baseItem, discordUserId: null, discordUsername: null, discordAvatar: null },
+      'https://woc.test',
+    ) as { content?: string; allowed_mentions: unknown; embeds: Array<Record<string, any>> };
+    expect(msg.content).toBeUndefined();
+    expect(msg.allowed_mentions).toEqual({ parse: [] });
+    expect(msg.embeds[0].author.name).toBe('Aldric - LFG');
+    expect(msg.embeds[0].author.icon_url).toBeUndefined();
+    expect(msg.embeds[0].thumbnail).toBeUndefined();
+  });
+});

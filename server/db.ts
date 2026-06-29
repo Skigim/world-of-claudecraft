@@ -1413,6 +1413,20 @@ export interface CharacterRow {
   playtime_seconds?: string | number | null;
 }
 
+// The account's "top" character on this realm (highest level, then lifetime XP),
+// for the Discord /flex + nameplate flair. Realm-scoped like the other reads.
+export async function highestCharacterForAccount(accountId: number): Promise<CharacterRow | null> {
+  const res = await pool.query(
+    `SELECT id, account_id, name, class, level, state, is_gm, force_rename
+       FROM characters
+      WHERE account_id = $1 AND realm = $2
+      ORDER BY level DESC, ${LIFETIME_XP_EXPR} DESC NULLS LAST, id ASC
+      LIMIT 1`,
+    [accountId, REALM],
+  );
+  return res.rows[0] ?? null;
+}
+
 // Character reads/writes are scoped to this process's realm: an account may
 // hold characters on several realms (each served by its own process), but a
 // process only ever lists, loads, or creates characters on its own realm.

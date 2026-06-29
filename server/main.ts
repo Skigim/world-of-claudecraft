@@ -114,6 +114,7 @@ import {
   authThrottled,
   cardUploadRateLimited,
   clearAuthFailures,
+  discordRateLimited,
   publicReadRateLimited,
   rateLimited,
   recordAuthFailure,
@@ -131,6 +132,13 @@ import { resolveReportTarget } from './report_target';
 import { handleSitePresenceHeartbeat } from './site_presence';
 import { cacheControlFor, etagFor, isNotModified } from './static_cache';
 import { verifyTurnstile } from './turnstile';
+import {
+  handleDiscordCallback,
+  handleDiscordStart,
+  handleDiscordStatus,
+  handleDiscordUnlink,
+} from './discord';
+import { pruneDiscordOAuthStates } from './discord_db';
 import {
   handleWalletChallenge,
   handleWalletGet,
@@ -1252,6 +1260,39 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       if (accountId === null) return;
       return handleWalletGet(req, res, accountId);
     }
+    // Discord integration: OAuth login/link, link status, unlink. `start` returns
+    // the authorize URL (the browser then navigates to Discord); `callback` is the
+    // discord.com -> us redirect (no auth/Origin, so it is NOT gated by the
+    // web-login guard, which is login/register-only). Mutations go through
+    // bearerActiveAccount; the dedicated Discord rate-limit bucket guards them.
+    if (req.method === 'POST' && url === '/api/auth/discord/start') {
+      const mode =
+        new URL(req.url ?? '/', 'http://localhost').searchParams.get('mode') === 'link'
+          ? 'link'
+          : 'login';
+      let accountId: number | null = null;
+      if (mode === 'link') {
+        accountId = await bearerActiveAccount(req, res);
+        if (accountId === null) return;
+      }
+      if (discordRateLimited(req, accountId ?? 0)) return json(res, 429, { error: 'rate limited' });
+      return handleDiscordStart(req, res, { mode, accountId });
+    }
+    if (req.method === 'GET' && url === '/api/auth/discord/callback') {
+      return handleDiscordCallback(req, res);
+    }
+    if (req.method === 'GET' && url === '/api/discord') {
+      const accountId = await bearerActiveAccount(req, res);
+      if (accountId === null) return;
+      if (discordRateLimited(req, accountId)) return json(res, 429, { error: 'rate limited' });
+      return handleDiscordStatus(req, res, accountId);
+    }
+    if (req.method === 'DELETE' && url === '/api/discord') {
+      const accountId = await bearerActiveAccount(req, res);
+      if (accountId === null) return;
+      if (discordRateLimited(req, accountId)) return json(res, 429, { error: 'rate limited' });
+      return handleDiscordUnlink(req, res, accountId);
+    }
     // $WOC balance proxy — keeps the Solana RPC endpoint (and any key in it)
     // server-side so it never ships in the client bundle. Public (on-chain
     // balances are public) but narrow + IP rate-limited + per-wallet cached.
@@ -1344,6 +1385,9 @@ async function main(): Promise<void> {
       );
       void pruneExpiredOAuthGrants(pool).catch((err) =>
         console.error('oauth grant prune failed:', err),
+      );
+      void pruneDiscordOAuthStates(pool).catch((err) =>
+        console.error('discord oauth state prune failed:', err),
       );
     },
     24 * 3600 * 1000,
