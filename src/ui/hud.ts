@@ -22,7 +22,7 @@ import { voice } from '../game/voice';
 import { castBarState } from '../render/cast_bar';
 import { CharacterPreview } from '../render/characters';
 import { preloadMechAssets } from '../render/characters/assets';
-import { skinCount } from '../render/characters/manifest';
+import { mechHeldWeaponOverride, skinCount } from '../render/characters/manifest';
 import {
   onPortraitsReady,
   playerPortraitDataUrl,
@@ -9324,8 +9324,14 @@ export class Hud {
     // Show the player's currently equipped mainhand on the character sheet, so the
     // 3D model reflects gear changes (re-runs on each renderChar after an equip).
     const weapon = this.sim.equipment.mainhand ?? null;
-    if (previewKey) this.charPreview.setVisualKey(previewKey, weapon);
-    else this.charPreview.setClass(cls, weapon);
+    if (previewKey) {
+      // mech is class-agnostic; mirror the wearer class's hand layout (rogue
+      // dual-wields) so the paperdoll matches the in-world render
+      const override = previewKey === 'player_mech' ? mechHeldWeaponOverride(cls) : null;
+      this.charPreview.setVisualKey(previewKey, weapon, override);
+    } else {
+      this.charPreview.setClass(cls, weapon);
+    }
     this.charPreview.setSkin(skin);
   }
 
