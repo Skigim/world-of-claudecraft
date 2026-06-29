@@ -66,6 +66,7 @@ import type {
   EquipSlot,
   InvSlot,
   LootRollChoice,
+  MasterLootThreshold,
   PetMode,
   PlayerClass,
   ResourceType,
@@ -93,7 +94,9 @@ import {
   isOverheadEmoteId,
   OVERHEAD_EMOTES,
   type OverheadEmoteId,
+  type PartyInfo,
 } from '../world_api';
+import { type AbilityScaling, abilityDamageBonus } from './ability_damage';
 import { ActionBarPainter } from './action_bar_painter';
 import {
   ABILITY_ICON_PREFIX,
@@ -596,7 +599,12 @@ function yellVoiceKey(text: string): string {
 }
 
 export class Hud {
-  private static readonly BAR_ABILITY_SLOTS = 11; // bar slots 1..11; slot 0 is the fixed Attack toggle
+  // Ability slots across both rows: 1..11 on the primary bar, 12..22 on the
+  // secondary bar (slot 0 is the fixed Attack toggle on the primary bar). The
+  // two rows share one hotbarActions array, so drag/drop, persistence, and the
+  // keybind dispatch all work across both with no per-bar bookkeeping.
+  private static readonly PRIMARY_BAR_ABILITY_SLOTS = 11;
+  private static readonly BAR_ABILITY_SLOTS = 22;
   private static readonly PET_AUTOCAST_TOUCH_HOLD_MS = 2000;
   private static ddSeq = 0; // monotonic id source for buildDropdown listbox/option ARIA wiring
   private static readonly FORM_TOGGLE_IDS = new Set(['bear_form', 'cat_form', 'travel_form']); // shift toggles, castable in any form
@@ -816,6 +824,12 @@ export class Hud {
   // later absence from the mirror means the server resolved them (retire), not
   // that the mirror simply has not caught up to a just-shown event yet.
   private confirmedLootRolls = new Set<number>();
+  // Master-loot assignment prompts, shown only to the master looter alongside
+  // the loot-roll rail. Same lifetime/expiry as a need/greed roll.
+  private activeMasterRolls = new Map<
+    number,
+    { event: Extract<SimEvent, { type: 'masterLoot' }>; receivedAt: number; durationMs: number }
+  >();
   private openVendorNpcId: number | null = null;
   private openDelveBoardNpcId: number | null = null;
   private lastDelveTrackerSig = '';
@@ -850,6 +864,9 @@ export class Hud {
   private tradeWasOpen = false;
   private lastTradeSig = '';
   private lastPartySig = '';
+  // Separate, LOW-frequency signature for the leader-only master-loot footer control
+  // (loot settings + membership, no hp/res), so it is not churned every combat tick.
+  private lastPartyFooterSig = '';
   private lastArenaStatusSig = '';
   private arenaMatchSeen = false; // closes the queue panel once a bout starts
   // 2v2 Fiesta UI state (all transient)
@@ -3105,7 +3122,12 @@ export class Hud {
 
   private abilityTooltip(res: ResolvedAbility): string {
     const a = res.def;
-    const damageText = abilityEffectText(res.effects);
+    const p = this.sim.player;
+    const damageText = abilityEffectText(res, {
+      spellPower: p.spellPower,
+      rangedPower: p.rangedPower,
+      attackPower: p.attackPower,
+    });
     let html = `<div class="tt-title">${esc(abilityDisplayName(a))}</div>`;
     html += `<div class="tt-sub">${esc(t('abilityUi.tooltip.rank', { rank: formatAbilityNumber(res.rank) }))}</div>`;
     const costLine: string[] = [];
@@ -3403,12 +3425,12 @@ export class Hud {
   }
 
   private actionForSlot(barSlot: number): HotbarAction {
-    // barSlot 1..11
+    // barSlot 1..22 (1..11 primary bar, 12..22 secondary bar)
     return this.hotbarActions[barSlot - 1] ?? null;
   }
 
   abilityForSlot(barSlot: number): ResolvedAbility | null {
-    // barSlot 1..11
+    // barSlot 1..22 (1..11 primary bar, 12..22 secondary bar)
     const action = this.actionForSlot(barSlot);
     return action?.type === 'ability'
       ? (this.sim.known.find((k) => k.def.id === action.id) ?? null)
@@ -3489,7 +3511,12 @@ export class Hud {
 
   private buildActionBar(): void {
     const bar = $('#actionbar');
-    for (let i = 0; i < 12; i++) {
+    const bar2 = $('#actionbar2');
+    // slot 0 (Attack) + slots 1..11 render on the primary bar; slots 12..22 on
+    // the secondary bar. One button list (this.abilityButtons), indexed by slot.
+    const totalButtons = 1 + Hud.BAR_ABILITY_SLOTS;
+    for (let i = 0; i < totalButtons; i++) {
+      const container = i <= Hud.PRIMARY_BAR_ABILITY_SLOTS ? bar : bar2;
       const btn = document.createElement('button');
       btn.className = 'action-btn empty';
       const label = document.createElement('span');
@@ -3634,7 +3661,7 @@ export class Hud {
           this.hideTooltip();
         });
       }
-      bar.appendChild(btn);
+      container.appendChild(btn);
       this.abilityButtons.push({
         btn,
         label,
@@ -3651,6 +3678,7 @@ export class Hud {
     // elements (multiplicity is a constructor arg, not a hardcoded id).
     this.actionBarView = createActionBarView(
       {
+        manySpellsSlotMax: Hud.PRIMARY_BAR_ABILITY_SLOTS,
         slots: this.abilityButtons.map((_, i) => {
           // Precompute the keybind lookup key once per slot (not per frame).
           const slotKey = `slot${i}`;
@@ -3705,7 +3733,8 @@ export class Hud {
   }
 
   private clearActionDropTargets(): void {
-    document.querySelectorAll('#actionbar .drop-target').forEach((el) => {
+    // Both action rows (#actionbar and #actionbar2) hold .action-btn slots.
+    document.querySelectorAll('.action-btn.drop-target').forEach((el) => {
       el.classList.remove('drop-target');
     });
   }
@@ -3725,7 +3754,7 @@ export class Hud {
     if (drag) window.clearTimeout(drag.timer);
     this.mobileHotbarDrag = null;
     document.body.classList.remove('mobile-hotbar-dragging');
-    document.querySelectorAll('#actionbar .mobile-drag-source').forEach((el) => {
+    document.querySelectorAll('.action-btn.mobile-drag-source').forEach((el) => {
       el.classList.remove('mobile-drag-source');
     });
     this.clearActionDropTargets();
@@ -5948,7 +5977,12 @@ export class Hud {
           break;
         case 'loot': {
           this.log(this.localizeLootText(ev.text), '#7fdc4f');
-          if (/ wins .+ \(\d+\)$/.test(ev.text) || /^Everyone passed on .+\.$/.test(ev.text))
+          if (
+            / wins .+ \(\d+\)$/.test(ev.text) ||
+            /^Everyone passed on .+\.$/.test(ev.text) ||
+            / assigned .+ to .+\.$/.test(ev.text) ||
+            /^.+ was not assigned and is free for all\.$/.test(ev.text)
+          )
             this.closeLootRollsForItem(ev.text);
           if (
             ev.text.includes('loot') ||
@@ -5962,6 +5996,10 @@ export class Hud {
         }
         case 'lootRoll': {
           this.showLootRoll(ev);
+          break;
+        }
+        case 'masterLoot': {
+          this.showMasterLoot(ev);
           break;
         }
         case 'vendor': {
@@ -6693,6 +6731,7 @@ export class Hud {
       'No one has whispered you recently.': 'hud.errors.noRecentWhisper',
       'You mutter to yourself. Nobody hears it.': 'hud.errors.whisperSelf',
       'You are not in a party.': 'hud.errors.notInParty',
+      'Only the party leader can change the loot method.': 'hudChrome.masterLoot.leaderOnly',
       'Only the party leader may invite.': 'hud.errors.partyLeaderInvite',
       'Your party is full.': 'hud.errors.partyFull',
       'That party is full.': 'hud.errors.partyFull',
@@ -6821,6 +6860,7 @@ export class Hud {
       'Trade window opened.': 'hud.logs.tradeOpened',
       'Trade complete.': 'hud.logs.tradeComplete',
       'Trade cancelled.': 'hud.logs.tradeCancelled',
+      'Loot method set to group loot.': 'hudChrome.masterLoot.methodGroup',
     };
     const key = exact[text];
     if (key) return t(key);
@@ -6833,7 +6873,9 @@ export class Hud {
       if (text === delve.leaveText) return delveText(delve.id, 'leaveText');
     }
 
-    let match = /^You have invited (.+) to your party\.$/.exec(text);
+    let match = /^Loot method set to master loot\. Master looter: (.+)\.$/.exec(text);
+    if (match) return t('hudChrome.masterLoot.methodMaster', { name: match[1] });
+    match = /^You have invited (.+) to your party\.$/.exec(text);
     if (match) return t('hud.logs.partyInviteSent', { name: match[1] });
     match = /^(.+) joins the party\.$/.exec(text);
     if (match) return t('hud.logs.partyJoin', { name: match[1] });
@@ -6920,6 +6962,16 @@ export class Hud {
         money: this.localizeSimMoney(match[2]),
       });
     }
+    match = /^(.+) assigned (.+) to (.+)\.$/.exec(text);
+    if (match)
+      return t('hudChrome.masterLoot.assigned', {
+        looter: match[1],
+        item: itemDisplayNameFromSource(match[2]),
+        target: match[3],
+      });
+    match = /^(.+) was not assigned and is free for all\.$/.exec(text);
+    if (match)
+      return t('hudChrome.masterLoot.unassigned', { item: itemDisplayNameFromSource(match[1]) });
     match = /^Sold (.+) for (.+)\.$/.exec(text);
     if (match)
       return t('hud.logs.soldItem', {
@@ -7682,10 +7734,13 @@ export class Hud {
   }
 
   private showLootRoll(ev: Extract<SimEvent, { type: 'lootRoll' }>): void {
+    // A master-loot prompt that converts to a need/greed roll reuses the same rollId;
+    // drop the superseded master panel so the looter sees only the need/greed panel.
+    this.activeMasterRolls.delete(ev.rollId);
     this.activeLootRolls.set(ev.rollId, {
       event: ev,
       receivedAt: performance.now(),
-      durationMs: 30_000,
+      durationMs: 60_000,
     });
     this.renderLootRolls();
   }
@@ -7702,7 +7757,7 @@ export class Hud {
   // both RE-SHOWS an open roll whose event was missed (reconnect, interest
   // churn, a dropped snapshot) and RETIRES a shown roll the server has since
   // resolved (the mirror drops it to []), so a stale dead-button prompt no
-  // longer lingers until the 30s local timer. The three-way decision lives in
+  // longer lingers until the local timer. The three-way decision lives in
   // the pure computeLootRollReconcile; here we apply it to the live DOM state.
   private reconcileLootRolls(): void {
     const open = this.sim.activeLootRolls();
@@ -7736,15 +7791,30 @@ export class Hud {
       this.activeLootRolls.set(id, {
         event: { type: 'lootRoll', ...p },
         receivedAt: performance.now(),
-        durationMs: 30_000,
+        durationMs: 60_000,
       });
       changed = true;
     }
     if (changed) this.renderLootRolls();
   }
 
+  private showMasterLoot(ev: Extract<SimEvent, { type: 'masterLoot' }>): void {
+    this.activeMasterRolls.set(ev.rollId, {
+      event: ev,
+      receivedAt: performance.now(),
+      durationMs: 60_000,
+    });
+    this.renderLootRolls();
+  }
+
+  private assignMasterLoot(rollId: number, targetPids: number[]): void {
+    this.sim.assignMasterLoot(rollId, targetPids);
+    this.activeMasterRolls.delete(rollId);
+    this.renderLootRolls();
+  }
+
   private updateLootRollTimers(now: number): void {
-    if (this.activeLootRolls.size === 0) return;
+    if (this.activeLootRolls.size === 0 && this.activeMasterRolls.size === 0) return;
     let changed = false;
     for (const [rollId, roll] of this.activeLootRolls) {
       if (now - roll.receivedAt >= roll.durationMs) {
@@ -7753,12 +7823,20 @@ export class Hud {
         changed = true;
       }
     }
+    for (const [rollId, roll] of this.activeMasterRolls) {
+      if (now - roll.receivedAt >= roll.durationMs) {
+        this.activeMasterRolls.delete(rollId);
+        changed = true;
+      }
+    }
     if (changed) this.renderLootRolls();
     const root = document.getElementById('loot-rolls');
     if (!root) return;
     for (const row of root.querySelectorAll<HTMLElement>('.loot-roll')) {
       const rollId = Number(row.dataset.rollId);
-      const roll = this.activeLootRolls.get(rollId);
+      const roll = row.dataset.master
+        ? this.activeMasterRolls.get(rollId)
+        : this.activeLootRolls.get(rollId);
       if (!roll) continue;
       const remaining = Math.max(0, 1 - (now - roll.receivedAt) / roll.durationMs);
       row.style.setProperty('--loot-roll-frac', remaining.toFixed(3));
@@ -7766,23 +7844,32 @@ export class Hud {
   }
 
   private closeLootRollsForItem(text: string): void {
-    const match = /^.+ wins (.+) \(\d+\)$/.exec(text) ?? /^Everyone passed on (.+)\.$/.exec(text);
+    const match =
+      /^.+ wins (.+) \(\d+\)$/.exec(text) ??
+      /^Everyone passed on (.+)\.$/.exec(text) ??
+      /^.+ assigned (.+) to .+\.$/.exec(text) ??
+      /^(.+) was not assigned and is free for all\.$/.exec(text);
     if (!match) return;
     for (const [rollId, roll] of this.activeLootRolls) {
       if (roll.event.itemName === match[1]) this.activeLootRolls.delete(rollId);
+    }
+    for (const [rollId, roll] of this.activeMasterRolls) {
+      if (roll.event.itemName === match[1]) this.activeMasterRolls.delete(rollId);
     }
     this.renderLootRolls();
   }
 
   private renderLootRolls(): void {
     const root = this.lootRollRoot();
-    if (this.activeLootRolls.size === 0) {
+    if (this.activeLootRolls.size === 0 && this.activeMasterRolls.size === 0) {
       root.style.display = 'none';
       root.innerHTML = '';
       return;
     }
     root.style.display = 'flex';
     root.innerHTML = '';
+    for (const [rollId, roll] of this.activeMasterRolls)
+      this.renderMasterLootRow(root, rollId, roll.event);
     for (const [rollId, roll] of this.activeLootRolls) {
       const ev = roll.event;
       const item = ITEMS[ev.itemId];
@@ -7817,6 +7904,66 @@ export class Hud {
       });
       root.appendChild(row);
     }
+  }
+
+  private renderMasterLootRow(
+    root: HTMLElement,
+    rollId: number,
+    ev: Extract<SimEvent, { type: 'masterLoot' }>,
+  ): void {
+    const item = ITEMS[ev.itemId];
+    const itemName = item ? itemDisplayName(item) : ev.itemName;
+    const quality = item?.quality ?? ev.quality ?? 'common';
+    const row = document.createElement('div');
+    row.className = 'loot-roll panel master';
+    row.dataset.rollId = String(rollId);
+    row.dataset.master = '1';
+    row.style.setProperty('--loot-roll-frac', '1');
+    const picks = ev.candidates
+      .map(
+        (c) =>
+          `<label><input type="checkbox" class="ml-pick" value="${c.pid}"><span>${esc(c.name)}</span></label>`,
+      )
+      .join('');
+    row.innerHTML = `
+      <div class="loot-roll-item">
+        ${item ? this.itemIcon(item) : `<img class="item-icon q-${quality}" src="${iconDataUrl('item', ev.itemId)}" alt="" draggable="false">`}
+        <div class="loot-roll-copy">
+          <div class="loot-roll-title">${esc(t('hudChrome.masterLoot.assignPrompt', { item: itemName }))}</div>
+          <div class="loot-roll-name" style="color:${QUALITY_COLOR[quality] ?? '#fff'}">${esc(itemName)}</div>
+        </div>
+      </div>
+      <div class="loot-roll-timer" aria-hidden="true"><span></span></div>
+      <div class="master-loot-picks">
+        <label class="ml-all-row"><input type="checkbox" class="ml-all"><span>${esc(t('hudChrome.masterLoot.selectAll'))}</span></label>
+        ${picks}
+      </div>
+      <div class="loot-roll-actions"><button type="button" class="loot-roll-btn assign ml-roll" disabled>${esc(t('hudChrome.masterLoot.rollButton'))}</button></div>`;
+    if (item)
+      this.attachTooltip(row.querySelector('.loot-roll-item') as HTMLElement, () =>
+        this.itemTooltip(item),
+      );
+    // Curate-then-roll: the looter checks a subset and presses Roll. One checked
+    // member is granted directly server-side; two or more open a need/greed roll for
+    // just that subset. The select-all header mirrors / drives the per-member boxes.
+    const all = row.querySelector<HTMLInputElement>('.ml-all')!;
+    const pickEls = [...row.querySelectorAll<HTMLInputElement>('.ml-pick')];
+    const rollBtn = row.querySelector<HTMLButtonElement>('.ml-roll')!;
+    const syncRoll = (): void => {
+      const checked = pickEls.filter((p) => p.checked).length;
+      rollBtn.disabled = checked === 0;
+      all.checked = pickEls.length > 0 && checked === pickEls.length;
+    };
+    all.addEventListener('change', () => {
+      for (const p of pickEls) p.checked = all.checked;
+      syncRoll();
+    });
+    for (const p of pickEls) p.addEventListener('change', syncRoll);
+    rollBtn.addEventListener('click', () => {
+      const pids = pickEls.filter((p) => p.checked).map((p) => Number(p.value));
+      if (pids.length > 0) this.assignMasterLoot(rollId, pids);
+    });
+    root.appendChild(row);
   }
 
   openLoot(mobId: number, screenX: number, screenY: number): void {
@@ -9468,7 +9615,21 @@ export class Hud {
         this.partyFramesPainter.clear();
         this.lastPartySig = '';
       }
+      this.lastPartyFooterSig = '';
       return;
+    }
+    // Leader-only master-loot control. Its signature is deliberately LOW frequency
+    // (loot settings + membership + leadership, NO hp/res), so the checkbox and
+    // dropdowns are not destroyed and rebuilt under the cursor on every combat tick
+    // (the desync/churn the master-loot control is prone to). The painter keeps the
+    // built node positioned just before the leave button across member rebuilds.
+    const isLeader = info.leader === this.sim.playerId;
+    const footerSig = isLeader
+      ? `lead:M${info.master.enabled ? 1 : 0}/${info.master.looter}/${info.master.threshold}:${info.members.map((m) => `${m.pid}:${m.name}`).join(',')}`
+      : 'member';
+    if (footerSig !== this.lastPartyFooterSig) {
+      this.lastPartyFooterSig = footerSig;
+      this.partyFramesPainter.setMasterControl(isLeader ? this.buildMasterLootControl(info) : null);
     }
     // Hoist the cheap signature (a single string pass, no intermediate arrays) AHEAD
     // of the selector so an unchanged party short-circuits before selectPartyFrameMembers
@@ -9478,6 +9639,76 @@ export class Hud {
     this.lastPartySig = sig;
     const others = selectPartyFrameMembers(info, this.sim.playerId, this.sim.player.pos);
     this.partyFramesPainter.sync(others, info.leader, info.raid);
+  }
+
+  // Leader-only loot-method control: enable master loot, choose the master looter
+  // (the leader by default), and the quality threshold for assigned drops. Returns
+  // the built node; the party-frames painter owns its placement + lifetime.
+  private buildMasterLootControl(info: PartyInfo): HTMLElement {
+    const m = info.master;
+    const box = document.createElement('div');
+    box.className = 'party-loot panel';
+    // A label-wrapped checkbox toggles on a primary click, but the browser also
+    // toggles it on right/middle-click here, which spuriously flips the setting.
+    // Suppress non-primary activation (and the context menu) on the whole panel.
+    box.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) e.preventDefault();
+    });
+    box.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    const memberOptions = info.members
+      .map(
+        (mem) =>
+          `<option value="${mem.pid}" ${m.looter === mem.pid ? 'selected' : ''}>${esc(mem.name)}</option>`,
+      )
+      .join('');
+    const thr = (v: string, label: string) =>
+      `<option value="${v}" ${m.threshold === v ? 'selected' : ''}>${esc(label)}</option>`;
+    box.innerHTML = `
+      <label class="party-loot-row toggle">
+        <input type="checkbox" id="ml-enable" ${m.enabled ? 'checked' : ''} aria-label="${esc(t('hudChrome.masterLoot.enableAria'))}">
+        <span>${esc(t('hudChrome.masterLoot.enableLabel'))}</span>
+      </label>
+      <label class="party-loot-row">
+        <span>${esc(t('hudChrome.masterLoot.looterLabel'))}</span>
+        <select id="ml-looter" ${m.enabled ? '' : 'disabled'}>
+          <option value="0" ${m.looter === 0 ? 'selected' : ''}>${esc(t('hudChrome.masterLoot.leaderOption'))}</option>
+          ${memberOptions}
+        </select>
+      </label>
+      <label class="party-loot-row">
+        <span>${esc(t('hudChrome.masterLoot.thresholdLabel'))}</span>
+        <select id="ml-threshold" ${m.enabled ? '' : 'disabled'}>
+          ${thr('uncommon', t('hudChrome.masterLoot.thresholdUncommon'))}
+          ${thr('rare', t('hudChrome.masterLoot.thresholdRare'))}
+          ${thr('epic', t('hudChrome.masterLoot.thresholdEpic'))}
+        </select>
+      </label>`;
+    const enable = box.querySelector<HTMLInputElement>('#ml-enable')!;
+    const looter = box.querySelector<HTMLSelectElement>('#ml-looter')!;
+    const threshold = box.querySelector<HTMLSelectElement>('#ml-threshold')!;
+    const applyMaster = (enabled: boolean) =>
+      this.sim.setPartyLootMaster(
+        enabled,
+        Number(looter.value),
+        threshold.value as MasterLootThreshold,
+      );
+    // Controlled checkbox: suppress the browser's optimistic toggle and derive the
+    // next value from authoritative party state. The DOM checkbox is only updated by
+    // a server-confirmed rebuild, so it can never desync from the server (a checked
+    // box left over disabled dropdowns) or send a value read from a half-toggled DOM
+    // input.
+    enable.addEventListener('click', (e) => {
+      e.preventDefault();
+      applyMaster(!m.enabled);
+    });
+    // The selects are only enabled while master loot is on, so m.enabled is true
+    // here; keep it and update the looter / threshold.
+    looter.addEventListener('change', () => applyMaster(m.enabled));
+    threshold.addEventListener('change', () => applyMaster(m.enabled));
+    return box;
   }
 
   // -------------------------------------------------------------------------
@@ -10402,7 +10633,21 @@ function abilityRequirementLines(def: AbilityDef): string[] {
   return lines;
 }
 
-function abilityEffectText(effects: AbilityEffect[]): string {
+// Builds the `$d` damage string for an ability tooltip. When `scaling` (the live
+// character's Spell Power / Ranged AP / Attack Power) is given, the BASE damage is
+// shown with the scaling contribution called out as a "(+N)" suffix, e.g.
+// "66 to 74 (+29)", so a caster sees both the base and exactly what their Spell
+// Power adds, and watches it climb as gear changes.
+function abilityEffectText(res: ResolvedAbility, scaling?: AbilityScaling): string {
+  const effects = res.effects;
+  // " (+N)" callout for the scaling contribution (Spell Power / Attack Power),
+  // omitted when there is none. Punctuation + formatted number only (no words).
+  const suffix = (eff: AbilityEffect) => {
+    const b = scaling ? abilityDamageBonus(res, eff, scaling) : 0;
+    return b > 0
+      ? ` ${t('hudChrome.abilityScaling.bonus', { value: formatAbilityNumber(b) })}`
+      : '';
+  };
   const primary = effects.find(
     (eff) =>
       eff.type === 'directDamage' ||
@@ -10421,15 +10666,17 @@ function abilityEffectText(effects: AbilityEffect[]): string {
       case 'aoeDamage':
       case 'aoeRoot':
       case 'drainTick':
-        return abilityAmountRange(primary.min, primary.max);
+        return abilityAmountRange(primary.min, primary.max) + suffix(primary);
       case 'weaponDamage':
       case 'weaponStrike':
         return formatAbilityNumber(primary.bonus);
       case 'finisherDamage':
-        return t('abilityUi.tooltip.finisherDamage', {
-          base: formatAbilityNumber(primary.base),
-          perCombo: formatAbilityNumber(primary.perCombo),
-        });
+        return (
+          t('abilityUi.tooltip.finisherDamage', {
+            base: formatAbilityNumber(primary.base),
+            perCombo: formatAbilityNumber(primary.perCombo),
+          }) + suffix(primary)
+        );
     }
   }
 
@@ -10440,6 +10687,7 @@ function abilityEffectText(effects: AbilityEffect[]): string {
   if (!secondary) return '';
   switch (secondary.type) {
     case 'dot':
+      return formatAbilityNumber(secondary.total) + suffix(secondary);
     case 'hot':
       return formatAbilityNumber(secondary.total);
     case 'absorb':
