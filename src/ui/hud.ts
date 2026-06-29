@@ -3564,6 +3564,8 @@ export class Hud {
     const bar2 = $('#actionbar2');
     // slot 0 (Attack) + slots 1..11 render on the primary bar; slots 12..22 on
     // the secondary bar. One button list (this.abilityButtons), indexed by slot.
+    // An entry whose template omits #actionbar2 leaves those buttons detached
+    // rather than crashing on appendChild (keybind dispatch by slot still works).
     const totalButtons = 1 + Hud.BAR_ABILITY_SLOTS;
     for (let i = 0; i < totalButtons; i++) {
       const container = i <= Hud.PRIMARY_BAR_ABILITY_SLOTS ? bar : bar2;
@@ -3711,7 +3713,7 @@ export class Hud {
           this.hideTooltip();
         });
       }
-      container.appendChild(btn);
+      container?.appendChild(btn);
       this.abilityButtons.push({
         btn,
         label,
