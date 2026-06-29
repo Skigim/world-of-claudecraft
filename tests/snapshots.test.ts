@@ -14,8 +14,8 @@ vi.mock('../server/db', () => ({
 
 import { saveCharacterState } from '../server/db';
 import { type ClientSession, GameServer, wireEntity } from '../server/game';
-import { mechHeldWeaponOverride, visualKeyFor } from '../src/render/characters/manifest';
 import { ClientWorld } from '../src/net/online';
+import { mechHeldWeaponOverride, visualKeyFor } from '../src/render/characters/manifest';
 import { DELVES } from '../src/sim/data';
 import { Sim } from '../src/sim/sim';
 import { DT, type PlayerClass } from '../src/sim/types';

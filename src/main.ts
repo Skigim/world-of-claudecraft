@@ -2268,13 +2268,28 @@ async function startOffline(playerClass: PlayerClass, name: string, skin = 0): P
     // / polearm); only the ones this class can wield are granted, so every bag
     // weapon is swappable and the first one auto-equips.
     const TEST_WEAPONS = [
-      'worn_sword', 'redbrook_blade', 'wyrmfang_greatblade', 'highwatch_warblade',
-      'rusty_hatchet', 'drogmars_skullcleaver', 'gorraks_cleaver', 'tunnelkings_spade',
-      'bronzework_mace', 'voss_sanctified_mace', 'bristleback_maul',
-      'keen_dirk', 'skullsplitter_dirk', 'vale_carving_knife',
-      'gravecaller_staff', 'vaels_mist_staff', 'staff_of_the_gravewyrm',
-      'drowned_tide_scepter', 'drownedmoon_scepter', 'palecoil_rod',
-      'fen_reaver_glaive', 'tidereaver_gaff',
+      'worn_sword',
+      'redbrook_blade',
+      'wyrmfang_greatblade',
+      'highwatch_warblade',
+      'rusty_hatchet',
+      'drogmars_skullcleaver',
+      'gorraks_cleaver',
+      'tunnelkings_spade',
+      'bronzework_mace',
+      'voss_sanctified_mace',
+      'bristleback_maul',
+      'keen_dirk',
+      'skullsplitter_dirk',
+      'vale_carving_knife',
+      'gravecaller_staff',
+      'vaels_mist_staff',
+      'staff_of_the_gravewyrm',
+      'drowned_tide_scepter',
+      'drownedmoon_scepter',
+      'palecoil_rod',
+      'fen_reaver_glaive',
+      'tidereaver_gaff',
     ];
     const usable = TEST_WEAPONS.filter((id) => ITEMS[id] && canEquipItem(playerClass, ITEMS[id]));
     for (const id of usable) sim.addItem(id, 1, sim.playerId);
