@@ -46,8 +46,12 @@ function startDuel(clsA = 'mage', clsB = 'warrior', level = 20) {
 function finishCast(sim: Sim, pid: number) {
   for (let i = 0; i < 20 * 4; i++) {
     sim.tick();
-    if (!sim.entities.get(pid)!.castingAbility) return;
+    if (!sim.entities.get(pid)!.castingAbility) break;
   }
+  // A spell's effects now land when its projectile reaches the target
+  // (projectile_travel), a few ticks after the cast bar empties: tick until the
+  // in-flight bolt has resolved so the debuff/CC is actually applied.
+  for (let i = 0; i < 20 * 3 && (sim as any).pendingProjectiles.length > 0; i++) sim.tick();
 }
 
 const pos = (e: Entity): Vec3 => ({ ...e.pos });
@@ -139,14 +143,22 @@ describe('PvP control abilities in active duels', () => {
   it('diminishes repeated duel Polymorphs to 10s, 5s, 1s and resets after 60s', () => {
     const { sim, aPid, b } = startDuel('mage', 'warrior', 20);
 
+    // Polymorph is now a projectile whose hit roll happens on impact, so it can miss.
+    // A miss does not consume a diminishing-returns stage (that only advances on a
+    // landed application), so retry until the bolt connects to measure the DR ladder.
     const castPolymorph = () => {
-      b.auras = b.auras.filter((aura) => aura.kind !== 'polymorph');
       const mage = sim.entities.get(aPid)!;
-      mage.gcdRemaining = 0;
-      mage.resource = mage.maxResource;
-      sim.castAbility('polymorph', aPid);
-      finishCast(sim, aPid);
-      return b.auras.find((aura) => aura.kind === 'polymorph')?.duration ?? 0;
+      for (let attempt = 0; attempt < 12; attempt++) {
+        b.auras = b.auras.filter((aura) => aura.kind !== 'polymorph');
+        mage.gcdRemaining = 0;
+        mage.cooldowns.delete('polymorph');
+        mage.resource = mage.maxResource;
+        sim.castAbility('polymorph', aPid);
+        finishCast(sim, aPid);
+        const applied = b.auras.find((aura) => aura.kind === 'polymorph');
+        if (applied) return applied.duration;
+      }
+      return 0;
     };
 
     expect(castPolymorph()).toBe(10);

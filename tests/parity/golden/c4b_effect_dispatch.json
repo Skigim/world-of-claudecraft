@@ -14,8 +14,8 @@
     "summonDemon -> summonPet (warlock summon_imp) + selfBuff form switch (druid)",
     "weaponStrike awardCombo latch + finisher combo-spend reset"
   ],
-  "draws": 459,
-  "drawDigest": "10480b84",
+  "draws": 453,
+  "drawDigest": "7e3f8a61",
   "frames": [
     {
       "tick": 0,
@@ -90,19 +90,19 @@
       "tick": 30,
       "time": 1.5,
       "nextId": 395,
-      "state": "948fa1ee",
-      "events": "d02c3164",
+      "state": "45ca9709",
+      "events": "6068776a",
       "rng": {
-        "draws": 4,
-        "digest": "5313abcf"
+        "draws": 2,
+        "digest": "68f9f3dd"
       }
     },
     {
       "tick": 32,
       "time": 1.6,
       "nextId": 395,
-      "state": "4294003c",
-      "events": "741638a5",
+      "state": "dcd37416",
+      "events": "340898ad",
       "rng": {
         "draws": 4,
         "digest": "5313abcf"
@@ -479,7 +479,7 @@
           "aiState": "idle",
           "attackPower": 11,
           "castTotal": 1.5,
-          "combatTimer": 0.15,
+          "combatTimer": 0.05,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.056,
@@ -537,13 +537,13 @@
               "id": "fear_incap",
               "kind": "incapacitate",
               "name": "Fear",
-              "remaining": 7.85,
+              "remaining": 7.95,
               "school": "shadow",
               "sourceId": 393,
               "value": -2.527288
             }
           ],
-          "combatTimer": 0.15,
+          "combatTimer": 0.05,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
@@ -556,9 +556,9 @@
           "inCombat": true,
           "kind": "mob",
           "leashAnchor": {
-            "x": 40.239002,
-            "y": -2.04043,
-            "z": -45.658208
+            "x": 40.117554,
+            "y": -2.041453,
+            "z": -45.910498
           },
           "level": 8,
           "lootFfaTimer": "Infinity",
@@ -568,9 +568,9 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 39.633792,
-            "y": -2.05806,
-            "z": -46.516241
+            "x": 39.986425,
+            "y": -2.045941,
+            "z": -46.096405
           },
           "potionCooldownUntil": -1,
           "spawnPos": {
@@ -593,7 +593,7 @@
             "y": -1.959689,
             "z": -48.613597
           },
-          "wanderTimer": 28.6,
+          "wanderTimer": 28.5,
           "weapon": {
             "max": 18,
             "min": 11,
@@ -606,7 +606,7 @@
       "tick": 35,
       "time": 1.75,
       "nextId": 395,
-      "state": "c963bfbf",
+      "state": "dad3b078",
       "events": "2077d05b",
       "rng": {
         "draws": 4,
@@ -617,7 +617,7 @@
       "tick": 40,
       "time": 2,
       "nextId": 395,
-      "state": "ba3fa5d6",
+      "state": "aec6635e",
       "events": "741638a5",
       "rng": {
         "draws": 4,
@@ -628,7 +628,7 @@
       "tick": 45,
       "time": 2.25,
       "nextId": 395,
-      "state": "e8c3604c",
+      "state": "4e0a23f0",
       "events": "741638a5",
       "rng": {
         "draws": 36,
@@ -639,7 +639,7 @@
       "tick": 50,
       "time": 2.5,
       "nextId": 395,
-      "state": "db65ddd0",
+      "state": "42fead2d",
       "events": "741638a5",
       "rng": {
         "draws": 50,
@@ -650,7 +650,7 @@
       "tick": 55,
       "time": 2.75,
       "nextId": 395,
-      "state": "99a83a91",
+      "state": "832134cb",
       "events": "741638a5",
       "rng": {
         "draws": 66,
@@ -661,7 +661,7 @@
       "tick": 60,
       "time": 3,
       "nextId": 395,
-      "state": "d9444433",
+      "state": "1941bf3a",
       "events": "741638a5",
       "rng": {
         "draws": 80,
@@ -672,7 +672,7 @@
       "tick": 65,
       "time": 3.25,
       "nextId": 395,
-      "state": "72d53849",
+      "state": "3d5b6ae3",
       "events": "741638a5",
       "rng": {
         "draws": 101,
@@ -683,7 +683,7 @@
       "tick": 70,
       "time": 3.5,
       "nextId": 395,
-      "state": "4d5c3128",
+      "state": "6c7ff5c4",
       "events": "741638a5",
       "rng": {
         "draws": 127,
@@ -694,7 +694,7 @@
       "tick": 75,
       "time": 3.75,
       "nextId": 395,
-      "state": "c5505b74",
+      "state": "f8aab8bd",
       "events": "741638a5",
       "rng": {
         "draws": 152,
@@ -705,7 +705,7 @@
       "tick": 80,
       "time": 4,
       "nextId": 395,
-      "state": "e711a61a",
+      "state": "2770c846",
       "events": "741638a5",
       "rng": {
         "draws": 174,
@@ -716,7 +716,7 @@
       "tick": 85,
       "time": 4.25,
       "nextId": 395,
-      "state": "4c8ecb9b",
+      "state": "e8665026",
       "events": "741638a5",
       "rng": {
         "draws": 203,
@@ -727,7 +727,7 @@
       "tick": 90,
       "time": 4.5,
       "nextId": 395,
-      "state": "3de20753",
+      "state": "ccafceb1",
       "events": "741638a5",
       "rng": {
         "draws": 230,
@@ -738,7 +738,7 @@
       "tick": 95,
       "time": 4.75,
       "nextId": 395,
-      "state": "279b4a08",
+      "state": "54f50b97",
       "events": "741638a5",
       "rng": {
         "draws": 253,
@@ -749,7 +749,7 @@
       "tick": 100,
       "time": 5,
       "nextId": 395,
-      "state": "7761fe71",
+      "state": "b3687b64",
       "events": "741638a5",
       "rng": {
         "draws": 276,
@@ -760,7 +760,7 @@
       "tick": 105,
       "time": 5.25,
       "nextId": 395,
-      "state": "0c98db95",
+      "state": "232a0515",
       "events": "741638a5",
       "rng": {
         "draws": 304,
@@ -771,7 +771,7 @@
       "tick": 110,
       "time": 5.5,
       "nextId": 395,
-      "state": "52e13788",
+      "state": "ef6cec3b",
       "events": "741638a5",
       "rng": {
         "draws": 328,
@@ -782,7 +782,7 @@
       "tick": 115,
       "time": 5.75,
       "nextId": 395,
-      "state": "1831dba0",
+      "state": "ad133700",
       "events": "741638a5",
       "rng": {
         "draws": 360,
@@ -793,7 +793,7 @@
       "tick": 120,
       "time": 6,
       "nextId": 395,
-      "state": "93620697",
+      "state": "e5d655bb",
       "events": "741638a5",
       "rng": {
         "draws": 387,
@@ -804,7 +804,7 @@
       "tick": 125,
       "time": 6.25,
       "nextId": 395,
-      "state": "54eb7214",
+      "state": "db3ff93c",
       "events": "741638a5",
       "rng": {
         "draws": 406,
@@ -815,7 +815,7 @@
       "tick": 130,
       "time": 6.5,
       "nextId": 395,
-      "state": "47e64188",
+      "state": "0a674d19",
       "events": "741638a5",
       "rng": {
         "draws": 433,
@@ -826,7 +826,7 @@
       "tick": 133,
       "time": 6.65,
       "nextId": 396,
-      "state": "3075d8f2",
+      "state": "7804792e",
       "events": "1d7706ab",
       "rng": {
         "draws": 444,
@@ -1204,7 +1204,7 @@
           "aiState": "idle",
           "attackPower": 11,
           "castTotal": 5,
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.056,
@@ -1262,13 +1262,13 @@
               "id": "fear_incap",
               "kind": "incapacitate",
               "name": "Fear",
-              "remaining": 2.8,
+              "remaining": 2.9,
               "school": "shadow",
               "sourceId": 393,
               "value": -2.527288
             }
           ],
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
@@ -1281,9 +1281,9 @@
           "inCombat": true,
           "kind": "mob",
           "leashAnchor": {
-            "x": 40.239002,
-            "y": -2.04043,
-            "z": -45.658208
+            "x": 40.117554,
+            "y": -2.041453,
+            "z": -45.910498
           },
           "level": 8,
           "lootFfaTimer": "Infinity",
@@ -1293,9 +1293,9 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 19.258385,
-            "y": 0.045984,
-            "z": -75.403354
+            "x": 26.74241,
+            "y": -1.723578,
+            "z": -64.873029
           },
           "potionCooldownUntil": -1,
           "spawnPos": {
@@ -1318,7 +1318,7 @@
             "y": -1.959689,
             "z": -48.613597
           },
-          "wanderTimer": 28.6,
+          "wanderTimer": 28.5,
           "weapon": {
             "max": 18,
             "min": 11,
@@ -1331,7 +1331,7 @@
       "tick": 133,
       "time": 6.65,
       "nextId": 397,
-      "state": "153acee5",
+      "state": "560a5635",
       "events": "2c561b83",
       "rng": {
         "draws": 445,
@@ -1712,7 +1712,7 @@
           "aiState": "idle",
           "attackPower": 11,
           "castTotal": 5,
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.056,
@@ -1770,13 +1770,13 @@
               "id": "fear_incap",
               "kind": "incapacitate",
               "name": "Fear",
-              "remaining": 2.8,
+              "remaining": 2.9,
               "school": "shadow",
               "sourceId": 393,
               "value": -2.527288
             }
           ],
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
@@ -1789,9 +1789,9 @@
           "inCombat": true,
           "kind": "mob",
           "leashAnchor": {
-            "x": 40.239002,
-            "y": -2.04043,
-            "z": -45.658208
+            "x": 40.117554,
+            "y": -2.041453,
+            "z": -45.910498
           },
           "level": 8,
           "lootFfaTimer": "Infinity",
@@ -1801,9 +1801,9 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 19.258385,
-            "y": 0.045984,
-            "z": -75.403354
+            "x": 26.74241,
+            "y": -1.723578,
+            "z": -64.873029
           },
           "potionCooldownUntil": -1,
           "spawnPos": {
@@ -1826,7 +1826,7 @@
             "y": -1.959689,
             "z": -48.613597
           },
-          "wanderTimer": 28.6,
+          "wanderTimer": 28.5,
           "weapon": {
             "max": 18,
             "min": 11,
@@ -1904,7 +1904,7 @@
       "tick": 133,
       "time": 6.65,
       "nextId": 399,
-      "state": "3cc3e89b",
+      "state": "2ec439a5",
       "events": "a395f6c5",
       "rng": {
         "draws": 447,
@@ -2287,7 +2287,7 @@
           "aiState": "idle",
           "attackPower": 11,
           "castTotal": 5,
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.056,
@@ -2345,13 +2345,13 @@
               "id": "fear_incap",
               "kind": "incapacitate",
               "name": "Fear",
-              "remaining": 2.8,
+              "remaining": 2.9,
               "school": "shadow",
               "sourceId": 393,
               "value": -2.527288
             }
           ],
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
@@ -2364,9 +2364,9 @@
           "inCombat": true,
           "kind": "mob",
           "leashAnchor": {
-            "x": 40.239002,
-            "y": -2.04043,
-            "z": -45.658208
+            "x": 40.117554,
+            "y": -2.041453,
+            "z": -45.910498
           },
           "level": 8,
           "lootFfaTimer": "Infinity",
@@ -2376,9 +2376,9 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 19.258385,
-            "y": 0.045984,
-            "z": -75.403354
+            "x": 26.74241,
+            "y": -1.723578,
+            "z": -64.873029
           },
           "potionCooldownUntil": -1,
           "spawnPos": {
@@ -2401,7 +2401,7 @@
             "y": -1.959689,
             "z": -48.613597
           },
-          "wanderTimer": 28.6,
+          "wanderTimer": 28.5,
           "weapon": {
             "max": 18,
             "min": 11,
@@ -2585,7 +2585,7 @@
       "tick": 133,
       "time": 6.65,
       "nextId": 400,
-      "state": "da98623a",
+      "state": "f22fb970",
       "events": "06593d19",
       "rng": {
         "draws": 452,
@@ -2979,7 +2979,7 @@
           "aiState": "idle",
           "attackPower": 11,
           "castTotal": 5,
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.056,
@@ -3037,13 +3037,13 @@
               "id": "fear_incap",
               "kind": "incapacitate",
               "name": "Fear",
-              "remaining": 2.8,
+              "remaining": 2.9,
               "school": "shadow",
               "sourceId": 393,
               "value": -2.527288
             }
           ],
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
@@ -3056,9 +3056,9 @@
           "inCombat": true,
           "kind": "mob",
           "leashAnchor": {
-            "x": 40.239002,
-            "y": -2.04043,
-            "z": -45.658208
+            "x": 40.117554,
+            "y": -2.041453,
+            "z": -45.910498
           },
           "level": 8,
           "lootFfaTimer": "Infinity",
@@ -3068,9 +3068,9 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 19.258385,
-            "y": 0.045984,
-            "z": -75.403354
+            "x": 26.74241,
+            "y": -1.723578,
+            "z": -64.873029
           },
           "potionCooldownUntil": -1,
           "spawnPos": {
@@ -3093,7 +3093,7 @@
             "y": -1.959689,
             "z": -48.613597
           },
-          "wanderTimer": 28.6,
+          "wanderTimer": 28.5,
           "weapon": {
             "max": 18,
             "min": 11,
@@ -3341,11 +3341,11 @@
       "tick": 133,
       "time": 6.65,
       "nextId": 401,
-      "state": "8f28b657",
-      "events": "c1c256fa",
+      "state": "c1ef7340",
+      "events": "101d1d6e",
       "rng": {
-        "draws": 456,
-        "digest": "f6b81b22"
+        "draws": 453,
+        "digest": "7e3f8a61"
       },
       "label": "paladin-judge-consecrate",
       "players": [
@@ -3420,7 +3420,7 @@
           "cls": "paladin",
           "companionUpgrades": {},
           "counters": {
-            "damageDealt": 79
+            "damageDealt": 33
           },
           "delveClears": {},
           "delveDaily": {},
@@ -3639,6 +3639,20 @@
         {
           "aiState": "idle",
           "attackPower": 120,
+          "auras": [
+            {
+              "duration": 30,
+              "id": "seal_of_righteousness",
+              "kind": "imbue",
+              "name": "Seal of Righteousness",
+              "remaining": 30,
+              "school": "holy",
+              "sourceId": 391,
+              "value": 11,
+              "value2": 30,
+              "value3": 44
+            }
+          ],
           "cooldowns": [
             [
               "consecration",
@@ -3748,7 +3762,7 @@
           "aiState": "idle",
           "attackPower": 11,
           "castTotal": 5,
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.056,
@@ -3806,13 +3820,13 @@
               "id": "fear_incap",
               "kind": "incapacitate",
               "name": "Fear",
-              "remaining": 2.8,
+              "remaining": 2.9,
               "school": "shadow",
               "sourceId": 393,
               "value": -2.527288
             }
           ],
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
@@ -3825,9 +3839,9 @@
           "inCombat": true,
           "kind": "mob",
           "leashAnchor": {
-            "x": 40.239002,
-            "y": -2.04043,
-            "z": -45.658208
+            "x": 40.117554,
+            "y": -2.041453,
+            "z": -45.910498
           },
           "level": 8,
           "lootFfaTimer": "Infinity",
@@ -3837,9 +3851,9 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 19.258385,
-            "y": 0.045984,
-            "z": -75.403354
+            "x": 26.74241,
+            "y": -1.723578,
+            "z": -64.873029
           },
           "potionCooldownUntil": -1,
           "spawnPos": {
@@ -3862,7 +3876,7 @@
             "y": -1.959689,
             "z": -48.613597
           },
-          "wanderTimer": 28.6,
+          "wanderTimer": 28.5,
           "weapon": {
             "max": 18,
             "min": 11,
@@ -4113,7 +4127,7 @@
           "fallStartY": -1.36912,
           "fiveSecondRule": 99,
           "hostile": true,
-          "hp": 499921,
+          "hp": 499967,
           "id": 400,
           "inCombat": true,
           "kind": "mob",
@@ -4145,7 +4159,7 @@
           "threat": [
             [
               391,
-              80
+              34
             ]
           ],
           "weapon": {
@@ -4160,11 +4174,11 @@
       "tick": 133,
       "time": 6.65,
       "nextId": 402,
-      "state": "4ecedd2a",
-      "events": "555e2b8a",
+      "state": "604a9646",
+      "events": "56393cd5",
       "rng": {
-        "draws": 459,
-        "digest": "10480b84"
+        "draws": 453,
+        "digest": "7e3f8a61"
       },
       "label": "druid-moonfire-forms",
       "players": [
@@ -4239,7 +4253,7 @@
           "cls": "paladin",
           "companionUpgrades": {},
           "counters": {
-            "damageDealt": 79
+            "damageDealt": 33
           },
           "delveClears": {},
           "delveDaily": {},
@@ -4260,9 +4274,7 @@
           "arenaRating": 1500,
           "cls": "druid",
           "companionUpgrades": {},
-          "counters": {
-            "damageDealt": 42
-          },
+          "counters": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 392,
@@ -4460,6 +4472,20 @@
         {
           "aiState": "idle",
           "attackPower": 120,
+          "auras": [
+            {
+              "duration": 30,
+              "id": "seal_of_righteousness",
+              "kind": "imbue",
+              "name": "Seal of Righteousness",
+              "remaining": 30,
+              "school": "holy",
+              "sourceId": 391,
+              "value": 11,
+              "value2": 30,
+              "value3": 44
+            }
+          ],
           "cooldowns": [
             [
               "consecration",
@@ -4531,13 +4557,13 @@
               "value": 0.71
             }
           ],
+          "combatTimer": 105.65,
           "critChance": 0.072,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.072,
           "fallStartY": -1.618121,
           "hp": 1,
           "id": 392,
-          "inCombat": true,
           "kind": "player",
           "level": 20,
           "lootFfaTimer": "Infinity",
@@ -4582,7 +4608,7 @@
           "aiState": "idle",
           "attackPower": 11,
           "castTotal": 5,
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.056,
@@ -4640,13 +4666,13 @@
               "id": "fear_incap",
               "kind": "incapacitate",
               "name": "Fear",
-              "remaining": 2.8,
+              "remaining": 2.9,
               "school": "shadow",
               "sourceId": 393,
               "value": -2.527288
             }
           ],
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
@@ -4659,9 +4685,9 @@
           "inCombat": true,
           "kind": "mob",
           "leashAnchor": {
-            "x": 40.239002,
-            "y": -2.04043,
-            "z": -45.658208
+            "x": 40.117554,
+            "y": -2.041453,
+            "z": -45.910498
           },
           "level": 8,
           "lootFfaTimer": "Infinity",
@@ -4671,9 +4697,9 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 19.258385,
-            "y": 0.045984,
-            "z": -75.403354
+            "x": 26.74241,
+            "y": -1.723578,
+            "z": -64.873029
           },
           "potionCooldownUntil": -1,
           "spawnPos": {
@@ -4696,7 +4722,7 @@
             "y": -1.959689,
             "z": -48.613597
           },
-          "wanderTimer": 28.6,
+          "wanderTimer": 28.5,
           "weapon": {
             "max": 18,
             "min": 11,
@@ -4947,7 +4973,7 @@
           "fallStartY": -1.36912,
           "fiveSecondRule": 99,
           "hostile": true,
-          "hp": 499921,
+          "hp": 499967,
           "id": 400,
           "inCombat": true,
           "kind": "mob",
@@ -4979,7 +5005,7 @@
           "threat": [
             [
               391,
-              80
+              34
             ]
           ],
           "weapon": {
@@ -4989,37 +5015,17 @@
           }
         },
         {
-          "aggroTargetId": 392,
-          "aiState": "chase",
-          "auras": [
-            {
-              "duration": 12,
-              "id": "moonfire",
-              "kind": "dot",
-              "name": "Moonfire",
-              "remaining": 12,
-              "school": "arcane",
-              "sourceId": 392,
-              "tickInterval": 3,
-              "tickTimer": 3,
-              "value": 10
-            }
-          ],
+          "aiState": "idle",
+          "combatTimer": 99,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
           "fallStartY": -1.618121,
           "fiveSecondRule": 99,
           "hostile": true,
-          "hp": 499958,
+          "hp": 500000,
           "id": 401,
-          "inCombat": true,
           "kind": "mob",
-          "leashAnchor": {
-            "x": 14,
-            "y": -1.618121,
-            "z": -42
-          },
           "level": 8,
           "lootFfaTimer": "Infinity",
           "maxHp": 500000,
@@ -5041,14 +5047,7 @@
           "stats": {
             "armor": 70
           },
-          "tappedById": 392,
           "templateId": "forest_wolf",
-          "threat": [
-            [
-              392,
-              43
-            ]
-          ],
           "weapon": {
             "max": 18,
             "min": 11,
@@ -5061,11 +5060,11 @@
       "tick": 133,
       "time": 6.65,
       "nextId": 402,
-      "state": "4ecedd2a",
+      "state": "604a9646",
       "events": "741638a5",
       "rng": {
-        "draws": 459,
-        "digest": "10480b84"
+        "draws": 453,
+        "digest": "7e3f8a61"
       },
       "label": "final",
       "players": [
@@ -5140,7 +5139,7 @@
           "cls": "paladin",
           "companionUpgrades": {},
           "counters": {
-            "damageDealt": 79
+            "damageDealt": 33
           },
           "delveClears": {},
           "delveDaily": {},
@@ -5161,9 +5160,7 @@
           "arenaRating": 1500,
           "cls": "druid",
           "companionUpgrades": {},
-          "counters": {
-            "damageDealt": 42
-          },
+          "counters": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 392,
@@ -5361,6 +5358,20 @@
         {
           "aiState": "idle",
           "attackPower": 120,
+          "auras": [
+            {
+              "duration": 30,
+              "id": "seal_of_righteousness",
+              "kind": "imbue",
+              "name": "Seal of Righteousness",
+              "remaining": 30,
+              "school": "holy",
+              "sourceId": 391,
+              "value": 11,
+              "value2": 30,
+              "value3": 44
+            }
+          ],
           "cooldowns": [
             [
               "consecration",
@@ -5432,13 +5443,13 @@
               "value": 0.71
             }
           ],
+          "combatTimer": 105.65,
           "critChance": 0.072,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.072,
           "fallStartY": -1.618121,
           "hp": 1,
           "id": 392,
-          "inCombat": true,
           "kind": "player",
           "level": 20,
           "lootFfaTimer": "Infinity",
@@ -5483,7 +5494,7 @@
           "aiState": "idle",
           "attackPower": 11,
           "castTotal": 5,
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.056,
@@ -5541,13 +5552,13 @@
               "id": "fear_incap",
               "kind": "incapacitate",
               "name": "Fear",
-              "remaining": 2.8,
+              "remaining": 2.9,
               "school": "shadow",
               "sourceId": 393,
               "value": -2.527288
             }
           ],
-          "combatTimer": 5.2,
+          "combatTimer": 5.1,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
@@ -5560,9 +5571,9 @@
           "inCombat": true,
           "kind": "mob",
           "leashAnchor": {
-            "x": 40.239002,
-            "y": -2.04043,
-            "z": -45.658208
+            "x": 40.117554,
+            "y": -2.041453,
+            "z": -45.910498
           },
           "level": 8,
           "lootFfaTimer": "Infinity",
@@ -5572,9 +5583,9 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 19.258385,
-            "y": 0.045984,
-            "z": -75.403354
+            "x": 26.74241,
+            "y": -1.723578,
+            "z": -64.873029
           },
           "potionCooldownUntil": -1,
           "spawnPos": {
@@ -5597,7 +5608,7 @@
             "y": -1.959689,
             "z": -48.613597
           },
-          "wanderTimer": 28.6,
+          "wanderTimer": 28.5,
           "weapon": {
             "max": 18,
             "min": 11,
@@ -5848,7 +5859,7 @@
           "fallStartY": -1.36912,
           "fiveSecondRule": 99,
           "hostile": true,
-          "hp": 499921,
+          "hp": 499967,
           "id": 400,
           "inCombat": true,
           "kind": "mob",
@@ -5880,7 +5891,7 @@
           "threat": [
             [
               391,
-              80
+              34
             ]
           ],
           "weapon": {
@@ -5890,37 +5901,17 @@
           }
         },
         {
-          "aggroTargetId": 392,
-          "aiState": "chase",
-          "auras": [
-            {
-              "duration": 12,
-              "id": "moonfire",
-              "kind": "dot",
-              "name": "Moonfire",
-              "remaining": 12,
-              "school": "arcane",
-              "sourceId": 392,
-              "tickInterval": 3,
-              "tickTimer": 3,
-              "value": 10
-            }
-          ],
+          "aiState": "idle",
+          "combatTimer": 99,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
           "fallStartY": -1.618121,
           "fiveSecondRule": 99,
           "hostile": true,
-          "hp": 499958,
+          "hp": 500000,
           "id": 401,
-          "inCombat": true,
           "kind": "mob",
-          "leashAnchor": {
-            "x": 14,
-            "y": -1.618121,
-            "z": -42
-          },
           "level": 8,
           "lootFfaTimer": "Infinity",
           "maxHp": 500000,
@@ -5942,14 +5933,7 @@
           "stats": {
             "armor": 70
           },
-          "tappedById": 392,
           "templateId": "forest_wolf",
-          "threat": [
-            [
-              392,
-              43
-            ]
-          ],
           "weapon": {
             "max": 18,
             "min": 11,

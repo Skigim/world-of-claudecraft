@@ -320,7 +320,10 @@ export const es: EnTranslations = {
       "showWalletOnCharacterScreen": "Mostrar cartera en la pantalla de personajes",
       "showWalletOnPlayerCard": "Mostrar cartera en la tarjeta de jugador",
       "uiScale": "Escala de la interfaz",
-      "highContrastBackground": "Fondo de alto contraste"
+      "highContrastBackground": "Fondo de alto contraste",
+      "showItemLevel": "Mostrar nivel de objeto",
+      "itemLevelLine": "Nivel de objeto {level}",
+      "itemScoreLine": "Puntuación {score}"
     },
     "controller": {
       "title": "Mando",
@@ -450,6 +453,10 @@ export const es: EnTranslations = {
     },
     "tips": {
       "joinChannels": "Consejo: escribe /join world o /join lfg para chatear con jugadores de todas partes del reino."
+    },
+    "itemSet": {
+      "header": "{name} ({have}/{total})",
+      "bonusLine": "({pieces}) {bonus}"
     },
     "questShare": {
       "notShareable": "Esta misión no se puede compartir.",
@@ -587,6 +594,26 @@ export const es: EnTranslations = {
       "exportDone": "Tus datos se descargaron. Te enviamos una confirmación por correo.",
       "exportFailed": "No se pudieron exportar tus datos. Inténtalo de nuevo en un momento."
     },
+    "masterLoot": {
+      "title": "Botin maestro",
+      "enableLabel": "Botin maestro",
+      "enableAria": "Activar botin maestro",
+      "looterLabel": "Maestro del botin",
+      "leaderOption": "Lider del grupo",
+      "thresholdLabel": "Umbral",
+      "thresholdUncommon": "Poco comun o superior",
+      "thresholdRare": "Raro o superior",
+      "thresholdEpic": "Epico o superior",
+      "assignPrompt": "Asignar {item}",
+      "assignAria": "Asignar {item} a {name}",
+      "rollButton": "Tirar",
+      "selectAll": "Elegir todos",
+      "methodMaster": "Metodo de botin cambiado a botin maestro. Maestro del botin: {name}.",
+      "methodGroup": "Metodo de botin cambiado a botin de grupo.",
+      "assigned": "{looter} asigno {item} a {target}.",
+      "unassigned": "{item} no fue asignado y queda libre para todos.",
+      "leaderOnly": "Solo el lider del grupo puede cambiar el metodo de botin."
+    },
     "bags": {
       "filterGroupAria": "Filtrar bolsas por categoría",
       "filterAll": "Todos",
@@ -610,9 +637,9 @@ export const es: EnTranslations = {
       "tooLarge": "Una banda con más de cinco miembros no puede volver a convertirse en grupo."
     },
     "itemArmorType": {
-      "cloth": "Cloth",
-      "leather": "Leather",
-      "mail": "Mail"
+      "cloth": "Tela",
+      "leather": "Cuero",
+      "mail": "Malla"
     },
     "auraEffect": {
       "dot": "Inflige {value} de daño de {school} cada {interval} s",
@@ -1645,6 +1672,7 @@ export const es: EnTranslations = {
     "copyright": "2026 World of ClaudeCraft",
     "githubLink": "https://github.com/levy-street/world-of-claudecraft",
     "githubLabel": "Proyecto de Código Abierto",
+    "whitepaper": "Libro blanco",
     "terms": "Términos de Servicio",
     "privacy": "Política de Privacidad",
     "discordLabel": "Únete al Discord"
@@ -2851,7 +2879,7 @@ export const es: EnTranslations = {
     "combat": {
       "floatingMiss": "Fallo",
       "floatingDodge": "Esquiva",
-      "floatingResist": "Resist",
+      "floatingResist": "Resistido",
       "cannotMove": "¡No puedes moverte!",
       "attack": "ataque",
       "damageDone": "Tu {ability} golpea a {target} por {amount}.",
@@ -2860,7 +2888,7 @@ export const es: EnTranslations = {
       "damageTakenCrit": "{source} te golpea críticamente por {amount}.",
       "miss": "Tu {ability} falla contra {target}.",
       "dodged": "{target} esquiva tu {ability}.",
-      "resisted": "Your {ability} is resisted by {target}.",
+      "resisted": "{target} resiste tu {ability}.",
       "healSelf": "Tu {ability} te sana {amount}.",
       "healSelfCrit": "Tu {ability} te sana críticamente {amount}.",
       "healOther": "Tu {ability} sana a {target} por {amount}.",
@@ -6491,6 +6519,43 @@ export const es: EnTranslations = {
         "name": "El Relicario Hundido",
         "enterText": "Desciendes al relicario hundido.",
         "leaveText": "Subes de vuelta hasta el Hermano Halven, en la ruina del relicario."
+      }
+    },
+    "itemSets": {
+      "crownforged": {
+        "name": "Equipo de batalla Forjacorona",
+        "bonus2": "Aumenta el poder de ataque en 40.",
+        "bonus3": "Aumenta la fuerza en 15 y el aguante en 15."
+      },
+      "deathlord": {
+        "name": "Equipo de batalla del Señor de la Muerte",
+        "bonus2": "Aumenta el poder de ataque en 40.",
+        "bonus3": "Aumenta la fuerza en 15 y el aguante en 15."
+      },
+      "necromancers": {
+        "name": "Vestiduras del nigromante",
+        "bonus2": "Reduce un 50% el retroceso de lanzamiento causado por daño.",
+        "bonus3": "El daño recibido no retrasa tus lanzamientos."
+      },
+      "nighttalon": {
+        "name": "Atuendo de cuero Garra Nocturna",
+        "bonus2": "Aumenta el poder de ataque en 40.",
+        "bonus3": "Aumenta la agilidad en 15 y la probabilidad de crítico en 2%."
+      },
+      "soulflame": {
+        "name": "Vestiduras de Llama de Alma",
+        "bonus2": "Reduce un 50% el retroceso de lanzamiento causado por daño.",
+        "bonus3": "El daño recibido no retrasa tus lanzamientos."
+      },
+      "stormcallers": {
+        "name": "Vestiduras del Invocatormentas",
+        "bonus2": "Reduce un 50% el retroceso de lanzamiento causado por daño.",
+        "bonus3": "El daño recibido no retrasa tus lanzamientos."
+      },
+      "wyrmshadow": {
+        "name": "Atuendo de Sombra de Vermis",
+        "bonus2": "Aumenta el poder de ataque en 40.",
+        "bonus3": "Aumenta la agilidad en 15 y la probabilidad de crítico en 2%."
       }
     }
   },

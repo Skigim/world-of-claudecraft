@@ -320,7 +320,10 @@ export const en: EnTranslations = {
       "showWalletOnCharacterScreen": "Show Wallet on Character Screen",
       "showWalletOnPlayerCard": "Show Wallet on Player Card",
       "uiScale": "UI Scale",
-      "highContrastBackground": "High-Contrast Background"
+      "highContrastBackground": "High-Contrast Background",
+      "showItemLevel": "Show Item Level",
+      "itemLevelLine": "Item Level {level}",
+      "itemScoreLine": "Score {score}"
     },
     "controller": {
       "title": "Controller",
@@ -450,6 +453,10 @@ export const en: EnTranslations = {
     },
     "tips": {
       "joinChannels": "Tip: type /join world or /join lfg to chat with players across the realm."
+    },
+    "itemSet": {
+      "header": "{name} ({have}/{total})",
+      "bonusLine": "({pieces}) {bonus}"
     },
     "questShare": {
       "notShareable": "This quest can't be shared.",
@@ -586,6 +593,26 @@ export const en: EnTranslations = {
       "exportBtn": "Download My Data",
       "exportDone": "Your data was downloaded. We emailed you a confirmation.",
       "exportFailed": "Could not export your data. Try again in a moment."
+    },
+    "masterLoot": {
+      "title": "Master Loot",
+      "enableLabel": "Master loot",
+      "enableAria": "Enable master loot",
+      "looterLabel": "Master looter",
+      "leaderOption": "Party leader",
+      "thresholdLabel": "Threshold",
+      "thresholdUncommon": "Uncommon and up",
+      "thresholdRare": "Rare and up",
+      "thresholdEpic": "Epic and up",
+      "assignPrompt": "Assign {item}",
+      "assignAria": "Assign {item} to {name}",
+      "rollButton": "Roll",
+      "selectAll": "Select all",
+      "methodMaster": "Loot method set to master loot. Master looter: {name}.",
+      "methodGroup": "Loot method set to group loot.",
+      "assigned": "{looter} assigned {item} to {target}.",
+      "unassigned": "{item} was not assigned and is free for all.",
+      "leaderOnly": "Only the party leader can change the loot method."
     },
     "bags": {
       "filterGroupAria": "Filter bags by category",
@@ -1645,6 +1672,7 @@ export const en: EnTranslations = {
     "copyright": "2026 World of ClaudeCraft",
     "githubLink": "https://github.com/levy-street/world-of-claudecraft",
     "githubLabel": "Open Source Project",
+    "whitepaper": "Whitepaper",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "discordLabel": "Join the Discord"
@@ -6491,6 +6519,43 @@ export const en: EnTranslations = {
         "name": "The Collapsed Reliquary",
         "enterText": "You descend into the collapsed reliquary.",
         "leaveText": "You climb back to Brother Halven at the reliquary ruin."
+      }
+    },
+    "itemSets": {
+      "crownforged": {
+        "name": "Crownforged Regalia",
+        "bonus2": "Increases attack power by 40.",
+        "bonus3": "Increases Strength by 15 and Stamina by 15."
+      },
+      "deathlord": {
+        "name": "Deathlord Battlegear",
+        "bonus2": "Increases attack power by 40.",
+        "bonus3": "Increases Strength by 15 and Stamina by 15."
+      },
+      "necromancers": {
+        "name": "Necromancer's Raiment",
+        "bonus2": "Reduces cast pushback from damage by 50%.",
+        "bonus3": "You cannot be pushed back while casting (immune to cast pushback from damage)."
+      },
+      "nighttalon": {
+        "name": "Nighttalon Pelt",
+        "bonus2": "Increases attack power by 40.",
+        "bonus3": "Increases Agility by 15 and critical strike chance by 2%."
+      },
+      "soulflame": {
+        "name": "Soulflame Regalia",
+        "bonus2": "Reduces cast pushback from damage by 50%.",
+        "bonus3": "You cannot be pushed back while casting (immune to cast pushback from damage)."
+      },
+      "stormcallers": {
+        "name": "Stormcaller's Vestments",
+        "bonus2": "Reduces cast pushback from damage by 50%.",
+        "bonus3": "You cannot be pushed back while casting (immune to cast pushback from damage)."
+      },
+      "wyrmshadow": {
+        "name": "Wyrmshadow Vestments",
+        "bonus2": "Increases attack power by 40.",
+        "bonus3": "Increases Agility by 15 and critical strike chance by 2%."
       }
     }
   },

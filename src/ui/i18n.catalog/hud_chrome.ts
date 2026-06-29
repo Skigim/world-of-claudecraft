@@ -282,6 +282,10 @@ export const hudChromeStrings = {
     // page's high-contrast backdrop toggle.
     uiScale: 'UI Scale',
     highContrastBackground: 'High-Contrast Background',
+    // Interface panel toggle + the item-tooltip lines it reveals (off by default).
+    showItemLevel: 'Show Item Level',
+    itemLevelLine: 'Item Level {level}',
+    itemScoreLine: 'Score {score}',
   },
   // Controller / gamepad options panel (Options > Controller). Player-facing
   // chrome, so every label is a key here; the live numbers run through
@@ -439,6 +443,13 @@ export const hudChromeStrings = {
   // literal (they are commands); the surrounding prose localizes.
   tips: {
     joinChannels: 'Tip: type /join world or /join lfg to chat with players across the realm.',
+  },
+  // Item-set (tier set) tooltip block. The set name and per-tier bonus text come
+  // from content/item_sets.ts via entity_i18n; these two are the surrounding
+  // chrome, with `name`/`bonus` spliced in already-localized.
+  itemSet: {
+    header: '{name} ({have}/{total})',
+    bonusLine: '({pieces}) {bonus}',
   },
   // Quest-link sharing: the chat-link affordance and its sim-emitted notices
   // (re-localized through the hud-local localizeErrorText/localizeSystemText arms).
@@ -607,6 +618,29 @@ export const hudChromeStrings = {
     exportBtn: 'Download My Data',
     exportDone: 'Your data was downloaded. We emailed you a confirmation.',
     exportFailed: 'Could not export your data. Try again in a moment.',
+  },
+  // Master loot: the leader-only loot-method control in the party panel, the
+  // assignment prompt shown to the master looter, and the sim-emitted log lines
+  // re-localized through the hud matchers (localizeLootText/System/Error).
+  masterLoot: {
+    title: 'Master Loot',
+    enableLabel: 'Master loot',
+    enableAria: 'Enable master loot',
+    looterLabel: 'Master looter',
+    leaderOption: 'Party leader',
+    thresholdLabel: 'Threshold',
+    thresholdUncommon: 'Uncommon and up',
+    thresholdRare: 'Rare and up',
+    thresholdEpic: 'Epic and up',
+    assignPrompt: 'Assign {item}',
+    assignAria: 'Assign {item} to {name}',
+    rollButton: 'Roll',
+    selectAll: 'Select all',
+    methodMaster: 'Loot method set to master loot. Master looter: {name}.',
+    methodGroup: 'Loot method set to group loot.',
+    assigned: '{looter} assigned {item} to {target}.',
+    unassigned: '{item} was not assigned and is free for all.',
+    leaderOnly: 'Only the party leader can change the loot method.',
   },
   // Modular bag filtering controls: the category chips, sort dropdown, and live
   // search above the bag grid, plus the "no items match" empty state.

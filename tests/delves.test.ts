@@ -530,7 +530,9 @@ describe('delve interactables and affixes', () => {
       for (const id of run.affixes) expect(DELVE_IMPLEMENTED_AFFIXES.has(id)).toBe(true);
       expect(run.affixes.length).toBe(1); // Heroic affixCount = 1
     }
-  });
+    // 200 full Sim constructions: bump the timeout so it stays green under the
+    // parallel-worker load of the whole suite (it runs well under this alone).
+  }, 15000);
 
   it('Deacon Varric enrages on Heroic but not on Normal (PRD §7.4)', () => {
     for (const tier of ['normal', 'heroic'] as const) {

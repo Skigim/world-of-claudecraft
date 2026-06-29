@@ -320,7 +320,10 @@ export const zh_TW: EnTranslations = {
       "showWalletOnCharacterScreen": "在角色畫面顯示錢包",
       "showWalletOnPlayerCard": "在玩家卡片顯示錢包",
       "uiScale": "介面縮放",
-      "highContrastBackground": "高對比度背景"
+      "highContrastBackground": "高對比度背景",
+      "showItemLevel": "顯示物品等級",
+      "itemLevelLine": "物品等級 {level}",
+      "itemScoreLine": "評分 {score}"
     },
     "controller": {
       "title": "手把",
@@ -450,6 +453,10 @@ export const zh_TW: EnTranslations = {
     },
     "tips": {
       "joinChannels": "提示：輸入 /join world 或 /join lfg 可與全伺服器的玩家聊天。"
+    },
+    "itemSet": {
+      "header": "{name} ({have}/{total})",
+      "bonusLine": "({pieces}) {bonus}"
     },
     "questShare": {
       "notShareable": "該任務無法分享。",
@@ -586,6 +593,26 @@ export const zh_TW: EnTranslations = {
       "exportBtn": "下載我的資料",
       "exportDone": "你的資料已下載。我們已寄送確認信給你。",
       "exportFailed": "無法匯出你的資料。請稍候再試一次。"
+    },
+    "masterLoot": {
+      "title": "隊長分配",
+      "enableLabel": "隊長分配",
+      "enableAria": "啟用隊長分配",
+      "looterLabel": "分配者",
+      "leaderOption": "隊長",
+      "thresholdLabel": "品質門檻",
+      "thresholdUncommon": "優秀及以上",
+      "thresholdRare": "稀有及以上",
+      "thresholdEpic": "史詩及以上",
+      "assignPrompt": "分配{item}",
+      "assignAria": "將{item}分配給{name}",
+      "rollButton": "擲骰",
+      "selectAll": "全選",
+      "methodMaster": "拾取方式已設為隊長分配。分配者：{name}。",
+      "methodGroup": "拾取方式已設為小隊拾取。",
+      "assigned": "{looter}將{item}分配給了{target}。",
+      "unassigned": "{item}未被分配，現可自由拾取。",
+      "leaderOnly": "只有隊長才能更改拾取方式。"
     },
     "bags": {
       "filterGroupAria": "依類別篩選背包",
@@ -1645,6 +1672,7 @@ export const zh_TW: EnTranslations = {
     "copyright": "2026 World of ClaudeCraft",
     "githubLink": "https://github.com/levy-street/world-of-claudecraft",
     "githubLabel": "開源專案",
+    "whitepaper": "白皮書",
     "terms": "服務條款",
     "privacy": "隱私權政策",
     "discordLabel": "加入Discord社區"
@@ -6491,6 +6519,43 @@ export const zh_TW: EnTranslations = {
         "name": "崩塌的聖物庫",
         "enterText": "你向下深入崩塌的聖物庫。",
         "leaveText": "你爬回聖物庫遺墟處的哈爾文修士身邊。"
+      }
+    },
+    "itemSets": {
+      "crownforged": {
+        "name": "鑄冠戰裝",
+        "bonus2": "攻擊強度提高 40 點。",
+        "bonus3": "力量提高 15 點，耐力提高 15 點。"
+      },
+      "deathlord": {
+        "name": "死王戰甲",
+        "bonus2": "攻擊強度提高 40 點。",
+        "bonus3": "力量提高 15 點，耐力提高 15 點。"
+      },
+      "necromancers": {
+        "name": "死靈法師法衣",
+        "bonus2": "受到傷害造成的施法延退降低 50%。",
+        "bonus3": "施法時不會因受到傷害而被延退。"
+      },
+      "nighttalon": {
+        "name": "夜爪皮甲",
+        "bonus2": "攻擊強度提高 40 點。",
+        "bonus3": "敏捷提高 15 點，致命一擊機率提高 2%。"
+      },
+      "soulflame": {
+        "name": "魂焰法衣",
+        "bonus2": "受到傷害造成的施法延退降低 50%。",
+        "bonus3": "施法時不會因受到傷害而被延退。"
+      },
+      "stormcallers": {
+        "name": "喚雷者法衣",
+        "bonus2": "受到傷害造成的施法延退降低 50%。",
+        "bonus3": "施法時不會因受到傷害而被延退。"
+      },
+      "wyrmshadow": {
+        "name": "龍影外衣",
+        "bonus2": "攻擊強度提高 40 點。",
+        "bonus3": "敏捷提高 15 點，致命一擊機率提高 2%。"
       }
     }
   },

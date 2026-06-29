@@ -28,6 +28,7 @@
 // `ctx.rng` stream, drawn in the exact pre-move positions.
 
 import { CLASSES, MOBS } from '../data';
+import { scheduleProjectile } from '../projectile_travel';
 import type { PlayerMeta } from '../sim';
 import type { SimContext } from '../sim_context';
 import { addThreat } from '../threat';
@@ -155,32 +156,33 @@ export function rangedSwing(
     school,
     fx: 'projectile',
   });
-  const missChance = meleeMissChance(attacker.level, target.level) + blindMissBonus(attacker);
-  if (ctx.rng.chance(missChance)) {
-    ctx.emit({
-      type: 'damage',
-      sourceId: attacker.id,
-      targetId: target.id,
-      amount: 0,
-      crit: false,
-      school,
-      ability: label,
-      kind: 'miss',
-    });
-    ctx.enterCombat(attacker, target);
-    return;
-  }
-  let dmg = ctx.rng.range(ranged.min, ranged.max) + (attacker.rangedPower / 14) * ranged.speed;
-  // ranged white hits suffer the same higher-level crit suppression as melee
-  const critChance = Math.max(
-    0.005,
-    attacker.critChance - Math.max(0, target.level - attacker.level) * 0.002,
-  );
-  const crit = ctx.rng.chance(critChance);
-  if (crit) dmg *= 2;
-  // wand bolts are magic — armor doesn't apply; physical auto shot is mitigated
-  if (!ranged.wand) dmg *= 1 - armorReduction(ctx.effectiveArmor(target), attacker.level);
-  ctx.dealDamage(attacker, target, Math.max(1, Math.round(dmg)), crit, school, label, 'hit');
+  // The shot/bolt is in flight: its miss roll and damage land when it reaches the
+  // target (projectile_travel), and fizzle if the target dies before impact.
+  scheduleProjectile(ctx, attacker, target, (atk, tgt) => {
+    const missChance = meleeMissChance(atk.level, tgt.level) + blindMissBonus(atk);
+    if (ctx.rng.chance(missChance)) {
+      ctx.emit({
+        type: 'damage',
+        sourceId: atk.id,
+        targetId: tgt.id,
+        amount: 0,
+        crit: false,
+        school,
+        ability: label,
+        kind: 'miss',
+      });
+      ctx.enterCombat(atk, tgt);
+      return;
+    }
+    let dmg = ctx.rng.range(ranged.min, ranged.max) + (atk.rangedPower / 14) * ranged.speed;
+    // ranged white hits suffer the same higher-level crit suppression as melee
+    const critChance = Math.max(0.005, atk.critChance - Math.max(0, tgt.level - atk.level) * 0.002);
+    const crit = ctx.rng.chance(critChance);
+    if (crit) dmg *= 2;
+    // wand bolts are magic — armor doesn't apply; physical auto shot is mitigated
+    if (!ranged.wand) dmg *= 1 - armorReduction(ctx.effectiveArmor(tgt), atk.level);
+    ctx.dealDamage(atk, tgt, Math.max(1, Math.round(dmg)), crit, school, label, 'hit');
+  });
 }
 
 // Returns true if the swing connected.

@@ -320,7 +320,10 @@ export const ru_RU: EnTranslations = {
       "showWalletOnCharacterScreen": "Показывать кошелек на экране персонажей",
       "showWalletOnPlayerCard": "Показывать кошелек на карточке игрока",
       "uiScale": "Масштаб интерфейса",
-      "highContrastBackground": "Фон высокой контрастности"
+      "highContrastBackground": "Фон высокой контрастности",
+      "showItemLevel": "Показывать уровень предмета",
+      "itemLevelLine": "Уровень предмета {level}",
+      "itemScoreLine": "Оценка {score}"
     },
     "controller": {
       "title": "Геймпад",
@@ -450,6 +453,10 @@ export const ru_RU: EnTranslations = {
     },
     "tips": {
       "joinChannels": "Совет: введите /join world или /join lfg, чтобы общаться с игроками по всему миру."
+    },
+    "itemSet": {
+      "header": "{name} ({have}/{total})",
+      "bonusLine": "({pieces}) {bonus}"
     },
     "questShare": {
       "notShareable": "Этим заданием нельзя поделиться.",
@@ -586,6 +593,26 @@ export const ru_RU: EnTranslations = {
       "exportBtn": "Скачать мои данные",
       "exportDone": "Ваши данные были скачаны. Мы отправили вам подтверждение по email.",
       "exportFailed": "Не удалось экспортировать ваши данные. Попробуйте снова через мгновение."
+    },
+    "masterLoot": {
+      "title": "Распределение добычи",
+      "enableLabel": "Мастер добычи",
+      "enableAria": "Включить мастера добычи",
+      "looterLabel": "Мастер добычи",
+      "leaderOption": "Лидер группы",
+      "thresholdLabel": "Порог качества",
+      "thresholdUncommon": "Необычное и выше",
+      "thresholdRare": "Редкое и выше",
+      "thresholdEpic": "Эпическое и выше",
+      "assignPrompt": "Назначить {item}",
+      "assignAria": "Назначить {item} игроку {name}",
+      "rollButton": "Бросок",
+      "selectAll": "Выбрать всех",
+      "methodMaster": "Способ добычи изменён на мастера добычи. Мастер добычи: {name}.",
+      "methodGroup": "Способ добычи изменён на групповой.",
+      "assigned": "{looter} передал предмет {item} игроку {target}.",
+      "unassigned": "Предмет {item} не был назначен и доступен всем.",
+      "leaderOnly": "Только лидер группы может менять способ добычи."
     },
     "bags": {
       "filterGroupAria": "Фильтровать сумки по категории",
@@ -1645,6 +1672,7 @@ export const ru_RU: EnTranslations = {
     "copyright": "2026 World of ClaudeCraft",
     "githubLink": "https://github.com/levy-street/world-of-claudecraft",
     "githubLabel": "Проект с открытым исходным кодом",
+    "whitepaper": "Белая книга",
     "terms": "Условия использования",
     "privacy": "Политика конфиденциальности",
     "discordLabel": "Присоединиться к Discord"
@@ -6491,6 +6519,43 @@ export const ru_RU: EnTranslations = {
         "name": "Обрушившийся Реликварий",
         "enterText": "Вы спускаетесь в обрушившийся реликварий.",
         "leaveText": "Вы поднимаетесь обратно к Брату Хальвену у руин реликвария."
+      }
+    },
+    "itemSets": {
+      "crownforged": {
+        "name": "Боевой доспех Кованой Короны",
+        "bonus2": "Сила атаки повышается на 40.",
+        "bonus3": "Сила повышается на 15, выносливость на 15."
+      },
+      "deathlord": {
+        "name": "Боевой доспех Владыки Смерти",
+        "bonus2": "Сила атаки повышается на 40.",
+        "bonus3": "Сила повышается на 15, выносливость на 15."
+      },
+      "necromancers": {
+        "name": "Одеяние некроманта",
+        "bonus2": "Задержка произнесения от полученного урона снижена на 50%.",
+        "bonus3": "Полученный урон не задерживает произнесение заклинаний."
+      },
+      "nighttalon": {
+        "name": "Кожаный доспех Ночного Когтя",
+        "bonus2": "Сила атаки повышается на 40.",
+        "bonus3": "Ловкость повышается на 15, вероятность критического удара на 2%."
+      },
+      "soulflame": {
+        "name": "Одеяние Пламени Души",
+        "bonus2": "Задержка произнесения от полученного урона снижена на 50%.",
+        "bonus3": "Полученный урон не задерживает произнесение заклинаний."
+      },
+      "stormcallers": {
+        "name": "Одеяние Зовущего Бурю",
+        "bonus2": "Задержка произнесения от полученного урона снижена на 50%.",
+        "bonus3": "Полученный урон не задерживает произнесение заклинаний."
+      },
+      "wyrmshadow": {
+        "name": "Облачение Тени Дракона",
+        "bonus2": "Сила атаки повышается на 40.",
+        "bonus3": "Ловкость повышается на 15, вероятность критического удара на 2%."
       }
     }
   },

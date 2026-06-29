@@ -635,11 +635,14 @@ describe('spell pushback', () => {
   });
 
   it('a pushed-back cast still completes and lands', () => {
-    const { sim, wolf } = castingMage();
+    const { sim, wolf } = castingMage(20); // high level vs a low wolf: the bolt won't miss
     sim.castAbility('fireball');
     (sim as any).dealDamage(wolf, sim.player, 5, false, 'physical', null, 'hit');
     const hpBefore = wolf.hp;
-    for (let i = 0; i < 20 * 8 && sim.player.castingAbility; i++) sim.tick();
+    // The cast completes (pushed back, not cancelled), THEN the fireball flies to the
+    // wolf and lands its damage a few ticks later (projectile_travel): tick until the
+    // bolt connects, not merely until the cast bar empties.
+    for (let i = 0; i < 20 * 8 && wolf.hp >= hpBefore; i++) sim.tick();
     expect(wolf.hp).toBeLessThan(hpBefore);
   });
 

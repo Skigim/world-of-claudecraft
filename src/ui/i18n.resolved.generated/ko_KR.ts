@@ -320,7 +320,10 @@ export const ko_KR: EnTranslations = {
       "showWalletOnCharacterScreen": "캐릭터 화면에 지갑 표시",
       "showWalletOnPlayerCard": "플레이어 카드에 지갑 표시",
       "uiScale": "UI 배율",
-      "highContrastBackground": "고대비 배경"
+      "highContrastBackground": "고대비 배경",
+      "showItemLevel": "아이템 레벨 표시",
+      "itemLevelLine": "아이템 레벨 {level}",
+      "itemScoreLine": "점수 {score}"
     },
     "controller": {
       "title": "컨트롤러",
@@ -450,6 +453,10 @@ export const ko_KR: EnTranslations = {
     },
     "tips": {
       "joinChannels": "팁: /join world 또는 /join lfg를 입력하면 서버 전역의 플레이어와 대화할 수 있습니다."
+    },
+    "itemSet": {
+      "header": "{name} ({have}/{total})",
+      "bonusLine": "({pieces}) {bonus}"
     },
     "questShare": {
       "notShareable": "이 퀘스트는 공유할 수 없습니다.",
@@ -586,6 +593,26 @@ export const ko_KR: EnTranslations = {
       "exportBtn": "내 데이터 다운로드",
       "exportDone": "데이터가 다운로드되었습니다. 확인 메일을 보내드렸습니다.",
       "exportFailed": "데이터를 내보낼 수 없습니다. 잠시 후 다시 시도하세요."
+    },
+    "masterLoot": {
+      "title": "분배 담당",
+      "enableLabel": "분배 담당",
+      "enableAria": "분배 담당 사용",
+      "looterLabel": "분배 담당자",
+      "leaderOption": "파티장",
+      "thresholdLabel": "품질 기준",
+      "thresholdUncommon": "고급 이상",
+      "thresholdRare": "희귀 이상",
+      "thresholdEpic": "영웅 이상",
+      "assignPrompt": "{item} 분배",
+      "assignAria": "{item}을(를) {name}에게 분배",
+      "rollButton": "주사위",
+      "selectAll": "전체 선택",
+      "methodMaster": "전리품 방식이 분배 담당으로 설정되었습니다. 분배 담당자: {name}.",
+      "methodGroup": "전리품 방식이 파티 분배로 설정되었습니다.",
+      "assigned": "{looter}님이 {item}을(를) {target}에게 분배했습니다.",
+      "unassigned": "{item}이(가) 분배되지 않아 모두가 획득할 수 있습니다.",
+      "leaderOnly": "파티장만 전리품 방식을 변경할 수 있습니다."
     },
     "bags": {
       "filterGroupAria": "가방을 분류별로 필터링",
@@ -1645,6 +1672,7 @@ export const ko_KR: EnTranslations = {
     "copyright": "2026 World of ClaudeCraft",
     "githubLink": "https://github.com/levy-street/world-of-claudecraft",
     "githubLabel": "오픈 소스 프로젝트",
+    "whitepaper": "백서",
     "terms": "서비스 이용약관",
     "privacy": "개인정보 처리방침",
     "discordLabel": "Discord 참여하기"
@@ -6491,6 +6519,43 @@ export const ko_KR: EnTranslations = {
         "name": "무너진 성물실",
         "enterText": "무너진 성물실로 내려갑니다.",
         "leaveText": "성물실 폐허의 브라더 할벤에게로 다시 올라갑니다."
+      }
+    },
+    "itemSets": {
+      "crownforged": {
+        "name": "왕관벼림 전투장비",
+        "bonus2": "전투력이 40만큼 증가합니다.",
+        "bonus3": "힘이 15, 체력이 15만큼 증가합니다."
+      },
+      "deathlord": {
+        "name": "죽음군주의 전투장비",
+        "bonus2": "전투력이 40만큼 증가합니다.",
+        "bonus3": "힘이 15, 체력이 15만큼 증가합니다."
+      },
+      "necromancers": {
+        "name": "강령술사의 의복",
+        "bonus2": "피해로 인한 시전 밀림이 50% 감소합니다.",
+        "bonus3": "시전 중 피해를 받아도 밀려나지 않습니다."
+      },
+      "nighttalon": {
+        "name": "밤발톱 가죽장비",
+        "bonus2": "전투력이 40만큼 증가합니다.",
+        "bonus3": "민첩이 15, 치명타 확률이 2% 증가합니다."
+      },
+      "soulflame": {
+        "name": "영혼불꽃 의복",
+        "bonus2": "피해로 인한 시전 밀림이 50% 감소합니다.",
+        "bonus3": "시전 중 피해를 받아도 밀려나지 않습니다."
+      },
+      "stormcallers": {
+        "name": "폭풍소환사의 의복",
+        "bonus2": "피해로 인한 시전 밀림이 50% 감소합니다.",
+        "bonus3": "시전 중 피해를 받아도 밀려나지 않습니다."
+      },
+      "wyrmshadow": {
+        "name": "고룡그림자 의복",
+        "bonus2": "전투력이 40만큼 증가합니다.",
+        "bonus3": "민첩이 15, 치명타 확률이 2% 증가합니다."
       }
     }
   },
