@@ -153,7 +153,6 @@ import * as lifecycle from './mob/lifecycle';
 import { resetEvadingMob as resetEvadingMobFn, updateMob as updateMobFn } from './mob/locomotion';
 import { runMobSwingAffixes } from './mob/mob_swing';
 import {
-  isTrivialTo as isTrivialToFn,
   retargetMob as retargetMobFn,
   updateMobTarget as updateMobTargetFn,
 } from './mob/targeting';
@@ -310,14 +309,13 @@ const MOVE_SLIDE_FAN = [0, 0.5, -0.5, 1.0, -1.0, 1.6, -1.6];
 const BACKPEDAL_MULT = 0.65;
 // Low-HP flee ("fear"): a cowardly mob at or below this HP fraction panics, turns
 // and runs from its attacker for FLEE_DURATION seconds at FLEE_SPEED_MULT speed,
-// calling same-family allies within FLEE_HELP_RADIUS to assist. It flees only once
+// rallying same-family allies it runs past (mob/social_aggro.ts). It flees only once
 // per pull, then recovers its nerve and re-engages if it survived.
 const FLEE_HP_THRESHOLD = 0.2;
 const FLEE_DURATION = 5;
 const FLEE_SPEED_MULT = 1.4;
 const FLEE_MAX_SPEED = RUN_SPEED;
 // FLEE_RETURN_GRACE moved to mob/locomotion.ts (M2; used only by recoverFromFlee).
-const FLEE_HELP_RADIUS = 8;
 // Only sentient, cowardly families flee; beasts/undead/elementals/dragonkin fight
 // to the death. Elites, rares, and bosses never flee regardless of family.
 const FLEEING_FAMILIES: ReadonlySet<MobFamily> = new Set(['humanoid', 'kobold', 'murloc', 'troll']);
@@ -611,6 +609,11 @@ export interface PlayerMeta {
   pendingSkinCatalog: SkinCatalog | null;
   pendingSkinItemId: string | null;
   moveInput: MoveInput;
+  // Monotonic counter bumped when a bulky, rarely-changing wire field (the
+  // inventory, and the collection-quest progress derived from it) mutates, so a
+  // host can cheaply tell whether that state needs re-sending without diffing
+  // it every frame. Runtime-only signal, never serialized/persisted.
+  wireRev: number;
   inventory: InvSlot[];
   vendorBuyback: InvSlot[];
   copper: number;
@@ -1131,6 +1134,7 @@ export class Sim {
       pendingSkinCatalog: savedState?.pendingSkinCatalog ?? null,
       pendingSkinItemId: savedState?.pendingSkinItemId ?? null,
       moveInput: emptyMoveInput(),
+      wireRev: 0,
       inventory: [],
       vendorBuyback: [],
       copper: 0,
@@ -3010,6 +3014,7 @@ export class Sim {
       target.auras.splice(existing, 1);
     }
     target.auras.push(aura);
+    if (aura.kind === 'stealth') target.stealthed = true; // keep the cache live without waiting for updateAuras
     this.applyNonPlayerStatAura(target, aura, 1);
     this.emit({ type: 'aura', targetId: target.id, name: aura.name, gained: true });
     const source = this.entities.get(aura.sourceId);
@@ -3133,6 +3138,7 @@ export class Sim {
     if (idx < 0) return;
     const name = e.auras[idx].name;
     e.auras.splice(idx, 1);
+    e.stealthed = false; // keep the cache live without waiting for updateAuras
     this.emit({ type: 'aura', targetId: e.id, name, gained: false });
   }
 
@@ -3582,10 +3588,6 @@ export class Sim {
     }
   }
 
-  private isTrivialTo(mob: Entity, player: Entity): boolean {
-    return isTrivialToFn(mob, player);
-  }
-
   private updateMob(mob: Entity): void {
     updateMobFn(this.ctx, mob);
   }
@@ -3602,8 +3604,9 @@ export class Sim {
   }
 
   // Cowardly mobs panic once per pull at low HP: turn and run from the attacker
-  // for a few seconds, rallying nearby same-family allies. Returns true if the mob
-  // entered (or is already in) the flee state so the caller can stop its turn.
+  // for a few seconds, rallying nearby same-family allies, then recover their nerve.
+  // Returns true if the mob entered (or is already in) the flee state so the caller
+  // can stop its turn.
   private canFlee(mob: Entity): boolean {
     if (mob.hasFled || mob.enraged) return false;
     const tmpl = MOBS[mob.templateId];
@@ -3611,7 +3614,7 @@ export class Sim {
     return FLEEING_FAMILIES.has(tmpl.family);
   }
 
-  private maybeFlee(mob: Entity, target: Entity): boolean {
+  private maybeFlee(mob: Entity, _target: Entity): boolean {
     if (mob.maxHp <= 0 || mob.hp / mob.maxHp > FLEE_HP_THRESHOLD) return false;
     if (!this.canFlee(mob)) return false;
     mob.aiState = 'flee';
@@ -3623,33 +3626,10 @@ export class Sim {
       color: '#ffd966',
       entityId: mob.id,
     });
-    this.callForHelp(mob, target);
+    // The rally is NOT seeded here at the panic spot. The fleer runs first and rallies
+    // the first local same-family cluster it reaches, then turns back to fight with it;
+    // that per-tick scan lives in the flee arm (mob/locomotion.ts -> mob/social_aggro.ts).
     return true;
-  }
-
-  // A fleeing mob shouts for aid: nearby idle same-family mobs join the fight,
-  // mirroring the social-pull seeding in aggroMob.
-  private callForHelp(mob: Entity, target: Entity): void {
-    const family = MOBS[mob.templateId]?.family;
-    if (!family) return;
-    this.grid.forEachInRadius(mob.pos.x, mob.pos.z, FLEE_HELP_RADIUS, (m, d2) => {
-      if (
-        m.kind === 'mob' &&
-        m.id !== mob.id &&
-        !m.dead &&
-        m.hostile &&
-        m.aiState === 'idle' &&
-        m.ownerId === null &&
-        MOBS[m.templateId]?.family === family &&
-        d2 < FLEE_HELP_RADIUS * FLEE_HELP_RADIUS
-      ) {
-        m.aiState = 'chase';
-        m.aggroTargetId = target.id;
-        m.inCombat = true;
-        m.leashAnchor = { ...m.pos };
-        addThreat(m, target.id, 1);
-      }
-    });
   }
 
   mobSwing(mob: Entity, target: Entity): void {

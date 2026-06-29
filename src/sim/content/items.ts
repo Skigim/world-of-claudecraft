@@ -347,7 +347,7 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     armorType: 'mail',
     slot: 'helmet',
     quality: 'rare',
-    stats: { armor: 105, sta: 4, str: 3 },
+    stats: { armor: 105, sta: 6, str: 5 },
     sellValue: 460,
   },
   boundstone_girdle: {
@@ -357,7 +357,7 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     armorType: 'mail',
     slot: 'waist',
     quality: 'rare',
-    stats: { armor: 60, sta: 4, str: 2 },
+    stats: { armor: 60, sta: 6, str: 3 },
     sellValue: 340,
   },
   gravewyrm_mantle: {
@@ -367,7 +367,7 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     armorType: 'mail',
     slot: 'shoulder',
     quality: 'rare',
-    stats: { armor: 82, agi: 4, sta: 2 },
+    stats: { armor: 82, agi: 7, sta: 3 },
     sellValue: 410,
   },
   gravewyrm_gauntlets: {
@@ -377,7 +377,7 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     armorType: 'mail',
     slot: 'gloves',
     quality: 'rare',
-    stats: { armor: 72, str: 3, sta: 2 },
+    stats: { armor: 72, str: 5, sta: 4 },
     sellValue: 390,
   },
   // --- food & drink (vendor) ---
@@ -718,6 +718,14 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     buyValue: 1100,
   },
   // --- Hollow Crypt rewards (rare/blue) ---
+  // Item-level showcase: these rares are NORMALIZED to the stat budget their item
+  // level earns (see src/sim/item_level.ts). The three weapons are the q_hollow
+  // reward for felling Morthen (level 10), so item level 13 (rare +3) -> a 7-point
+  // primary-stat budget; each keeps its own stat identity (str/sta, agi/sta,
+  // int/spi) at the same total. The three archetype chests drop from the level-7
+  // chapel elites, so item level 10 -> a 6-point budget. tests/item_level.test.ts
+  // pins data == formula. (hollowbone_hauberk and cryptstalker_jerkin already sat
+  // at 6, so only the off-budget pieces below moved.)
   gravecaller_blade: {
     id: 'gravecaller_blade',
     name: "Gravecaller's Broadblade",
@@ -725,7 +733,7 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     slot: 'mainhand',
     quality: 'rare',
     weapon: { min: 9, max: 16, speed: 2.4 },
-    stats: { str: 3, sta: 2 },
+    stats: { str: 4, sta: 3 },
     sellValue: 800,
   },
   widowfang_dirk: {
@@ -735,7 +743,7 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     slot: 'mainhand',
     quality: 'rare',
     weapon: { min: 6, max: 10, speed: 1.7, dagger: true },
-    stats: { agi: 3, sta: 2 },
+    stats: { agi: 4, sta: 3 },
     sellValue: 800,
   },
   gravecaller_staff: {
@@ -745,7 +753,7 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     slot: 'mainhand',
     quality: 'rare',
     weapon: { min: 10, max: 17, speed: 3.0 },
-    stats: { int: 4, spi: 2 },
+    stats: { int: 5, spi: 2 },
     sellValue: 800,
   },
   marrowtread_boots: {
@@ -799,7 +807,7 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     armorType: 'cloth',
     slot: 'chest',
     quality: 'rare',
-    stats: { armor: 38, int: 4, spi: 3 },
+    stats: { armor: 38, int: 3, spi: 3 },
     sellValue: 700,
     requiredClass: MAG,
   },

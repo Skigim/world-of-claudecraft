@@ -14,6 +14,7 @@ import {
   talentPointsAtLevel,
 } from '../sim/content/talents';
 import { abilitiesKnownAt, NPCS, resolveDelveShopOffers } from '../sim/data';
+import { deadTargetSelectable } from '../sim/dead_target';
 import { LEADERBOARD_PAGE_SIZE } from '../sim/leaderboard_page';
 import type { Ante, PickAction } from '../sim/lockpick';
 import { normalizeMoveFacing, sanitizeMoveInput } from '../sim/move_input';
@@ -613,6 +614,7 @@ function blankEntity(id: number): Entity {
     warcryTimer: 0,
     petPath: [],
     petPathCooldown: 0,
+    castPushbackReduction: 0,
     pos: { x: 0, y: 0, z: 0 },
     prevPos: { x: 0, y: 0, z: 0 },
     facing: 0,
@@ -646,6 +648,7 @@ function blankEntity(id: number): Entity {
     inCombat: false,
     combatTimer: 99,
     auras: [],
+    stealthed: false,
     ccDr: new Map(),
     castingAbility: null,
     castRemaining: 0,
@@ -1465,7 +1468,7 @@ export class ClientWorld implements IWorld {
       if (id === null) p.targetId = null;
       else {
         const e = this.entities.get(id);
-        if (e && (!e.dead || e.lootable)) p.targetId = id;
+        if (e && (!e.dead || deadTargetSelectable(e, this.playerId))) p.targetId = id;
       }
     }
     this.cmd({ cmd: 'target', id });

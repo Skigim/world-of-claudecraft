@@ -320,7 +320,10 @@ export const tr_TR: EnTranslations = {
       "showWalletOnCharacterScreen": "Cüzdanı Karakter Ekranında Göster",
       "showWalletOnPlayerCard": "Cüzdanı Oyuncu Kartında Göster",
       "uiScale": "Arayüz Ölçeği",
-      "highContrastBackground": "Yüksek Kontrastlı Arka Plan"
+      "highContrastBackground": "Yüksek Kontrastlı Arka Plan",
+      "showItemLevel": "Eşya Seviyesini Göster",
+      "itemLevelLine": "Eşya Seviyesi {level}",
+      "itemScoreLine": "Puan {score}"
     },
     "controller": {
       "title": "Oyun Kolu",
@@ -450,6 +453,10 @@ export const tr_TR: EnTranslations = {
     },
     "tips": {
       "joinChannels": "İpucu: Sunucu genelindeki oyuncularla sohbet etmek için /join world ya da /join lfg yaz."
+    },
+    "itemSet": {
+      "header": "{name} ({have}/{total})",
+      "bonusLine": "({pieces}) {bonus}"
     },
     "questShare": {
       "notShareable": "Bu görev paylaşılamaz.",
@@ -6382,6 +6389,43 @@ export const tr_TR: EnTranslations = {
         "name": "Çökmüş Emanetlik",
         "enterText": "Çökmüş emanetliğe inersin.",
         "leaveText": "Emanetlik harabesinde Birader Halven'in yanına tırmanıp geri dönersin."
+      }
+    },
+    "itemSets": {
+      "crownforged": {
+        "name": "Taçdövme savaş takımı",
+        "bonus2": "Saldırı gücünü 40 artırır.",
+        "bonus3": "Gücü 15 ve dayanıklılığı 15 artırır."
+      },
+      "deathlord": {
+        "name": "Ölüm Lordu savaş takımı",
+        "bonus2": "Saldırı gücünü 40 artırır.",
+        "bonus3": "Gücü 15 ve dayanıklılığı 15 artırır."
+      },
+      "necromancers": {
+        "name": "Nekromansır giysileri",
+        "bonus2": "Hasarın neden olduğu büyü geri itmesini %50 azaltır.",
+        "bonus3": "Alınan hasar büyü yapmanı geciktirmez."
+      },
+      "nighttalon": {
+        "name": "Gece Pençesi deri takımı",
+        "bonus2": "Saldırı gücünü 40 artırır.",
+        "bonus3": "Çevikliği 15 ve kritik şansını %2 artırır."
+      },
+      "soulflame": {
+        "name": "Ruh Alevi giysileri",
+        "bonus2": "Hasarın neden olduğu büyü geri itmesini %50 azaltır.",
+        "bonus3": "Alınan hasar büyü yapmanı geciktirmez."
+      },
+      "stormcallers": {
+        "name": "Fırtına Çağıran giysileri",
+        "bonus2": "Hasarın neden olduğu büyü geri itmesini %50 azaltır.",
+        "bonus3": "Alınan hasar büyü yapmanı geciktirmez."
+      },
+      "wyrmshadow": {
+        "name": "Wyrm Gölgesi takımı",
+        "bonus2": "Saldırı gücünü 40 artırır.",
+        "bonus3": "Çevikliği 15 ve kritik şansını %2 artırır."
       }
     }
   },
