@@ -9,24 +9,62 @@
 // Reproducibility is checked by tests/i18n_resolved_equivalence.test.ts.
 
 export const pending: Record<string, readonly string[]> = {
-  "es": [],
-  "es_ES": [],
-  "fr_FR": [],
-  "fr_CA": [],
+  "es": [
+    "footer.whitepaper"
+  ],
+  "es_ES": [
+    "footer.whitepaper"
+  ],
+  "fr_FR": [
+    "footer.whitepaper"
+  ],
+  "fr_CA": [
+    "footer.whitepaper"
+  ],
   "en_CA": [],
-  "it_IT": [],
-  "de_DE": [],
-  "zh_CN": [],
-  "zh_TW": [],
-  "ko_KR": [],
-  "ja_JP": [],
-  "pt_BR": [],
-  "ru_RU": [],
-  "nl_NL": [],
-  "pl_PL": [],
-  "id_ID": [],
-  "tr_TR": [],
-  "sv_SE": [],
-  "vi_VN": [],
-  "da_DK": []
+  "it_IT": [
+    "footer.whitepaper"
+  ],
+  "de_DE": [
+    "footer.whitepaper"
+  ],
+  "zh_CN": [
+    "footer.whitepaper"
+  ],
+  "zh_TW": [
+    "footer.whitepaper"
+  ],
+  "ko_KR": [
+    "footer.whitepaper"
+  ],
+  "ja_JP": [
+    "footer.whitepaper"
+  ],
+  "pt_BR": [
+    "footer.whitepaper"
+  ],
+  "ru_RU": [
+    "footer.whitepaper"
+  ],
+  "nl_NL": [
+    "footer.whitepaper"
+  ],
+  "pl_PL": [
+    "footer.whitepaper"
+  ],
+  "id_ID": [
+    "footer.whitepaper"
+  ],
+  "tr_TR": [
+    "footer.whitepaper"
+  ],
+  "sv_SE": [
+    "footer.whitepaper"
+  ],
+  "vi_VN": [
+    "footer.whitepaper"
+  ],
+  "da_DK": [
+    "footer.whitepaper"
+  ]
 };
