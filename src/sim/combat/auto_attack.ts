@@ -268,7 +268,21 @@ export function meleeSwing(
   if (!attacker.dead) {
     for (const a of target.auras) {
       if (a.kind === 'thorns') {
-        ctx.dealDamage(target, attacker, a.value, false, a.school, a.name, 'hit', true);
+        // Reflect (Thorns / Lightning Shield) is incidental, not a direct attack:
+        // pass direct=false so it never walks the mob's leash anchor (else a kited
+        // mob meleeing a shielded player would never leash home).
+        ctx.dealDamage(
+          target,
+          attacker,
+          a.value,
+          false,
+          a.school,
+          a.name,
+          'hit',
+          true,
+          undefined,
+          false,
+        );
       }
     }
     // innate "spiked hide" mobs (e.g. bristleback boars) reflect on every hit
@@ -283,6 +297,8 @@ export function meleeSwing(
         spikes.name ?? 'Spiked Hide',
         'hit',
         true,
+        undefined,
+        false, // reflected damage shield: incidental, never walks the leash anchor
       );
     }
   }

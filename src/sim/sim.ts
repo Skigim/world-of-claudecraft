@@ -2830,7 +2830,11 @@ export class Sim {
   // updateGroundAoEs (the drain) moved to entity_roster.ts (tickGroundAoEs); it pulses
   // through this.ctx.pulseGroundAoE. pulseGroundAoE STAYS here (shared entry point,
   // also called on-cast from the effect path).
-  private pulseGroundAoE(effect: GroundAoE, threatOpts?: { flat?: number; mult?: number }): void {
+  private pulseGroundAoE(
+    effect: GroundAoE,
+    threatOpts?: { flat?: number; mult?: number },
+    direct = false,
+  ): void {
     const source = this.entities.get(effect.sourceId);
     if (!source || source.dead) return;
     this.emit({
@@ -2853,6 +2857,7 @@ export class Sim {
         'hit',
         false,
         threatOpts,
+        direct,
       );
     }
   }
@@ -3301,6 +3306,7 @@ export class Sim {
     kind: 'hit' | 'miss' | 'dodge',
     noRage = false,
     threatOpts?: { flat?: number; mult?: number },
+    direct = true,
   ): void {
     dealDamageImpl(
       this.ctx,
@@ -3313,6 +3319,7 @@ export class Sim {
       kind,
       noRage,
       threatOpts,
+      direct,
     );
   }
 
