@@ -30,6 +30,7 @@
 import { ITEMS, MOBS } from '../data';
 import type { PlayerMeta, ResolvedAbility } from '../sim';
 import type { SimContext } from '../sim_context';
+import { abilityScalingPower, channelTickBonus } from '../spell_scaling';
 import type { AbilityDef, Entity } from '../types';
 import {
   angleTo,
@@ -43,9 +44,9 @@ import {
   MELEE_ARC,
   MELEE_RANGE,
   normAngle,
-  spellHitChance,
 } from '../types';
 import { isLockedOut, isSilenced, isStunned, tonguesMult } from './cc';
+import { isSpellResisted } from './spell_resist';
 
 // Shaman shocks (earth/flame/frost) share one cooldown; lightning_shock joins them
 // for the shared-cooldown predicate. Moved with the casting slice (only callers).
@@ -450,14 +451,17 @@ function applyChannelTick(ctx: SimContext, p: Entity, res: ResolvedAbility): voi
     school: res.def.school,
     fx: 'projectile',
   });
+  // Spell Power added to each channel tick (e.g. each Arcane Missile / Mind Flay),
+  // the channel coefficient split across its ticks.
+  const channelSp = channelTickBonus(abilityScalingPower(p, res.def), res.def);
   for (const eff of res.effects) {
     if (eff.type === 'directDamage') {
       const crit = ctx.rng.chance(ctx.spellCrit(p));
-      let dmg = ctx.rng.range(eff.min, eff.max);
+      let dmg = ctx.rng.range(eff.min, eff.max) + channelSp;
       if (crit) dmg *= 1.5;
       ctx.dealDamage(p, target, Math.round(dmg), crit, res.def.school, res.def.name, 'hit');
     } else if (eff.type === 'drainTick') {
-      const dmg = Math.round(ctx.rng.range(eff.min, eff.max));
+      const dmg = Math.round(ctx.rng.range(eff.min, eff.max) + channelSp);
       ctx.dealDamage(p, target, dmg, false, res.def.school, res.def.name, 'hit');
       if (!p.dead) {
         const healed = Math.min(Math.round(dmg * eff.healFrac), p.maxHp - p.hp);
@@ -563,7 +567,9 @@ function applyAbility(ctx: SimContext, p: Entity, meta: PlayerMeta, res: Resolve
       school: ability.school,
       fx: 'projectile',
     });
-    if (!ctx.rng.chance(spellHitChance(p.level, target.level))) {
+    // Spells never "miss" like a physical attack; a target can only fully
+    // RESIST them (classic-era semantics). Same level-based roll, relabeled.
+    if (isSpellResisted(ctx.rng, p.level, target.level)) {
       ctx.emit({
         type: 'damage',
         sourceId: p.id,
@@ -572,7 +578,7 @@ function applyAbility(ctx: SimContext, p: Entity, meta: PlayerMeta, res: Resolve
         crit: false,
         school: ability.school,
         ability: ability.name,
-        kind: 'miss',
+        kind: 'resist',
       });
       ctx.enterCombat(p, target);
       return;

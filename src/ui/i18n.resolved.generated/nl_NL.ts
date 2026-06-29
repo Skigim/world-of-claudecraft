@@ -222,6 +222,9 @@ export const nl_NL: EnTranslations = {
     "rest": {
       "resting": "Aan het rusten"
     },
+    "abilityScaling": {
+      "bonus": "(+{value})"
+    },
     "unitFrame": {
       "playerLabel": "Je Held",
       "targetLabel": "Je Doelwit",
@@ -605,6 +608,80 @@ export const nl_NL: EnTranslations = {
       "notRaid": "Je groep is geen raid.",
       "leaderOnly": "Alleen de raidleider kan omzetten naar een groep.",
       "tooLarge": "Een raid met meer dan vijf leden kan niet terug omgezet worden naar een groep."
+    },
+    "itemArmorType": {
+      "cloth": "Cloth",
+      "leather": "Leather",
+      "mail": "Mail"
+    },
+    "auraEffect": {
+      "dot": "Brengt elke {interval} s {value} {school}schade toe",
+      "hot": "Herstelt elke {interval} s {value} gezondheid",
+      "absorb": "Absorbeert {value} schade",
+      "healAbsorb": "Absorbeert {value} inkomende genezing",
+      "thorns": "Verursacht bei Angreifern {value} {school}schaden",
+      "slow": "Verringert Bewegungstempo um {pct}%",
+      "speed": "Erhöht Bewegungstempo um {pct}%",
+      "attackSpeedSlow": "Verlangsamt Angriffstempo um {pct}%",
+      "attackSpeedFast": "Erhöht Angriffstempo um {pct}%",
+      "haste": "Erhöht Angriffs- und Zaubertempo um {pct}%",
+      "tongues": "Erhöht Zauberzeit um {pct}%",
+      "increase": {
+        "ap": "Erhöht Angriffskraft um {value}",
+        "armor": "Erhöht Rüstung um {value}",
+        "int": "Erhöht Intelligenz um {value}",
+        "agi": "Erhöht Beweglichkeit um {value}",
+        "sta": "Erhöht Ausdauer um {value}",
+        "spi": "Erhöht Willenskraft um {value}",
+        "allStats": "Erhöht alle Attribute um {value}"
+      },
+      "reduce": {
+        "ap": "Verringert Angriffskraft um {value}",
+        "armor": "Verringert Rüstung um {value}",
+        "int": "Verringert Intelligenz um {value}",
+        "agi": "Verringert Beweglichkeit um {value}",
+        "sta": "Verringert Ausdauer um {value}",
+        "spi": "Verringert Willenskraft um {value}",
+        "allStats": "Verringert alle Attribute um {value}"
+      },
+      "dodge": "Erhöht Ausweichchance um {pct}%",
+      "dodgeReduce": "Verringert Ausweichchance um {pct}%",
+      "armorFlat": "Verringert Rüstung um {value}",
+      "armorFlatStacks": "Verringert Rüstung um {value} ({stacks} Stapel)",
+      "mortalWound": "Verringert erhaltene Heilung um {pct}%",
+      "vulnerability": "Erhöht erlittenen Schaden um {pct}%",
+      "physVuln": "Erhöht erlittenen physischen Schaden um {pct}%",
+      "spellVuln": "Erhöht erlittenen Magieschaden um {pct}%",
+      "critVuln": "Erhöht Chance, kritisch getroffen zu werden, um {pct}%",
+      "costTax": "Erhöht Fähigkeitskosten um {pct}%",
+      "stun": "Betäubt: handlungsunfähig",
+      "root": "Festgewurzelt: bewegungsunfähig",
+      "incapacitate": "Handlungsunfähig: kann nicht handeln",
+      "polymorph": "Verwandelt: handlungsunfähig",
+      "hex": "Verringert verursachten Schaden und Heilung um {pct}%",
+      "blind": "Geblendet: handlungsunfähig",
+      "silence": "Zum Schweigen gebracht: kann keine Zauber wirken",
+      "disarm": "Entwaffnet: kann keine Waffenangriffe nutzen",
+      "lockout": "Zauberschule gesperrt",
+      "imbue": "Waffe mit Bonuseffekten erfüllt",
+      "imbueRange": "Waffe erfüllt: {min} bis {max} Bonusschaden bei Richturteil",
+      "stealth": "Verborgen; Bewegungstempo um {pct}% verringert",
+      "formBear": "Bärengestalt: Gesundheit und Rüstung erhöht",
+      "formCat": "Katzengestalt: Nahkampfschaden und Energie",
+      "formTravel": "Reisegestalt: Bewegungstempo um {pct}% erhöht",
+      "defensiveStance": "Verteidigungshaltung: weniger erlittener Schaden, mehr Bedrohung",
+      "righteousFury": "Rechtschaffener Zorn: stark erhöhte Bedrohung durch Heiligschaden",
+      "scale": "Größe um {pct}% erhöht",
+      "jump": "Sprunghöhe um {pct}% erhöht",
+      "school": {
+        "physical": "Fysiek",
+        "fire": "Vuur",
+        "frost": "Vorst",
+        "arcane": "Arcaan",
+        "shadow": "Schaduw",
+        "holy": "Heilig",
+        "nature": "Natuur"
+      }
     },
     "loot": {
       "chestTitle": "Kist"
@@ -2774,6 +2851,7 @@ export const nl_NL: EnTranslations = {
     "combat": {
       "floatingMiss": "Mis",
       "floatingDodge": "Ontwijking",
+      "floatingResist": "Resist",
       "cannotMove": "Kan niet bewegen!",
       "attack": "aanval",
       "damageDone": "Je {ability} raakt {target} voor {amount}.",
@@ -2782,6 +2860,7 @@ export const nl_NL: EnTranslations = {
       "damageTakenCrit": "{source} raakt je kritiek voor {amount}.",
       "miss": "Je {ability} mist {target}.",
       "dodged": "Je {ability} wordt ontweken door {target}.",
+      "resisted": "Your {ability} is resisted by {target}.",
       "healSelf": "Je {ability} geneest je voor {amount}.",
       "healSelfCrit": "Je {ability} geneest je kritiek voor {amount}.",
       "healOther": "Je {ability} geneest {target} voor {amount}.",
@@ -3512,7 +3591,7 @@ export const nl_NL: EnTranslations = {
       },
       "arcane_missiles": {
         "name": "Arcane Projectielen",
-        "description": "Lanceert Arcane Projectielen op de vijand en veroorzaakt elke seconde 8 Arcane schade gedurende 3 sec."
+        "description": "Lanceert Arcane Projectielen op de vijand en veroorzaakt elke seconde {damage} Arcane schade gedurende 3 sec."
       },
       "polymorph": {
         "name": "Gedaanteverwisseling",
@@ -3576,7 +3655,7 @@ export const nl_NL: EnTranslations = {
       },
       "stealth": {
         "name": "Sluiptocht",
-        "description": "Verbergt je in de schaduwen: vijanden merken je nauwelijks op, maar je beweegt 30% trager. Aanvallen of schade oplopen verbreekt Sluiptocht. Bezweer opnieuw om eruit te stappen."
+        "description": "Verbergt je in de schaduwen: vijanden merken je nauwelijks op, maar je beweegt 50% trager. Aanvallen of schade oplopen verbreekt Sluiptocht. Bezweer opnieuw om eruit te stappen."
       },
       "adrenaline_rush": {
         "name": "Adrenalinestoot",
@@ -3608,7 +3687,7 @@ export const nl_NL: EnTranslations = {
       },
       "vanish": {
         "name": "Verdwijnen",
-        "description": "Verdwijn uit het zicht en betreed Sluiptocht zelfs in gevecht. Je beweegt 30% trager terwijl je verborgen bent. Duurt tot 10 sec."
+        "description": "Verdwijn uit het zicht en betreed Sluiptocht zelfs in gevecht. Je beweegt 50% trager terwijl je verborgen bent. Duurt tot 10 sec."
       },
       "instant_poison": {
         "name": "Direct Gif",
@@ -3760,7 +3839,7 @@ export const nl_NL: EnTranslations = {
       },
       "mind_flay": {
         "name": "Geestesmarteling",
-        "description": "Bestookt de geest van het doelwit met Schaduwenergie en brengt elke seconde 12 schade toe gedurende 3 sec."
+        "description": "Bestookt de geest van het doelwit met Schaduwenergie en brengt elke seconde {damage} schade toe gedurende 3 sec."
       },
       "flash_heal": {
         "name": "Snelle Genezing",
@@ -3836,7 +3915,7 @@ export const nl_NL: EnTranslations = {
       },
       "drain_life": {
         "name": "Leven Aftappen",
-        "description": "Tapt het leven van het doelwit af en draagt elke seconde 7 levenskracht naar je over gedurende 5 sec."
+        "description": "Tapt het leven van het doelwit af en draagt elke seconde {damage} levenskracht naar je over gedurende 5 sec."
       },
       "fear": {
         "name": "Angst",
@@ -4016,7 +4095,7 @@ export const nl_NL: EnTranslations = {
       },
       "prowl": {
         "name": "Sluipen",
-        "description": "Ga in sluiptocht terwijl je in Wolfsgedaante bent. Kan niet in gevecht worden gebruikt."
+        "description": "Ga in sluiptocht terwijl je in Wolfsgedaante bent en beweeg 50% trager. Kan niet in gevecht worden gebruikt."
       },
       "rake": {
         "name": "Harken",

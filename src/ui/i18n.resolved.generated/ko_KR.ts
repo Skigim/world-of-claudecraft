@@ -222,6 +222,9 @@ export const ko_KR: EnTranslations = {
     "rest": {
       "resting": "휴식 중"
     },
+    "abilityScaling": {
+      "bonus": "(+{value})"
+    },
     "unitFrame": {
       "playerLabel": "내 캐릭터",
       "targetLabel": "내 대상",
@@ -605,6 +608,80 @@ export const ko_KR: EnTranslations = {
       "notRaid": "현재 파티는 공격대가 아닙니다.",
       "leaderOnly": "공격대장만 파티로 전환할 수 있습니다.",
       "tooLarge": "인원이 5명을 초과하는 공격대는 파티로 다시 전환할 수 없습니다."
+    },
+    "itemArmorType": {
+      "cloth": "천",
+      "leather": "가죽",
+      "mail": "사슬"
+    },
+    "auraEffect": {
+      "dot": "{interval}초마다 {value}의 {school} 피해를 입힙니다",
+      "hot": "{interval}초마다 생명력을 {value} 회복합니다",
+      "absorb": "{value}의 피해를 흡수합니다",
+      "healAbsorb": "들어오는 치유를 {value}만큼 흡수합니다",
+      "thorns": "공격자에게 {value}의 {school} 피해를 입힙니다",
+      "slow": "이동 속도를 {pct}% 감소시킵니다",
+      "speed": "이동 속도를 {pct}% 증가시킵니다",
+      "attackSpeedSlow": "공격 속도를 {pct}% 늦춥니다",
+      "attackSpeedFast": "공격 속도를 {pct}% 증가시킵니다",
+      "haste": "공격 속도와 시전 속도를 {pct}% 증가시킵니다",
+      "tongues": "시전 시간을 {pct}% 증가시킵니다",
+      "increase": {
+        "ap": "공격력을 {value} 증가시킵니다",
+        "armor": "방어도를 {value} 증가시킵니다",
+        "int": "지능을 {value} 증가시킵니다",
+        "agi": "민첩성을 {value} 증가시킵니다",
+        "sta": "체력을 {value} 증가시킵니다",
+        "spi": "정신력을 {value} 증가시킵니다",
+        "allStats": "모든 능력치를 {value} 증가시킵니다"
+      },
+      "reduce": {
+        "ap": "공격력을 {value} 감소시킵니다",
+        "armor": "방어도를 {value} 감소시킵니다",
+        "int": "지능을 {value} 감소시킵니다",
+        "agi": "민첩성을 {value} 감소시킵니다",
+        "sta": "체력을 {value} 감소시킵니다",
+        "spi": "정신력을 {value} 감소시킵니다",
+        "allStats": "모든 능력치를 {value} 감소시킵니다"
+      },
+      "dodge": "회피 확률을 {pct}% 증가시킵니다",
+      "dodgeReduce": "회피 확률을 {pct}% 감소시킵니다",
+      "armorFlat": "방어도를 {value} 감소시킵니다",
+      "armorFlatStacks": "방어도를 {value} 감소시킵니다 ({stacks}중첩)",
+      "mortalWound": "받는 치유량을 {pct}% 감소시킵니다",
+      "vulnerability": "받는 피해를 {pct}% 증가시킵니다",
+      "physVuln": "받는 물리 피해를 {pct}% 증가시킵니다",
+      "spellVuln": "받는 마법 피해를 {pct}% 증가시킵니다",
+      "critVuln": "치명타로 적중될 확률을 {pct}% 증가시킵니다",
+      "costTax": "기술 소모량을 {pct}% 증가시킵니다",
+      "stun": "기절: 행동할 수 없습니다",
+      "root": "속박: 이동할 수 없습니다",
+      "incapacitate": "무력화: 행동할 수 없습니다",
+      "polymorph": "변이: 행동할 수 없습니다",
+      "hex": "입히는 피해와 치유를 {pct}% 감소시킵니다",
+      "blind": "실명: 행동할 수 없습니다",
+      "silence": "침묵: 주문을 시전할 수 없습니다",
+      "disarm": "무장 해제: 무기 공격을 사용할 수 없습니다",
+      "lockout": "주문 계열이 봉인되었습니다",
+      "imbue": "무기에 추가 효과가 부여되었습니다",
+      "imbueRange": "무기 부여: 심판 시 {min}에서 {max}의 추가 피해",
+      "stealth": "은폐 상태, 이동 속도가 {pct}% 감소합니다",
+      "formBear": "곰 변신: 생명력과 방어도 증가",
+      "formCat": "표범 변신: 근접 피해와 기력",
+      "formTravel": "여행 변신: 이동 속도가 {pct}% 증가합니다",
+      "defensiveStance": "방어 태세: 받는 피해 감소, 위협 수준 증가",
+      "righteousFury": "정의의 격노: 신성 피해로 인한 위협 수준이 크게 증가합니다",
+      "scale": "크기가 {pct}% 증가합니다",
+      "jump": "도약 높이가 {pct}% 증가합니다",
+      "school": {
+        "physical": "물리",
+        "fire": "화염",
+        "frost": "냉기",
+        "arcane": "비전",
+        "shadow": "암흑",
+        "holy": "신성",
+        "nature": "자연"
+      }
     },
     "loot": {
       "chestTitle": "상자"
@@ -2774,6 +2851,7 @@ export const ko_KR: EnTranslations = {
     "combat": {
       "floatingMiss": "빗나감",
       "floatingDodge": "회피",
+      "floatingResist": "저항",
       "cannotMove": "이동 불가!",
       "attack": "공격",
       "damageDone": "{ability}이 {target}에게 {amount}의 피해를 입혔습니다.",
@@ -2782,6 +2860,7 @@ export const ko_KR: EnTranslations = {
       "damageTakenCrit": "{source}에게 치명타로 {amount}의 피해를 받았습니다.",
       "miss": "{ability}이 {target}에게 빗나갔습니다.",
       "dodged": "{target}이 {ability}을 회피했습니다.",
+      "resisted": "{target}이 {ability}을 저항했습니다.",
       "healSelf": "{ability}이 자신을 {amount}만큼 치유했습니다.",
       "healSelfCrit": "{ability}이 자신을 치명타 치유로 {amount}만큼 회복했습니다.",
       "healOther": "{ability}이 {target}을 {amount}만큼 치유했습니다.",
@@ -3512,7 +3591,7 @@ export const ko_KR: EnTranslations = {
       },
       "arcane_missiles": {
         "name": "비전 화살",
-        "description": "적에게 비전 화살을 발사하여 3초 동안 매초 8의 비전 피해를 입힙니다."
+        "description": "적에게 비전 화살을 발사하여 3초 동안 매초 {damage}의 비전 피해를 입힙니다."
       },
       "polymorph": {
         "name": "변이",
@@ -3576,7 +3655,7 @@ export const ko_KR: EnTranslations = {
       },
       "stealth": {
         "name": "은신",
-        "description": "그림자 속에 몸을 숨깁니다. 적이 거의 알아차리지 못하지만 이동 속도가 30% 감소합니다. 공격하거나 피해를 받으면 은신이 해제됩니다. 다시 시전하면 모습을 드러냅니다."
+        "description": "그림자 속에 몸을 숨깁니다. 적이 거의 알아차리지 못하지만 이동 속도가 50% 감소합니다. 공격하거나 피해를 받으면 은신이 해제됩니다. 다시 시전하면 모습을 드러냅니다."
       },
       "adrenaline_rush": {
         "name": "아드레날린 촉진",
@@ -3608,7 +3687,7 @@ export const ko_KR: EnTranslations = {
       },
       "vanish": {
         "name": "소멸",
-        "description": "시야에서 사라져 전투 중에도 은신 상태가 됩니다. 숨어 있는 동안 이동 속도가 30% 감소합니다. 최대 10초 동안 지속됩니다."
+        "description": "시야에서 사라져 전투 중에도 은신 상태가 됩니다. 숨어 있는 동안 이동 속도가 50% 감소합니다. 최대 10초 동안 지속됩니다."
       },
       "instant_poison": {
         "name": "속효성 독",
@@ -3760,7 +3839,7 @@ export const ko_KR: EnTranslations = {
       },
       "mind_flay": {
         "name": "정신의 채찍",
-        "description": "암흑 에너지로 대상의 정신을 공격해 3초 동안 매초 12의 피해를 입힙니다."
+        "description": "암흑 에너지로 대상의 정신을 공격해 3초 동안 매초 {damage}의 피해를 입힙니다."
       },
       "flash_heal": {
         "name": "순간 치유",
@@ -3836,7 +3915,7 @@ export const ko_KR: EnTranslations = {
       },
       "drain_life": {
         "name": "생명력 흡수",
-        "description": "대상의 생명력을 흡수해 5초 동안 매초 7의 생명력을 자신에게 이전합니다."
+        "description": "대상의 생명력을 흡수해 5초 동안 매초 {damage}의 생명력을 자신에게 이전합니다."
       },
       "fear": {
         "name": "공포",
@@ -4016,7 +4095,7 @@ export const ko_KR: EnTranslations = {
       },
       "prowl": {
         "name": "은신 보행",
-        "description": "늑대 변신 상태에서 은신합니다. 전투 중에는 사용할 수 없습니다."
+        "description": "늑대 변신 상태에서 은신하고 이동 속도가 50% 감소합니다. 전투 중에는 사용할 수 없습니다."
       },
       "rake": {
         "name": "할퀴기",

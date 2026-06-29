@@ -222,6 +222,9 @@ export const de_DE: EnTranslations = {
     "rest": {
       "resting": "Erholung"
     },
+    "abilityScaling": {
+      "bonus": "(+{value})"
+    },
     "unitFrame": {
       "playerLabel": "Euer Charakter",
       "targetLabel": "Euer Ziel",
@@ -605,6 +608,80 @@ export const de_DE: EnTranslations = {
       "notRaid": "Eure Gruppe ist kein Schlachtzug.",
       "leaderOnly": "Nur der Schlachtzugsleiter darf in eine Gruppe umwandeln.",
       "tooLarge": "Ein Schlachtzug mit mehr als fünf Mitgliedern kann nicht wieder in eine Gruppe umgewandelt werden."
+    },
+    "itemArmorType": {
+      "cloth": "Cloth",
+      "leather": "Leather",
+      "mail": "Mail"
+    },
+    "auraEffect": {
+      "dot": "Verursacht alle {interval} s {value} {school}schaden",
+      "hot": "Stellt alle {interval} s {value} Gesundheit wieder her",
+      "absorb": "Absorbiert {value} Schaden",
+      "healAbsorb": "Absorbiert {value} eingehende Heilung",
+      "thorns": "Verursacht bei Angreifern {value} {school}schaden",
+      "slow": "Verringert Bewegungstempo um {pct}%",
+      "speed": "Erhöht Bewegungstempo um {pct}%",
+      "attackSpeedSlow": "Verlangsamt Angriffstempo um {pct}%",
+      "attackSpeedFast": "Erhöht Angriffstempo um {pct}%",
+      "haste": "Erhöht Angriffs- und Zaubertempo um {pct}%",
+      "tongues": "Erhöht Zauberzeit um {pct}%",
+      "increase": {
+        "ap": "Erhöht Angriffskraft um {value}",
+        "armor": "Erhöht Rüstung um {value}",
+        "int": "Erhöht Intelligenz um {value}",
+        "agi": "Erhöht Beweglichkeit um {value}",
+        "sta": "Erhöht Ausdauer um {value}",
+        "spi": "Erhöht Willenskraft um {value}",
+        "allStats": "Erhöht alle Attribute um {value}"
+      },
+      "reduce": {
+        "ap": "Verringert Angriffskraft um {value}",
+        "armor": "Verringert Rüstung um {value}",
+        "int": "Verringert Intelligenz um {value}",
+        "agi": "Verringert Beweglichkeit um {value}",
+        "sta": "Verringert Ausdauer um {value}",
+        "spi": "Verringert Willenskraft um {value}",
+        "allStats": "Verringert alle Attribute um {value}"
+      },
+      "dodge": "Erhöht Ausweichchance um {pct}%",
+      "dodgeReduce": "Verringert Ausweichchance um {pct}%",
+      "armorFlat": "Verringert Rüstung um {value}",
+      "armorFlatStacks": "Verringert Rüstung um {value} ({stacks} Stapel)",
+      "mortalWound": "Verringert erhaltene Heilung um {pct}%",
+      "vulnerability": "Erhöht erlittenen Schaden um {pct}%",
+      "physVuln": "Erhöht erlittenen physischen Schaden um {pct}%",
+      "spellVuln": "Erhöht erlittenen Magieschaden um {pct}%",
+      "critVuln": "Erhöht Chance, kritisch getroffen zu werden, um {pct}%",
+      "costTax": "Erhöht Fähigkeitskosten um {pct}%",
+      "stun": "Betäubt: handlungsunfähig",
+      "root": "Festgewurzelt: bewegungsunfähig",
+      "incapacitate": "Handlungsunfähig: kann nicht handeln",
+      "polymorph": "Verwandelt: handlungsunfähig",
+      "hex": "Verringert verursachten Schaden und Heilung um {pct}%",
+      "blind": "Geblendet: handlungsunfähig",
+      "silence": "Zum Schweigen gebracht: kann keine Zauber wirken",
+      "disarm": "Entwaffnet: kann keine Waffenangriffe nutzen",
+      "lockout": "Zauberschule gesperrt",
+      "imbue": "Waffe mit Bonuseffekten erfüllt",
+      "imbueRange": "Waffe erfüllt: {min} bis {max} Bonusschaden bei Richturteil",
+      "stealth": "Verborgen; Bewegungstempo um {pct}% verringert",
+      "formBear": "Bärengestalt: Gesundheit und Rüstung erhöht",
+      "formCat": "Katzengestalt: Nahkampfschaden und Energie",
+      "formTravel": "Reisegestalt: Bewegungstempo um {pct}% erhöht",
+      "defensiveStance": "Verteidigungshaltung: weniger erlittener Schaden, mehr Bedrohung",
+      "righteousFury": "Rechtschaffener Zorn: stark erhöhte Bedrohung durch Heiligschaden",
+      "scale": "Größe um {pct}% erhöht",
+      "jump": "Sprunghöhe um {pct}% erhöht",
+      "school": {
+        "physical": "Physisch",
+        "fire": "Feuer",
+        "frost": "Frost",
+        "arcane": "Arkan",
+        "shadow": "Schatten",
+        "holy": "Heilig",
+        "nature": "Natur"
+      }
     },
     "loot": {
       "chestTitle": "Truhe"
@@ -2774,6 +2851,7 @@ export const de_DE: EnTranslations = {
     "combat": {
       "floatingMiss": "Verfehlt",
       "floatingDodge": "Ausgewichen",
+      "floatingResist": "Resist",
       "cannotMove": "Bewegungsunfähig!",
       "attack": "Angriff",
       "damageDone": "Euer {ability} trifft {target} für {amount}.",
@@ -2782,6 +2860,7 @@ export const de_DE: EnTranslations = {
       "damageTakenCrit": "{source} trifft Euch kritisch für {amount}.",
       "miss": "Euer {ability} verfehlt {target}.",
       "dodged": "{target} weicht Eurem {ability} aus.",
+      "resisted": "Your {ability} is resisted by {target}.",
       "healSelf": "Euer {ability} heilt Euch um {amount}.",
       "healSelfCrit": "Euer {ability} heilt Euch kritisch um {amount}.",
       "healOther": "Euer {ability} heilt {target} um {amount}.",
@@ -3512,7 +3591,7 @@ export const de_DE: EnTranslations = {
       },
       "arcane_missiles": {
         "name": "Arkane Geschosse",
-        "description": "Schleudert Arkane Geschosse auf den Gegner und verursacht 3 Sek. lang jede Sekunde 8 Arkanschaden."
+        "description": "Schleudert Arkane Geschosse auf den Gegner und verursacht 3 Sek. lang jede Sekunde {damage} Arkanschaden."
       },
       "polymorph": {
         "name": "Verwandlung",
@@ -3576,7 +3655,7 @@ export const de_DE: EnTranslations = {
       },
       "stealth": {
         "name": "Verstohlenheit",
-        "description": "Verbirgt euch in den Schatten: Gegner bemerken euch kaum, aber ihr bewegt euch 30% langsamer. Angreifen oder Schaden erleiden bricht Verstohlenheit. Erneut wirken, um hervorzutreten."
+        "description": "Verbirgt euch in den Schatten: Gegner bemerken euch kaum, aber ihr bewegt euch 50% langsamer. Angreifen oder Schaden erleiden bricht Verstohlenheit. Erneut wirken, um hervorzutreten."
       },
       "adrenaline_rush": {
         "name": "Adrenalinrausch",
@@ -3608,7 +3687,7 @@ export const de_DE: EnTranslations = {
       },
       "vanish": {
         "name": "Verschwinden",
-        "description": "Verschwindet aus dem Blickfeld und tretet selbst im Kampf in Verstohlenheit. Ihr bewegt euch 30% langsamer, solange ihr verborgen seid. Hält bis zu 10 Sek. an."
+        "description": "Verschwindet aus dem Blickfeld und tretet selbst im Kampf in Verstohlenheit. Ihr bewegt euch 50% langsamer, solange ihr verborgen seid. Hält bis zu 10 Sek. an."
       },
       "instant_poison": {
         "name": "Sofortgift",
@@ -3760,7 +3839,7 @@ export const de_DE: EnTranslations = {
       },
       "mind_flay": {
         "name": "Gedankenschinden",
-        "description": "Greift den Geist des Ziels mit Schattenenergie an und verursacht 3 Sek. lang jede Sekunde 12 Schaden."
+        "description": "Greift den Geist des Ziels mit Schattenenergie an und verursacht 3 Sek. lang jede Sekunde {damage} Schaden."
       },
       "flash_heal": {
         "name": "Blitzheilung",
@@ -3836,7 +3915,7 @@ export const de_DE: EnTranslations = {
       },
       "drain_life": {
         "name": "Blutsauger",
-        "description": "Entzieht dem Ziel Leben und überträgt euch 5 Sek. lang jede Sekunde 7 Gesundheit."
+        "description": "Entzieht dem Ziel Leben und überträgt euch 5 Sek. lang jede Sekunde {damage} Gesundheit."
       },
       "fear": {
         "name": "Furcht",
@@ -4016,7 +4095,7 @@ export const de_DE: EnTranslations = {
       },
       "prowl": {
         "name": "Anschleichen",
-        "description": "Geht in Wolfsgestalt in den Schleichmodus über. Im Kampf nicht einsetzbar."
+        "description": "Geht in Wolfsgestalt in den Schleichmodus über und bewegt Euch 50% langsamer. Im Kampf nicht einsetzbar."
       },
       "rake": {
         "name": "Krallenhieb",

@@ -2,7 +2,9 @@ import type { WebSocket } from 'ws';
 import { createBotDetector } from '#bot-detector';
 import { verifyChallenge } from '../src/sim/client_challenge';
 import { MECH_CHROMAS, mechChromaItemId, mechChromaSkinIndex } from '../src/sim/content/skins';
+import type { TalentAllocation } from '../src/sim/content/talents';
 import { DELVES, DUNGEONS, zoneAt } from '../src/sim/data';
+import type { PickAction } from '../src/sim/lockpick';
 import { parseMoveInputFrame } from '../src/sim/move_input';
 import type { PlayerMeta } from '../src/sim/sim';
 import { MAX_CHAT_MESSAGE_LEN, Sim } from '../src/sim/sim';
@@ -34,6 +36,7 @@ import {
   openPlaySession,
   pool,
   revokeAccountMechChroma,
+  saveCharacterAndMarketState,
   saveCharacterState,
   saveMarketState,
   walletForAccount,
@@ -42,7 +45,9 @@ import { discordFlairForAccount, grantRewardPoints } from './discord_db';
 import { enqueueRelay } from './discord_relay';
 import { IpBlockList } from './ip_block';
 import { loadActiveBlockedIps } from './ip_block_db';
+import { type LiveSharedIp, sharedIpsFromLiveSessions } from './live_shared_ips';
 import { REALM, REALM_PUBLIC_ORIGIN } from './realm';
+import { createSerialWriter } from './serial_writer';
 import { parseRelayCommand } from '../src/sim/discord_relay';
 import type { Presence, PresenceStatus, SocialActor, SocialTransport } from './social';
 import { SocialService } from './social';
@@ -77,7 +82,7 @@ const AUTOSAVE_SECONDS = 30;
 const SAVE_CONCURRENCY = 4;
 // Valid lockpicking action enums accepted from the client (anti-cheat: reject
 // anything else before it reaches the Sim).
-const LOCKPICK_ACTIONS = new Set(['hardSet', 'set', 'steady', 'ease', 'drop', 'abort']);
+const LOCKPICK_ACTIONS = new Set<PickAction>(['hardSet', 'set', 'steady', 'ease', 'drop', 'abort']);
 const LEAVE_SAVE_MAX_ATTEMPTS = 5;
 const LEAVE_SAVE_RETRY_BASE_MS = 250;
 const LEAVE_SAVE_RETRY_MAX_MS = 4000;
@@ -105,6 +110,100 @@ const ANTIBOT_ENFORCE = process.env.ANTIBOT_ENFORCE === '1';
 const STALE_INPUT_SECONDS = 0.75;
 // Exponential moving average weight for the per-tick duration stat.
 const TICK_EMA_ALPHA = 0.05;
+const ARENA_WIRE_HZ = 0.1;
+const ARENA_WIRE_INTERVAL_TICKS = Math.max(1, Math.round(1 / (DT * ARENA_WIRE_HZ)));
+
+type ClientMessage = Record<string, unknown> & {
+  ability?: string;
+  action?: string;
+  alloc?: unknown;
+  ante?: number;
+  augment?: string;
+  bar?: unknown;
+  catalog?: string;
+  choice?: 'need' | 'greed' | 'pass';
+  chroma?: string;
+  cmd?: string;
+  companionId?: string;
+  count?: number;
+  copper?: number;
+  delveId?: string;
+  dungeon?: string;
+  emote?: unknown;
+  enabled?: boolean;
+  facing?: unknown;
+  format?: string;
+  from?: number;
+  group?: number;
+  id?: number;
+  index?: number;
+  item?: string;
+  itemId?: string;
+  level?: number;
+  marker?: number;
+  mi?: unknown;
+  mode?: string;
+  n?: string;
+  name?: string;
+  npc?: number;
+  objectId?: number;
+  price?: number;
+  q?: string;
+  quest?: string;
+  r?: string;
+  rollId?: number;
+  seq?: number;
+  sid?: string;
+  sig?: string;
+  skin?: number;
+  slot?: number | string;
+  spec?: string;
+  t?: string;
+  text?: string;
+  tierId?: string;
+  x?: number;
+  z?: number;
+};
+
+function recordValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function numberRecord(value: unknown): Record<string, number> {
+  const source = recordValue(value);
+  if (!source) return {};
+  const out: Record<string, number> = {};
+  for (const [key, raw] of Object.entries(source)) {
+    if (typeof raw === 'number') out[key] = raw;
+  }
+  return out;
+}
+
+function stringRecord(value: unknown): Record<string, string> {
+  const source = recordValue(value);
+  if (!source) return {};
+  const out: Record<string, string> = {};
+  for (const [key, raw] of Object.entries(source)) {
+    if (typeof raw === 'string') out[key] = raw;
+  }
+  return out;
+}
+
+function talentAllocationFromWire(value: unknown): TalentAllocation | null {
+  const source = recordValue(value);
+  if (!source) return null;
+  return {
+    spec: typeof source.spec === 'string' ? source.spec : null,
+    ranks: numberRecord(source.ranks),
+    choices: stringRecord(source.choices),
+  };
+}
+
+function isPickAction(value: unknown): value is PickAction {
+  return typeof value === 'string' && LOCKPICK_ACTIONS.has(value as PickAction);
+}
 
 // How often to re-broadcast online players' $WOC holder-tier flair. Each wallet
 // read is served from the woc_balance.ts cache (CACHE_TTL_MS), which is the real
@@ -155,6 +254,8 @@ export interface ClientSession {
   // serialized form of each delta self field as last sent to this client;
   // a field is omitted from a snapshot while its serialization is unchanged
   lastSent: Record<string, string>;
+  // arena readout is reconciled at UI cadence instead of snapshot cadence
+  lastArenaWireTick: number;
   // wire versions of each entity this client knows about: known entities
   // get identity-less "lite" records, unchanged ones ride in the keep list
   sentEnts: Map<number, SentEntityVersions>;
@@ -242,6 +343,11 @@ interface WireAura {
   // fear angle on an incapacitate) stays off the wire and decodes to 0, exactly as before.
   value?: number;
   stacks?: number;
+  // Remaining charges on a charge-limited aura (Lightning Shield's reflect count). Sent only
+  // when defined, so ordinary auras stay off the wire and decode to undefined as before; the
+  // client badge prefers this over stacks (auras_view). A pure cosmetic count, not actionable
+  // information a graphics preset could hide, so it rides the wire unconditionally when present.
+  charges?: number;
 }
 
 interface WhoRosterRow {
@@ -312,6 +418,7 @@ function dynamicFields(e: Entity): Record<string, unknown> {
     out.pt = round2(e.petTauntTimer);
     if (e.petAutoTaunt) out.pa = 1;
   }
+  if (e.rangedPower) out.rp = e.rangedPower;
   // top hate-table entries so the party threat meter shows real numbers
   if (e.kind === 'mob' && !e.dead && e.threat.size > 0) out.thr = threatEntries(e, 8);
   if (e.auras.length > 0) {
@@ -332,6 +439,9 @@ function dynamicFields(e: Entity): Record<string, unknown> {
         // wire exactly: round2 could round a tiny negative to -0, which JSON writes as 0.
         ...(a.value < 0 && a.kind.startsWith('buff_') ? { value: a.value } : {}),
         ...(a.stacks && a.stacks > 1 ? { stacks: a.stacks } : {}),
+        // Carry the remaining charges only for a charge-limited aura (Lightning Shield), so the
+        // buff icon can badge the count online exactly as offline; undefined for every other aura.
+        ...(a.charges !== undefined ? { charges: a.charges } : {}),
       }),
     );
   }
@@ -456,6 +566,12 @@ export class GameServer {
   private socialPosTimer = 0;
   private saveAllInFlight: Promise<void> | null = null;
   private readonly characterSaveQueues = new Map<number, Promise<void>>();
+  // Serializes every write of the single global Market blob (the 30s autosave
+  // and the leave-path combined save). Both serialize the whole market; without
+  // a queue their transactions could commit out of capture order and persist an
+  // older snapshot over a newer one. Snapshots are captured inside the queued
+  // thunk, so commit order equals capture order equals freshness order.
+  private readonly enqueueMarketWrite = createSerialWriter();
   private restartCountdownStartedAt: number | null = null;
   private readonly restartCountdownTimers: NodeJS.Timeout[] = [];
   private readonly startedAt = Date.now();
@@ -977,6 +1093,7 @@ export class GameServer {
       lastInputSeq: 0,
       lastInputAt: this.sim.time,
       lastSent: {},
+      lastArenaWireTick: -ARENA_WIRE_INTERVAL_TICKS,
       sentEnts: new Map(),
       ip: sessionIp,
       isAdmin: meta.isAdmin ?? false,
@@ -1102,7 +1219,12 @@ export class GameServer {
   private async saveCharacterOnLeave(session: ClientSession): Promise<void> {
     for (let attempt = 1; attempt <= LEAVE_SAVE_MAX_ATTEMPTS; attempt++) {
       try {
-        await this.saveCharacter(session);
+        // Flush the character AND the World Market together: a Market escrow
+        // straddles both (item out of bags, into a listing), and the autosave
+        // timer only persists the market every 30s. Without this, a crash right
+        // after the leave-flush of bags would tear the escrow in half (item lost
+        // or duplicated). saveCharacter(withMarket) writes both in one transaction.
+        await this.saveCharacter(session, { withMarket: true });
         return;
       } catch (err) {
         if (attempt === LEAVE_SAVE_MAX_ATTEMPTS) {
@@ -1119,7 +1241,7 @@ export class GameServer {
     }
   }
 
-  async saveCharacter(session: ClientSession): Promise<void> {
+  async saveCharacter(session: ClientSession, opts: { withMarket?: boolean } = {}): Promise<void> {
     const previous = this.characterSaveQueues.get(session.characterId);
     const run = (previous ? previous.catch(() => {}) : Promise.resolve()).then(async () => {
       const state = this.sim.serializeCharacter(session.pid);
@@ -1128,7 +1250,22 @@ export class GameServer {
         // Use the SERIALIZED level (not e.level): during a 2v2 Fiesta bout e.level
         // is temporarily 20, but serializeCharacter reports the real level — so the
         // character-list/leaderboard `level` column never reflects the temp state.
-        await saveCharacterState(session.characterId, state.level, state);
+        if (opts.withMarket) {
+          // Atomic on the leave path so a logout bag-flush can never tear away
+          // from the global Market escrow (see saveCharacterAndMarketState). Run
+          // through the market queue and capture the market snapshot at write
+          // time so this commit can't clobber a newer one.
+          await this.enqueueMarketWrite(() =>
+            saveCharacterAndMarketState(
+              session.characterId,
+              state.level,
+              state,
+              this.sim.serializeMarket(),
+            ),
+          );
+        } else {
+          await saveCharacterState(session.characterId, state.level, state);
+        }
         session.lastSave = Date.now();
       }
     });
@@ -1183,7 +1320,7 @@ export class GameServer {
 
   async saveMarket(): Promise<void> {
     try {
-      await saveMarketState(this.sim.serializeMarket());
+      await this.enqueueMarketWrite(() => saveMarketState(this.sim.serializeMarket()));
     } catch (err) {
       console.error('failed to save world market:', err);
     }
@@ -1232,7 +1369,7 @@ export class GameServer {
       const zone = e.dungeonId
         ? (DUNGEONS[e.dungeonId]?.name ?? e.dungeonId)
         : zoneAt(e.pos.z).name;
-      const moveSpeedMultiplier = round2((this.sim as any).moveSpeedMult(e));
+      const moveSpeedMultiplier = round2(this.sim.moveSpeedMult(e));
       players.push({
         pid: session.pid,
         accountId: session.accountId,
@@ -1265,6 +1402,10 @@ export class GameServer {
 
   liveAccountIds(): Set<number> {
     return new Set([...this.clients.values()].map((s) => s.accountId));
+  }
+
+  liveSharedIps(): LiveSharedIp[] {
+    return sharedIpsFromLiveSessions(this.clients.values());
   }
 
   async recordOnlineSnapshot(): Promise<void> {
@@ -1457,7 +1598,7 @@ export class GameServer {
 
   handleMessage(session: ClientSession, raw: string): void {
     const receivedAtMs = Date.now();
-    let msg: any;
+    let msg: unknown;
     try {
       msg = JSON.parse(raw);
     } catch {
@@ -1473,20 +1614,27 @@ export class GameServer {
     try {
       this.dispatchMessage(session, msg, raw, receivedAtMs);
     } catch (err) {
-      console.error(`bad message from ${session.name} (cmd: ${String(msg?.cmd ?? msg?.t)}):`, err);
+      const cmd = this.messageCommand(msg);
+      console.error(`bad message from ${session.name} (cmd: ${cmd}):`, err);
     }
+  }
+
+  private messageCommand(msg: unknown): string {
+    if (typeof msg !== 'object' || msg === null || Array.isArray(msg)) return 'unknown';
+    const record = msg as Record<string, unknown>;
+    return String(record.cmd ?? record.t ?? 'unknown');
   }
 
   private dispatchMessage(
     session: ClientSession,
-    msg: any,
+    rawMsg: unknown,
     raw: string,
     receivedAtMs: number,
   ): void {
     // JSON.parse returns null / numbers / strings / arrays for valid JSON that
     // isn't an object — `null` in particular threw on `msg.t`. Drop anything
     // that isn't a plain object before touching its fields.
-    if (typeof msg !== 'object' || msg === null || Array.isArray(msg)) {
+    if (typeof rawMsg !== 'object' || rawMsg === null || Array.isArray(rawMsg)) {
       this.botDetector.observeProtocolAnomaly(
         session.botTrackingContext,
         'non_object',
@@ -1495,6 +1643,7 @@ export class GameServer {
       );
       return;
     }
+    const msg = rawMsg as ClientMessage;
     const sim = this.sim;
     const pid = session.pid;
     if (msg.t === 'input') {
@@ -1538,10 +1687,13 @@ export class GameServer {
     const command = msg.cmd as CommandName;
     switch (command) {
       case 'castSlot':
-        sim.castAbilityBySlot(msg.slot | 0, pid);
+        if (typeof msg.slot === 'number') sim.castAbilityBySlot(msg.slot | 0, pid);
         break;
       case 'cast':
         if (typeof msg.ability === 'string') sim.castAbility(msg.ability, pid);
+        break;
+      case 'cancel_aura':
+        if (typeof msg.aura === 'string') sim.cancelAura(msg.aura, pid);
         break;
       case 'target':
         sim.targetEntity(typeof msg.id === 'number' ? msg.id : null, pid);
@@ -1701,7 +1853,9 @@ export class GameServer {
         const om = gm ? null : /^\/(?:o|officer)\s+([\s\S]+)$/i.exec(text);
         if (gm || om) {
           const channel = gm ? 'guild' : 'officer';
-          const body = (gm ?? om!)[1];
+          const match = gm ?? om;
+          if (!match) break;
+          const body = match[1];
           session.rememberedChat = { channel };
           const route = gm
             ? this.social.guildChat(this.actorFor(session), body)
@@ -1921,17 +2075,8 @@ export class GameServer {
 
       // Talents & Specializations — every allocation re-validated in the Sim.
       case 'applyTalents': {
-        const a = msg.alloc;
-        if (a && typeof a === 'object') {
-          sim.applyTalents(
-            {
-              spec: typeof a.spec === 'string' ? a.spec : null,
-              ranks: a.ranks && typeof a.ranks === 'object' ? a.ranks : {},
-              choices: a.choices && typeof a.choices === 'object' ? a.choices : {},
-            },
-            pid,
-          );
-        }
+        const alloc = talentAllocationFromWire(msg.alloc);
+        if (alloc) sim.applyTalents(alloc, pid);
         break;
       }
       case 'respec':
@@ -1941,15 +2086,7 @@ export class GameServer {
         sim.setSpec(typeof msg.spec === 'string' ? msg.spec : null, pid);
         break;
       case 'saveLoadout': {
-        const a = msg.alloc;
-        const alloc =
-          a && typeof a === 'object'
-            ? {
-                spec: typeof a.spec === 'string' ? a.spec : null,
-                ranks: a.ranks && typeof a.ranks === 'object' ? a.ranks : {},
-                choices: a.choices && typeof a.choices === 'object' ? a.choices : {},
-              }
-            : undefined;
+        const alloc = talentAllocationFromWire(msg.alloc) ?? undefined;
         if (typeof msg.name === 'string')
           sim.saveLoadout(msg.name, Array.isArray(msg.bar) ? msg.bar : [], pid, alloc);
         break;
@@ -1967,7 +2104,9 @@ export class GameServer {
       case 'market_list':
         if (
           typeof msg.item === 'string' &&
+          typeof msg.count === 'number' &&
           Number.isFinite(msg.count) &&
+          typeof msg.price === 'number' &&
           Number.isFinite(msg.price)
         ) {
           sim.marketList(msg.item, msg.count, msg.price, pid);
@@ -2008,7 +2147,8 @@ export class GameServer {
       }
       case 'dev_give': {
         if (process.env.ALLOW_DEV_COMMANDS === '1' && typeof msg.item === 'string') {
-          sim.addItem(msg.item, Math.max(1, Math.min(20, msg.count | 0)), pid);
+          const count = typeof msg.count === 'number' ? msg.count : 1;
+          sim.addItem(msg.item, Math.max(1, Math.min(20, count | 0)), pid);
         }
         break;
       }
@@ -2090,7 +2230,7 @@ export class GameServer {
         break;
       }
       case 'lockpick_action': {
-        if (!LOCKPICK_ACTIONS.has(msg.action)) break;
+        if (!isPickAction(msg.action)) break;
         const sid = typeof msg.sid === 'string' ? msg.sid : undefined;
         sim.lockpickAction(msg.action, pid, sid);
         break;
@@ -2280,6 +2420,7 @@ export class GameServer {
       auto: p.autoAttack,
       queued: p.queuedOnSwing,
       ap: p.attackPower,
+      sp: p.spellPower,
       crit: p.critChance,
       dodge: p.dodgeChance,
       eat: p.eating ? { remaining: round2(p.eating.remaining) } : null,
@@ -2322,7 +2463,10 @@ export class GameServer {
     maybe('marks', this.markersWire(session.pid));
     maybe('trade', this.tradeWire(session.pid));
     maybe('duel', this.duelWire(session.pid));
-    maybe('arena', this.sim.arenaInfoFor(session.pid));
+    if (this.sim.tickCount - session.lastArenaWireTick >= ARENA_WIRE_INTERVAL_TICKS) {
+      session.lastArenaWireTick = this.sim.tickCount;
+      maybe('arena', this.sim.arenaInfoFor(session.pid));
+    }
     // market info is null unless the player is standing at the Merchant, so it
     // only rides the wire for players actually browsing the World Market
     maybe('market', this.sim.marketInfoFor(session.pid));

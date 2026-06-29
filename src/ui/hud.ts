@@ -16,7 +16,7 @@ import { voice } from '../game/voice';
 import { castBarState, consumeBarState } from '../render/cast_bar';
 import { CharacterPreview } from '../render/characters';
 import { preloadMechAssets } from '../render/characters/assets';
-import { skinCount } from '../render/characters/manifest';
+import { mechHeldWeaponOverride, skinCount } from '../render/characters/manifest';
 import {
   onPortraitsReady,
   playerPortraitDataUrl,
@@ -57,7 +57,7 @@ import {
   ZONES,
   zoneAt,
 } from '../sim/data';
-import { armorTypeForItem, weaponArchetypeForItem } from '../sim/equipment_rules';
+import { armorTypeForItem, canEquipItem, weaponArchetypeForItem } from '../sim/equipment_rules';
 import type { Ante, PickAction } from '../sim/lockpick';
 import { PICK_ACTIONS } from '../sim/lockpick';
 import type { ResolvedAbility } from '../sim/sim';
@@ -94,6 +94,7 @@ import {
   OVERHEAD_EMOTES,
   type OverheadEmoteId,
 } from '../world_api';
+import { type AbilityScaling, abilityDamageBonus } from './ability_damage';
 import { ActionBarPainter } from './action_bar_painter';
 import {
   ABILITY_ICON_PREFIX,
@@ -104,6 +105,7 @@ import {
   ITEM_ICON_PREFIX,
 } from './action_bar_view';
 import { ArenaWindow } from './arena_window';
+import { type AuraEffectInput, auraEffectDescriptor } from './aura_effect';
 import { AurasPainter, type AurasPainterDeps } from './auras_painter';
 import { type AurasDeps, createAurasView } from './auras_view';
 import { BagsWindow } from './bags_window';
@@ -186,6 +188,7 @@ import {
   tPlural,
 } from './i18n';
 import { iconDataUrl, QUALITY_COLOR, raidMarkerDataUrl } from './icons';
+import { itemArmorTypeLabelKey } from './item_armor_type';
 import { itemStatDeltas } from './item_compare';
 import { LeaderboardWindow } from './leaderboard_window';
 import { ReannounceMarker } from './live_region_reannounce';
@@ -596,7 +599,12 @@ function yellVoiceKey(text: string): string {
 }
 
 export class Hud {
-  private static readonly BAR_ABILITY_SLOTS = 11; // bar slots 1..11; slot 0 is the fixed Attack toggle
+  // Ability slots across both rows: 1..11 on the primary bar, 12..22 on the
+  // secondary bar (slot 0 is the fixed Attack toggle on the primary bar). The
+  // two rows share one hotbarActions array, so drag/drop, persistence, and the
+  // keybind dispatch all work across both with no per-bar bookkeeping.
+  private static readonly PRIMARY_BAR_ABILITY_SLOTS = 11;
+  private static readonly BAR_ABILITY_SLOTS = 22;
   private static readonly PET_AUTOCAST_TOUCH_HOLD_MS = 2000;
   private static ddSeq = 0; // monotonic id source for buildDropdown listbox/option ARIA wiring
   private static readonly FORM_TOGGLE_IDS = new Set(['bear_form', 'cat_form', 'travel_form']); // shift toggles, castable in any form
@@ -700,6 +708,7 @@ export class Hud {
   private pfResourceEl = $('#pf-resource');
   private pfAbsorbEl = $('#pf-absorb');
   private buffBarEl = $('#buff-bar');
+  private debuffBarEl = $('#debuff-bar');
   private targetFrameEl = $('#target-frame');
   private targetEliteTagEl = $('#tf-elite-tag');
   private targetNameEl = $('#tf-name');
@@ -2451,22 +2460,48 @@ export class Hud {
       ABILITIES[a.id] ? abilityDisplayName(ABILITIES[a.id]) : auraDisplayNameFromSource(a.name),
     formatStacks: (n) => formatNumber(n, { maximumFractionDigits: 0 }),
     durationUnitSuffix: () => t('hudChrome.unitFrame.durationUnitSeconds'),
+    auraEffectHtml: (a) => this.auraEffectTooltipHtml(a),
   };
   private readonly aurasPainterDeps: AurasPainterDeps = {
     resolveIconUrl: (iconKey) => `url(${iconDataUrl('aura', iconKey)})`,
-    renderTooltip: (name, remaining) =>
-      `<div class="tt-title">${esc(name)}</div><div class="tt-sub">${esc(tPlural('hudChrome.plurals.secondsRemaining', Math.ceil(remaining)))}</div>`,
+    renderTooltip: (name, remaining, effectHtml) =>
+      `<div class="tt-title">${esc(name)}</div>${effectHtml}<div class="tt-sub">${esc(tPlural('hudChrome.plurals.secondsRemaining', Math.ceil(remaining)))}</div>`,
     attachTooltip: (el, html) => this.attachTooltip(el, html),
   };
-  private readonly buffBarView = createAurasView('all', this.aurasViewDeps);
+  // Player auras split across two rows (classic layout): buffs in #buff-bar, debuffs in
+  // #debuff-bar, so a fresh debuff is never buried under a wall of long-lived buffs.
+  private readonly buffBarView = createAurasView('buffs', this.aurasViewDeps);
+  private readonly debuffBarView = createAurasView('debuffs', this.aurasViewDeps);
   private readonly targetDebuffsView = createAurasView('debuffs', this.aurasViewDeps);
+  // The buff-bar painter alone gets attachCancel: right-clicking one of the local player's
+  // own helpful buffs cancels it (classic convention). The debuff / target painters reuse
+  // the shared deps (no cancel: a debuff or another entity's aura is never cancelable).
+  private readonly buffBarPainterDeps: AurasPainterDeps = {
+    ...this.aurasPainterDeps,
+    attachCancel: (el, cancelableAuraId) => {
+      el.addEventListener('contextmenu', (ev) => {
+        const auraId = cancelableAuraId();
+        if (auraId === null) return;
+        ev.preventDefault();
+        this.hideTooltip();
+        this.sim.cancelAura(auraId);
+      });
+    },
+  };
   private readonly buffBarPainter = new AurasPainter(
     this.writerFacet,
     this.buffBarEl,
-    this.aurasPainterDeps,
+    this.buffBarPainterDeps,
     document,
     // Cap the visible aura count on the LOW static preset (never the
     // governor).
+    () => this.fxTier(),
+  );
+  private readonly debuffBarPainter = new AurasPainter(
+    this.writerFacet,
+    this.debuffBarEl,
+    this.aurasPainterDeps,
+    document,
     () => this.fxTier(),
   );
   private readonly targetDebuffsPainter = new AurasPainter(
@@ -2811,6 +2846,24 @@ export class Hud {
     return `<span class="woc-balance ${verified ? 'is-verified' : 'is-preview'}" title="${esc(title)}" aria-label="${esc(aria)}"><span class="woc-coin" aria-hidden="true"></span>${esc(balance)}</span>`;
   }
 
+  // One-line aura effect summary HTML for the buff/debuff tooltip: the pure descriptor
+  // (aura_effect.ts) resolved to localized, esc'd text. Empty when the aura has no
+  // descriptor. Injected into the auras view so the i18n-free core never calls t().
+  private auraEffectTooltipHtml(a: AuraEffectInput): string {
+    const effect = auraEffectDescriptor(a);
+    if (!effect) return '';
+    const values: Record<string, string> = {};
+    if (effect.nums) {
+      for (const [k, n] of Object.entries(effect.nums)) {
+        values[k] = formatNumber(n, { maximumFractionDigits: 0 });
+      }
+    }
+    if (effect.school) {
+      values.school = t(`hudChrome.auraEffect.school.${effect.school}` as TranslationKey);
+    }
+    return `<div class="tt-effect">${esc(t(effect.key as TranslationKey, values))}</div>`;
+  }
+
   attachTooltip(el: HTMLElement, html: () => string): void {
     let touchTimer: number | undefined;
     const mobile = () => document.body.classList.contains('mobile-touch');
@@ -2888,7 +2941,17 @@ export class Hud {
       }),
     )}</div>`;
     if (item.slot) {
-      html += `<div class="tt-sub">${esc(itemSlotName(item.slot))}</div>`;
+      // Classic layout: slot name on the left, armor subtype (Cloth/Leather/Mail)
+      // right-aligned on the same line so it is clear which classes the gear suits.
+      const armorTypeKey = itemArmorTypeLabelKey(item);
+      if (armorTypeKey) {
+        // Red armor type = the viewing player's class cannot wear this armor weight
+        // (e.g. a mage hovering Mail), so they know it is not for them at a glance.
+        const badClass = canEquipItem(this.sim.cfg.playerClass, item) ? '' : ' tt-armor-bad';
+        html += `<div class="tt-sub tt-row"><span>${esc(itemSlotName(item.slot))}</span><span class="tt-armor${badClass}">${esc(t(armorTypeKey))}</span></div>`;
+      } else {
+        html += `<div class="tt-sub">${esc(itemSlotName(item.slot))}</div>`;
+      }
     }
     if (item.weapon) {
       const dps = (item.weapon.min + item.weapon.max) / 2 / item.weapon.speed;
@@ -3051,7 +3114,12 @@ export class Hud {
 
   private abilityTooltip(res: ResolvedAbility): string {
     const a = res.def;
-    const damageText = abilityEffectText(res.effects);
+    const p = this.sim.player;
+    const damageText = abilityEffectText(res, {
+      spellPower: p.spellPower,
+      rangedPower: p.rangedPower,
+      attackPower: p.attackPower,
+    });
     let html = `<div class="tt-title">${esc(abilityDisplayName(a))}</div>`;
     html += `<div class="tt-sub">${esc(t('abilityUi.tooltip.rank', { rank: formatAbilityNumber(res.rank) }))}</div>`;
     const costLine: string[] = [];
@@ -3349,12 +3417,12 @@ export class Hud {
   }
 
   private actionForSlot(barSlot: number): HotbarAction {
-    // barSlot 1..11
+    // barSlot 1..22 (1..11 primary bar, 12..22 secondary bar)
     return this.hotbarActions[barSlot - 1] ?? null;
   }
 
   abilityForSlot(barSlot: number): ResolvedAbility | null {
-    // barSlot 1..11
+    // barSlot 1..22 (1..11 primary bar, 12..22 secondary bar)
     const action = this.actionForSlot(barSlot);
     return action?.type === 'ability'
       ? (this.sim.known.find((k) => k.def.id === action.id) ?? null)
@@ -3435,7 +3503,12 @@ export class Hud {
 
   private buildActionBar(): void {
     const bar = $('#actionbar');
-    for (let i = 0; i < 12; i++) {
+    const bar2 = $('#actionbar2');
+    // slot 0 (Attack) + slots 1..11 render on the primary bar; slots 12..22 on
+    // the secondary bar. One button list (this.abilityButtons), indexed by slot.
+    const totalButtons = 1 + Hud.BAR_ABILITY_SLOTS;
+    for (let i = 0; i < totalButtons; i++) {
+      const container = i <= Hud.PRIMARY_BAR_ABILITY_SLOTS ? bar : bar2;
       const btn = document.createElement('button');
       btn.className = 'action-btn empty';
       const label = document.createElement('span');
@@ -3580,7 +3653,7 @@ export class Hud {
           this.hideTooltip();
         });
       }
-      bar.appendChild(btn);
+      container.appendChild(btn);
       this.abilityButtons.push({
         btn,
         label,
@@ -3597,6 +3670,7 @@ export class Hud {
     // elements (multiplicity is a constructor arg, not a hardcoded id).
     this.actionBarView = createActionBarView(
       {
+        manySpellsSlotMax: Hud.PRIMARY_BAR_ABILITY_SLOTS,
         slots: this.abilityButtons.map((_, i) => {
           // Precompute the keybind lookup key once per slot (not per frame).
           const slotKey = `slot${i}`;
@@ -3651,7 +3725,8 @@ export class Hud {
   }
 
   private clearActionDropTargets(): void {
-    document.querySelectorAll('#actionbar .drop-target').forEach((el) => {
+    // Both action rows (#actionbar and #actionbar2) hold .action-btn slots.
+    document.querySelectorAll('.action-btn.drop-target').forEach((el) => {
       el.classList.remove('drop-target');
     });
   }
@@ -3671,7 +3746,7 @@ export class Hud {
     if (drag) window.clearTimeout(drag.timer);
     this.mobileHotbarDrag = null;
     document.body.classList.remove('mobile-hotbar-dragging');
-    document.querySelectorAll('#actionbar .mobile-drag-source').forEach((el) => {
+    document.querySelectorAll('.action-btn.mobile-drag-source').forEach((el) => {
       el.classList.remove('mobile-drag-source');
     });
     this.clearActionDropTargets();
@@ -4162,14 +4237,17 @@ export class Hud {
     this.updateLowHealthVignette(p.hp, p.maxHp);
     this.updateLowResource(p);
 
-    // buff bar (player buffs + debuffs): the keyed-pool aura painter, driven by
-    // the auras_view core every frame (the elided writers make a no-op frame free). The
-    // graphics tier coarsens the refresh (tick) granularity: full tiers repaint every frame
-    // (interval 0, cadenceDue always true); low coarsens to ~4Hz. The visible-count cap
+    // buff bar / debuff bar: the keyed-pool aura painter, driven by the auras_view core
+    // every frame (the elided writers make a no-op frame free). Buffs and debuffs render to
+    // separate rows (classic layout) so a fresh debuff is never lost in a wall of long-lived
+    // buffs: two view+painter instances, mode 'buffs' (#buff-bar) and 'debuffs' (#debuff-bar).
+    // The graphics tier coarsens the refresh (tick) granularity: full tiers repaint every
+    // frame (interval 0, cadenceDue always true); low coarsens to ~4Hz. The visible-count cap
     // is applied inside the painter.
     if (cadenceDue(this.lastBuffBarPaintAt, now, auraRefreshIntervalMs(fxTier))) {
       this.lastBuffBarPaintAt = now;
       this.buffBarPainter.paint(this.buffBarView.tick(p));
+      this.debuffBarPainter.paint(this.debuffBarView.tick(p));
     }
 
     // target frame: the SECOND instance of the unit_frame family. The shared
@@ -5557,7 +5635,7 @@ export class Hud {
         const tgt = sim.entities.get(ev.targetId);
         if (!tgt) return;
         const tp = tgt.pos;
-        if (ev.kind === 'miss' || ev.kind === 'dodge') {
+        if (ev.kind === 'miss' || ev.kind === 'dodge' || ev.kind === 'resist') {
           this.combat('combat_dodge', tp.x, tp.y, tp.z, 0.5);
           return;
         }
@@ -5713,9 +5791,11 @@ export class Hud {
           const isPlayerSource = ev.sourceId === sim.playerId;
           const isPlayerTarget = ev.targetId === sim.playerId;
           if (isPlayerSource || isPlayerTarget) this.lastCombatEventAt = performance.now();
-          if (ev.kind === 'miss' || ev.kind === 'dodge') {
-            // self vs other (carried on the shape's isSelf) drives the miss/dodge colour
-            // token (#bbb vs #fff); the localized word stays at the call site.
+          if (ev.kind === 'miss' || ev.kind === 'dodge' || ev.kind === 'resist') {
+            // self vs other (carried on the shape's isSelf) drives the avoidance colour
+            // token (#bbb vs #fff); the localized word stays at the call site. A resisted
+            // spell is an avoidance word like miss/dodge (classic fidelity: spells resist,
+            // not miss).
             const shape = fctSpawnShape({
               type: 'damage',
               damageKind: ev.kind,
@@ -5731,7 +5811,9 @@ export class Hud {
                   text:
                     ev.kind === 'miss'
                       ? t('hud.combat.floatingMiss')
-                      : t('hud.combat.floatingDodge'),
+                      : ev.kind === 'dodge'
+                        ? t('hud.combat.floatingDodge')
+                        : t('hud.combat.floatingResist'),
                   target: tgt,
                 },
                 now,
@@ -5742,8 +5824,14 @@ export class Hud {
               this.renderer.addShake(0.15);
             }
             if (isPlayerSource) {
+              const logKey =
+                ev.kind === 'miss'
+                  ? 'hud.combat.miss'
+                  : ev.kind === 'dodge'
+                    ? 'hud.combat.dodged'
+                    : 'hud.combat.resisted';
               this.combatLog(
-                t(ev.kind === 'miss' ? 'hud.combat.miss' : 'hud.combat.dodged', {
+                t(logKey, {
                   ability: combatAbilityName(ev.ability),
                   target: entityDisplayName(tgt),
                 }),
@@ -8030,8 +8118,14 @@ export class Hud {
     // 3D model reflects gear changes (the char window repaints the preview after an
     // equip via charWindow.renderIfOpen -> renderPreview).
     const weapon = this.sim.equipment.mainhand ?? null;
-    if (previewKey) this.charPreview.setVisualKey(previewKey, weapon);
-    else this.charPreview.setClass(cls, weapon);
+    if (previewKey) {
+      // mech is class-agnostic; mirror the wearer class's hand layout (rogue
+      // dual-wields) so the paperdoll matches the in-world render
+      const override = previewKey === 'player_mech' ? mechHeldWeaponOverride(cls) : null;
+      this.charPreview.setVisualKey(previewKey, weapon, override);
+    } else {
+      this.charPreview.setClass(cls, weapon);
+    }
     this.charPreview.setSkin(skin);
   }
 
@@ -10420,7 +10514,21 @@ function abilityRequirementLines(def: AbilityDef): string[] {
   return lines;
 }
 
-function abilityEffectText(effects: AbilityEffect[]): string {
+// Builds the `$d` damage string for an ability tooltip. When `scaling` (the live
+// character's Spell Power / Ranged AP / Attack Power) is given, the BASE damage is
+// shown with the scaling contribution called out as a "(+N)" suffix, e.g.
+// "66 to 74 (+29)", so a caster sees both the base and exactly what their Spell
+// Power adds, and watches it climb as gear changes.
+function abilityEffectText(res: ResolvedAbility, scaling?: AbilityScaling): string {
+  const effects = res.effects;
+  // " (+N)" callout for the scaling contribution (Spell Power / Attack Power),
+  // omitted when there is none. Punctuation + formatted number only (no words).
+  const suffix = (eff: AbilityEffect) => {
+    const b = scaling ? abilityDamageBonus(res, eff, scaling) : 0;
+    return b > 0
+      ? ` ${t('hudChrome.abilityScaling.bonus', { value: formatAbilityNumber(b) })}`
+      : '';
+  };
   const primary = effects.find(
     (eff) =>
       eff.type === 'directDamage' ||
@@ -10439,15 +10547,17 @@ function abilityEffectText(effects: AbilityEffect[]): string {
       case 'aoeDamage':
       case 'aoeRoot':
       case 'drainTick':
-        return abilityAmountRange(primary.min, primary.max);
+        return abilityAmountRange(primary.min, primary.max) + suffix(primary);
       case 'weaponDamage':
       case 'weaponStrike':
         return formatAbilityNumber(primary.bonus);
       case 'finisherDamage':
-        return t('abilityUi.tooltip.finisherDamage', {
-          base: formatAbilityNumber(primary.base),
-          perCombo: formatAbilityNumber(primary.perCombo),
-        });
+        return (
+          t('abilityUi.tooltip.finisherDamage', {
+            base: formatAbilityNumber(primary.base),
+            perCombo: formatAbilityNumber(primary.perCombo),
+          }) + suffix(primary)
+        );
     }
   }
 
@@ -10458,6 +10568,7 @@ function abilityEffectText(effects: AbilityEffect[]): string {
   if (!secondary) return '';
   switch (secondary.type) {
     case 'dot':
+      return formatAbilityNumber(secondary.total) + suffix(secondary);
     case 'hot':
       return formatAbilityNumber(secondary.total);
     case 'absorb':
