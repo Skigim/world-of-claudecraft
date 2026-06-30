@@ -309,3 +309,109 @@ export function buildRelayMessage(item: RelayItem, gameUrl: string): Record<stri
   }
   return payload;
 }
+
+// ── Significant-activity feed (level 20 / rare drop / duel / arena) ───────────
+export interface ActivityParticipant {
+  name: string;
+  discordUserId: string | null;
+  discordAvatar: string | null;
+}
+
+export interface ActivityItem {
+  kind: 'levelup' | 'rareloot' | 'duel' | 'arena';
+  realm: string;
+  profileUrl: string | null;
+  level?: number;
+  itemName?: string;
+  quality?: string;
+  winnerName?: string;
+  loserName?: string;
+  ratingDelta?: number;
+  participants: ActivityParticipant[];
+}
+
+// Per-quality embed accent for a rare drop (epic purple, legendary orange).
+function qualityColor(quality: string | undefined): number {
+  return quality === 'legendary' ? 0xff8000 : 0xa335ee;
+}
+
+// Resolve a character name to its Discord mention (when linked) or plain name.
+function mentionFor(name: string, parts: readonly ActivityParticipant[]): string {
+  const p = parts.find((x) => x.name === name);
+  return p && p.discordUserId ? `<@${p.discordUserId}>` : name;
+}
+
+/**
+ * Full createMessage payload for one activity card: a content line that pings the
+ * linked participant(s) and a rich, per-kind embed. Pure data; the REST layer
+ * sends it. Unit-tested in tests/discord_bot.test.ts.
+ */
+export function buildActivityMessage(item: ActivityItem): Record<string, unknown> {
+  const subject = item.participants[0];
+  const subjectName = subject?.name ?? item.winnerName ?? '';
+  const subjectAvatar = subject ? relayAvatarUrl(subject.discordUserId, subject.discordAvatar) : null;
+  const linkedIds = item.participants
+    .map((p) => p.discordUserId)
+    .filter((id): id is string => !!id);
+
+  let author: string;
+  let title: string;
+  let description: string;
+  let color: number;
+
+  switch (item.kind) {
+    case 'levelup':
+      author = ':tada: Max Level';
+      title = `${subjectName} hit level ${item.level ?? 20}!`;
+      description = `${mentionFor(subjectName, item.participants)} reached the level cap on ${item.realm}. Glory!`;
+      color = 0xffcc33;
+      break;
+    case 'rareloot':
+      author = ':gem: Rare Drop';
+      title = item.itemName ?? 'A rare item';
+      description =
+        `A **${item.quality ?? 'rare'}** drop` +
+        (subject ? ` for ${mentionFor(subjectName, item.participants)}` : '') +
+        ` on ${item.realm}!`;
+      color = qualityColor(item.quality);
+      break;
+    case 'duel':
+      author = ':crossed_swords: Duel';
+      title = `${item.winnerName ?? subjectName} wins!`;
+      description =
+        `${mentionFor(item.winnerName ?? '', item.participants)} defeated ` +
+        `${mentionFor(item.loserName ?? '', item.participants)} in a duel on ${item.realm}.`;
+      color = 0xc0563f;
+      break;
+    case 'arena':
+      author = ':trophy: Arena Victory';
+      title = `${subjectName} won an arena match!`;
+      description =
+        `${mentionFor(subjectName, item.participants)} took the win` +
+        (item.ratingDelta !== undefined
+          ? ` (**${item.ratingDelta >= 0 ? '+' : ''}${item.ratingDelta}** rating)`
+          : '') +
+        ` on ${item.realm}.`;
+      color = 0x9b59b6;
+      break;
+  }
+
+  const embed: Record<string, unknown> = {
+    color,
+    author: subjectAvatar ? { name: author, icon_url: subjectAvatar } : { name: author },
+    title,
+    description,
+    footer: { text: 'World of ClaudeCraft' },
+  };
+  if (item.profileUrl) embed.url = item.profileUrl;
+  if (subjectAvatar) embed.thumbnail = { url: subjectAvatar };
+
+  const payload: Record<string, unknown> = { embeds: [embed] };
+  if (linkedIds.length) {
+    payload.content = linkedIds.map((id) => `<@${id}>`).join(' ');
+    payload.allowed_mentions = { users: linkedIds };
+  } else {
+    payload.allowed_mentions = { parse: [] };
+  }
+  return payload;
+}

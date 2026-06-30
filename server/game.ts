@@ -16,6 +16,7 @@ import {
   EQUIP_SLOTS,
   type EquipSlot,
   emptyMoveInput,
+  MAX_LEVEL,
   RUN_SPEED,
   type SimEvent,
 } from '../src/sim/types';
@@ -48,6 +49,7 @@ import {
 } from './db';
 import { discordFlairForAccount, grantRewardPoints } from './discord_db';
 import { enqueueRelay } from './discord_relay';
+import { enqueueActivity } from './discord_activity';
 import { IpBlockList } from './ip_block';
 import { loadActiveBlockedIps } from './ip_block_db';
 import { type LiveSharedIp, sharedIpsFromLiveSessions } from './live_shared_ips';
@@ -845,6 +847,7 @@ export class GameServer {
         const events = this.sim.tick();
         lap('tick');
         this.routeEvents(events);
+        this.detectActivity(events);
         lap('events');
         this.runAntibotTick();
         lap('antibot');
@@ -2807,6 +2810,97 @@ export class GameServer {
     if (!d) return null;
     const otherPid = d.a === pid ? d.b : d.a;
     return { otherPid, otherName: this.sim.meta(otherPid)?.name ?? '?', state: d.state };
+  }
+
+  // Public profile URL for a character name, or null when no public origin is set.
+  private profileUrlFor(name: string): string | null {
+    return REALM_PUBLIC_ORIGIN ? `${REALM_PUBLIC_ORIGIN}/c/${encodeURIComponent(name)}` : null;
+  }
+
+  // Scan a tick's events for "significant activity" (max-level ding, rare drop,
+  // duel result, arena win) and enqueue a card for the Discord bot to post. The
+  // drain endpoint resolves which players are linked and tags them; the queue
+  // dedupes so one moment yields one card.
+  private detectActivity(events: SimEvent[]): void {
+    const now = Date.now();
+    for (const ev of events) {
+      if (ev.type === 'levelup' && ev.level === MAX_LEVEL && ev.pid !== undefined) {
+        const s = this.clients.get(ev.pid);
+        if (!s) continue;
+        enqueueActivity(
+          {
+            kind: 'levelup',
+            accountIds: [s.accountId],
+            names: [s.name],
+            realm: REALM,
+            profileUrl: this.profileUrlFor(s.name),
+            level: ev.level,
+          },
+          `levelup:${s.accountId}`,
+          now,
+        );
+      } else if (
+        (ev.type === 'lootRoll' || ev.type === 'masterLoot') &&
+        (ev.quality === 'epic' || ev.quality === 'legendary')
+      ) {
+        // A genuinely rare item dropped (roll-worthy); one card per drop (rollId).
+        const s = ev.pid !== undefined ? this.clients.get(ev.pid) : undefined;
+        enqueueActivity(
+          {
+            kind: 'rareloot',
+            accountIds: s ? [s.accountId] : [],
+            names: s ? [s.name] : [],
+            realm: REALM,
+            profileUrl: s ? this.profileUrlFor(s.name) : null,
+            itemName: ev.itemName,
+            quality: ev.quality,
+          },
+          `rareloot:${ev.rollId}`,
+          now,
+        );
+      } else if (ev.type === 'duelEnd') {
+        const w = this.sessionByName(ev.winnerName);
+        const l = this.sessionByName(ev.loserName);
+        const accountIds: number[] = [];
+        const names: string[] = [];
+        if (w) {
+          accountIds.push(w.accountId);
+          names.push(w.name);
+        }
+        if (l) {
+          accountIds.push(l.accountId);
+          names.push(l.name);
+        }
+        enqueueActivity(
+          {
+            kind: 'duel',
+            accountIds,
+            names,
+            realm: REALM,
+            profileUrl: this.profileUrlFor(ev.winnerName),
+            winnerName: ev.winnerName,
+            loserName: ev.loserName,
+          },
+          `duel:${ev.winnerName}:${ev.loserName}`,
+          now,
+        );
+      } else if (ev.type === 'arenaEnd' && ev.won && !ev.draw && ev.pid !== undefined) {
+        const s = this.clients.get(ev.pid);
+        if (!s) continue;
+        enqueueActivity(
+          {
+            kind: 'arena',
+            accountIds: [s.accountId],
+            names: [s.name],
+            realm: REALM,
+            profileUrl: this.profileUrlFor(s.name),
+            ratingDelta: ev.ratingAfter - ev.ratingBefore,
+          },
+          `arena:${s.accountId}:${ev.ratingAfter}`,
+          now,
+        );
+      }
+    }
   }
 
   private routeEvents(events: SimEvent[]): void {

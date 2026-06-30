@@ -12,6 +12,7 @@ import {
   setDiscordMemberMeta,
 } from './discord_db';
 import { drainRelay } from './discord_relay';
+import { drainActivity } from './discord_activity';
 import { specialRoleByKey } from '../src/sim/discord_roles';
 import { discordFlexForAccount, setDiscordPresenceCache } from './discord';
 import { DISCORD_REWARD_GRANTS, discordStatusIndexForPoints } from '../src/sim/discord_tier';
@@ -154,6 +155,31 @@ async function handleDiscordInternal(
       }),
     );
     return ok(res, { items: enriched });
+  }
+
+  // GET /internal/discord/activity -> drain the significant-activity feed, each
+  // item enriched with its participants' Discord identities (to mention + show
+  // avatar). Items with NO linked participant are dropped (the feed only
+  // celebrates players who linked Discord).
+  if (req.method === 'GET' && url.pathname === '/internal/discord/activity') {
+    const items = drainActivity();
+    const out: unknown[] = [];
+    for (const it of items) {
+      const participants = await Promise.all(
+        it.accountIds.map(async (accountId, i) => {
+          const link = await discordForAccount(pool, accountId);
+          return {
+            name: it.names[i] ?? '',
+            discordUserId: link?.discord_user_id ?? null,
+            discordAvatar: link?.discord_avatar ?? null,
+          };
+        }),
+      );
+      if (!participants.some((p) => p.discordUserId)) continue; // nobody linked
+      const { accountIds: _a, names: _n, ...rest } = it;
+      out.push({ ...rest, participants });
+    }
+    return ok(res, { items: out });
   }
 
   // POST /internal/discord/members-meta -> the bot pushes guild join dates + top

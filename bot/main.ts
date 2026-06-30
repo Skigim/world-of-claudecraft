@@ -17,6 +17,7 @@ import { ServerClient, type VoiceMemberPush } from './server_client';
 import {
   SLASH_COMMANDS,
   allTierRoleNames,
+  buildActivityMessage,
   buildLevelNick,
   buildLinkContent,
   buildRelayMessage,
@@ -359,10 +360,22 @@ async function main(): Promise<void> {
     }
   };
 
+  // Drain + post the significant-activity feed (level-ups, rare drops, duels, arena).
+  const pollActivity = async (): Promise<void> => {
+    if (!cfg.activityChannelId) return;
+    const items = await server.drainActivity();
+    for (const item of items) {
+      await discord
+        .createMessage(cfg.activityChannelId, buildActivityMessage(item))
+        .catch((e) => console.error('[bot] activity post failed', e));
+    }
+  };
+
   gateway.connect(false);
   setInterval(() => void syncAllOnlineRoles().catch((e) => console.error(e)), ROLE_SYNC_INTERVAL_MS).unref();
   setInterval(() => void refreshTierRoles().catch((e) => console.error(e)), ROLE_SYNC_INTERVAL_MS).unref();
   setInterval(() => void pollRelay().catch((e) => console.error(e)), RELAY_POLL_MS).unref();
+  setInterval(() => void pollActivity().catch((e) => console.error(e)), RELAY_POLL_MS).unref();
   setInterval(() => {
     void refreshSpecialRoles()
       .then(() => pushAllMemberMeta())

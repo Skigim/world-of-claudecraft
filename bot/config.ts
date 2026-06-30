@@ -20,6 +20,8 @@ export interface BotConfig {
   testChannelId: string;
   /** Channel id the in-game "!" community posts (LFG etc.) are delivered to. */
   relayChannelId: string;
+  /** Channel id the significant-activity feed (level-ups, drops, ...) posts to. */
+  activityChannelId: string;
   /** Public game URL shown in bot replies. */
   gameUrl: string;
   /** Sync each linked member's Discord nickname to include their in-game level. */
@@ -45,6 +47,12 @@ export function loadConfig(): BotConfig {
     // Relay posts default to the test/announce channel when not set separately.
     relayChannelId:
       process.env.DISCORD_RELAY_CHANNEL_ID || process.env.DISCORD_TEST_CHANNEL_ID || '',
+    // Activity feed defaults to the relay channel (then test) when not set.
+    activityChannelId:
+      process.env.DISCORD_ACTIVITY_CHANNEL_ID ||
+      process.env.DISCORD_RELAY_CHANNEL_ID ||
+      process.env.DISCORD_TEST_CHANNEL_ID ||
+      '',
     gameUrl: process.env.PUBLIC_GAME_URL || 'https://worldofclaudecraft.com',
     syncNicknames: process.env.DISCORD_SYNC_NICKNAMES !== '0',
   };

@@ -5,6 +5,7 @@ import {
   allTierRoleNames,
   buildLevelNick,
   levelNickSuffix,
+  buildActivityMessage,
   buildLinkContent,
   buildRelayMessage,
   buildWelcomeMessage,
@@ -17,6 +18,7 @@ import {
   relayRespondUrl,
   tierRoleName,
   voiceMembersForChannel,
+  type ActivityItem,
   type RelayItem,
 } from '../bot/logic';
 
@@ -198,5 +200,81 @@ describe('relay (in-game "!" community posts)', () => {
     expect(msg.embeds[0].author.name).toBe('Aldric - LFG');
     expect(msg.embeds[0].author.icon_url).toBeUndefined();
     expect(msg.embeds[0].thumbnail).toBeUndefined();
+  });
+});
+
+describe('significant-activity cards', () => {
+  const linked = (name: string, id: string): ActivityItem['participants'][number] => ({
+    name,
+    discordUserId: id,
+    discordAvatar: 'abc',
+  });
+
+  it('level-20 card pings the subject and shows the cap', () => {
+    const msg = buildActivityMessage({
+      kind: 'levelup',
+      realm: 'Claudemoon',
+      profileUrl: 'https://woc.test/c/Aldric',
+      level: 20,
+      participants: [linked('Aldric', '111')],
+    }) as { content: string; allowed_mentions: { users: string[] }; embeds: Array<Record<string, any>> };
+    expect(msg.content).toBe('<@111>');
+    expect(msg.allowed_mentions).toEqual({ users: ['111'] });
+    expect(msg.embeds[0].title).toContain('level 20');
+    expect(msg.embeds[0].description).toContain('<@111>');
+    expect(msg.embeds[0].thumbnail.url).toContain('/avatars/111/abc');
+  });
+
+  it('rare-loot card uses the quality color and names the item', () => {
+    const msg = buildActivityMessage({
+      kind: 'rareloot',
+      realm: 'Claudemoon',
+      profileUrl: null,
+      itemName: 'Ember Greatsword',
+      quality: 'legendary',
+      participants: [linked('Aldric', '111')],
+    }) as { embeds: Array<Record<string, any>> };
+    expect(msg.embeds[0].title).toBe('Ember Greatsword');
+    expect(msg.embeds[0].color).toBe(0xff8000); // legendary orange
+    expect(msg.embeds[0].description).toContain('legendary');
+  });
+
+  it('duel card mentions both linked players and names the winner', () => {
+    const msg = buildActivityMessage({
+      kind: 'duel',
+      realm: 'Claudemoon',
+      profileUrl: null,
+      winnerName: 'Aldric',
+      loserName: 'Mira',
+      participants: [linked('Aldric', '111'), linked('Mira', '222')],
+    }) as { content: string; allowed_mentions: { users: string[] }; embeds: Array<Record<string, any>> };
+    expect(msg.embeds[0].title).toContain('Aldric wins');
+    expect(msg.embeds[0].description).toContain('<@111>');
+    expect(msg.embeds[0].description).toContain('<@222>');
+    expect(msg.allowed_mentions.users.sort()).toEqual(['111', '222']);
+  });
+
+  it('arena card shows the signed rating delta', () => {
+    const msg = buildActivityMessage({
+      kind: 'arena',
+      realm: 'Claudemoon',
+      profileUrl: null,
+      ratingDelta: 24,
+      participants: [linked('Aldric', '111')],
+    }) as { embeds: Array<Record<string, any>> };
+    expect(msg.embeds[0].description).toContain('+24');
+  });
+
+  it('renders a plain name (no ping) for an unlinked participant', () => {
+    const msg = buildActivityMessage({
+      kind: 'duel',
+      realm: 'Claudemoon',
+      profileUrl: null,
+      winnerName: 'Aldric',
+      loserName: 'Ghost',
+      participants: [linked('Aldric', '111')], // Ghost is not linked
+    }) as { allowed_mentions: { users: string[] }; embeds: Array<Record<string, any>> };
+    expect(msg.embeds[0].description).toContain('Ghost'); // plain, no mention
+    expect(msg.allowed_mentions.users).toEqual(['111']);
   });
 });
