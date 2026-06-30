@@ -1416,13 +1416,17 @@ export interface CharacterRow {
 }
 
 // The account's "top" character on this realm (highest level, then lifetime XP),
-// for the Discord /flex + nameplate flair. Realm-scoped like the other reads.
+// for the Discord nameplate flair / level-on-nickname. Realm-scoped like the other
+// reads. Fully parameterized: the only inputs (accountId, REALM) are bound as $1/$2;
+// the ORDER BY uses a static JSONB expression literal (Postgres does not allow a
+// bound parameter for an ORDER BY expression), so the query string carries no
+// interpolation and there is no injection surface.
 export async function highestCharacterForAccount(accountId: number): Promise<CharacterRow | null> {
   const res = await pool.query(
     `SELECT id, account_id, name, class, level, state, is_gm, force_rename
        FROM characters
       WHERE account_id = $1 AND realm = $2
-      ORDER BY level DESC, ${LIFETIME_XP_EXPR} DESC NULLS LAST, id ASC
+      ORDER BY level DESC, ((state->>'lifetimeXp')::bigint) DESC NULLS LAST, id ASC
       LIMIT 1`,
     [accountId, REALM],
   );
